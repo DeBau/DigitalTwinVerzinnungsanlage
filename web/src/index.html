@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zinnbad-Zwilling</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: Leitstand – 3D-Anlage links, Bedienfeld/Prozess/Diagramm/Signale rechts (am Handy untereinander) */
+:root {
+  --bg: #eef1f4;
+  --panel: #ffffff;
+  --panel-2: #f5f7f9;
+  --line: #d6dce3;
+  --fg: #1b232c;
+  --muted: #5d6b79;
+  --accent: #1f6fb2;      /* Druckluft-Blau */
+  --led: #e39b00;         /* Signal-LED Bernstein */
+  --ok: #1f8a4c;
+  --fault: #c8312b;
+  --tin: #8b97a3;         /* Zinn */
+  --plate: #c9cdd2;       /* Bedienfeld-Frontplatte */
+  --plate-fg: #2a3038;
+  --viewport-top: #dfe5eb;
+  --viewport-bottom: #c9d2db;
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-label: "IBM Plex Sans Condensed", "Segoe UI", "Arial Narrow", sans-serif;
+  --font-data: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161c; --panel: #171e26; --panel-2: #1d2630; --line: #2a3541; --fg: #e3e9ef; --muted: #8d9cab;
+    --accent: #5aa7e6; --led: #ffb31a; --ok: #3cc277; --fault: #ff5d55; --tin: #a9b4bf;
+    --plate: #3a424b; --plate-fg: #e3e9ef;
+    --viewport-top: #1d2732; --viewport-bottom: #0f141a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161c; --panel: #171e26; --panel-2: #1d2630; --line: #2a3541; --fg: #e3e9ef; --muted: #8d9cab;
+  --accent: #5aa7e6; --led: #ffb31a; --ok: #3cc277; --fault: #ff5d55; --tin: #a9b4bf;
+  --plate: #3a424b; --plate-fg: #e3e9ef;
+  --viewport-top: #1d2732; --viewport-bottom: #0f141a; color-scheme: dark;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(--font-ui); }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+.app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 400px; }
+.app.seite-zu { grid-template-columns: minmax(0, 1fr); }
+.stage { position: relative; min-width: 0; background: linear-gradient(var(--viewport-top), var(--viewport-bottom)); overflow: hidden; }
+#viewport { position: absolute; inset: 0; }
+#viewport canvas { display: block; }
+
+.stage-head { position: absolute; top: 14px; left: 16px; right: 16px; display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; pointer-events: none; flex-wrap: wrap; }
+.stage-head h1 { margin: 0; font: 600 18px/1.2 var(--font-label); letter-spacing: .01em; text-wrap: balance; }
+.stage-head p { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; max-width: 46ch; }
+.readout { display: flex; gap: 6px; pointer-events: auto; flex-wrap: wrap; }
+.readout div { background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; min-width: 78px; }
+.readout span { display: block; font: 500 10px/1.2 var(--font-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.readout b { font: 500 15px/1.3 var(--font-data); font-variant-numeric: tabular-nums; }
+.readout b.warn { color: var(--fault); }
+
+.stage-foot { position: absolute; left: 16px; bottom: 14px; right: 16px; display: flex; gap: 6px; flex-wrap: wrap; }
+.chip-btn { font: 500 12px var(--font-label); letter-spacing: .03em; color: var(--fg); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+.chip-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.chip-btn:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.chip-sel { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--font-label); letter-spacing: .03em; color: var(--muted); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 2px 4px 2px 11px; }
+.chip-sel select { font: 500 12px var(--font-label); color: var(--fg); background: transparent; border: 0; padding: 3px 4px; cursor: pointer; max-width: 230px; }
+.chip-sel select option, .chip-sel select optgroup { color: #1b232c; background: #fff; }
+.legende { position: absolute; left: 16px; bottom: 52px; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px 9px; font-size: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.14); max-width: min(330px, calc(100% - 32px)); }
+.legende-kopf { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.legende-kopf b { font: 600 11px/1.2 var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.legende-kopf button { border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1; cursor: pointer; padding: 0 2px; }
+.legende dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; }
+.legende dt { font-weight: 500; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.legende dd { margin: 0; color: var(--muted); }
+.legende kbd { font: 500 10.5px var(--font-data); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 3px; padding: 0 4px; }
+.maus { width: 11px; height: 15px; border: 1.5px solid currentColor; border-radius: 6px; position: relative; flex: none; opacity: .8; }
+.maus::before { content: ""; position: absolute; top: 0; height: 6px; width: 50%; background: var(--accent); }
+.maus.l::before { left: 0; border-radius: 4px 0 0 0; }
+.maus.r::before { right: 0; border-radius: 0 4px 0 0; }
+.maus.m::before { left: 50%; width: 2px; height: 4px; top: 2px; transform: translateX(-50%); border-radius: 1px; }
+@media (max-width: 700px) { .legende { display: none; } }
+.toast { position: absolute; left: 50%; top: 84px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--fault); border-radius: 8px; padding: 8px 14px; font-size: 13px; box-shadow: 0 6px 24px rgba(0,0,0,.18); max-width: min(440px, calc(100% - 32px)); }
+.toast b { color: var(--fault); font-family: var(--font-label); margin-right: 6px; }
+.offline-banner { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--panel); border: 1px solid var(--fault); color: var(--fg); border-radius: 8px; padding: 12px 16px; max-width: 320px; text-align: center; box-shadow: 0 6px 24px rgba(0,0,0,.18); }
+.offline-banner b { color: var(--fault); display: block; font-family: var(--font-label); }
+
+.tag3d { font: 500 11px/1 var(--font-label); letter-spacing: .04em; padding: 3px 6px; border-radius: 4px; background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; transition: border-color .15s, color .15s; }
+.tag3d.on { border-color: var(--led); color: var(--fg); box-shadow: 0 0 0 2px color-mix(in srgb, var(--led) 30%, transparent); }
+.tag3d.cyl { color: var(--fg); font-weight: 600; }
+.tag3d.klein { font-size: 10px; padding: 2px 5px; opacity: .6; }
+.tag3d.klein.on { opacity: 1; }
+.tag3d.weg { visibility: hidden; }
+
+/* Seitenspalte */
+.side { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; min-width: 0; display: flex; flex-direction: column; }
+.side[hidden] { display: none; }
+.side-top { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 8px; padding: 9px 10px 9px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.side-top b { flex: 1; font: 600 11px/1.2 var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.side-mini { font: 500 11px var(--font-label); color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; cursor: pointer; white-space: nowrap; }
+.side-mini:hover { color: var(--fg); border-color: var(--accent); }
+.side-mini.side-x { font-size: 15px; line-height: 1; padding: 2px 8px 4px; border-radius: 6px; }
+
+/* Aufklappbare Bereiche */
+.sec { border-bottom: 1px solid var(--line); }
+.sec > summary, .sub > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 12px 16px; user-select: none; }
+.sec > summary::-webkit-details-marker, .sub > summary::-webkit-details-marker { display: none; }
+.sec > summary:hover h2, .sub > summary:hover h2 { color: var(--fg); }
+.sec > summary::after, .sub > summary::after { content: "▸"; margin-left: auto; color: var(--muted); font-size: 16px; line-height: 1; transition: transform .15s; }
+.sec[open] > summary::after, .sub[open] > summary::after { transform: rotate(90deg); }
+.sec > .inhalt { padding: 0 16px 14px; display: grid; gap: 10px; }
+.sec h2 { margin: 0; font: 600 11px/1.2 var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.sub { border: 1px solid var(--line); border-radius: 7px; background: var(--panel-2); }
+.sub + .sub { margin-top: 8px; }
+.sub > summary { padding: 8px 10px; }
+.sub h2 { font-size: 10.5px; letter-spacing: .08em; }
+.sub > .inhalt { padding: 0 10px 10px; display: grid; gap: 10px; }
+.conn { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; align-items: center; font-size: 13px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.dot.ok { background: var(--ok); } .dot.warn { background: var(--led); } .dot.bad { background: var(--fault); }
+.conn small { grid-column: 2; color: var(--muted); font-size: 12px; margin-top: -4px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.seg button { font: 500 13px var(--font-ui); padding: 7px 8px; border: 0; background: var(--panel-2); color: var(--muted); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.hint { margin: 0; color: var(--muted); font-size: 12px; }
+
+/* Bedienfeld wie im Arbeitsblatt */
+.plate { background: var(--plate); color: var(--plate-fg); border-radius: 6px; padding: 12px 12px 14px; display: grid; gap: 12px; border: 1px solid color-mix(in srgb, var(--plate-fg) 18%, transparent); box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 35%, transparent); }
+.plate h3 { margin: 0; text-align: center; font: 600 13px/1 var(--font-label); letter-spacing: .14em; text-transform: uppercase; }
+.plate .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; align-items: start; justify-items: center; }
+.plate .row.four { grid-template-columns: repeat(4, 1fr); }
+.op { display: grid; justify-items: center; gap: 5px; text-align: center; }
+.op small { font: 500 10.5px/1.15 var(--font-label); letter-spacing: .03em; }
+.op code { font: 400 10px var(--font-data); opacity: .7; }
+.pb { width: 46px; height: 46px; border-radius: 50%; cursor: pointer; border: 3px solid #1d2126; background: radial-gradient(circle at 40% 35%, #ffffff, #dfe3e7 60%, #b9c0c7); box-shadow: 0 3px 0 #1d2126; position: relative; }
+.pb::after { content: ""; position: absolute; left: 50%; top: 18%; bottom: 18%; width: 5px; transform: translateX(-50%); background: #1d2126; border-radius: 3px; }
+.pb.aus { border-color: #e9b800; background: radial-gradient(circle at 40% 35%, #ff7a6e, #d42a1f 60%, #9b170f); box-shadow: 0 3px 0 #8a6d00; }
+.pb.aus::after { display: none; }
+.pb.down, .pb:active { transform: translateY(3px); box-shadow: none; }
+.lamp { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #2a2f35; position: relative; background: var(--off, #6b6f73); }
+.lamp::before, .lamp::after { content: ""; position: absolute; left: 50%; top: 50%; width: 70%; height: 2px; background: rgba(0,0,0,.45); transform: translate(-50%, -50%) rotate(45deg); }
+.lamp::after { transform: translate(-50%, -50%) rotate(-45deg); }
+.lamp.on { background: var(--c); box-shadow: 0 0 12px var(--c), 0 0 2px #fff inset; }
+.lamp.white { --c: #f4f7fb; --off: #8d9296; }
+.lamp.amber { --c: #ffae1a; --off: #7a6436; }
+.lamp.red { --c: #ff3b2f; --off: #6e3632; }
+.lamp.green { --c: #3be27a; --off: #3c6a4c; }
+.opt { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.opt input { accent-color: var(--accent); margin: 0; }
+
+/* Not-Aus, Wahl- und Schlüsselschalter, Pfeiltaster */
+.notaus { width: 58px; height: 58px; border-radius: 50%; cursor: pointer; border: 0; position: relative; background: radial-gradient(circle, #f2c200 0 62%, #1d2126 63% 66%, #f2c200 67%); box-shadow: 0 2px 0 #8a6d00; }
+.notaus::after { content: ""; position: absolute; inset: 11px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #ff6b5e, #d0241a 60%, #8f150e); box-shadow: 0 4px 0 #6b0f09; transition: transform .1s, box-shadow .1s; }
+.notaus[aria-pressed="true"]::after { transform: translateY(3px) scale(.96); box-shadow: 0 1px 0 #6b0f09; }
+.pb.blau { border-color: #1d2126; background: radial-gradient(circle at 40% 35%, #b9dcff, #3d8de0 60%, #1d5ea8); }
+.pb.blau::after, .pb.gruen::after, .pb.rot::after { display: none; }
+.pb.blau.on { box-shadow: 0 3px 0 #1d2126, 0 0 14px #5fb0ff; background: radial-gradient(circle at 40% 35%, #e9f5ff, #7cc0ff 60%, #3d8de0); }
+.pb.gruen { background: radial-gradient(circle at 40% 35%, #8ef0b2, #23a35a 60%, #136b39); }
+.pb.schwarz { background: radial-gradient(circle at 40% 35%, #6b7178, #2b2f34 60%, #15181b); }
+.pb.schwarz::after { background: #e9ecef; }
+.pb.rot { border-color: #1d2126; background: radial-gradient(circle at 40% 35%, #ff7a6e, #d42a1f 60%, #9b170f); }
+.pb .pf { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font: 700 16px/1 var(--font-ui); text-shadow: 0 1px 1px rgba(0,0,0,.5); pointer-events: none; }
+.wahl { width: 52px; height: 52px; border-radius: 50%; border: 3px solid #1d2126; background: radial-gradient(circle at 40% 35%, #5a6068, #2a2e33 70%); cursor: pointer; position: relative; }
+.wahl::after { content: ""; position: absolute; left: 50%; top: 6px; bottom: 6px; width: 12px; margin-left: -6px; border-radius: 5px; background: linear-gradient(#e7eaed, #b8bec4); transform: rotate(-45deg); transition: transform .15s; }
+.wahl[aria-pressed="true"]::after { transform: rotate(45deg); }
+.wahl.schluessel { background: radial-gradient(circle at 40% 35%, #d9dde1, #9aa1a8 70%); }
+.wahl.schluessel::after { width: 6px; margin-left: -3px; top: 10px; bottom: 10px; background: linear-gradient(#6b5a24, #c9a54a); }
+/* Stellungsmarke am zeigenden (oberen) Ende - wie der Stahlwuerfel am 3D-Knebel */
+.wahl::before { content: ""; position: absolute; left: 50%; top: 2px; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: #f2f5f8; box-shadow: 0 0 0 1px rgba(0,0,0,.55); transform-origin: 50% 21px; transform: rotate(-45deg); transition: transform .15s; z-index: 1; }
+.wahl[aria-pressed="true"]::before { transform: rotate(45deg); }
+.wahl.schluessel::before { background: #c9a54a; }
+/* Stellungstexte stehen ueber dem Schalter - genau wie auf dem echten Tableau */
+.stellung { order: -1; display: flex; justify-content: space-between; width: 64px; font: 600 9.5px var(--font-label); letter-spacing: .04em; }
+.plate.klein { padding: 10px; gap: 10px; }
+.plate .row.five { grid-template-columns: repeat(5, 1fr); }
+.betrieb { display: grid; gap: 4px; }
+.betrieb > span { font: 500 12.5px var(--font-ui); }
+.seg.klein button { font-size: 12px; padding: 5px 6px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Prozess */
+.proc { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gauge { border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; background: var(--panel-2); display: grid; gap: 6px; min-width: 0; }
+.gauge .top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.gauge span { font: 500 10.5px var(--font-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.gauge b { font: 500 15px var(--font-data); font-variant-numeric: tabular-nums; }
+.bar { height: 6px; border-radius: 3px; background: var(--line); position: relative; overflow: visible; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--tin); }
+.bar i.hot { background: var(--led); }
+.bar em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--fg); opacity: .55; }
+.btnrow { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn { font: 500 12.5px var(--font-ui); padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--fg); cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.btn-reset { justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
+.btn-reset::before { content: "↺"; font-size: 15px; line-height: 1; color: var(--accent); }
+.param { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; font-size: 13px; }
+.param input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+.param output { font: 500 13px var(--font-data); font-variant-numeric: tabular-nums; }
+
+/* Diagramm */
+#wz { width: 100%; height: 190px; display: block; }
+.legend { display: flex; justify-content: space-between; font: 400 11px var(--font-data); color: var(--muted); }
+
+/* Ereignisse */
+.events { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 180px; overflow-y: auto; font-size: 12.5px; }
+.events li { display: grid; grid-template-columns: auto 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+.events time { font: 400 11.5px var(--font-data); color: var(--muted); font-variant-numeric: tabular-nums; }
+.events li.err span { color: var(--fault); }
+.events li.ok span::before { content: "✓ "; color: var(--ok); }
+.events li.empty { display: block; color: var(--muted); }
+
+/* Signalmonitor */
+.mon-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.mon-head input { font: 13px var(--font-ui); padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); color: var(--fg); width: 140px; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th { text-align: left; font: 500 10.5px var(--font-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 4px; border-bottom: 1px solid var(--line); }
+td { padding: 5px 4px; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); vertical-align: middle; }
+td.adr { font-family: var(--font-data); color: var(--muted); white-space: nowrap; }
+td.name { font-family: var(--font-label); font-weight: 500; }
+td.name small { display: block; font-family: var(--font-ui); font-weight: 400; color: var(--muted); font-size: 11px; }
+tr.dir-row td { font: 600 10.5px var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); padding-top: 10px; border-bottom: 0; }
+tr.forced td { background: color-mix(in srgb, var(--led) 12%, transparent); }
+.led { width: 11px; height: 11px; border-radius: 50%; background: var(--line); border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent); }
+.led.on { background: var(--led); box-shadow: 0 0 6px var(--led); }
+.force { display: inline-grid; grid-template-columns: repeat(3, auto); border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.force button { font: 500 11px var(--font-data); padding: 2px 6px; border: 0; background: var(--panel-2); color: var(--muted); cursor: pointer; }
+.force button + button { border-left: 1px solid var(--line); }
+.force button[aria-pressed="true"] { background: var(--fg); color: var(--panel); }
+.force button[data-f="1"][aria-pressed="true"], .force button[data-f="0"][aria-pressed="true"] { background: var(--led); color: #1b1300; }
+.src { font: 400 11px var(--font-data); color: var(--muted); }
+.wert { font: 500 11px var(--font-data); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: 60vh auto; height: auto; }
+  .side { border-left: 0; border-top: 1px solid var(--line); overflow: visible; }
+  .stage-head p { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "./lib/three.module.min.js",
+  "three/addons/": "./lib/addons/"
+} }
+</script>
+</head>
+<body>
+<div class="app">
+  <section class="stage" aria-label="3D-Ansicht">
+    <div id="viewport"></div>
+    <div class="stage-head">
+      <div>
+        <h1>Zinnbad</h1>
+        <p>Verzinnen von Kleinteilen im Materialkorb · Einhängen −MM1, Tauchen −MM2, Verschieben −MM3, Abstreifen −MM4</p>
+      </div>
+      <div class="readout" aria-live="polite">
+        <div><span>Schritt</span><b id="ro-step">–</b></div>
+        <div><span>Zinn</span><b id="ro-temp">– °C</b></div>
+        <div><span>Füllhöhe</span><b id="ro-level">– %</b></div>
+        <div><span>Verzinnt</span><b id="ro-count">0</b></div>
+      </div>
+    </div>
+    <div class="toast" id="toast" hidden><b>Achtung</b><span id="toast-text"></span></div>
+    <div class="stage-foot">
+      <button class="chip-btn" id="btn-labels" aria-pressed="true" type="button">Beschriftung</button>
+      <button class="chip-btn" id="btn-grafik" type="button" title="Grafikqualität: Auto regelt nach Bildrate">Grafik: Auto</button>
+      <button class="chip-btn" id="btn-cam" type="button">Ansicht zurücksetzen</button>
+      <label class="chip-sel"><span>Ansicht</span><select id="ansicht-wahl" aria-label="Feste Ansicht wählen"></select></label>
+      <button class="chip-btn" id="btn-hilfe" aria-pressed="true" type="button" title="Maussteuerung anzeigen">Steuerung</button>
+      <button class="chip-btn" id="btn-schrank" aria-pressed="false" type="button">Schaltschrank öffnen</button>
+      <button class="chip-btn" id="btn-side" aria-pressed="true" type="button" title="Seitenleiste ein- und ausblenden">Seitenleiste</button>
+    </div>
+    <div class="legende" id="legende" role="note" aria-label="Maussteuerung">
+      <div class="legende-kopf"><b>Steuerung</b><button type="button" id="legende-zu" aria-label="Legende ausblenden">×</button></div>
+      <dl>
+        <dt><span class="maus l"></span>Linke Taste ziehen</dt><dd>Drehen um den Drehpunkt</dd>
+        <dt><span class="maus r"></span>Rechte Taste ziehen</dt><dd>Verschieben</dd>
+        <dt><span class="maus m"></span>Mausrad</dt><dd>Zoomen</dd>
+        <dt><span class="maus l"></span>Doppelklick</dt><dd>Drehpunkt auf Bauteil setzen</dd>
+        <dt><span class="maus l"></span>Klick auf Taster</dt><dd>Bedienen (Taster, Not-Halt, Schalter)</dd>
+        <dt><kbd>Shift</kbd> + Linke Taste</dt><dd>Verschieben (Touchpad)</dd>
+        <dt>Touch</dt><dd>1 Finger drehen · 2 Finger zoomen/schieben</dd>
+      </dl>
+    </div>
+    <div class="offline-banner" id="offline-banner" hidden>
+      <b>Keine Verbindung zur SPS</b>
+      <span id="offline-text">Bridge nicht erreichbar. Ausgänge bleiben auf dem letzten Stand.</span>
+    </div>
+  </section>
+
+  <aside class="side" id="side">
+    <div class="side-top">
+      <b>Bedienen &amp; Beobachten</b>
+      <button type="button" class="side-mini" id="side-alle" title="Alle Bereiche auf- oder zuklappen">Alle zuklappen</button>
+      <button type="button" class="side-mini side-x" id="side-zu" aria-label="Seitenleiste ausblenden" title="Seitenleiste ausblenden">×</button>
+    </div>
+
+    <details class="sec" id="sec-verbindung" open>
+      <summary><h2>Verbindung</h2></summary>
+      <div class="inhalt">
+        <div class="conn">
+          <span class="dot" id="dot-bridge"></span><span id="txt-bridge">Bridge: wird gesucht …</span>
+          <span class="dot" id="dot-plc"></span><span id="txt-plc">PLCSIM Advanced: –</span>
+          <small id="txt-plc-detail"></small>
+        </div>
+        <div class="seg" role="group" aria-label="Quelle der Ausgänge">
+          <button type="button" id="mode-sps" aria-pressed="false">PLCSIM&nbsp;Advanced</button>
+          <button type="button" id="mode-demo" aria-pressed="true">Demo ohne SPS</button>
+        </div>
+        <p class="hint" id="mode-hint"></p>
+        <button type="button" class="btn btn-reset" id="btn-reset">Anlage zurücksetzen</button>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-umfang">
+      <summary><h2>Übungsumfang</h2></summary>
+      <div class="inhalt">
+        <div class="betrieb">
+          <span>Band, Anschlag, Vereinzeler</span>
+          <div class="seg klein" role="group" aria-label="Steuerung des Bandes">
+            <button type="button" id="bm-auto" aria-pressed="true">Bandmodul automatisch</button>
+            <button type="button" id="bm-sps" aria-pressed="false">SPS steuert</button>
+          </div>
+        </div>
+        <div class="betrieb">
+          <span>Zinnbad: Temperatur und Füllstand</span>
+          <div class="seg klein" role="group" aria-label="Regelung des Zinnbads">
+            <button type="button" id="zb-auto" aria-pressed="true">Regler automatisch</button>
+            <button type="button" id="zb-sps" aria-pressed="false">SPS regelt</button>
+          </div>
+        </div>
+        <p class="hint" id="betrieb-hint"></p>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-bedienfeld" open>
+      <summary><h2>Bedienfeld der Anlage</h2></summary>
+      <div class="inhalt">
+        <div class="plate">
+          <div class="row">
+            <div class="op"><button type="button" class="notaus" id="sf0" aria-pressed="false" aria-label="NOT-HALT (SF0)"></button><small>NOT-HALT</small><code>−SF0</code></div>
+            <div class="op"><button type="button" class="pb blau" id="sf4" aria-label="Quittieren (SF4)"></button><small>Quittieren</small><code>−SF4 / −PF5</code></div>
+            <div class="op"><button type="button" class="wahl" id="sa1" aria-pressed="true" aria-label="Wahlschalter Einzel/Automatik (SA1)"></button><span class="stellung"><span>EINZEL</span><span>AUTO</span></span><code>−SA1</code></div>
+          </div>
+          <h3>Betrieb</h3>
+          <div class="row">
+            <div class="op"><button type="button" class="pb gruen" id="sf1" aria-label="START (SF1)"></button><small>START</small><code>−SF1</code></div>
+            <div class="op"><button type="button" class="pb rot" id="sf2" aria-label="STOP (SF2)"></button><small>STOP</small><code>−SF2</code></div>
+            <div class="op"><span class="lamp white" id="pf1"></span><small>Anlage läuft</small><code>−PF1</code></div>
+          </div>
+          <h3>Meldungen</h3>
+          <div class="row">
+            <div class="op"><span class="lamp amber" id="pf2"></span><small>Zinnbad Betriebs­temperatur</small><code>−PF2</code></div>
+            <div class="op"><span class="lamp red" id="pf3"></span><small>Füllhöhe unter­schritten</small><code>−PF3</code></div>
+            <div class="op"><span class="lamp green" id="pf4"></span><small>Materialkorb vorhanden</small><code>−PF4</code></div>
+          </div>
+        </div>
+        <button type="button" class="btn" id="btn-lv">Person durch den Lichtvorhang −BG20 gehen lassen</button>
+        <label class="opt" for="sf2-nc"><input type="checkbox" id="sf2-nc" checked> STOP −SF2 als Öffner verdrahtet (unbetätigt = 1)</label>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-vorort">
+      <summary><h2>Vor-Ort-Steuerstellen</h2></summary>
+      <div class="inhalt">
+        <details class="sub" id="sec-s10">
+          <summary><h2>Vor-Ort-Steuerstelle Band (−S10)</h2></summary>
+          <div class="inhalt">
+            <div class="plate klein">
+              <div class="row five">
+                <div class="op"><button type="button" class="wahl schluessel" id="sa2" aria-pressed="false" aria-label="Schlüsselschalter Vor-Ort (SA2)"></button><span class="stellung"><span>0</span><span>1</span></span><code>−SA2</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf6" aria-label="Band Linkslauf (SF6)"><span class="pf">◀</span></button><small>Links</small><code>−SF6</code></div>
+                <div class="op"><button type="button" class="pb rot" id="sf7" aria-label="Band Halt (SF7)"><span class="pf">0</span></button><small>Halt</small><code>−SF7</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf5" aria-label="Band Rechtslauf (SF5)"><span class="pf">▶</span></button><small>Rechts</small><code>−SF5</code></div>
+                <div class="op"><span class="lamp white" id="pf6"></span><small>Vor-Ort aktiv</small><code>−PF6</code></div>
+              </div>
+              <div class="row">
+                <div class="op"><button type="button" class="notaus" id="sf8" aria-pressed="false" aria-label="NOT-HALT Vor-Ort (SF8)"></button><small>NOT-HALT</small><code>−SF8</code></div>
+                <div class="op"><button type="button" class="pb blau" id="sf41" aria-label="Quittieren Vor-Ort S10 (SF41)"></button><small>Quittieren</small><code>−SF41 / −PF12</code></div>
+              </div>
+            </div>
+          </div>
+        </details>
+        <details class="sub" id="sec-s20">
+          <summary><h2>Vor-Ort-Steuerstelle Band 2 (−S20)</h2></summary>
+          <div class="inhalt">
+            <div class="plate klein">
+              <div class="row five">
+                <div class="op"><button type="button" class="wahl schluessel" id="sa4" aria-pressed="false" aria-label="Schlüsselschalter Vor-Ort Band 2 (SA4)"></button><span class="stellung"><span>0</span><span>1</span></span><code>−SA4</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf24" aria-label="Band 2 Linkslauf (SF24)"><span class="pf">◀</span></button><small>Links</small><code>−SF24</code></div>
+                <div class="op"><button type="button" class="pb rot" id="sf25" aria-label="Band 2 Halt (SF25)"><span class="pf">0</span></button><small>Halt</small><code>−SF25</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf23" aria-label="Band 2 Rechtslauf (SF23)"><span class="pf">▶</span></button><small>Rechts</small><code>−SF23</code></div>
+                <div class="op"><span class="lamp white" id="pf8"></span><small>Vor-Ort aktiv</small><code>−PF8</code></div>
+              </div>
+              <div class="row">
+                <div class="op"><button type="button" class="notaus" id="sf9" aria-pressed="false" aria-label="NOT-HALT Vor-Ort Band 2 (SF9)"></button><small>NOT-HALT</small><code>−SF9</code></div>
+                <div class="op"><button type="button" class="pb blau" id="sf42" aria-label="Quittieren Vor-Ort S20 (SF42)"></button><small>Quittieren</small><code>−SF42 / −PF13</code></div>
+              </div>
+            </div>
+          </div>
+        </details>
+        <details class="sub" id="sec-s30">
+          <summary><h2>Vor-Ort-Steuerstelle Rollenkurve (−S30)</h2></summary>
+          <div class="inhalt">
+            <div class="plate klein">
+              <div class="row five">
+                <div class="op"><button type="button" class="wahl schluessel" id="sa5" aria-pressed="false" aria-label="Schlüsselschalter Vor-Ort Rollenkurve (SA5)"></button><span class="stellung"><span>0</span><span>1</span></span><code>−SA5</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf31" aria-label="Rollenkurve Linkslauf (SF31)"><span class="pf">◀</span></button><small>Links</small><code>−SF31</code></div>
+                <div class="op"><button type="button" class="pb rot" id="sf32" aria-label="Rollenkurve Halt (SF32)"><span class="pf">0</span></button><small>Halt</small><code>−SF32</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf30" aria-label="Rollenkurve Rechtslauf (SF30)"><span class="pf">▶</span></button><small>Rechts</small><code>−SF30</code></div>
+                <div class="op"><span class="lamp white" id="pf9"></span><small>Vor-Ort aktiv</small><code>−PF9</code></div>
+              </div>
+              <div class="row">
+                <div class="op"><button type="button" class="notaus" id="sf10" aria-pressed="false" aria-label="NOT-HALT Vor-Ort Rollenkurve (SF10)"></button><small>NOT-HALT</small><code>−SF10</code></div>
+                <div class="op"><button type="button" class="pb blau" id="sf43" aria-label="Quittieren Vor-Ort S30 (SF43)"></button><small>Quittieren</small><code>−SF43 / −PF14</code></div>
+              </div>
+            </div>
+          </div>
+        </details>
+        <details class="sub" id="sec-s40">
+          <summary><h2>Vor-Ort-Steuerstelle Prüfstation (−S40)</h2></summary>
+          <div class="inhalt">
+            <div class="plate klein">
+              <div class="row four">
+                <div class="op"><button type="button" class="wahl schluessel" id="sa6" aria-pressed="false" aria-label="Schlüsselschalter Vor-Ort Prüfstation (SA6)"></button><span class="stellung"><span>0</span><span>1</span></span><code>−SA6</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf34" aria-label="Vibrorinne und Prüfband EIN (SF34)"><span class="pf">I</span></button><small>Prüfung EIN</small><code>−SF34</code></div>
+                <div class="op"><button type="button" class="pb rot" id="sf35" aria-label="Vibrorinne und Prüfband AUS (SF35)"><span class="pf">0</span></button><small>Prüfung AUS</small><code>−SF35</code></div>
+                <div class="op"><span class="lamp white" id="pf11"></span><small>Vor-Ort aktiv</small><code>−PF11</code></div>
+              </div>
+              <div class="row four">
+                <div class="op"><button type="button" class="pb gruen" id="sf37" aria-label="Muldenrollen zurück tippen (SF37)"><span class="pf">◀</span></button><small>Mulde zurück</small><code>−SF37</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf36" aria-label="Muldenrollen vor tippen (SF36)"><span class="pf">▶</span></button><small>Mulde vor</small><code>−SF36</code></div>
+                <div class="op"><button type="button" class="pb" id="sf38" aria-label="Kipper kippen (SF38)"></button><small>Kippen</small><code>−SF38</code></div>
+                <div class="op"><button type="button" class="pb schwarz" id="sf39" aria-label="Kipper zurück (SF39)"></button><small>Kipper zurück</small><code>−SF39</code></div>
+              </div>
+              <div class="row">
+                <div class="op"><button type="button" class="notaus" id="sf33" aria-pressed="false" aria-label="NOT-HALT Vor-Ort Prüfstation (SF33)"></button><small>NOT-HALT</small><code>−SF33</code></div>
+                <div class="op"><button type="button" class="pb blau" id="sf44" aria-label="Quittieren Vor-Ort S40 (SF44)"></button><small>Quittieren</small><code>−SF44 / −PF15</code></div>
+              </div>
+            </div>
+          </div>
+        </details>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-schrank">
+      <summary><h2>Schaltschranktür −A1: Handbetrieb</h2></summary>
+      <div class="inhalt">
+        <div class="plate klein">
+          <div class="row">
+            <div class="op"><button type="button" class="wahl" id="sa3" aria-pressed="false" aria-label="Wahlschalter Auto/Hand (SA3)"></button><span class="stellung"><span>AUTO</span><span>HAND</span></span><code>−SA3</code></div>
+            <div class="op"><span class="lamp amber" id="pf7"></span><small>Hand aktiv</small><code>−PF7</code></div>
+          </div>
+          <div class="row four">
+            <div class="op"><button type="button" class="pb" id="sf11" aria-label="−MM1 einhängen"></button><small>−MM1 einhängen</small><code>−SF11</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf12" aria-label="−MM1 lösen"></button><small>−MM1 lösen</small><code>−SF12</code></div>
+            <div class="op"><button type="button" class="pb" id="sf13" aria-label="−MM2 senken"></button><small>−MM2 senken</small><code>−SF13</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf14" aria-label="−MM2 anheben"></button><small>−MM2 anheben</small><code>−SF14</code></div>
+            <div class="op"><button type="button" class="pb" id="sf15" aria-label="−MM3 zum Bad"></button><small>−MM3 zum Bad</small><code>−SF15</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf16" aria-label="−MM3 zum Band"></button><small>−MM3 zum Band</small><code>−SF16</code></div>
+            <div class="op"><button type="button" class="pb" id="sf17" aria-label="−MM4 Bad zu"></button><small>−MM4 Bad zu</small><code>−SF17</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf18" aria-label="−MM4 Bad auf"></button><small>−MM4 Bad auf</small><code>−SF18</code></div>
+            <div class="op"><button type="button" class="pb" id="sf19" aria-label="−MM5 Anschlag öffnen"></button><small>−MM5 Anschlag öffnen</small><code>−SF19</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf20" aria-label="−MM5 Anschlag schließen"></button><small>−MM5 Anschlag schließen</small><code>−SF20</code></div>
+            <div class="op"><button type="button" class="pb" id="sf21" aria-label="−MM6 Vereinzeler schließen"></button><small>−MM6 Vereinzeler schließen</small><code>−SF21</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf22" aria-label="−MM6 Vereinzeler öffnen"></button><small>−MM6 Vereinzeler öffnen</small><code>−SF22</code></div>
+            <div class="op"><button type="button" class="pb" id="sf28" aria-label="−MM8 Kipper kippen"></button><small>−MM8 Kipper kippen</small><code>−SF28</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf29" aria-label="−MM8 Kipper zurück"></button><small>−MM8 Kipper zurück</small><code>−SF29</code></div>
+          </div>
+        </div>
+        <p class="hint">Hand: MM1…MM4 im Tippbetrieb (Spule nur solange gedrückt, mit Verriegelungen). MM5, MM6 und MM8 hängen an monostabilen Ventilen: Selbsthaltung in der SPS („öffnen/kippen“ setzt, „zurück/schließen“ setzt zurück). Die Rollenkurve −MA6 wird nur über die Vor-Ort-Steuerstelle −S30 bedient. Taster-Eingänge %I3.0…%I3.7, %I5.0…%I5.3, %I8.2/%I8.3.</p>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-prozess" open>
+      <summary><h2>Prozess</h2></summary>
+      <div class="inhalt">
+        <div class="proc">
+          <div class="gauge">
+            <div class="top"><span>Zinn −BT1</span><b id="g-temp">– °C</b></div>
+            <div class="bar"><i class="hot" id="g-temp-bar"></i><em id="g-temp-mark"></em></div>
+          </div>
+          <div class="gauge">
+            <div class="top"><span>Füllhöhe −BL1</span><b id="g-level">– %</b></div>
+            <div class="bar"><i id="g-level-bar"></i><em id="g-level-mark"></em></div>
+          </div>
+        </div>
+        <div class="btnrow">
+          <button type="button" class="btn" id="btn-heizung" aria-pressed="true">Heizung ein</button>
+          <button type="button" class="btn" id="btn-fuellen">Zinn nachfüllen</button>
+          <button type="button" class="btn" id="btn-korb">Korb auflegen</button>
+          <button type="button" class="btn" id="btn-zufuhr" aria-pressed="true">Körbe automatisch zuführen</button>
+        </div>
+        <p class="hint" id="bad-info"></p>
+        <div class="param">
+          <label for="p-speed">Zylindergeschwindigkeit (Drosseln)</label><output id="o-speed" for="p-speed">100 %</output>
+          <input type="range" id="p-speed" min="0.3" max="2" step="0.1" value="1">
+        </div>
+        <p class="hint">Jedes Tauchen verbraucht Zinn. Unter 40&nbsp;% meldet −BG10 „Füllhöhe unterschritten“, unter 250&nbsp;°C fällt −BG9 ab. Temperatur (−BT1, 0…400&nbsp;°C) und Füllstand (−BL1, 0…100&nbsp;%) liegen zusätzlich als Analogwerte 0…27648 an.</p>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-diagramm">
+      <summary><h2>Weg-Zeit-Diagramm (live, 60&nbsp;s)</h2></summary>
+      <div class="inhalt">
+        <canvas id="wz" aria-label="Weg-Zeit-Diagramm der Zylinder"></canvas>
+        <div class="legend"><span>−60 s</span><span>Schrittnummern der Demo-SPS oben</span><span>jetzt</span></div>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-ereignisse" open>
+      <summary><h2>Ereignisse</h2></summary>
+      <div class="inhalt">
+        <ul class="events" id="events"><li class="empty">Noch keine Ereignisse.</li></ul>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-monitor">
+      <summary><h2>Signalmonitor</h2></summary>
+      <div class="inhalt">
+        <div class="mon-head">
+          <input type="search" id="mon-filter" placeholder="Filtern …" aria-label="Signale filtern">
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th></th><th>Signal</th><th>Adresse</th><th>Forcen</th></tr></thead>
+            <tbody id="mon-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+  </aside>
+</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

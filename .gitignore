@@ -1,0 +1,5 @@
+web/node_modules/
+Bridge/*.exe
+
+# Werkzeuge / Zwischenstaende
+web/_*_tmp.mjs

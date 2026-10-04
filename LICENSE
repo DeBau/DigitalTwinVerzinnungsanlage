@@ -1,0 +1,104 @@
+Digitaler Zwilling Verzinnungsanlage
+Copyright © 2026 Bauer Automation Solutions, Dennis Bauer
+
+Lizenz für Ausbildung und Lehre – nicht für den Verkauf
+(Version 1.0, Stand Oktober 2026)
+
+
+1. Gegenstand
+
+Dieses Werk umfasst alle Bestandteile dieses Repositorys: Quelltexte, 3D-Modelle,
+Texturen, Signallisten, Dokumentation und Bilder (nachfolgend „das Werk“).
+
+
+2. Was erlaubt ist
+
+Hiermit wird jeder Person weltweit unentgeltlich und dauerhaft das Recht
+eingeräumt, das Werk zu nutzen, zu vervielfältigen, zu verändern und
+weiterzugeben – zu Zwecken der Aus-, Fort- und Weiterbildung sowie der Lehre.
+Dazu gehört ausdrücklich:
+
+  a) der Einsatz in Berufsschulen, Hochschulen, überbetrieblichen
+     Ausbildungsstätten, Technikerschulen, Meisterschulen und in der
+     innerbetrieblichen Ausbildung;
+  b) der Einsatz in Schulungen und Lehrgängen, auch wenn der Veranstalter für
+     die Schulungsleistung ein Entgelt erhebt – solange das Werk selbst nicht
+     Gegenstand des Verkaufs ist (siehe Abschnitt 3);
+  c) die Anpassung an eigene Lehrpläne, Hardwarekonfigurationen und
+     Adressbelegungen;
+  d) die Weitergabe des unveränderten oder angepassten Werks an Auszubildende,
+     Studierende, Lehrkräfte und Kolleginnen und Kollegen;
+  e) die private Nutzung zum Lernen und Ausprobieren.
+
+
+3. Was nicht erlaubt ist
+
+  a) Der Verkauf des Werks oder von Teilen davon, einzeln oder als Bestandteil
+     eines anderen Produkts.
+  b) Die Vermietung, Verpachtung, Unterlizenzierung oder jede andere entgeltliche
+     Überlassung des Werks.
+  c) Die Verwendung des Werks als kostenpflichtiges Produkt, als kostenpflichtige
+     Zusatzleistung oder als Bestandteil eines Dienstes, dessen Entgelt sich auf
+     die Bereitstellung des Werks bezieht.
+  d) Die Entfernung oder Veränderung dieses Lizenztextes, der Urhebervermerke
+     oder der Nennung nach Abschnitt 4.
+
+Der Unterschied zu Abschnitt 2 b): Eine Schulung darf Geld kosten. Der Zwilling
+darf kein Geld kosten.
+
+
+4. Namensnennung
+
+Bei jeder Weitergabe und bei jeder Veröffentlichung, in der das Werk gezeigt oder
+verwendet wird, ist folgende Angabe zu machen:
+
+    Digitaler Zwilling Verzinnungsanlage
+    © Bauer Automation Solutions, Dennis Bauer
+
+Bei angepassten Fassungen ist zusätzlich kenntlich zu machen, dass Änderungen
+vorgenommen wurden.
+
+
+5. Weitergehende Rechte
+
+Nutzungen, die über diese Lizenz hinausgehen – insbesondere der kommerzielle
+Vertrieb – sind nach vorheriger schriftlicher Vereinbarung mit Bauer Automation
+Solutions möglich. Lizenzanfragen bitte an Bauer Automation Solutions,
+Dennis Bauer.
+
+
+6. Gewährleistung und Haftung
+
+Das Werk wird ohne jede Gewährleistung bereitgestellt. Es ist ein Lehr- und
+Übungswerkzeug und bildet eine Anlage nur so weit ab, wie es für diesen Zweck
+nötig ist. Es ist nicht dafür bestimmt, reale Maschinen zu steuern, sicherheits-
+gerichtete Funktionen zu ersetzen oder Inbetriebnahmen zu ersetzen. Eine Haftung
+für Schäden aus der Verwendung des Werks ist ausgeschlossen, soweit gesetzlich
+zulässig; unberührt bleibt die Haftung für Vorsatz und grobe Fahrlässigkeit sowie
+nach dem Produkthaftungsgesetz.
+
+
+7. Beendigung
+
+Bei einem Verstoß gegen diese Lizenz enden die nach Abschnitt 2 eingeräumten
+Rechte automatisch. Sie leben wieder auf, sobald der Verstoß abgestellt ist und
+der Rechteinhaber nicht widerspricht.
+
+
+─────────────────────────────────────────────────────────────────────────────
+
+Verwendete Fremdbibliotheken
+
+Diese Lizenz gilt nicht für die folgenden Bestandteile Dritter. Sie stehen unter
+ihren eigenen Lizenzen; die vollständigen Texte liegen in web/src/lib/:
+
+  three.js          MIT License, © 2010-2024 three.js authors
+                    web/src/lib/LICENSE-three.txt
+  three-mesh-bvh    MIT License, © 2020 Garrett Johnson
+                    web/src/lib/LICENSE-three-mesh-bvh.txt
+
+SIMATIC, TIA Portal, S7-1500, STEP 7 und PLCSIM sind Marken der Siemens AG.
+Keyence, Festo, Rittal, Interroll und ifm sind Marken der jeweiligen Inhaber.
+Dieses Projekt steht in keiner Verbindung zu diesen Unternehmen; die
+Betriebsmittel sind nachgebildet, damit sich die Anlage wie eine reale Maschine
+verhält.
