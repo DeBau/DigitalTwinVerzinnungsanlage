@@ -44,7 +44,7 @@ function szeneZusammenfassen() {
     }
     if (!voll && liste.length) {
       const tex = new THREE.CanvasTexture(cvs); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-      const atlasMat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.55, metalness: 0.05 });
+      const atlasMat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.55, metalness: 0.05, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
       for (const o of liste) {
         const r = platz.get(o.material.map.userData.canvas);
         const g = o.geometry.clone(), uv = g.attributes.uv;

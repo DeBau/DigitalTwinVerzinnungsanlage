@@ -30,7 +30,7 @@ const LAMBERT = new Map();
 const lambertVon = (m) => {
   if (m.type !== 'MeshStandardMaterial') return m;
   if (!LAMBERT.has(m)) {
-    const l = new THREE.MeshLambertMaterial({ color: m.color, map: m.map, emissive: m.emissive, emissiveIntensity: m.emissiveIntensity, transparent: m.transparent, opacity: m.opacity, side: m.side, alphaMap: m.alphaMap, alphaTest: m.alphaTest, depthWrite: m.depthWrite });
+    const l = new THREE.MeshLambertMaterial({ color: m.color, map: m.map, emissive: m.emissive, emissiveIntensity: m.emissiveIntensity, transparent: m.transparent, opacity: m.opacity, side: m.side, alphaMap: m.alphaMap, alphaTest: m.alphaTest, depthWrite: m.depthWrite, polygonOffset: m.polygonOffset, polygonOffsetFactor: m.polygonOffsetFactor, polygonOffsetUnits: m.polygonOffsetUnits });
     l.userData.std = m; LAMBERT.set(m, l);
   }
   return LAMBERT.get(m);

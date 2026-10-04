@@ -46,17 +46,17 @@ export function lichtschranke(z, signal, text, { parent = anlage, seite = -1, re
     for (const dy of [-30, -12]) zyl(4.5, 3, M.schwarz, -xb - 3, BAND_Y + dy, -24, 'x', ls, 6);   // Nutenstein-Schrauben
   }
   { const x0 = -Math.max(xb, xs + 10), x1 = -Math.min(xb, xs - 8); box(x1 - x0, 44, 3, M.edelstahl, (x0 + x1) / 2, y - 2, -7, ls); }
-  const k = mesh(pzGeo(), M.keyence, ls); k.position.set(-xs, y + 2.5, 0);           // Sensorgehäuse, Linse auf Strahlhöhe
-  box(1, 13, 8, LINSE, -xs + 10.4, y, 0, ls);                                      // Linse
-  box(0.6, 15, 9.4, M.kunststoff, -xs + 10.1, y, 0, ls);
+  const k = mesh(pzGeo(), M.keyence, ls); k.position.set(-xs, y + 2.5, 0);           // Sensorgehäuse (Stirn bei x = 10,5), Linse auf Strahlhöhe
+  box(0.6, 15, 9.4, M.kunststoff, -xs + 10.7, y, 0, ls);                           // Linsenrahmen vor der Stirnfläche
+  box(1, 13, 8, LINSE, -xs + 11.3, y, 0, ls);                                      // Linse
   box(7, 1, 7, new THREE.MeshStandardMaterial({ color: 0xd9d4c8, roughness: 0.3, transparent: true, opacity: 0.85 }), -xs - 1, y + 18.4, 0, ls);   // Anzeigefenster
   for (const sy of [-1, 1]) for (const sz of [-1, 1]) zyl(1.9, 1, M.stahl, -xs + 4, y - 6 + sy * 6.5, sz * 5.6, 'z', ls, 8);   // Befestigungsbohrungen M3 mit Schrauben
   platte(tafel('keyence', 18, 7, (c) => {
     c.fillStyle = '#2b2d30'; c.fillRect(0, 0, 18, 7); c.fillStyle = '#e8eaec'; c.font = '700 3px Arial'; c.textAlign = 'center'; c.fillText('KEYENCE', 9, 3.2);
     c.font = '400 1.8px Arial'; c.fillText(reflektor ? 'PZ-G61CN' : 'PZ-G41CN', 9, 5.9);
-  }, 12), 18, 7, ls, -xs, y + 8, 5.65);
-  const mat = sensorLed(ls, -xs - 3, y + 18.6, 0, signal, 2.4, 0.6, 2.4);
-  const pwr = sensorLed(ls, -xs + 1, y + 18.6, 0, '', 2.4, 0.6, 2.4); pwr.emissive.setHex(0x22dd55); pwr.emissiveIntensity = 1.6;
+  }, 12), 18, 7, ls, -xs, y + 8, 5.8);
+  const mat = sensorLed(ls, -xs - 3, y + 19.05, 0, signal, 2.4, 0.6, 2.4);          // LEDs sitzen auf der Gehäuseoberseite (y + 18,75)
+  const pwr = sensorLed(ls, -xs + 1, y + 19.05, 0, '', 2.4, 0.6, 2.4); pwr.emissive.setHex(0x22dd55); pwr.emissiveIntensity = 1.6;
   if (reflektor) {                                                                  // Reflektor R-2
     if (!wange) {                                                                   // Z-Winkel: Schenkel in der Profilnut, Steg, Reflektorblech
       box(4, 120, 30, M.edelstahl, xb, BAND_Y + 20, 0, ls);
@@ -65,7 +65,7 @@ export function lichtschranke(z, signal, text, { parent = anlage, seite = -1, re
       box(3, BAND_Y + 80 - (y - 28), 30, M.edelstahl, xr + 3.5, (BAND_Y + 80 + y - 28) / 2, 0, ls);
     }
     box(4, 52, 36, M.kunststoff, xr, y, 0, ls);
-    platte(reflektorTafel(), 30, 44, ls, xr - 2.1, y, 0, -Math.PI / 2);
+    platte(reflektorTafel(), 30, 44, ls, xr - 2.3, y, 0, -Math.PI / 2);
     for (const sy of [-1, 1]) zyl(2.2, 1.5, M.stahl, xr - 2, y + sy * 24, 0, 'x', ls, 8);
   }
   const div = label(text, ls, -xs - 5, y + 62, 0, 'klein');

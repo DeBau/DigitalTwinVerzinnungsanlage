@@ -117,8 +117,8 @@ function korbBausatz() {
     for (const sx of [-1, 1]) {
       box(8, 6, 126, M.edelstahl, sx * 38, 3, 0, g);
       for (const sz of [-1, 1]) {
-        box(8, 4, 6, M.edelstahl, sx * 38, 7, sz * 50, g);                            // Steg zum Bodenrahmen
-        box(14, 14, 3, M.edelstahl, sx * 38, 8, sz * 61.5, g);                        // Halteplatte Puffer
+        box(6, 4, 6, M.edelstahl, sx * 38, 7, sz * 50, g);                            // Steg zum Bodenrahmen (schmaler als die Kufe)
+        box(14, 14, 3, M.edelstahl, sx * 38, 8, sz * 62, g);                          // Halteplatte Puffer (0,5 mm vor dem Kufenende)
         const p = mesh(cached('puffer', () => new THREE.CylinderGeometry(6, 7, 12, 14)), pufferMat, g, true);
         p.rotation.x = sz * Math.PI / 2; p.position.set(sx * 38, 8, sz * 69);          // reicht bis z = ±75
       }
@@ -128,7 +128,7 @@ function korbBausatz() {
       stab(V(0, Y1, sz * 49), V(0, 158, sz * 49), 4, M.stahl, g, 10, false);
       kugel(V(0, 158, sz * 49), 5, M.stahl, g);
       for (const sx of [-1, 1]) stab(V(0, 130, sz * 49), V(sx * R, Y1, sz * R), 2.5, M.stahl, g, 8, false);
-      zyl(5.6, 8, M.stahl, 0, 158, sz * 45, 'z', g, 12);                             // Anschläge im Haken
+      zyl(5.6, 8, M.stahl, 0, 158, sz * 44, 'z', g, 12);                             // Anschläge im Haken (enden 1 mm vor dem Bügelende)
       box(14, 4, 10, M.stahl, 0, Y1 + 3, sz * 50, g);                                // Schweißlasche am Rahmen
     }
     zyl(5, 98, M.stahl, 0, 158, 0, 'z', g, 16);

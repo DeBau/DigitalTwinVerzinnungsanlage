@@ -40,12 +40,14 @@ export function profil(w, h, len, achse, x, y, z, parent = anlage, kappen = true
   if (achse === 'y') g.rotation.x = -Math.PI / 2;
   parent.add(g);
   mesh(geo, M.profil, g);
-  if (kappen) for (const s of [-1, 1]) box(w - 0.6, h - 0.6, 2, M.kunststoff, 0, 0, s * (len / 2 + 1), g);
+  // Endkappen 0,3 mm hinter der Stirnfläche im Profil (durch Nuten und Kernbohrung sichtbar). Vorstehende Kappen
+  // ragten in Fußplatten und Querprofile hinein und flackerten dort mit deren Oberflächen.
+  if (kappen) for (const s of [-1, 1]) box(w - 0.6, h - 0.6, 2, M.kunststoff, 0, 0, s * (len / 2 - 1.3), g);
   return g;
 }
 export function stellfuss(x, z, parent = anlage) {
   zyl(28, 10, M.kunststoff, x, 5, z, null, parent);
-  zyl(8, 40, M.stahl, x, 30, z, null, parent, 12);
+  zyl(8, 38, M.stahl, x, 29, z, null, parent, 12);                                 // Spindel endet in der Mutter
   zyl(14, 8, M.stahl, x, 46, z, null, parent, 6);
 }
 

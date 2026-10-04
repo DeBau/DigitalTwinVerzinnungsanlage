@@ -17,7 +17,7 @@ const B1z = (z) => z - B1.zm;                                          // Welt-z
 {
   const r = gurtband(b1g, B1.L, {
     beine: [-700, 0, 700, 900].map(B1z), stuetzrollen: [-400, 400, 850].map(B1z),
-    fuehrung: [[B1z(-790), B1z(B1.z1 + 15)]], halter: [-760, -380, 380, 760, 960].map(B1z), welleKopf: -1, welleEnde: 1,
+    fuehrung: [[B1z(-790), B1z(B1.z1 + 15)]], halter: [-760, -380, 380, 760, 1050].map(B1z), welleKopf: -1, welleEnde: 1,   // letzter Halter hinter dem Winkel von −BG13
   });
   Object.assign(B1, r);
   BAND.trommeln = r.trommeln;
@@ -45,11 +45,11 @@ function bandAnschlag(za, name, sigZu, sigOffen, txtZu, txtOffen, ventil) {
   // Konsole (Alu eloxiert anthrazit)
   box(8, 144, 36, M.anthrazit, 136.5, 266, zm, fest);                                            // Adapterplatte an der Profilnut
   for (const y of [228, 272]) for (const dz of [-8, 8]) zyl(5, 4, M.schwarz, 142.5, y, zm + dz, 'x', fest, 6);
-  box(17.5, 8, 36, M.anthrazit, 141.25, 334, zm, fest);                                           // Kopfplatte
+  box(9.5, 8, 36, M.anthrazit, 145.25, 334, zm, fest);                                            // Kopfplatte (stößt an die Adapterplatte)
   for (const dz of [-9, 9]) box(28, 40, 4, M.anthrazit, H.x, 352, zm + dz, fest);                 // Lagerlaschen
   zyl(5, 28, M.stahl, H.x, H.y, zm, 'z', fest, 12);                                               // Lagerbolzen Ø10
   for (const dz of [-14.5, 14.5]) zyl(8, 3, M.stahl, H.x, H.y, zm + dz, 'z', fest, 6);            // Kopf / Mutter
-  box(73.5, 8, 36, M.anthrazit, 169.25, 198, zm, fest);                                           // Zylinderkonsole
+  box(65.5, 8, 36, M.anthrazit, 173.25, 198, zm, fest);                                           // Zylinderkonsole (stößt an die Adapterplatte)
   box(48, 18, 6, M.anthrazit, 164.5, 185, zm, fest);                                              // Rippe
   // Kompaktzylinder ADN-20-40 (Profil 36 × 36), Deckel Druckguss, Anschlüsse G1/8 mit QS-6 nach −z
   box(34, 66, 34, M.zylinder, xc, 240, zm, fest);
@@ -57,7 +57,7 @@ function bandAnschlag(za, name, sigZu, sigOffen, txtZu, txtOffen, ventil) {
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) zyl(1.6, 1, M.schwarz, xc + sx * 13, 278.5, zm + sz * 13, null, fest, 6);
   zyl(7, 4, M.deckel, xc, 280, zm, null, fest, 16);                                              // Lagerbund
   for (const dz of [-10, 10]) box(0.8, 64, 3, M.schwarz, xc + 17.1, 240, zm + dz, fest);         // Sensornuten
-  platte(tafel('adn20', 30, 9, (c) => { c.fillStyle = '#c4c9ce'; c.fillRect(0, 0, 30, 9); c.fillStyle = '#1d1f22'; c.font = '700 4px Arial'; c.fillText('FESTO', 1.5, 4); c.font = '500 2.6px Arial'; c.fillText('ADN-20-40-A-P-A', 1.5, 7.6); }, 10), 30, 9, fest, xc, 246, zm + 17.05, 0);
+  platte(tafel('adn20', 30, 9, (c) => { c.fillStyle = '#c4c9ce'; c.fillRect(0, 0, 30, 9); c.fillStyle = '#1d1f22'; c.font = '700 4px Arial'; c.fillText('FESTO', 1.5, 4); c.font = '500 2.6px Arial'; c.fillText('ADN-20-40-A-P-A', 1.5, 7.6); }, 10), 30, 9, fest, xc, 246, zm + 17.3, 0);
   const anschluss = [];
   for (const y of [214, 266]) {
     const p = new THREE.Group(); p.position.set(xc, y, zm - 18); p.rotation.x = -Math.PI / 2; fest.add(p);
@@ -85,16 +85,17 @@ function bandAnschlag(za, name, sigZu, sigOffen, txtZu, txtOffen, ventil) {
   for (const dz of [-14, 14]) zyl(5, 1, M.schwarz, xc, H.y, zm + dz, 'z', stange, 10);           // Sicherungsringe
   // Schwenkhebel (Drehpunkt im Ursprung): Arm nach −x über das Band, Kurbel mit Kulisse nach +x
   const hebel = new THREE.Group(); hebel.position.set(H.x, H.y, 0); fest.add(hebel);
-  box(205, 16, 12, M.verzinkt, -92.5, 0, zm, hebel);                                              // Arm
-  zyl(13, 12, M.verzinkt, 0, 0, zm, 'z', hebel, 24);                                              // Nabe
+  // (Teile stoßen aneinander statt sich zu überlappen; Nabe und Dämpferaufnahme stehen 1 mm über – keine gleichen Ebenen)
+  box(195, 16, 12, M.verzinkt, -97.5, 0, zm, hebel);                                              // Arm (bis zur Kurbel)
+  zyl(13, 14, M.verzinkt, 0, 0, zm, 'z', hebel, 24);                                              // Nabe
   box(24, 24, 12, M.verzinkt, 12, 0, zm, hebel);                                                  // Kurbel
   for (const sy of [-1, 1]) box(38, 7.5, 12, M.verzinkt, 43, sy * 8.25, zm, hebel);              // Kulisse (Langloch 9)
   box(6, 24, 12, M.verzinkt, 65, 0, zm, hebel);
-  box(24, 24, 12, M.verzinkt, -91, 0, zm, hebel);                                                 // Aufnahme Stoßdämpfer
+  box(24, 24, 14, M.verzinkt, -91, 0, zm, hebel);                                                 // Aufnahme Stoßdämpfer
   // gedämpfte Anschlagleiste
   box(122, 16, 4, M.alu, -142, 0, 5, hebel);                                                      // Alu-Träger
   box(100, 16, 3, M.gelb, -150, 0, 1.5, hebel);                                                   // PE-UHMW-Leiste
-  for (const x of [-185, -120]) { zyl(3, 22, M.stahl, x, 0, 14, 'z', hebel, 10); zyl(5, 3, M.stahl, x, 0, 23.5, 'z', hebel, 10); }
+  for (const x of [-185, -120]) { zyl(3, 20, M.stahl, x, 0, 13, 'z', hebel, 10); zyl(5, 3, M.stahl, x, 0, 23.5, 'z', hebel, 10); }   // Bolzen endet in der Mutter
   zyl(2, 4, M.stahl, -91, 0, 8.5, 'z', hebel, 8);                                                 // Kolbenstange Dämpfer
   zyl(6, 34, M.schwarz, -91, 0, 39, 'z', hebel, 16);                                              // Dämpferkörper M12 × 1
   zyl(9, 4, M.stahl, -91, 0, 24, 'z', hebel, 6);                                                  // Kontermutter
@@ -117,15 +118,17 @@ lichtschranke(LS_POS.BG13_Bandende, 'BG13_Bandende', '−BG13 Band 1 Ende');
 for (const zs of [-801]) {
   const s = Math.sign(zs);
   box(150, 40, 6, M.edelstahl, 0, BAND_Y + 24, zs);
-  for (const sx of [-1, 1]) { box(62, 10, 6, M.edelstahl, sx * 104, BAND_Y + 40, zs); box(4, 70, 30, M.anthrazit, sx * 134.5, BAND_Y + 10, zs - s * 6); }
-  box(150, 30, 4, new THREE.MeshStandardMaterial({ color: 0x2a2e33, roughness: 0.8 }), 0, BAND_Y + 24, zs - s * 4);
+  for (const sx of [-1, 1]) { box(57.5, 10, 6, M.edelstahl, sx * 103.75, BAND_Y + 40, zs); box(4, 70, 30, M.anthrazit, sx * 134.5, BAND_Y + 10, zs - s * 6); }   // Lasche endet am Winkel
+  box(146, 30, 4, new THREE.MeshStandardMaterial({ color: 0x2a2e33, roughness: 0.8 }), 0, BAND_Y + 24, zs - s * 4);
 }
-// Kabelkanal am Bandgestell (Bedienerseite −x), Abgang bei z = 1060 senkrecht in die Kabelbrücke
+// Kabelkanal am Bandgestell (Bedienerseite −x), Abgang bei z = 1060 senkrecht in die Kabelbrücke.
+// Oberkante 227,5: unter Flanschlager, Lagerschrauben und Geberwelle der Kopftrommel (Achse 261) hindurch.
+export const KANAL1 = { y: 211, oben: 227.5, unten: 196 };
 {
   const z0 = -790, z1 = 1070, L = z1 - z0;
-  box(30, 30, L, M.pvc, -160, 250, (z0 + z1) / 2);
-  box(34, 3, L, M.pvcHell, -160, 266.5, (z0 + z1) / 2);
-  for (const z of [-600, -250, 250, 600, 900]) box(24, 26, 6, M.anthrazit, -146, 250, z);
+  box(30, 30, L, M.pvc, -160, KANAL1.y, (z0 + z1) / 2);
+  box(34, 3, L, M.pvcHell, -160, KANAL1.oben, (z0 + z1) / 2);
+  for (const z of [-600, -250, 250, 600, 900]) box(24, 26, 6, M.anthrazit, -146, KANAL1.y, z);
 }
 // Ventilinsel Band −QM2 (2 x 5/2-Wegeventil monostabil) für Anschlag −MB9 und Vereinzeler −MB10
 export const QM2 = { z: -220, leds: [] };

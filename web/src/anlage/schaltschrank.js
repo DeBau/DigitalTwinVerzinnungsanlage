@@ -141,7 +141,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   [[0x9a9fa3, FARBE.ac], [0x9a9fa3, FARBE.ac], [0x9a9fa3, FARBE.ac], [0x2f6fb5, FARBE.n], [0x3fae49, FARBE.pe]].forEach(([f, a], i) => {
     const x = -284 + i * 12.2;
     box(12, 66, 52, new THREE.MeshStandardMaterial({ color: f, roughness: 0.5 }), x, YA, PF + 7.5 + 26, g);
-    if (i === 4) box(12.2, 8, 53, M.gelb, x, YA + 12, PF + 7.5 + 26, g);
+    if (i === 4) box(12.6, 8, 53.6, M.gelb, x, YA + 12, PF + 7.5 + 26, g);
     zyl(3, 1, M.stahl, x, YA + 26, PF + 59.6, 'z', g, 10); zyl(3, 1, M.stahl, x, YA - 26, PF + 59.6, 'z', g, 10);
     draht(a, x, YA + 33, 1960, PF + 40);                                    // Zuleitung von oben
   });
@@ -210,7 +210,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   {
     const x = -50;
     box(50, 125, 121, M.alu, x, YA, PF + 7.5 + 60.5, g);
-    for (let i = 0; i < 9; i++) box(50.4, 2, 70, M.schwarz, x, YA - 40 + i * 10, PF + 60, g);   // Lüftungsschlitze seitlich/oben
+    for (let i = 0; i < 9; i++) box(51, 2, 70, M.schwarz, x, YA - 40 + i * 10, PF + 60, g);     // Lüftungsschlitze seitlich (0,5 mm über das Gehäuse)
     platte(tafel('sitop', 50, 125, (c) => {
       c.fillStyle = '#3a3f44'; c.fillRect(0, 0, 50, 125);
       c.fillStyle = '#2c3034'; c.fillRect(0, 0, 50, 22); c.fillRect(0, 103, 50, 22);
@@ -259,7 +259,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
     // Frontklappe mit Scharnier unten, leicht abgesetzt
     box(w - 3, MH - 30, 4, s7, xm, YB - 10, MZ + MT - 2, g);
     platte(tafel(key, w - 0.6, MH, zeichnen, 8), w - 0.6, MH, g, xm, YB, MZ + MT + 0.15);
-    for (let i = 0; i < 5; i++) box(w - 10, 1.6, 28, M.schwarz, xm, YB + MH / 2 + 0.2, MZ + 20 + i * 18, g);  // Lüftungsschlitze oben
+    for (let i = 0; i < 5; i++) box(w - 10, 1.6, 12, M.schwarz, xm, YB + MH / 2 + 0.2, MZ + 20 + i * 18, g);  // Lüftungsschlitze oben (Teilung 18)
     return xm;
   };
   const s7Kopf = (c, w, titel) => {
@@ -447,7 +447,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   {
     const x = -112;
     box(45, 100, 36, M.alu, x, YC, PF + 7.5 + 18, g);
-    for (let i = 0; i < 8; i++) box(1.6, 100, 24, M.alu, x - 19.5 + i * 5.6, YC, PF + 50, g);   // Kühlrippen
+    for (let i = 0; i < 8; i++) box(1.6, 102, 24, M.alu, x - 19.5 + i * 5.6, YC, PF + 50, g);   // Kühlrippen (1 mm über das Gehäuse)
     box(22.5, 80, 30, grauDunkel, x, YC, PF + 77, g);
     platte(tafel('3rf', 22.5, 80, (c) => {
       c.fillStyle = '#6b7075'; c.fillRect(0, 0, 22.5, 80);
@@ -598,7 +598,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
     const xm = -s * 200;                                                  // Türmitte in Türkoordinaten
     box(396, 1990, 22, M.blech, -s * 200, 1100, 11, t);
     for (const y of [300, 1100, 1900]) zyl(8, 60, M.anthrazit, -s * 2, y, 11, null, t, 16);   // Scharniere
-    box(30, 760, 26, M.pvc, -s * 40, 1170, -13, t);                       // Türkanal am Scharnier
+    box(30, 760, 24, M.pvc, -s * 40, 1170, -12, t);                       // Türkanal am Scharnier (endet vor dem Rahmenprofil)
     const dichtung = new THREE.MeshStandardMaterial({ color: 0x5d6266, roughness: 0.9 });
     for (const sy of [-1, 1]) box(372, 10, 6, dichtung, -s * 200, 1100 + sy * 970, -3, t);   // PU-Dichtung
     for (const dx of [12, 388]) box(10, 1930, 6, dichtung, -s * dx, 1100, -3, t);
@@ -659,7 +659,8 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
       box(30, 30, 8, M.kunststoff, x, y, -4, L.t);                        // Befestigungsadapter
       box(10, 40, 30, grau, x - 6, y, -23, L.t);                          // Kontaktelement 1S
       box(10, 40, 30, grau, x + 6, y, -23, L.t);
-      for (const dz of [-3, 3]) leitung([[x - 12, y + 14, -23 + dz], [x - 12, y + 26, -23 + dz], [-L.xm * 0 + 52, y + 26 + dz, -23 + dz]], adernBlau, 0.9, 6, L.t);
+      const vy = dx > 0 ? 2.5 : 0;                                       // rechte Gerätespalte: Adern 2,5 mm höher, sonst liegen sie in denen der linken
+      for (const dz of [-3, 3]) leitung([[x - 12, y + 14, -23 + dz], [x - 12, y + 26 + vy, -23 + dz], [-L.xm * 0 + 52, y + 26 + vy + dz, -23 + dz]], adernBlau, 0.9, 6, L.t);
     }
   }
   box(320, 420, 24, M.anthrazit, L.xm, 600, -12, L.t);                    // Schaltplantasche
@@ -686,7 +687,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
     // Leitungen hinten: PROFINET grün, 24 V blau/rot, zum Türkanal am Scharnier (x = +40 in Türkoordinaten)
     const X = HMI.x, Y = HMI.y;
     leitung([[X - 100, Y - 120, -36], [X - 100, Y - 150, -36], [-40, Y - 150, -36], [-40, 1300, -20]], M.kabelGruen, 3, 12, R.t);
-    for (const [dx, mat] of [[-73, adernBlau], [-67, new THREE.MeshStandardMaterial({ color: FARBE.rot, roughness: 0.5 })]]) leitung([[X + dx, Y - 119, -36], [X + dx, Y - 160, -36], [-44 + (dx + 70), Y - 160, -36], [-44 + (dx + 70), 1300, -20]], mat, 1, 8, R.t);
+    for (const [dx, mat, dy] of [[-73, adernBlau, 0], [-67, new THREE.MeshStandardMaterial({ color: FARBE.rot, roughness: 0.5 }), 2.5]]) leitung([[X + dx, Y - 119, -36], [X + dx, Y - 160 - dy, -36], [-44 + (dx + 70), Y - 160 - dy, -36], [-44 + (dx + 70), 1300, -20]], mat, 1, 8, R.t);   // zwei Höhen, sonst liegen die Adern ineinander
   }
   // Türübergänge: Wellschlauch vom Türkanal (unten) zur Schrankseite, dann in die Senkrechtkanäle
   const welle = new THREE.MeshStandardMaterial({ color: 0x1b1d20, roughness: 0.75 });

@@ -9,7 +9,7 @@ import { SENSOR_AUSTRITT } from '../bauteile/nutsensor.js';
 import { leitung, schlauch } from '../bauteile/leitungen.js';
 import { stecker } from '../bauteile/stecker.js';
 import { B2, BAND, BAND_Y, KURVE, LS_POS } from './baender.js';
-import { B1_MOTOR, QM2 } from './band1.js';
+import { B1_MOTOR, KANAL1, QM2 } from './band1.js';
 import './rollenkurve.js';
 import { B2_MOTOR } from './band2.js';
 import { BAD_X, RAND_Y, bad } from './zinnbad.js';
@@ -55,14 +55,14 @@ export function feldverteiler(x, y, z, ry, name, belegung) {
   box(54, 170, 26, M.ifm, 0, 0, 13, g);                                            // ifm Zentralverteiler, Gehäuse PA orange
   box(48, 150, 4, M.ifm, 0, -6, 28, g);                                             // Frontplatte mit Buchsen
   box(3, 140, 1, M.kunststoff, 0, -8, 30.2, g);                                     // Trennsteg/Beschriftungsnut
-  platte(tafel('ifmLogo', 30, 10, (c) => { c.fillStyle = '#ec6a12'; c.fillRect(0, 0, 30, 10); c.fillStyle = '#fff'; c.font = '700 7px Arial'; c.textAlign = 'center'; c.fillText('ifm', 15, 7.8); }, 6), 24, 8, g, 0, 73, 26.1);
-  for (const yy of [-81, 81]) zyl(4.2, 2, M.stahl, 0, yy, 27, 'z', g, 12);         // Befestigung mit Nutenstein
+  platte(tafel('ifmLogo', 30, 10, (c) => { c.fillStyle = '#ec6a12'; c.fillRect(0, 0, 30, 10); c.fillStyle = '#fff'; c.font = '700 7px Arial'; c.textAlign = 'center'; c.fillText('ifm', 15, 7.8); }, 6), 24, 8, g, 0, 73, 26.3);
+  for (const yy of [-81, 81]) zyl(4.2, 2, M.stahl, 0, yy, 30.5, 'z', g, 12);       // Befestigungsschrauben auf der Frontplatte
   const ports = [];
   belegung.forEach((b, i) => {
     const sp = i < 4 ? 0 : 1, zei = i % 4;
     const xx = sp ? 13 : -13, yy = 54 - zei * 34, lx = xx + (sp ? 11 : -11);
     zyl(9.5, 2, M.ifm, xx, yy, 31, 'z', g, 20);                                    // Buchsensockel
-    zyl(7.5, 5, M.stahl, xx, yy, 32.5, 'z', g, 18);                                // M12-Buchse (Gewinde vernickelt)
+    zyl(7.5, 5, M.stahl, xx, yy, 33.5, 'z', g, 18);                                // M12-Buchse (Gewinde vernickelt), beginnt im Sockel
     const l4 = sensorLed(g, lx, yy + 5, 30.4, '', 3, 2.4, 0.8);
     const l2 = sensorLed(g, lx, yy - 1, 30.4, '', 3, 2.4, 0.8);
     platte(tafel('port' + i, 9, 5, (c) => { c.fillStyle = '#e8eaeb'; c.fillRect(0, 0, 9, 5); c.fillStyle = '#222'; c.font = '700 3.6px Arial'; c.textAlign = 'center'; c.fillText(`X${i}`, 4.5, 3.8); }), 9, 5, g, lx, yy - 9, 30.2);
@@ -171,10 +171,10 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
   for (const sig of ['BG12_Bandanfang', 'BG11_Korb', 'BG13_Bandende']) {
     const p = BAND.stecker[sig];
     stecker(anlage, p, '-x', false);
-    kabel([V(p.x - 31, p.y, p.z), V(-165, p.y, p.z), V(-165, 262, p.z)], anlage, M.kabelGrau, 2.2, 10, false);
+    kabel([V(p.x - 31, p.y, p.z), V(-165, p.y, p.z), V(-165, KANAL1.oben - 4, p.z)], anlage, M.kabelGrau, 2.2, 10, false);
   }
   // Inkrementalgeber −BG18: Leitung nach oben, unter dem Band hindurch in den Kanal (direkt auf −X5, nicht über Feldverteiler)
-  { const g = BAND.geberStecker; stecker(anlage, g, '+y'); kabel([V(g.x, g.y + 32, g.z), V(g.x, g.y + 50, g.z), V(-165, g.y + 50, g.z), V(-165, 262, g.z)], anlage, M.kabelGrau, 2.8, 14); }
+  { const g = BAND.geberStecker; stecker(anlage, g, '+y'); kabel([V(g.x, g.y + 32, g.z), V(g.x, g.y + 50, g.z), V(-165, g.y + 50, g.z), V(-165, KANAL1.oben - 4, g.z)], anlage, M.kabelGrau, 2.8, 14); }
   // Band 2: Kabelkanal auf der Rückseite, Lichtschranken −BG21…−BG24, Pyrometer −BT2, Luftmesser −MB14 → Kanal → Kabelbrücke
   {
     const zk = B2.z - 160;
@@ -214,9 +214,9 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
     const e = BAND.sensorAus[sig], y = 288 - i * 5, xl = 232 + i * 5, yl = 175 - i * 8;
     zumPort([e, V(e.x, yl, e.z), V(xl, yl, e.z), V(xl, yl, -420), V(xl, y, -420)], XD3.ports[i]);
   });
-  { const t = XD3.sammel; kabel([t, V(t.x, 110, t.z), V(-160, 110, t.z), V(-160, 236, t.z)], anlage, M.kabelGrau, 4); }
+  { const t = XD3.sammel; kabel([t, V(t.x, 110, t.z), V(-160, 110, t.z), V(-160, KANAL1.unten + 1, t.z)], anlage, M.kabelGrau, 4); }
   // Ventilinsel −QM2: Multipolleitung unter dem Band hindurch in den Kanal, Schläuche zu Anschlag und Vereinzeler
-  kabel([V(156, 189, QM2.z), V(156, 150, QM2.z), V(-160, 150, QM2.z), V(-160, 236, QM2.z)], anlage, M.kabel, 3.5);
+  kabel([V(156, 189, QM2.z), V(156, 150, QM2.z), V(-160, 150, QM2.z), V(-160, KANAL1.unten + 1, QM2.z)], anlage, M.kabel, 3.5);
   const druck = new THREE.MeshStandardMaterial({ color: 0x2f7fd0, roughness: 0.42 });
   // je Ventil 2/4 auf Kolben-/Stangenseite des ADN (QS-6 nach −z); −MB9 außen am Vereinzeler vorbei
   for (const sig of ['MB9_Anschlag_auf', 'MB10_Vereinzeler_zu']) {
@@ -230,7 +230,7 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
   // Sammelleitungen am Kanalende: senkrecht hinunter, am Boden in die Kabelbrücke zum Schaltschrank
   [M.kabelGrau, M.kabelGrau, M.kabelGrau, M.kabel].forEach((mat, i) => {
     const dx = -168 + i * 6, d = lage();
-    kabel([V(dx, 240, BRUECKE.z + d), V(dx, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)], anlage, mat, 2.4, 20, false);
+    kabel([V(dx, KANAL1.unten + 5, BRUECKE.z + d), V(dx, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)], anlage, mat, 2.4, 20, false);
   });
   // Bandmotor: Leitung vom Klemmenkasten zum Boden und in die Kabelbrücke
   { const k = B1_MOTOR.abgang, kb = k[k.length - 1], d = lage(); kabel([...k, V(kb.x, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)], anlage, M.kabel, 4.5, 30, false); }

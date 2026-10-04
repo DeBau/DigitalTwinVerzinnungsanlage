@@ -9,10 +9,12 @@ import { ereignis } from '../ui/ereignisse.js';
 export const PERSON = { g: null, zustand: 'weg', z: 1900, x: 1150, mixer: null, walk: null, idle: null, t: 0 };
 // Person geht hinein, bleibt stehen, geht wieder hinaus. Unterbrochen ist das Schutzfeld nur, solange der Körper
 // die Lichtvorhangebene (z = 600) durchquert. −KF2 bleibt bis zum Quittieren aus (Wiederanlaufsperre).
+// Laufweg im freien Gang zwischen Umhausung (z = 600) und Kabelbrücke (ab z = 950) – weiter hinten
+// stand die Person mit den Füßen in der Brücke und mit der Schulter im Gestell von Band 2.
 export function personStarten() {
   if (!PERSON.mixer || PERSON.zustand !== 'weg') return;
-  Object.assign(PERSON, { zustand: 'rein', i: 0, weg: [[3400, 1180], [1150, 1180], [1150, 380]] });
-  PERSON.x = 3400; PERSON.z = 1180;
+  Object.assign(PERSON, { zustand: 'rein', i: 0, weg: [[3400, 800], [1150, 800], [1150, 380]] });
+  PERSON.x = 3400; PERSON.z = 800;
   PERSON.g.visible = true;
   ereignis('Ein Werker geht durch den Lichtvorhang in die Anlage');
 }
@@ -61,10 +63,12 @@ export function werkerLaden() {
     // Warnweste am Brustwirbel, Helm am Kopf (in Weltlage platziert, dann an den Knochen gehängt)
     const brust = knochen('spine2'), kopf = knochen('head');
     if (brust) {
-      const w = new THREE.Group(); w.position.copy(brust.getWorldPosition(new THREE.Vector3())).add(V(0, -0.06, 0.01));
-      const weste = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.165, 0.42, 24, 1, true), new THREE.MeshStandardMaterial({ color: 0xf2a900, roughness: 0.6, emissive: 0x2a1c00, side: THREE.DoubleSide }));
-      weste.scale.z = 0.68; weste.castShadow = true; w.add(weste);
-      for (const y of [-0.08, 0.06]) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.177, 0.17, 0.035, 24, 1, true), new THREE.MeshStandardMaterial({ color: 0xdfe4e8, metalness: 0.6, roughness: 0.25, side: THREE.DoubleSide })); r.scale.z = 0.69; r.position.y = y; w.add(r); }
+      // Weste 0,40 breit, 0,33 tief: der Rumpf des Modells misst am Brustwirbel ±0,135 nach vorn und ±0,15 nach hinten –
+      // die frühere Weste (0,35 × 0,24) wurde von Brust und Rücken durchstoßen und flackerte mit der Animation
+      const w = new THREE.Group(); w.position.copy(brust.getWorldPosition(new THREE.Vector3())).add(V(0, -0.06, -0.005));
+      const weste = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.19, 0.42, 24, 1, true), new THREE.MeshStandardMaterial({ color: 0xf2a900, roughness: 0.6, emissive: 0x2a1c00, side: THREE.DoubleSide }));
+      weste.scale.z = 0.825; weste.castShadow = true; w.add(weste);
+      for (const y of [-0.08, 0.06]) { const r = new THREE.Mesh(new THREE.CylinderGeometry(0.202, 0.195, 0.035, 24, 1, true), new THREE.MeshStandardMaterial({ color: 0xdfe4e8, metalness: 0.6, roughness: 0.25, side: THREE.DoubleSide })); r.scale.z = 0.835; r.position.y = y; w.add(r); }
       scene.add(w); brust.attach(w);
     }
     if (kopf) {

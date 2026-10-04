@@ -81,7 +81,7 @@ export function meldeleuchte(parent, x, y, signal, farbe) {
   // Front 440 × 360: drei Felder, Beschriftung ≥ 9 mm unter den Frontringen, Überschriften zwischen den Trennlinien
   box(440, 360, 110, M.rittal, 0, 0, -55, kopf);
   for (const sy of [-1, 1]) box(448, 12, 116, M.rittalAlu, 0, sy * 180, -55, kopf);     // Alu-Rahmenprofile oben/unten
-  for (const sx of [-1, 1]) box(10, 372, 120, M.anthrazit, sx * 224, 0, -55, kopf);    // Eckstücke/Seitenteile anthrazit
+  for (const sx of [-1, 1]) box(10, 376, 120, M.anthrazit, sx * 224, 0, -55, kopf);    // Eckstücke/Seitenteile anthrazit (stehen 2 mm über die Rahmenprofile)
   const W = 440, H = 360, k = 1.6, R1 = 115, R2 = 0, R3 = -112;
   platte(tafel('pultFront2', W, H, (c) => {
     c.fillStyle = '#c9cdd2'; c.fillRect(0, 0, W, H);
@@ -94,7 +94,7 @@ export function meldeleuchte(parent, x, y, signal, farbe) {
     T('START  −SF1', -110, R2 - 40); T('STOP  −SF2', 20, R2 - 40); T('Anlage läuft', 150, R2 - 37, 9.5); T('−PF1', 150, R2 - 49, 8.5, 500);
     T('MELDUNGEN', 0, -76, 12, 700);
     [['Temperatur', '−PF2'], ['Füllhöhe unterschr.', '−PF3'], ['Korb vorhanden', '−PF4'], ['Handbetrieb', '−PF7']].forEach(([a, b], i) => { T(a, -150 + i * 100, R3 - 38, 9.5); T(b, -150 + i * 100, R3 - 51, 8.5, 500); });
-  }, k), W, H, kopf, 0, 0, 0.3);
+  }, k), W, H, kopf, 0, 0, 0.5);
   notHaltTaster(kopf, -150, R1, 'sf0');
   wahlschalter(kopf, -30, R1, 'sa1');
   const q = drucktaster(kopf, 90, R1, 'sf4', 0x3d8de0);
@@ -125,7 +125,7 @@ export function vorOrtStation(pos, bmk, k) {
   box(W, H, 95, M.rittal, 0, YM, 50, g);
   box(60, 40, 10, M.anthrazit, 0, 1000, 20, g);
   zyl(9, 14, M.kunststoff, 0, 993, 75, null, g, 16);
-  const f = new THREE.Group(); f.position.set(0, YM, 97.6); g.add(f);
+  const f = new THREE.Group(); f.position.set(0, YM, 98); g.add(f);                   // Frontplatte 0,5 mm vor dem Gehäuse
   const zy = (i) => H / 2 - 143 - i * 64;                                         // Tastermitte der Zeile i
   platte(tafel('vorOrt_' + bmk, W, H, (c) => {
     c.fillStyle = '#d2d4cf'; c.fillRect(0, 0, W, H);

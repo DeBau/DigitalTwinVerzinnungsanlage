@@ -17,22 +17,24 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   const zc = B2x((KUEHL.x0 + KUEHL.x1) / 2), L = KUEHL.x1 - KUEHL.x0, H = 330, yU = BAND_Y - 60;
   // Gehäuse: Seitenwände (vorn mit Schauglas), Dach mit Abzug, Lamellenvorhänge an Ein- und Auslauf
   // Rückwand voll, Vorderwand mit Ausschnitt für das Schauglas (y BAND_Y+70…+210, z ±130)
-  box(3, H, L, M.edelstahl, 152, yU + H / 2, zc, b2g);
+  // Wände enden 3 mm unter dem Dach, darauf liegen die Dachrandprofile (keine gemeinsame Oberkante)
+  box(3, H - 3, L, M.edelstahl, 152, yU + (H - 3) / 2, zc, b2g);
   {
     const wy0 = BAND_Y + 70, wy1 = BAND_Y + 210, wz = 130;
     box(3, wy0 - yU, L, M.edelstahl, -152, (yU + wy0) / 2, zc, b2g);
-    box(3, yU + H - wy1, L, M.edelstahl, -152, (wy1 + yU + H) / 2, zc, b2g);
+    box(3, yU + H - 3 - wy1, L, M.edelstahl, -152, (wy1 + yU + H - 3) / 2, zc, b2g);
     for (const s2 of [-1, 1]) box(3, wy1 - wy0, L / 2 - wz, M.edelstahl, -152, (wy0 + wy1) / 2, zc + s2 * (wz + (L / 2 - wz) / 2), b2g);
   }
   for (const sx of [-1, 1]) {
-    box(30, 3, L, M.edelstahl, sx * 138, yU + H, zc, b2g);
+    box(30, 3, L - 2, M.edelstahl, sx * 138, yU + H - 1.5, zc, b2g);                              // Dachrandprofile unter dem Dach
   }
   box(310, 3, L, M.edelstahl, 0, yU + H + 1.5, zc, b2g);                                          // Dach
-  for (const sx of [-1, 1]) for (const dz of [-L / 2, L / 2]) box(8, H + 10, 8, M.edelstahl, sx * 152, yU + H / 2, zc + dz, b2g);   // Kantenprofile
+  for (const sx of [-1, 1]) for (const dz of [-L / 2, L / 2]) box(8, H + 10, 8, M.edelstahl, sx * 152, yU + H / 2 + 1, zc + dz, b2g);   // Kantenprofile
   const glas = new THREE.MeshLambertMaterial({ color: 0x9fb4c0, transparent: true, opacity: 0.18, depthWrite: false });
   box(4, 140, 260, glas, -153.5, BAND_Y + 140, zc, b2g);                                         // Schauglas (Bedienerseite)
-  box(6, 150, 8, M.edelstahl, -154, BAND_Y + 140, zc - 134, b2g); box(6, 150, 8, M.edelstahl, -154, BAND_Y + 140, zc + 134, b2g);
-  box(6, 8, 276, M.edelstahl, -154, BAND_Y + 213, zc, b2g); box(6, 8, 276, M.edelstahl, -154, BAND_Y + 67, zc, b2g);
+  // Rahmen des Schauglases: steht vor der Wand, Querstücke zwischen den Pfosten
+  box(6, 150, 8, M.edelstahl, -155.5, BAND_Y + 140, zc - 135, b2g); box(6, 150, 8, M.edelstahl, -155.5, BAND_Y + 140, zc + 135, b2g);
+  box(6, 8, 262, M.edelstahl, -155.5, BAND_Y + 213, zc, b2g); box(6, 8, 262, M.edelstahl, -155.5, BAND_Y + 67, zc, b2g);
   const lamelle = new THREE.MeshStandardMaterial({ color: 0x6f8a96, roughness: 0.35, metalness: 0 });   // PVC-Streifenvorhang
   for (const dz of [-L / 2 + 2, L / 2 - 2]) for (let i = 0; i < 7; i++) box(36, 190, 2, lamelle, -129 + i * 43, BAND_Y + 145, zc + dz, b2g);
   // Abluftstutzen mit Wrasenrohr nach oben
@@ -54,19 +56,20 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   zyl(14, L - 40, rohr, 175, BAND_Y + 225, zc, 'z', b2g, 12);                                     // Verteilerrohr hinten (außen)
   for (const dz of [-180, 0, 180]) zyl(8, 30, rohr, 160, BAND_Y + 225, zc + dz, 'x', b2g, 10);     // Durchführungen
   // Auffangwanne unter dem Band mit Ablauf zum Tank
-  box(300, 4, L + 80, M.edelstahl, 0, BAND_Y - 150, zc, b2g);
+  box(292, 4, L + 72, M.edelstahl, 0, BAND_Y - 150, zc, b2g);                                     // Wannenboden zwischen den Wänden
   for (const sx of [-1, 1]) box(4, 70, L + 80, M.edelstahl, sx * 150, BAND_Y - 117, zc, b2g);
-  for (const dz of [-1, 1]) box(300, 70, 4, M.edelstahl, 0, BAND_Y - 117, zc + dz * (L + 80) / 2, b2g);
+  for (const dz of [-1, 1]) box(292, 70, 4, M.edelstahl, 0, BAND_Y - 117, zc + dz * (L + 76) / 2, b2g);
   const wasser = new THREE.MeshStandardMaterial({ color: 0x2b5f7a, roughness: 0.1, metalness: 0.2 });
   box(292, 2, L + 72, wasser, 0, BAND_Y - 140, zc, b2g);
   zyl(18, 120, M.edelstahl, 120, BAND_Y - 160, zc - 200, 'x', b2g, 12);
   // Tank mit Umwälzpumpe −MA3 hinter dem Band, Leitung über Sprühventil −MB13 zum Verteilerrohr
+  // Tank 160 tief direkt hinter dem Band (lokal x 180…340 = Welt z 1180…1340): weiter hinten stünde er auf der Kabelbrücke (bis z = 1170)
   const tz = zc + 60;
-  box(320, 300, 360, M.edelstahl, 340, 160, tz, b2g);
-  box(324, 6, 364, M.edelstahl, 340, 313, tz, b2g);
-  zyl(55, 140, M.anthrazit, 300, 380, tz - 80, null, b2g, 24);                                     // Pumpenmotor
-  zyl(45, 50, new THREE.MeshStandardMaterial({ color: 0x2f5fa8, roughness: 0.45 }), 300, 290 + 45, tz - 80, null, b2g, 24);   // Pumpengehäuse
-  box(60, 30, 60, M.anthrazit, 300, 465, tz - 80, b2g);                                             // Klemmenkasten
+  box(160, 300, 360, M.edelstahl, 260, 160, tz, b2g);
+  box(164, 6, 364, M.edelstahl, 260, 313, tz, b2g);
+  zyl(45, 50, new THREE.MeshStandardMaterial({ color: 0x2f5fa8, roughness: 0.45 }), 300, 341, tz - 80, null, b2g, 24);   // Pumpengehäuse auf der Tankplatte
+  zyl(55, 140, M.anthrazit, 300, 436, tz - 80, null, b2g, 24);                                     // Pumpenmotor darüber
+  box(60, 30, 60, M.anthrazit, 300, 521, tz - 80, b2g);                                             // Klemmenkasten
   leitung([V(240, 335, tz - 80), V(200, 335, tz - 80), V(200, BAND_Y + 225, tz - 80), V(182, BAND_Y + 225, tz - 80)], new THREE.MeshStandardMaterial({ color: 0x2f5fa8, roughness: 0.4 }), 12, 30, b2g);
   const ventil = new THREE.Group(); ventil.position.set(200, BAND_Y + 120, tz - 80); b2g.add(ventil);
   box(50, 40, 50, M.messing, 0, 0, 0, ventil);
@@ -74,7 +77,7 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   const vled = sensorLed(ventil, -19, 52, 0, 'MB13_Spruehwasser', 1, 4, 5); vled.emissive.setHex(0xffb000);
   KUEHL.ventilLed = vled;
   label('Sprühventil −MB13', ventil, 0, 90, 0, 'klein');
-  label('Tank, Umwälzpumpe −MA3', b2g, 340, 520, tz - 80, 'klein');
+  label('Tank, Umwälzpumpe −MA3', b2g, 260, 580, tz - 80, 'klein');
   label('Sprühkühlung (Abschrecken)', b2g, 0, yU + H + 90, zc, 'cyl');
   // Pyrometer −BT2 mit Spülluftvorsatz, misst durch die Rückwand auf den Korb am Kühlplatz
   const p = new THREE.Group(); p.position.set(185, BAND_Y + 140, B2x(1300)); b2g.add(p);
@@ -90,14 +93,14 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   //  Ober- und Untertrum, an den Seitenprofilen verschraubt, bläst durch den Drahtgurt nach oben.
   //  Magnetventil −MB14 (2/2-Wege NC, G1/2) am hinteren Pfosten, Druckluft über Fallleitung mit Kugelhahn.
   const lz = B2x(1690), XP = 200, YO = BAND_Y + 262, YK = BAND_Y + 190;
-  for (const sx of [-1, 1]) { profil(45, 45, YO - 22 - 52, 'y', sx * XP, (YO - 22 + 52) / 2, lz, b2g); stellfuss(sx * XP, lz, b2g); }
+  for (const sx of [-1, 1]) { profil(45, 45, YO - 22.5 - 52, 'y', sx * XP, (YO - 22.5 + 52) / 2, lz, b2g); stellfuss(sx * XP, lz, b2g); }   // Pfosten enden an der Unterkante des Querträgers
   profil(45, 45, 2 * XP + 45, 'x', 0, YO, lz, b2g);                                                   // Querträger
-  for (const sx of [-1, 1]) box(20, 6, 40, M.deckel, sx * 160, YK + 16, lz, b2g);                     // Halter der Düse
+  for (const sx of [-1, 1]) box(20, 6, 40, M.deckel, sx * 161, YK + 16, lz, b2g);                     // Halter der Düse (Endkappe steht 1 mm vor)
   for (const sx of [-1, 1]) box(6, YO - 22 - YK - 16, 30, M.deckel, sx * 170, (YO - 22 + YK + 16) / 2, lz, b2g);
   const luftduese = (y, L, kipp, aufwaerts) => {
     const d = new THREE.Group(); d.position.set(0, y, lz); d.rotation.x = kipp; b2g.add(d);
     zyl(15, L, M.alu, 0, 0, 0, 'x', d, 20);                                                           // Druckkammer
-    const lippe = box(L, 6, 30, M.alu, 0, aufwaerts ? 14 : -14, -10, d); lippe.rotation.x = aufwaerts ? 0.9 : -0.9;
+    const lippe = box(L - 4, 6, 30, M.alu, 0, aufwaerts ? 14 : -14, -10, d); lippe.rotation.x = aufwaerts ? 0.9 : -0.9;
     box(L - 10, 1.5, 3, M.schwarz, 0, aufwaerts ? 25 : -25, -19, d);                                  // Düsenschlitz
     for (const sx of [-1, 1]) zyl(17, 6, M.anthrazit, sx * (L / 2 + 3), 0, 0, 'x', d, 20);            // Endkappen
     return d;

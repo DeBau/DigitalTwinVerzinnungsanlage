@@ -14,8 +14,11 @@ export function label(text, obj, x, y, z, klasse = '') {
   LABELS.push({ div, obj: l, prio: klasse.includes('cyl') ? 3 : klasse.includes('schrank') ? 2 : 1 });
   return div;
 }
+// Aufgeklebte Flächen (Schilder, Anzeigen) liegen nur Zehntelmillimeter vor ihrem Träger: der Tiefenversatz
+// zieht sie im Tiefenpuffer leicht nach vorn, sonst flackern sie aus der Ferne mit der Fläche dahinter.
+export function dekor(mat) { mat.polygonOffset = true; mat.polygonOffsetFactor = -1; mat.polygonOffsetUnits = -2; return mat; }
 export function schildPlatte(tex, w, h, parent, x, y, z, ry = 0) {
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5 }));
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), dekor(new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5 })));
   m.position.set(x, y, z); m.rotation.y = ry;
   parent.add(m);
   return m;
@@ -26,13 +29,13 @@ const tafelCache = new Map();
 export function tafel(key, w, h, zeichnen, px = 6) {
   if (!tafelCache.has(key)) {
     const t = canvasTextur(Math.round(w * px), Math.round(h * px), (g, W, H) => { g.scale(W / w, H / h); zeichnen(g, w, h); });
-    const m = new THREE.MeshStandardMaterial({ map: t, roughness: 0.55, metalness: 0.05 }); m.userData.tafel = true;
+    const m = dekor(new THREE.MeshStandardMaterial({ map: t, roughness: 0.55, metalness: 0.05 })); m.userData.tafel = true;
     tafelCache.set(key, m);
   }
   return tafelCache.get(key);
 }
 export function platte(mat, w, h, parent, x, y, z, ry = 0) {
-  const m = new THREE.Mesh(cached(`pl${w}|${h}`, () => new THREE.PlaneGeometry(w, h)), mat);
+  const m = new THREE.Mesh(cached(`pl${w}|${h}`, () => new THREE.PlaneGeometry(w, h)), dekor(mat));
   m.position.set(x, y, z); m.rotation.y = ry; m.receiveShadow = true;
   parent.add(m);
   return m;

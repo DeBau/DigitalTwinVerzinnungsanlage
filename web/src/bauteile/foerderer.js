@@ -75,7 +75,7 @@ export function gurtband(parent, L, opt) {
     for (const sx of [-1, 1]) { profil(45, 45, BAND_Y - 95 - 52, 'y', sx * 110, (BAND_Y - 95 + 52) / 2, z, parent); stellfuss(sx * 110, z, parent); }
     profil(45, 45, 175, 'x', 0, 120, z, parent);
   }
-  for (const x of [-62, 0, 62]) box(12, 4, L - 2 * TROMMEL_R - 60, M.edelstahl, x, BAND_Y - t - 2, 0, parent);   // Gleitleisten (Flachstahl)
+  for (const x of [-62, 0, 62]) box(12, 4, L - 2 * TROMMEL_R - 60, M.edelstahl, x, BAND_Y - t - 2.6, 0, parent);   // Gleitleisten (Flachstahl), 0,6 mm unter der Gurtunterseite (sonst Flackern durch die Gurtmaschen)
   for (const z of [-H * 0.6, 0, H * 0.6]) box(176, 4, 30, M.edelstahl, 0, BAND_Y - t - 6, z, parent);            // Quertraversen
   // Drahtgurt (beide Bänder; opt.draht = false gäbe es nicht mehr): eine Schleife, ein Material je Band
   const tex = TEX_DRAHT.clone(); tex.needsUpdate = true;
@@ -117,11 +117,11 @@ export function gurtband(parent, L, opt) {
   }
   for (const sx of [-1, 1]) {                                            // Seitenführungen an Haltern
     for (const [a, b] of opt.fuehrung) box(4, 22, b - a, M.edelstahl, sx * 70, BAND_Y + 32, (a + b) / 2, parent);
-    for (const z of opt.halter) {
+    for (const z of opt.halter) {                                        // Abstandshalter: Winkel, Platte, Stift, Stange, Hülse
       box(4, 80, 30, M.anthrazit, sx * 134.5, BAND_Y + 2, z, parent);
-      box(30, 4, 30, M.anthrazit, sx * 121.5, BAND_Y + 44, z, parent);
-      zyl(5, 30, M.stahl, sx * 120, BAND_Y + 31, z, null, parent, 12);
-      zyl(5, 48, M.stahl, sx * 96, BAND_Y + 32, z, 'x', parent, 12);
+      box(32, 4, 30, M.anthrazit, sx * 121.5, BAND_Y + 44, z, parent);    // Platte steht 1 mm über den Winkel
+      zyl(5, 26, M.stahl, sx * 120, BAND_Y + 29, z, null, parent, 12);     // Stift endet unter der Platte
+      zyl(5, 44, M.stahl, sx * 98, BAND_Y + 32, z, 'x', parent, 12);       // Stange endet in der Hülse
       zyl(8, 10, M.kunststoff, sx * 77, BAND_Y + 32, z, 'x', parent, 16);
       for (const dy of [-22, 22]) zyl(5, 3, M.schwarz, sx * 138, BAND_Y + dy - 10, z, 'x', parent, 6);
     }
@@ -198,7 +198,7 @@ export function inkrementalgeber(parent, tr, seite, text) {
     c.fillText('8.5000.8352.0010', 2, 9); c.fillText('10 Imp/U  ·  5…30 V DC  ·  HTL', 2, 12.5);
   }, 10), 36, 16, g, seite * 223.1, 0, 0, seite * Math.PI / 2);
   box(3, 70, 22, M.edelstahl, seite * 181, 20, 27, g);                                     // Statorwinkel
-  box(30, 3, 22, M.edelstahl, seite * 166, 53, 27, g);
+  box(28.5, 3, 22, M.edelstahl, seite * 165.25, 53, 27, g);                                // Schenkel stößt an den senkrechten
   label(text, g, seite * 200, 85, 0, 'klein');
   g.updateMatrixWorld(true);
   return anlage.worldToLocal(g.localToWorld(V(seite * 200, 37, 0)));

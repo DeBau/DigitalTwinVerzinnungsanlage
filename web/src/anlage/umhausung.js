@@ -14,11 +14,13 @@ import { dummy } from './pneumatik.js';
 // ----------------------------------------------------------------------------
 {
   const { x0, x1, z0, z1, h } = UMH;
-  for (const [x, z] of [[x0, z0], [x1, z0], [x0, z1], [x1, z1], [(x0 + x1) / 2, z0]]) { profil(45, 45, h, 'y', x, h / 2, z); stellfuss(x, z); }
-  for (const z of [z0, z1]) profil(45, 45, x1 - x0, 'x', (x0 + x1) / 2, h + 22, z);
-  for (const x of [x0, x1]) profil(45, 45, z1 - z0, 'z', x, h + 22, 0);
-  for (const z of [z0]) profil(45, 45, x1 - x0, 'x', (x0 + x1) / 2, 180, z);
-  for (const x of [x0, x1]) profil(45, 45, z1 - z0, 'z', x, 180, 0);
+  // Pfosten durchgehend, Riegel stoßen zwischen den Pfosten an (keine ineinander liegenden Profile – die flackern)
+  const xm = (x0 + x1) / 2;
+  for (const [x, z] of [[x0, z0], [x1, z0], [x0, z1], [x1, z1], [xm, z0]]) { profil(45, 45, h, 'y', x, h / 2, z); stellfuss(x, z); }
+  for (const z of [z0, z1]) profil(45, 45, x1 - x0, 'x', xm, h + 22.5, z);                              // oberer Rahmen auf den Pfosten
+  for (const x of [x0, x1]) profil(45, 45, z1 - z0 - 45, 'z', x, h + 22.5, 0);
+  for (const [a, b] of [[x0 + 22.5, xm - 22.5], [xm + 22.5, x1 - 22.5]]) profil(45, 45, b - a, 'x', (a + b) / 2, 180, z0);   // Riegel hinten
+  for (const x of [x0, x1]) profil(45, 45, z1 - z0 - 45, 'z', x, 180, 0);                               // Riegel seitlich
   // Polycarbonat Rückwand (mit Durchlass für das Band) und Seiten
   const pc = (w, hh, x, y, z, ry) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, hh), M.pc); m.position.set(x, y, z); m.rotation.y = ry; anlage.add(m); };
   pc((x1 - x0) / 2 - 200, h - 210, (x0 + (x0 + x1) / 2 - 200) / 2, 1100, z0, 0);

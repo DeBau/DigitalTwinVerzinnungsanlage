@@ -41,7 +41,9 @@ scene.environmentIntensity = 0.75;
   scene.fog = new THREE.Fog(0x23272b, 8, 22);
 }
 
-export const camera = new THREE.PerspectiveCamera(34, 1, 0.03, 40);
+// Near 5 cm statt 3 cm: feinere Tiefenauflösung in der Ferne (bei 9 m ≈ 0,1 mm), damit knapp
+// voreinander liegende Flächen (Schilder, Frontplatten) nicht flackern
+export const camera = new THREE.PerspectiveCamera(34, 1, 0.05, 40);
 
 // Feste Ansichten (Meter): pos = Kamera, ziel = Drehpunkt; gruppe/name für die Auswahlliste
 const A = (gruppe, name, px, py, pz, tx, ty, tz) => ({ gruppe, name, pos: new THREE.Vector3(px, py, pz), ziel: new THREE.Vector3(tx, ty, tz) });

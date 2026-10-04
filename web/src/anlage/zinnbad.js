@@ -72,9 +72,9 @@ schildPlatte(TEX.schild('JUMO dTRON 316', '#202326', '#cfd4d8', 256, 32), 40, 5,
 zyl(14, 6, M.gelb, BAD_X + 150, 230, 173, 'z', bad, 20); zyl(9, 10, M.rot, BAD_X + 150, 230, 180, 'z', bad, 20); box(4, 22, 6, M.rot, BAD_X + 150, 230, 186, bad);
 schildPlatte(TEX.schild('Lötbad 25 kg · 3,5 kW · 400 V 3~', '#d8dcdf', '#1b232c', 384, 40), 110, 12, bad, BAD_X - 80, 220, 170.6);
 // Randabsaugung an der Rückseite mit Abluftkanal
-box(300, 54, 40, M.edelstahl, BAD_X, RAND_Y + 27, -150, bad);
+box(298, 54, 40, M.edelstahl, BAD_X, RAND_Y + 27, -150, bad);                              // 1 mm schmaler als die Abdeckung (gleiche Seitenfläche flackerte)
 for (let i = 0; i < 7; i++) box(30, 8, 1, M.schwarz, BAD_X - 120 + i * 40, RAND_Y + 34, -129.6, bad);
-box(160, 60, 70, M.edelstahl, BAD_X, RAND_Y + 30, -200, bad);
+box(160, 60, 65, M.edelstahl, BAD_X, RAND_Y + 30, -202.5, bad);                             // stößt hinten an die Randabsaugung
 zyl(45, 400, M.edelstahl, BAD_X, RAND_Y + 30, -400, 'z', bad, 32);       // Abluftkanal nach hinten durch die Rückwand
 zyl(47, 16, M.edelstahl, BAD_X, RAND_Y + 30, -560, 'z', bad, 32);
 zyl(45, 900, M.edelstahl, BAD_X, RAND_Y + 30 + 405, -650, null, bad, 32);

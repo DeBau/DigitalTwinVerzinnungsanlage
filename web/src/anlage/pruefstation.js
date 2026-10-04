@@ -99,11 +99,11 @@ function trichterGeo(o, u) {
   for (const sz of [-1, 1]) {                                                       // Lagerböcke
     const zz = z + sz * 145;
     profil(45, 45, 258, 'y', P.x, 95 + 129, zz);
-    for (const sx of [-1, 1]) { box(40, 6, 40, M.anthrazit, P.x + sx * 42.5, 98, zz); box(6, 40, 40, M.anthrazit, P.x + sx * 25.5, 115, zz); }   // Winkel 40x40 Profil–Querträger
+    for (const sx of [-1, 1]) { box(40, 6, 40, M.anthrazit, P.x + sx * 42.5, 98, zz); box(6, 34, 40, M.anthrazit, P.x + sx * 25.5, 118, zz); }   // Winkel 40x40 Profil–Querträger (Schenkel steht auf dem Fuß)
     box(150, 10, 70, M.anthrazit, P.x, 358, zz);                                    // Kopfplatte
     // Stehlager UCP206 (Achshöhe 36,5): Fuß, Gehäuse, Innenring, Schmiernippel, Schrauben
     box(130, 14, 38, M.anthrazit, P.x, 370, zz);
-    zyl(40, 38, M.anthrazit, P.x, P.y, zz, 'z', anlage, 28);
+    zyl(40, 36, M.anthrazit, P.x, P.y, zz, 'z', anlage, 28);
     zyl(22, 42, M.stahl, P.x, P.y, zz, 'z', anlage, 24);
     zyl(3, 10, M.messing, P.x, P.y + 44, zz, null, anlage, 8);
     for (const sx of [-1, 1]) zyl(6, 10, M.schwarz, P.x + sx * 52, 380, zz, null, anlage, 6);
@@ -111,8 +111,8 @@ function trichterGeo(o, u) {
   profil(45, 45, 245, 'z', P.x, 160, z);                                          // Querstrebe zwischen den Lagerböcken (unter dem Schwenkbereich)
   // Lagerbock der Schwenkbefestigung von −MM8 (Gabel, Bolzen Ø12 sichtbar)
   box(110, 10, 80, M.anthrazit, KIP.C.x, 100, zh);
-  for (const s of [-1, 1]) { box(50, 46, 8, M.anthrazit, KIP.C.x, 128, zh + s * 22); zyl(14, 8, M.anthrazit, KIP.C.x, KIP.C.y, zh + s * 22, 'z', anlage, 20); }
-  zyl(6, 66, M.stahl, KIP.C.x, KIP.C.y, zh, 'z', anlage, 12);
+  for (const s of [-1, 1]) { box(50, 46, 8, M.anthrazit, KIP.C.x, 128, zh + s * 22); zyl(14, 10, M.anthrazit, KIP.C.x, KIP.C.y, zh + s * 22, 'z', anlage, 20); }
+  zyl(6, 60, M.stahl, KIP.C.x, KIP.C.y, zh, 'z', anlage, 12);                                       // Bolzen endet in den Sicherungsringen
   for (const s of [-1, 1]) zyl(8, 3, M.schwarz, KIP.C.x, KIP.C.y, zh + s * 31.5, 'z', anlage, 12);   // Sicherungsringe
 
   // --- Kippmulde (dreht um P): Wangen 8 mm, Rollenbahn, Endanschlag mit Schurre, Niederhalter, Seitenführungen ---
@@ -134,7 +134,7 @@ function trichterGeo(o, u) {
     for (const a of [0.5, 2.6, 4.7]) zyl(3.5, 3, M.schwarz, 22 * Math.cos(a), 22 * Math.sin(a), sz * 113.5, 'z', k, 8);
     box(140, 18, 8, pe, -95, -86, sz * 84, k);                                     // Seitenführung für Kufen und Korb
     box(71, 5, 35, M.edelstahl, -59.5, -4.5, sz * 70.5, k);                        // Niederhalter: greift 3 mm über den Korbrand
-    box(71, 20, 5, M.edelstahl, -59.5, -12, sz * 85.5, k);
+    box(71, 15, 5, M.edelstahl, -59.5, -14.5, sz * 85.5, k);                       // Steg unter dem Niederhalter
   }
   zyl(15, 405, M.stahl, 0, 0, 27.5, 'z', k, 24);                                   // Kippwelle Ø30 (z −175 … +230)
   for (const sz of [-1, 1]) zyl(22, 12, M.stahl, 0, 0, sz * 172, 'z', k, 20);     // Stellringe außen an den Lagern
@@ -147,7 +147,7 @@ function trichterGeo(o, u) {
   box(10, 147, 176, M.edelstahl, -18, -23.5, 0, k);                               // Endanschlag, über den Korbrand als Schurre verlängert
   for (const sz of [-1, 1]) box(2, 30, 30, M.schwarz, -24, -75, sz * 30, k);     // Gummipuffer (Korbstirn liegt an)
   // Korb am Endanschlag −BG33: induktiver Sensor M12 durch den Endanschlag
-  zyl(6, 40, M.stahl, -3, -60, -45, 'x', k, 14);
+  zyl(6, 40, M.stahl, -2, -60, -45, 'x', k, 14);                                  // Sensor endet im Endanschlag
   zyl(7.5, 4, M.stahl, -10, -60, -45, 'x', k, 6);
   { const mat = sensorLed(k, 18, -54, -45, 'BG33_Kipper_Korb', 2, 1.4, 3); SENSOREN.push({ signal: 'BG33_Kipper_Korb', mat, div: label('−BG33', k, 10, -30, -60, 'klein') }); }
   // Einlauf Mulde −BG37: Reflexionslichtschranke schwenkt mit der Mulde (Leitung mit −BG33 über die Schleppschleife).
@@ -170,7 +170,7 @@ function trichterGeo(o, u) {
   zyl(26, 30, M.anthrazit, 0, 0, KIP.zh, 'z', k, 24);
   const hb = new THREE.Group(); hb.rotation.z = KIP.th0; k.add(hb);
   box(KIP.r, 36, 15, M.anthrazit, KIP.r / 2, 0, KIP.zh, hb);
-  zyl(18, 15, M.anthrazit, KIP.r, 0, KIP.zh, 'z', hb, 20);
+  zyl(18, 17, M.anthrazit, KIP.r, 0, KIP.zh, 'z', hb, 20);
   zyl(6, 52, M.stahl, KIP.r, 0, KIP.zh, 'z', hb, 12);                              // Bolzen Ø12 Gabelkopf
   for (const s of [-1, 1]) zyl(8, 3, M.schwarz, KIP.r, 0, KIP.zh + s * 25, 'z', hb, 12);
   label('Korbkipper −MM8', k, -90, 120, 0, 'cyl');
@@ -187,7 +187,7 @@ function trichterGeo(o, u) {
   zyl(10, MM8.hub + 70, M.stahl, -50 - (MM8.hub + 70) / 2, 0, 0, 'x', sg, 16);     // Kolbenstange Ø20 (Rest steckt im Rohr)
   zyl(13, 8, M.stahl, -46, 0, 0, 'x', sg, 6);                                     // Kontermutter M16x1,5
   box(18, 30, 32, M.stahl, -33, 0, 0, sg);                                        // Gabelkopf (ISO 8140)
-  for (const s of [-1, 1]) { box(34, 30, 7, M.stahl, -10, 0, s * 12, sg); zyl(15, 7, M.stahl, 0, 0, s * 12, 'z', sg, 20); }
+  for (const s of [-1, 1]) { box(34, 30, 7, M.stahl, -10, 0, s * 12, sg); zyl(15, 9, M.stahl, 0, 0, s * 12, 'z', sg, 20); }
   kipperKinematik(0);
 
   // --- Trichter mit eigenem Gestell, Prallblech und seitlichen Abweisblechen ---
@@ -195,9 +195,9 @@ function trichterGeo(o, u) {
   const triMat = new THREE.MeshStandardMaterial({ color: 0xb4bbc1, metalness: 0.85, roughness: 0.3, side: THREE.DoubleSide });
   const tri = new THREE.Mesh(trichterGeo(O, U), triMat); tri.castShadow = true; tri.receiveShadow = true; anlage.add(tri);
   for (const s of [-1, 1]) { box(O.x1 - O.x0 + 36, 4, 18, M.edelstahl, (O.x0 + O.x1) / 2, O.y + 2, z + s * 104); box(18, 4, 190, M.edelstahl, s < 0 ? O.x0 - 9 : O.x1 + 9, O.y + 2, z); }   // Randflansch
-  box(4, 150, 226, M.edelstahl, O.x1 + 16, O.y + 75, z);                         // Prallblech
-  for (const s of [-1, 1]) box(O.x1 + 16 - 3075, 95, 4, M.edelstahl, (3075 + O.x1 + 16) / 2, O.y + 47, z + s * 111);   // Abweisbleche
-  for (const x of [3105, 3265]) for (const s of [-1, 1]) { profil(45, 45, 342, 'y', x, 171, z + s * 125); box(90, 6, 90, M.anthrazit, x, 3, z + s * 125); }
+  box(4, 150, 226, M.edelstahl, O.x1 + 20, O.y + 75, z);                         // Prallblech (stößt außen an den Randflansch)
+  for (const s of [-1, 1]) box(O.x1 + 16 - 3075, 95, 4, M.edelstahl, (3075 + O.x1 + 16) / 2, O.y + 47, z + s * 115);   // Abweisbleche außen am Randflansch
+  for (const x of [3105, 3265]) for (const s of [-1, 1]) { profil(45, 45, 322.5, 'y', x, 161.25, z + s * 125); box(90, 6, 90, M.anthrazit, x, 3, z + s * 125); }   // Pfosten enden unter dem Querprofil
   for (const s of [-1, 1]) { profil(45, 45, 206, 'x', 3185, 345, z + s * 125); box(206, 4, 52, M.anthrazit, 3185, 369.5, z + s * 121); }   // Auflage Randflansch
   label('Trichter', anlage, ST.trX, O.y + 170, z + 120, 'klein');
 }
@@ -237,7 +237,7 @@ function trichterGeo(o, u) {
   box(BL - 40, 6, 100, M.alu, bx, yB - 5, z);                                     // Gleitbett
   box(BL - 36, 2, 100, gurtMat, bx, yB - 1, z);                                    // Obertrum
   box(BL - 36, 2, 100, gurtMat, bx, yB - 39, z);                                   // Untertrum
-  for (const x of [B0 + 18, B1 - 18]) { zyl(20, 100, gurtMat, x, yB - 20, z, 'z', anlage, 24); zyl(8, 126, M.stahl, x, yB - 20, z, 'z', anlage, 12); }
+  for (const x of [B0 + 18, B1 - 18]) { zyl(20, 96, gurtMat, x, yB - 20, z, 'z', anlage, 24); zyl(8, 126, M.stahl, x, yB - 20, z, 'z', anlage, 12); }   // Umlenkung 2 mm innerhalb der Gurtkante
   // Seitenführungen (Edelstahl), Lücken für Lichtschranke, Düse und Ausschleusung
   const fuehrung = (s, luecken) => {
     let x0 = B0 + 10;
@@ -267,7 +267,7 @@ function trichterGeo(o, u) {
     const mat = sensorLed(anlage, x - 4, yB + 30.5, z - 70, 'BG32_Teil_Pruefplatz', 3, 0.8, 3);
     SENSOREN.push({ signal: 'BG32_Teil_Pruefplatz', mat, div: label('−BG32', anlage, x, yB + 60, z - 80, 'klein') });
     box(30, 6, 30, M.alu, x, yB - 2, z + 70);
-    box(3, 30, 30, M.rot, x, yB + 14, z + 70);                                   // Reflektor
+    box(3, 30, 28, M.rot, x, yB + 14, z + 70);                                   // Reflektor
     stecker(anlage, V(x, yB - 2, z - 70), '-y');
     A.bg32 = V(x, yB - 2 - 32, z - 70);
   }
@@ -280,7 +280,7 @@ function trichterGeo(o, u) {
     for (const s of [-1, 1]) { const w = box(8, 120, 70, M.anthrazit, cx + s * 49, 70, cz); void w; }   // Fußwinkel
     box(60, 60, 60, M.alu, cx, 780, cz);                                          // Kreuzklemmstück
     profil(45, 45, 230, 'z', cx, 780, z - 95);                                     // Ausleger
-    box(70, 30, 40, M.alu, ST.kamX + 30, 780, z);                                 // Kamerahalter
+    box(70, 30, 40, M.alu, ST.kamX + 30, 780, z + 2);                             // Kamerahalter (steht 2 mm vor dem Auslegerende)
     zyl(10, 120, M.stahl, ST.kamX, 710, z, null, anlage, 12);
     const k2 = new THREE.Group(); k2.position.set(ST.kamX, 615, z); anlage.add(k2);
     box(44, 70, 44, new THREE.MeshStandardMaterial({ color: 0x3a3e43, roughness: 0.5, metalness: 0.3 }), 0, 0, 0, k2);
@@ -342,7 +342,7 @@ function trichterGeo(o, u) {
     // −BG34: Ultraschallsensor M18 über dem KLT an einem Galgen (Säule vorn), misst die Schütthöhe
     const px = kx - 100, pz = z - 255;
     box(120, 10, 120, M.anthrazit, px, 5, pz);
-    profil(45, 45, 470, 'y', px, 245, pz);
+    profil(45, 45, 425, 'y', px, 222.5, pz);                                       // Säule endet unter dem Ausleger
     profil(45, 45, 300, 'z', px, 457.5, pz + 127.5);
     box(30, 30, 40, M.alu, px, 430, z);
     zyl(9, 60, M.stahl, px, 400, z, null, anlage, 16);
@@ -358,9 +358,10 @@ function trichterGeo(o, u) {
   ST.im.setColorAt(0, new THREE.Color());
 }
 // KLT/Behälter: offener Kasten (Boden + 4 Wände), Füllstand als Fläche
+// Boden und Stirnwände liegen zwischen den Längswänden – keine zwei Teile teilen sich eine Außenfläche (Flackern)
 function kltKasten(x, z, w, d, h, mat, y0 = 0) {
-  box(w, 6, d, mat, x, y0 + 3, z);
-  for (const s of [-1, 1]) { box(w, h, 6, mat, x, y0 + h / 2, z + s * (d / 2 - 3)); box(6, h, d, mat, x + s * (w / 2 - 3), y0 + h / 2, z); }
+  box(w - 12, 6, d - 12, mat, x, y0 + 3, z);
+  for (const s of [-1, 1]) { box(w - 12, h, 6, mat, x, y0 + h / 2, z + s * (d / 2 - 3)); box(6, h, d, mat, x + s * (w / 2 - 3), y0 + h / 2, z); }
 }
 function fuellFlaeche(x, z, w, d, farbe, y0 = 0) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(w, 1, d), new THREE.MeshStandardMaterial({ color: farbe, metalness: 0.8, roughness: 0.35 }));

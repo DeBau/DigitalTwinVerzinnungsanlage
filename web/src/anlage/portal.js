@@ -30,8 +30,8 @@ for (const [x, dir] of [[-158, 1], [578, -1]]) {
 }
 // Kettenwanne hinter der Traverse
 export const KETTE = { xa: -100, y: 1313, z: -345, R: 38, glied: 22 };
-box(1400, 4, 44, M.profil, -100, 1303, KETTE.z);
-for (const sz of [-1, 1]) box(1400, 26, 3, M.profil, -100, 1314, KETTE.z + sz * 22);
+box(1394, 4, 44, M.profil, -100, 1303, KETTE.z);                                              // Boden endet zwischen den Wangen
+for (const sz of [-1, 1]) box(1400, 22, 3, M.profil, -100, 1316, KETTE.z + sz * 22);              // Wangen stehen auf dem Boden
 for (const x of [-700, -300, 150, 560]) box(20, 6, 50, M.deckel, x, 1300, -320);
 
 // Schlitten (bewegt mit −MM3)
@@ -53,7 +53,7 @@ box(170, 470, 10, M.deckel, 0, 1262, -42, schlitten);
 for (const sx of [-1, 1]) for (const y of [1080, 1300]) {
   box(46, 52, 8, M.festoAlu, sx * 62, y, -33, schlitten);                                        // Flanschfuß
   box(22, 52, 22, M.festoAlu, sx * 62, y, -18, schlitten);                                       // Steg
-  zyl(15, 52, M.festoAlu, sx * 62, y, 0, null, schlitten, 24);                                   // Gehäuse um die Kugelbuchse
+  zyl(15, 54, M.festoAlu, sx * 62, y, 0, null, schlitten, 24);                                   // Gehäuse um die Kugelbuchse (1 mm über den Steg)
   for (const dy of [-27, 27]) zyl(10.5, 2, M.schwarz, sx * 62, y + dy, 0, null, schlitten, 20);  // Abstreifdichtungen
   zyl(2, 5, M.messing, sx * 62, y, 16, 'z', schlitten, 6);                                        // Schmiernippel
   for (const dx of [-17, 17]) for (const dy of [-18, 18]) zyl(3, 1.5, M.schwarz, sx * 62 + dx, y + dy, -28.3, 'z', schlitten, 8);
@@ -93,9 +93,9 @@ zyl(6, 102, M.stahl, 0, 0, 0, 'z', hakenKoerper, 20);                           
 for (const sz of [-1, 1]) zyl(7.5, 3, M.schwarz, 0, 0, sz * 53.5, 'z', hakenKoerper, 16);   // Sicherungsringe
 for (const sz of [-30, 30]) {
   box(14, 74, 8, M.edelstahl, 0, -30, sz, hakenKoerper);                         // Schenkel (Nabe an der Welle)
-  zyl(10, 8, M.edelstahl, 0, 0, sz, 'z', hakenKoerper, 20);
-  box(56, 8, 8, M.edelstahl, -22, -63, sz, hakenKoerper);                        // Boden mit Sitzmulde x −10…6
-  box(28, 4, 8, M.edelstahl, -20, -57, sz, hakenKoerper);                        // Muldenrand rechts (Oberkante 445)
+  zyl(10, 10, M.edelstahl, 0, 0, sz, 'z', hakenKoerper, 20);                     // Nabe steht 1 mm über den Schenkel
+  box(43, 8, 8, M.edelstahl, -28.5, -63, sz, hakenKoerper);                      // Boden mit Sitzmulde (stößt an den Schenkel)
+  box(27, 4, 8, M.edelstahl, -20.5, -57, sz, hakenKoerper);                      // Muldenrand rechts (Oberkante 445)
   box(6, 16, 8, M.edelstahl, -53, -59, sz, hakenKoerper);                        // Sicherungsnase (Oberkante 449)
 }
 box(12, 56, 10, M.edelstahl, 0, 22, 0, hakenKoerper);                             // Hebel

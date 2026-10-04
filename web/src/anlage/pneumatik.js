@@ -5,7 +5,7 @@ import { canvasTextur } from '../core/texturen.js';
 import { M } from '../core/materialien.js';
 import { V, box, cached, mesh, zyl } from '../core/geometrie.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
-import { label, platte, tafel } from '../core/beschriftung.js';
+import { dekor, label, platte, tafel } from '../core/beschriftung.js';
 import { profil } from '../bauteile/aluprofil.js';
 import { sensorLed } from '../core/leds.js';
 import { halter, leitung, schlauch } from '../bauteile/leitungen.js';
@@ -73,7 +73,7 @@ const wartung = new THREE.Group();
 wartung.position.set(-700, 580, PORTAL_Z + 50);
 anlage.add(wartung);
 box(150, 100, 4, M.verzinkt, 8, 0, 2, wartung);                                                     // Halteblech an der Säule
-for (const x of [-60, 76]) box(8, 40, 36, M.verzinkt, x, 0, 22, wartung);                             // Haltewinkel
+for (const x of [-60, 76]) box(10, 40, 36, M.verzinkt, x, 0, 22, wartung);                            // Haltewinkel (stehen 1 mm über die Anschlussplatten)
 const msKoerper = cached('ms6', () => new RoundedBoxGeometry(58, 62, 62, 2, 5));
 for (const x of [-26, 38]) { const k = mesh(msKoerper, M.festoAlu, wartung); k.position.set(x, 0, 40); }
 for (const x of [-60, 6, 72]) box(8, 52, 52, M.deckel, x, 0, 40, wartung);                            // Modulverbinder / Anschlussplatten
@@ -107,8 +107,8 @@ const manoTex = canvasTextur(256, 256, (g) => {
   g.fillStyle = '#1b1b1b'; g.beginPath(); g.arc(128, 128, 9, 0, 7); g.fill();
 });
 zyl(21, 12, M.kunststoff, 38, 0, 77, 'z', wartung, 24);                                              // Manometergehäuse Ø 40
-const mano = new THREE.Mesh(new THREE.CircleGeometry(18, 32), new THREE.MeshStandardMaterial({ map: manoTex, roughness: 0.15 }));
-mano.position.set(38, 0, 83.2); wartung.add(mano);
+const mano = new THREE.Mesh(new THREE.CircleGeometry(18, 32), dekor(new THREE.MeshStandardMaterial({ map: manoTex, roughness: 0.15 })));
+mano.position.set(38, 0, 83.3); wartung.add(mano);
 label('Wartungseinheit 6 bar', wartung, 5, 110, 40, 'klein');
 const druckluftMat = new THREE.MeshStandardMaterial({ color: 0x2f7fd0, roughness: 0.45 });
 // Druckluft-Fallleitung (Hallennetz) mit Kugelhahn, dann zur Wartungseinheit
@@ -206,8 +206,9 @@ leitung([[BAD_X + 120, 120, -170], [BAD_X + 120, 120, -235], [835, 120, -235], [
 // vom Kettenmitnehmer (Schlitten) zu −MM2
 {
   const A = inSchlitten(mm2.g, mm2.portA), B = inSchlitten(mm2.g, mm2.portB);
-  for (const [ziel, mat, dz] of [[A, ZYL.MM2.matA, -6], [B, ZYL.MM2.matB, 6]]) {
-    schlauch([[60, 1398, KETTE.z + dz], [60, 1430, -300], [50, 1440, -160], [ziel.x + 70, ziel.y + 10, ziel.z - 30 + dz], [ziel.x + 18, ziel.y, ziel.z + dz * 0.3], ziel], mat, 2.8, schlitten);
+  // Querversatz ±11 (die −MM1-Schläuche liegen bei ±4): auf dem freien Stück über der Kette dürfen sich die Schläuche nicht berühren
+  for (const [ziel, mat, dz] of [[A, ZYL.MM2.matA, -11], [B, ZYL.MM2.matB, 11]]) {
+    schlauch([[60, 1398, KETTE.z + dz], [60, 1430, -300 + dz], [50, 1440, -160 + dz], [ziel.x + 70, ziel.y + 10, ziel.z - 30 + dz], [ziel.x + 18, ziel.y, ziel.z + dz * 0.3], ziel], mat, 2.8, schlitten);
   }
 }
 // Energiezuführung zum Hubteil (−MM1 und die Geber −BG1/−BG2): vertikale
@@ -224,7 +225,7 @@ export const HK1 = { x: 300, zF: -10, zM: 46, R: 28, yA: 560, yC0: 620, L: 548, 
   const yu = 540, yo = 1160, h = yo - yu, yc = (yu + yo) / 2;
   box(4, h, 108, M.blech, HK1.x + 26, yc, 18, schlitten);                        // Rücken der Rinne
   for (const z of [HK1.zF - 24, HK1.zM + 24]) box(32, h, 4, M.blech, HK1.x + 10, yc, z, schlitten);   // Seitenwangen
-  for (const y of [1040, 1130]) box(36, 8, 112, M.verzinkt, HK1.x + 8, y, 18, schlitten);             // Traversen zum Ausleger (über dem Kettenweg)
+  for (const y of [1040, 1130]) box(38, 8, 112, M.verzinkt, HK1.x + 8, y, 18, schlitten);             // Traversen zum Ausleger (über dem Kettenweg), 1 mm über die Wangen
   box(26, 18, 40, M.verzinkt, HK1.x, HK1.yA - 12, HK1.zF, schlitten);            // Festpunkt unten
   label('Energiekette Hub −MM2', schlitten, HK1.x + 60, 1070, 18, 'klein');
 }
@@ -233,8 +234,8 @@ box(26, 18, 40, M.verzinkt, HK1.x, HK1.yC0, HK1.zM, haken);                     
 const mm1PortA = inSchlitten(mm1.g, mm1.portA), mm1PortB = inSchlitten(mm1.g, mm1.portB);
 // Zuleitung am Schlitten: Ventilinsel → Ausleger → Rinne hinunter zum Festpunkt
 for (const [ziel, mat] of [[mm1PortA, ZYL.MM1.matA], [mm1PortB, ZYL.MM1.matB]]) {
-  const dz = ziel === mm1PortA ? -5 : 5;
-  schlauch([[60, 1398, KETTE.z], [80, 1430, -300], [250, 1420, -60], [292, 1270, 20], [HK1.x, 1150, HK1.zF + dz], [HK1.x, 900, HK1.zF + dz], [HK1.x, HK1.yA + 6, HK1.zF + dz]], mat, 2.4, schlitten, 56);
+  const dz = ziel === mm1PortA ? -4 : 4;                                        // beide Schläuche nebeneinander, nicht ineinander
+  schlauch([[60, 1398, KETTE.z + dz], [80, 1430, -300 + dz], [250, 1420, -60 + dz], [292, 1270, 20 + dz], [HK1.x, 1150, HK1.zF + dz], [HK1.x, 900, HK1.zF + dz], [HK1.x, HK1.yA + 6, HK1.zF + dz]], mat, 2.4, schlitten, 56);
 }
 // Am Hubteil: vom Mitnehmer zu den Anschlüssen von −MM1 (fährt mit, keine Nachführung nötig)
 for (const [ziel, mat] of [[mm1PortA, ZYL.MM1.matA], [mm1PortB, ZYL.MM1.matB]]) {

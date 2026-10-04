@@ -86,9 +86,9 @@ const RI = 125, RA = 105;                                                     //
     const g = rahmen(t);
     for (const sx of [-1, 1]) {
       box(4, 80, 30, M.anthrazit, sx * 134.5, BAND_Y + 2, 0, g);
-      box(30, 4, 30, M.anthrazit, sx * 121.5, BAND_Y + 44, 0, g);
-      zyl(5, 30, M.stahl, sx * 120, BAND_Y + 31, 0, null, g, 12);
-      zyl(5, 48, M.stahl, sx * 96, BAND_Y + 32, 0, 'x', g, 12);
+      box(32, 4, 30, M.anthrazit, sx * 121.5, BAND_Y + 44, 0, g);
+      zyl(5, 26, M.stahl, sx * 120, BAND_Y + 29, 0, null, g, 12);
+      zyl(5, 44, M.stahl, sx * 98, BAND_Y + 32, 0, 'x', g, 12);
       zyl(8, 10, M.kunststoff, sx * 77, BAND_Y + 32, 0, 'x', g, 16);
     }
   }

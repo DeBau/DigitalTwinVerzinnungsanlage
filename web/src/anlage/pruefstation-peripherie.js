@@ -39,13 +39,13 @@ anlage.updateMatrixWorld(true);
 box(KX1 - KX0, 40, 60, M.pvc, (KX0 + KX1) / 2, KY, KZ);
 box(KX1 - KX0 + 4, 3, 64, M.pvcHell, (KX0 + KX1) / 2, KY + 21.5, KZ);
 for (const x of [2930, 3380, 3760, 4250, 4560]) {
-  profil(45, 45, 130, 'y', x, 65, KZ + 50); box(80, 6, 80, M.anthrazit, x, 3, KZ + 50);
-  box(20, 50, 6, M.anthrazit, x, KY - 5, KZ + 33); box(20, 6, 64, M.anthrazit, x, KY - 23, KZ);   // Kanalhalter
+  profil(45, 45, 124, 'y', x, 62, KZ + 50); box(80, 6, 80, M.anthrazit, x, 3, KZ + 50);     // Ständer endet unter dem Halter
+  box(20, 50, 6, M.anthrazit, x, KY - 5, KZ + 33); box(20, 6, 62, M.anthrazit, x, KY - 23, KZ - 1);   // Kanalhalter (Schenkel stoßen aneinander)
 }
 label('Kabelkanal Prüfstation', anlage, 3600, KY + 50, KZ - 40, 'klein');
 {
   const prof = [[-110, 0], [110, 0], [60, 28], [-60, 28]];
-  const weg = [[2740, 1060], [KX0 + 10, 1060], [KX0 + 10, KZ - 10]];
+  const weg = [[2750, 1060], [KX0 + 10, 1060], [KX0 + 10, KZ - 10]];                 // stößt am Ende der Kabelbrücke (x = 2750) an
   const pos = [], uv = [], idx = [];
   let lauf = 0;
   weg.forEach((p, i) => {
