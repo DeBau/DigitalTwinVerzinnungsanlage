@@ -9,7 +9,7 @@ import { sensorLed } from '../core/leds.js';
 import { BRUECKE, lage } from './kabelbruecke.js';
 import { profil } from '../bauteile/aluprofil.js';
 import { halter, leitung, schlauch } from '../bauteile/leitungen.js';
-import { stecker } from '../bauteile/stecker.js';
+import { stecker, steckerWinkel } from '../bauteile/stecker.js';
 import { steckverschraubung } from '../bauteile/zylinder.js';
 import { SENSOR_AUSTRITT } from '../bauteile/nutsensor.js';
 import { VENTIL_LEDS, inAnlage, rohrNeu } from './pneumatik.js';
@@ -86,12 +86,12 @@ ST.zeichnen.push(() => {
 box(230, 230, 5, M.deckel, 3000, 250, 1350);                                       // Montageplatte am Lagerbock
 for (const [x, y] of [[2895, 145], [3105, 145], [2895, 355], [3105, 355]]) zyl(4, 3, M.schwarz, x, y, 1346.5, 'z', anlage, 8);
 {
-  const FX = 2850, FZ = 1320;
+  const FX = 2800, FZ = 1323.5;
   zyl(11, 1900, M.alu, FX, 700 + 950, FZ, null);                                 // Fallleitung Hallennetz
   zyl(14, 40, M.messing, FX, 740, FZ, null, anlage, 6);                           // Kugelhahn
   box(70, 8, 14, M.rot, FX + 35, 752, FZ);
   label('Druckluft 6 bar (Hallennetz)', anlage, FX, 900, FZ - 20, 'klein');
-  leitung([V(FX, 720, FZ), V(FX, 270, FZ), V(2873, 270, FZ), V(2873, 270, 1323.5)], druck, 4.5, 30);
+  leitung([V(FX, 720, FZ), V(FX, 270, FZ), V(2873, 270, FZ)], druck, 4.5, 30);
 }
 const wg = new THREE.Group(); wg.position.set(2930, 250, 1347.5); anlage.add(wg);
 box(44, 60, 44, M.zylinder, 0, 20, -24, wg);                                       // Filterregler
@@ -103,7 +103,8 @@ box(26, 40, 40, M.blau, 37, 20, -24, wg);                                       
 box(10, 12, 50, M.kunststoff, 37, 46, -24, wg);
 for (const s of [-1, 1]) box(10, 44, 44, M.deckel, s * 27, 20, -24, wg);          // Modulverbinder
 label('Wartungseinheit −AZ2', wg, 0, 110, -30, 'klein');
-const qg = new THREE.Group(); qg.position.set(3060, 250, 1347.5); anlage.add(qg);
+const QY = 280;                                                                     // Ventilinsel auf Höhe des Wartungseinheit-Ausgangs (P-Schlauch gerade)
+const qg = new THREE.Group(); qg.position.set(3060, QY, 1347.5); anlage.add(qg);
 box(100, 30, 40, M.festoAlu, 0, -10, -20, qg);                                     // Anschlussplatte
 const QP = {};
 [['MB15_Kippen', -22, '−MB15', '5/2 Kippen'], ['MB16_Ausblasen', 22, '−MB16', '3/2 Düse']].forEach(([sig, dx, bmk, txt]) => {
@@ -116,14 +117,14 @@ const QP = {};
   label(`${bmk} ${txt}`, qg, dx, 125 + (dx > 0 ? 18 : 0), -20, 'klein');
   QP[sig] = (sig === 'MB15_Kippen' ? [-7, 7] : [0]).map((ox) => {
     const p = new THREE.Group(); p.position.set(dx + ox, -25, -20); p.rotation.x = Math.PI; qg.add(p); steckverschraubung(p, 0, 0, 0, 3.4);
-    return V(3060 + dx + ox, 250 - 40, 1347.5 - 20);
+    return V(3060 + dx + ox, QY - 40, 1347.5 - 20);
   });
 });
 { const p = new THREE.Group(); p.position.set(-50, -10, -20); p.rotation.z = Math.PI / 2; qg.add(p); steckverschraubung(p, 0, 0, 0, 4); }   // Anschluss 1 (P)
 for (const dz of [-12, -28]) zyl(5, 18, M.messing, 40, -34, dz, null, qg, 12);     // Schalldämpfer 3/5
-stecker(qg, V(50, -10, -20), '+x');                                                // Multipolanschluss M12 (8-polig) an der Endplatte
+const MULTIPOL = steckerWinkel(qg, V(50, -10, -20), '+x', '-y').add(qg.position);   // Multipolanschluss M12 (8-polig) an der Endplatte, gewinkelt
 label('Ventilinsel −QM4', qg, 0, 108, -20, 'klein');
-leitung([V(2996, 270, 1323.5), V(3002, 270, 1323.5), V(3002, 240, 1327.5), V(3008, 240, 1327.5)], druck, 4, 10);   // Wartungseinheit → P
+leitung([V(2996, 270, 1323.5), V(3008, 270, 1327.5)], druck, 4, 10);             // Wartungseinheit → P
 // −MM8: Drosselrückschlagventile (Abluftdrosselung) auf den Anschlüssen, Schlauch B am Zylinderrohr entlang
 const zg = ST.zylBody, mm = ST.mm8, gx = 40;
 const grla = (p) => {
@@ -136,30 +137,30 @@ const grla = (p) => {
   return V(gx + p.x, p.y + 8, p.z + 16);
 };
 const TA = grla(mm.portA), TBp = grla(mm.portB);
-const TB = V(70, TBp.y, 30);
-leitung([TBp, V(TBp.x, TBp.y, 30), V(TB.x, TB.y, 30)], matB, 3, 14, zg);
-for (const x of [140, 240]) box(8, 6, 10, M.kunststoff, x, TB.y - 4, 30, zg);      // Schlauchclips
+const TB = V(70, TBp.y, TBp.z + 30);                                               // Abstand für den Bogen aus dem Steckanschluss
+leitung([TBp, V(TBp.x, TBp.y, TB.z), TB], matB, 3, 14, zg);
+for (const x of [140, 240]) box(8, 6, 26, M.kunststoff, x, TB.y - 4, TB.z - 8, zg);  // Schlauchclips
 // Schlauchführung: Ventilinsel → am Querträger entlang nach hinten → hinterer Längsträger → Schlauchhalter vor C
 const KL = [V(2640, 75, 1778), V(2640, 83, 1790)];                                 // Festpunkte (Schlauchhalter)
 QP.MB15_Kippen.forEach((p, i) => {
-  const xq = 3033 + i * 8, zr = 1778 + i * 12;
-  leitung([p, V(p.x, 75 + i * 8, p.z), V(xq, 75 + i * 8, p.z), V(xq, 75 + i * 8, zr), V(2640, 75 + i * 8, zr), KL[i]], i ? matB : matA, 3, 20);
+  const zr = 1778 + i * 12;
+  leitung([p, V(p.x, 75 + i * 8, p.z), V(p.x, 75 + i * 8, zr), V(2640, 75 + i * 8, zr), KL[i]], i ? matB : matA, 3, 20);
 });
 for (const x of [2700, 2850, 2960]) halter(x, 90, 1784, 'y');
 for (const zz of [1450, 1600, 1720]) halter(3037, 90, zz, 'y');
 // Schlauch Ø6 zur Ausblasdüse im Kabelkanal
 {
   const p = QP.MB16_Ausblasen[0], d = A.duese;
-  leitung([p, V(p.x, 185, p.z), V(p.x, 185, KI - 10), V(p.x, KY, KI - 10), V(d.x, KY, KI - 10), V(d.x, 190, KI - 10), V(d.x, 190, d.z - 30), V(d.x, d.y, d.z - 30), d], matD, 2.6, 16);
+  leitung([p, V(p.x, 205, p.z), V(p.x, 205, KI - 10), V(p.x, KY, KI - 10), V(d.x, KY, KI - 10), V(d.x, 205, KI - 10), V(d.x, 205, d.z - 80), V(d.x, d.y, d.z - 30), d], matD, 2.6, 16);
 }
 
 // --- Bewegte Leitungen (Schleppbögen) ---
 const DYN = [];
 function bewegt(mat, r, punkte) {
-  const m = schlauch(punkte(), mat, r, anlage, 32); m.userData.dyn = true;
+  const m = schlauch(punkte(), mat, r, anlage, 48); m.userData.dyn = true;
   DYN.push({ m, r, punkte });
 }
-const neu = () => { for (const d of DYN) rohrNeu(d.m, new THREE.CatmullRomCurve3(d.punkte(), false, 'centripetal'), 32, d.r, d.r < 3 ? 5 : 7); };
+const neu = () => { for (const d of DYN) rohrNeu(d.m, new THREE.CatmullRomCurve3(d.punkte(), false, 'centripetal'), 48, d.r); };
 const zW = (v) => inAnlage(zg, v), kW = (v) => inAnlage(ST.kipper, v);
 // Schläuche A/B: vom Schlauchhalter in einem Bogen auf die Oberseite des schwenkenden Zylinders
 bewegt(matA, 3, () => { const t = zW(TA), t1 = zW(V(TA.x, TA.y, TA.z + 30)); return [KL[0], V(KL[0].x - 25, KL[0].y + 10, KL[0].z), V((KL[0].x + t.x) / 2 + 20, (KL[0].y + t.y) / 2 - 10, t.z + 38), t1, t]; });
@@ -172,15 +173,14 @@ for (const sig of ['BG30_MM8_unten', 'BG31_MM8_gekippt']) {
 }
 box(20, 14, 30, M.kunststoff, 2500, 103, 1697);                                    // Kabelschelle
 // −BG33 (vorn) und Rollenantrieb (hinten): auf der Mulde zur Kippachse, Schleppschleife zum Lagerbock
-leitung([V(23, -60, -45), V(32, -60, -45), V(32, -60, -104), V(-35, -60, -104), V(-35, -30, -118)], M.kabelGrau, 2.4, 10, ST.kipper);
-leitung([V(-100, 17, 137), V(-100, 40, 137), V(-100, 40, 119), V(-45, 40, 119), V(-35, -30, 119)], M.kabel, 3.5, 12, ST.kipper);
+leitung([V(23, -60, -45), V(47, -60, -45), V(47, -60, -104), V(-35, -60, -104), V(-35, -30, -118)], M.kabelGrau, 2.4, 10, ST.kipper);
+leitung([V(-100, 17, 137), V(-100, 90, 137), V(-35, 90, 119), V(-35, -30, 119)], M.kabel, 3.5, 12, ST.kipper);
 // −BG37 (vorn außen an der Wange): Stecker nach außen, am Haltewinkel entlang zur Kippachse
-stecker(ST.kipper, V(-120, -50, -120), '-z');
-leitung([V(-120, -50, -151), V(-120, -50, -158), V(-120, -30, -158), V(-100, -30, -124), V(-47, -30, -124)], M.kabelGrau, 2.4, 10, ST.kipper);
+{ const a = steckerWinkel(ST.kipper, V(-120, -50, -120), '-z', '+x'); leitung([a, V(-70, a.y, a.z), V(-47, -50, -124)], M.kabelGrau, 2.4, 10, ST.kipper); }
 const FB = V(2958, 330, 1402), FM = V(2962, 330, 1638), FB37 = V(2944, 330, 1402);
-bewegt(M.kabelGrau, 2.4, () => { const q = kW(V(-35, -30, -118)), q1 = kW(V(-35, -45, -118)); return [q, q1, V((q.x + FB.x) / 2 - 25, Math.min(q.y, FB.y) - 25, FB.z), V(FB.x, FB.y + 25, FB.z), FB]; });
+bewegt(M.kabelGrau, 2.4, () => { const q = kW(V(-35, -30, -118)), q1 = kW(V(-35, -14, -124)); return [q, q1, V((q.x + FB.x) / 2 - 25, Math.min(q.y, FB.y) - 25, FB.z), V(FB.x, FB.y + 25, FB.z), FB]; });
 bewegt(M.kabel, 3.5, () => { const q = kW(V(-35, -30, 119)), q1 = kW(V(-35, -45, 119)); return [q, q1, V((q.x + FM.x) / 2 - 25, Math.min(q.y, FM.y) - 25, FM.z), V(FM.x, FM.y + 25, FM.z), FM]; });
-bewegt(M.kabelGrau, 2.4, () => { const q = kW(V(-47, -30, -124)), q1 = kW(V(-47, -45, -124)); return [q, q1, V((q.x + FB37.x) / 2 - 25, Math.min(q.y, FB37.y) - 25, FB37.z), V(FB37.x, FB37.y + 25, FB37.z), FB37]; });
+bewegt(M.kabelGrau, 2.4, () => { const q = kW(V(-47, -50, -124)), q1 = kW(V(-30, -50, -124)); return [q, q1, V((q.x + FB37.x) / 2 - 25, Math.min(q.y, FB37.y) - 25, FB37.z), V(FB37.x, FB37.y + 25, FB37.z), FB37]; });
 for (const f of [FB, FM, FB37]) box(14, 20, 10, M.kunststoff, f.x, f.y - 6, f.z);       // Zugentlastung am Lagerbock
 KIPPER_NACHFUEHREN.push(neu);
 
@@ -189,22 +189,26 @@ for (const x of [3300, 3450]) { profil(45, 45, 420, 'y', x, 210, KZ + 55); box(9
 const XD5 = feldverteiler(3450, 330, KZ + 32.5, Math.PI, '−XD5 Feldverteiler Prüfstation', [
   ['BG30_MM8_unten'], ['BG31_MM8_gekippt'], ['BG33_Kipper_Korb'], ['BG32_Teil_Pruefplatz'], ['BG34_KLT_voll'], ['MB15_Kippen', 'MB16_Ausblasen'], ['BG37_Kipper_Einlauf'], null]);
 for (let i = FELD_LEDS.length - 1; i >= 0; i--) if (/^MB1[56]_/.test(FELD_LEDS[i].signal)) VENTIL_LEDS.push(...FELD_LEDS.splice(i, 1));   // Ausgänge: LED folgt dem Ausgang
-let nXD = 0;
-const zuXD = (weg, port) => { const x = 3492 + nXD++ * 5; zumPort([...weg, V(x, KY, KI), V(x, 215, KI)], XD5.ports[port]); };
-const imKanal = (x) => [V(x, 110, KI), V(x, KY, KI)];
+// zuXD: im Kanal bis unter die Port-Spalte, dort schräg auf die Steigposition der eigenen Lage (vorn = äußere Lage)
+// und senkrecht aus dem Kanal; zumPort führt die Leitung dann in ihrer Lage vor dem Verteiler zum Port
+const zuXD = (weg, port) => {
+  const P = XD5.ports[port], x = P.p.x, zr = KI - (3 - P.zei) * 6, von = weg[weg.length - 1].x < x ? -1 : 1;
+  zumPort([...weg, V(x + von * 50, KY, KI), V(x, KY, zr), V(x, 215, zr)], P);
+};
+const imKanal = (x) => [V(x, 75, KI), V(x, KY, KI)];
 // −BG30/−BG31: am hinteren Längsträger und am Querträger entlang nach vorn in den Kanal
 [['BG30_MM8_unten', 0], ['BG31_MM8_gekippt', 1]].forEach(([sig, port]) => {
   const f = F3[sig], x = 2966 + port * 5;
-  zuXD([f, V(x, f.y, f.z), V(x, 110, f.z), ...imKanal(x)], port);
+  zuXD([f, V(x, 75, f.z), ...imKanal(x)], port);
 });
-zuXD([FB, V(2958, 110, FB.z), ...imKanal(2958)], 2);                               // −BG33
-zuXD([FB37, V(2944, 110, FB37.z), ...imKanal(2944)], 6);                           // −BG37
-zuXD([A.bg32, V(A.bg32.x, 120, A.bg32.z), V(A.bg32.x, 120, KI), V(A.bg32.x, KY, KI)], 3);
-zuXD([A.bg34, V(A.bg34.x, 490, A.bg34.z), V(A.bg34.x, 490, z - 255), V(4668, 490, z - 255), V(4668, KY, z - 255), V(4590, KY, KI)], 4);
-for (const y of [300, 200]) halter(4668, y, z - 255, 'z');
-zuXD([V(3142, 240, 1327.5), V(3150, 240, 1327.5), V(3150, KY + 30, 1327.5), V(3150, KY + 30, KI), V(3150, KY, KI)], 5);   // −QM4 Multipol
+zuXD([FB, V(2958, 75, FB.z), ...imKanal(2958)], 2);                               // −BG33
+zuXD([FB37, V(2944, 75, FB37.z), ...imKanal(2944)], 6);                           // −BG37
+zuXD([A.bg32, V(A.bg32.x, 75, A.bg32.z), ...imKanal(A.bg32.x)], 3);
+zuXD([A.bg34, V(A.bg34.x, 510, A.bg34.z), V(A.bg34.x, 510, z - 255), V(4690, 510, z - 255), V(4690, KY, z - 255), V(4590, KY, KI)], 4);
+for (const y of [300, 200]) halter(4690, y, z - 255, 'z');
+zuXD([MULTIPOL, V(MULTIPOL.x, KY + 50, MULTIPOL.z), V(MULTIPOL.x, KY + 50, KI), V(MULTIPOL.x, KY, KI)], 5);   // −QM4 Multipol
 // Sammelleitung −XD5, Steuergerät −MA4, Motoren, Kamera → Kanal → Kabelbrücke → Schaltschrank
-{ const s = XD5.sammel; zumSchrank([s, V(s.x, KY, s.z), V(s.x, KY, KI)], M.kabelGrau, 4); }
+{ const s = XD5.sammel; zumSchrank([s, V(s.x, KY, s.z)], M.kabelGrau, 4); }
 {
   const gx2 = 3300, gz = KZ + 55 - 22.5 - 35;
   box(110, 150, 70, M.rittal, gx2, 335, gz);
@@ -212,11 +216,11 @@ zuXD([V(3142, 240, 1327.5), V(3150, 240, 1327.5), V(3150, KY + 30, 1327.5), V(31
   for (const dx of [-25, 0, 25]) zyl(6, 10, M.kunststoff, gx2 + dx, 255, gz, null, anlage, 10);   // Kabelverschraubungen
   label('Steuergerät Vibrorinne −MA4', anlage, gx2, 440, gz, 'klein');
   stecker(anlage, A.ma4, '-z');
-  kabel([V(gx2 + 25, 250, gz), V(gx2 + 25, KY, gz), V(gx2 + 25, KY, KI), V(3278, KY, KI), V(3278, 110, KI), V(3278, 110, A.ma4.z - 40), V(A.ma4.x, A.ma4.y, A.ma4.z - 40), V(A.ma4.x, A.ma4.y, A.ma4.z - 32)], anlage, M.kabel, 3.5, 20, false);
-  zumSchrank([V(gx2 - 25, 250, gz), V(gx2 - 25, KY, gz), V(gx2 - 25, KY, KI)], M.kabel, 4);
+  kabel([V(A.ma4.x, 250, gz), V(A.ma4.x, 215, gz), V(A.ma4.x, 215, 1340), V(A.ma4.x, A.ma4.y, 1340), V(A.ma4.x, A.ma4.y, A.ma4.z - 32)], anlage, M.kabel, 3.5, 20, false);
+  zumSchrank([V(gx2 + 25, 250, gz), V(gx2 + 25, KY, gz)], M.kabel, 4);
 }
-zumSchrank([FM, V(2962, 110, FM.z), V(2962, 110, KI), V(2962, KY, KI)], M.kabel, 3.5);                         // Muldenantrieb −MA7 (−QA12/−QA13, −FA8)
-zumSchrank([A.ma5, V(A.ma5.x, A.ma5.y + 14, A.ma5.z), V(A.ma5.x, A.ma5.y + 14, KZ - 12), V(A.ma5.x, KY, KZ - 12)], M.kabel, 4.5);
+zumSchrank([FM, V(2962, 75, FM.z), ...imKanal(2962)], M.kabel, 3.5);                         // Muldenantrieb −MA7 (−QA12/−QA13, −FA8)
+zumSchrank([A.ma5, V(A.ma5.x, A.ma5.y + 50, A.ma5.z), V(A.ma5.x, A.ma5.y + 50, KZ - 12), V(A.ma5.x, KY, KZ - 12)], M.kabel, 4.5);
 zumSchrank([A.kf10, V(3850, A.kf10.y, A.kf10.z), V(3850, KY, A.kf10.z), V(3850, KY, KI)], M.kabelGruen, 3.5);   // Keyence-Kabel zum Controller im Schrank
 for (const y of [300, 500, 700]) halter(3850, y, A.kf10.z, 'y');
 // Vor-Ort-Steuerstelle −S40: aus dem Säulenfuß am Boden unter dem Prüfband (zwischen den Beinen) zum Kanal, dort hoch in den Kanal

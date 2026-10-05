@@ -4,7 +4,7 @@ import { M } from '../core/materialien.js';
 import { V, box, zyl } from '../core/geometrie.js';
 import { label } from '../core/beschriftung.js';
 import { sensorLed } from '../core/leds.js';
-import { leitung } from '../bauteile/leitungen.js';
+import { leitung, rohr as starrRohr } from '../bauteile/leitungen.js';
 import { profil, stellfuss } from '../bauteile/aluprofil.js';
 import { BAND, BAND_Y } from './baender.js';
 import { B2x, b2g } from './band2.js';
@@ -39,7 +39,7 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   for (const dz of [-L / 2 + 2, L / 2 - 2]) for (let i = 0; i < 7; i++) box(36, 190, 2, lamelle, -129 + i * 43, BAND_Y + 145, zc + dz, b2g);
   // Abluftstutzen mit Wrasenrohr nach oben
   zyl(52, 50, M.edelstahl, 60, yU + H + 27, zc, null, b2g, 24);                                 // Abluftstutzen
-  leitung([V(60, yU + H + 50, zc), V(60, yU + H + 130, zc), V(560, yU + H + 130, zc), V(560, yU + H + 1100, zc)], M.verzinkt, 50, 90, b2g);   // Wrasenrohr nach hinten, dann hoch
+  starrRohr([V(60, yU + H + 50, zc), V(60, yU + H + 130, zc), V(560, yU + H + 130, zc), V(560, yU + H + 1100, zc)], M.verzinkt, 50, 75, b2g);   // Wrasenrohr nach hinten, dann hoch
   // Sprührohre (oben quer über dem Band, unten unter dem Obertrum) mit Flachstrahldüsen
   const rohr = M.edelstahl, duese = new THREE.MeshStandardMaterial({ color: 0x2f5fa8, roughness: 0.4 });
   const kegelMat = new THREE.MeshBasicMaterial({ color: 0xd8ecff, transparent: true, opacity: 0.28, depthWrite: false });
@@ -70,7 +70,7 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   zyl(45, 50, new THREE.MeshStandardMaterial({ color: 0x2f5fa8, roughness: 0.45 }), 300, 341, tz - 80, null, b2g, 24);   // Pumpengehäuse auf der Tankplatte
   zyl(55, 140, M.anthrazit, 300, 436, tz - 80, null, b2g, 24);                                     // Pumpenmotor darüber
   box(60, 30, 60, M.anthrazit, 300, 521, tz - 80, b2g);                                             // Klemmenkasten
-  leitung([V(240, 335, tz - 80), V(200, 335, tz - 80), V(200, BAND_Y + 225, tz - 80), V(182, BAND_Y + 225, tz - 80)], new THREE.MeshStandardMaterial({ color: 0x2f5fa8, roughness: 0.4 }), 12, 30, b2g);
+  starrRohr([V(240, 335, tz - 80), V(200, 335, tz - 80), V(200, BAND_Y + 225, tz - 80), V(182, BAND_Y + 225, tz - 80)], new THREE.MeshStandardMaterial({ color: 0x2f5fa8, roughness: 0.4 }), 12, 30, b2g);
   const ventil = new THREE.Group(); ventil.position.set(200, BAND_Y + 120, tz - 80); b2g.add(ventil);
   box(50, 40, 50, M.messing, 0, 0, 0, ventil);
   box(36, 44, 36, M.kunststoff, 0, 42, 0, ventil);                                                 // Magnetspule −MB13
@@ -117,16 +117,16 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   box(14, 30, 30, M.deckel, -27, 0, 0, mb14);                                                      // Halter am Pfosten
   const luft = new THREE.MeshStandardMaterial({ color: 0x2f7fd0, roughness: 0.45 });                 // PU-Schlauch blau
   // Druckluft: Fallleitung (Alu) mit Kugelhahn hinter dem Gestell → Ventil
-  zyl(11, 2600 - (BAND_Y + 230), M.alu, XP + 110, (2600 + BAND_Y + 230) / 2, lz, null, b2g, 12);
-  zyl(14, 36, M.messing, XP + 110, BAND_Y + 260, lz, null, b2g, 6);
-  box(60, 7, 12, M.rot, XP + 110 + 26, BAND_Y + 272, lz, b2g);
-  leitung([V(XP + 110, BAND_Y + 230, lz), V(XP + 110, BAND_Y + 120, lz), V(XP + 60, BAND_Y + 120, lz)], luft, 6, 30, b2g);
+  zyl(11, 2600 - (BAND_Y + 230), M.alu, XP + 130, (2600 + BAND_Y + 230) / 2, lz, null, b2g, 12);
+  zyl(14, 36, M.messing, XP + 130, BAND_Y + 260, lz, null, b2g, 6);
+  box(60, 7, 12, M.rot, XP + 130 + 26, BAND_Y + 272, lz, b2g);
+  leitung([V(XP + 130, BAND_Y + 230, lz), V(XP + 130, BAND_Y + 120, lz), V(XP + 60, BAND_Y + 120, lz)], luft, 6, 30, b2g);
   // Ventil → obere Düse (Endkappe hinten) und über eine Schottverschraubung im Seitenprofil → untere Düse
-  leitung([V(XP + 40, BAND_Y + 140, lz + 22), V(XP + 40, BAND_Y + 140, lz + 40), V(XP + 40, YK, lz + 40), V(158, YK, lz + 40), V(158, YK, lz)], luft, 6, 25, b2g);
-  leitung([V(XP + 40, BAND_Y + 100, lz + 22), V(XP + 40, BAND_Y + 100, lz + 50), V(XP + 40, BAND_Y - 40, lz + 50), V(140, BAND_Y - 40, lz + 50), V(140, BAND_Y - 40, lz)], luft, 6, 25, b2g);
+  leitung([V(XP + 40, BAND_Y + 140, lz + 22), V(XP + 40, BAND_Y + 140, lz + 45), V(XP + 40, YK, lz + 90), V(158, YK, lz + 90), V(158, YK, lz)], luft, 4, 25, b2g);   // PU 8×1,25
+  leitung([V(XP + 40, BAND_Y + 100, lz + 22), V(XP + 40, BAND_Y + 100, lz + 80), V(XP + 40, BAND_Y - 40, lz + 80), V(140, BAND_Y - 40, lz + 80), V(140, BAND_Y - 40, lz)], luft, 4, 25, b2g);
   zyl(9, 12, M.stahl, 136, BAND_Y - 40, lz, 'x', b2g, 6);                                             // Schottverschraubung
   // Ventilkabel am Pfosten hinunter in den Kabelkanal von Band 2
-  leitung([V(XP + 40, BAND_Y + 38, lz - 27), V(XP + 40, BAND_Y + 38, lz - 50), V(160, BAND_Y + 38, lz - 50), V(160, BAND_Y - 34, lz - 50)], M.kabelGrau, 2.6, 14, b2g);
+  leitung([V(XP + 40, BAND_Y + 38, lz - 27), V(XP + 40, BAND_Y + 38, lz - 55), V(160, BAND_Y + 38, lz - 55), V(160, BAND_Y - 34, lz - 55)], M.kabelGrau, 2.6, 14, b2g);
   KUEHL.luftschleier = new THREE.Mesh(new THREE.PlaneGeometry(240, 180), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12, depthWrite: false, side: THREE.DoubleSide }));
   KUEHL.luftschleier.position.set(0, BAND_Y + 95, lz - 40); KUEHL.luftschleier.rotation.x = 0.5; KUEHL.luftschleier.visible = false; b2g.add(KUEHL.luftschleier);
   label('Luftmesser −MB14', b2g, 0, YO + 60, lz, 'klein');

@@ -10,7 +10,7 @@ import { fmt0 } from '../core/format.js';
 import { LOCALE, t } from '../core/sprache.js';
 import { label, platte, schildPlatte, tafel } from '../core/beschriftung.js';
 import { sensorLed } from '../core/leds.js';
-import { buendel, leitung } from '../bauteile/leitungen.js';
+import { buendel, leitung, rohr } from '../bauteile/leitungen.js';
 import { BAND, BAND2, KURVE, LS_POS } from './baender.js';
 import { MULDE, ST } from './pruefstation.js';
 import { dummy, rohrNeu } from './pneumatik.js';
@@ -574,7 +574,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   [[M.kabel, -90, 6], [M.kabelGrau, -62, 4.5], [M.kabelGrau, -40, 4.5], [M.kabelGruen, -20, 3.5], [M.kabelOrange, 2, 5], [M.kabelGrau, 22, 4.5]].forEach(([mat, dx, r], i) => {
     zyl(r + 4, 16, M.kunststoff, dx, 2112, -60, null, g, 16);                   // Kabelverschraubung
     zyl(r + 5.5, 4, M.kunststoff, dx, 2098, -60, null, g, 6);                    // Gegenmutter
-    ab.add([[dx, 2160, -60], [dx, 2040 - i * 6, -60], [dx, 2040 - i * 6, PF + 30 + i * 8], [-320, 2040 - i * 6, PF + 30 + i * 8], [-320, 1900, PF + 30 + i * 8]], mat, r, 25);
+    ab.add([[dx, 2160, -60], [dx, 2040 - i * 6, -60], [dx - 60, 2040 - i * 6, PF + 30 + i * 8], [-320, 2040 - i * 6, PF + 30 + i * 8], [-320, 1900, PF + 30 + i * 8]], mat, r, 25);   // schräg auf die Kanalebene
   });
 
   // Adern erzeugen (Instanzen)
@@ -694,12 +694,12 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   const welle = new THREE.MeshStandardMaterial({ color: 0x1b1d20, roughness: 0.75 });
   SCHRANK.uebergang = [[L.t, -1], [R.t, 1]].map(([tt, s]) => {
     const A = V(-s * 40, 890, -13), B = V(s * 368, 860, 150);
-    leitung([B, V(B.x, B.y, PF + 50), V(s * 335, B.y, PF + 50)], welle, 9, 20, g);                   // fest: in den Kanal
+    rohr([B, V(B.x, B.y, PF + 50), V(s * 335, B.y, PF + 50)], welle, 9, 30, g);                   // fest: in den Kanal
     const m = mesh(new THREE.BufferGeometry(), welle, g); m.userData.dyn = true;
     return { tt, A, B, m };
   });
   // HMI-Leitungen im Schrank: rechter Kanal → Kanal unter der S7 → CPU X1 P2
-  ab.add([[335, 870, PF + 52], [320, 870, PF + 52], [320, 1250, PF + 52], [cpuX + 28, 1250, PF + 52], [cpuX + 28, YB - MH / 2 - 14, PF + 52], [cpuX + 28, YB - MH / 2 - 14, MZ + 100], [cpuX + 28, YB - MH / 2 - 4, MZ + 100]], M.kabelGruen, 3, 14);
+  ab.add([[320, 820, PF + 52], [320, 1250, PF + 52], [cpuX + 28, 1250, PF + 52], [cpuX + 28, YB - MH / 2 - 14, PF + 52], [cpuX + 28, YB - MH / 2 - 14, MZ + 100], [cpuX + 28, YB - MH / 2 - 4, MZ + 100]], M.kabelGruen, 3, 14);
   box(14, 10, 16, M.kunststoff, cpuX + 28, YB - MH / 2 - 5, MZ + 100, g);              // RJ45 X1 P2
   lbl('PROFINET X1 P2 → HMI', cpuX + 28, YB - MH / 2 - 40, MZ + 110);
   label('Schaltschrank −A1', g, 0, 2230, 200, 'cyl');
@@ -719,7 +719,7 @@ export function schrankAktualisieren(dt) {
       // Schlauch läuft dicht am Scharnier vorbei (dort bewegt sich die Tür am wenigsten)
       const sx = Math.sign(u.B.x), scharnier = V(sx * (400 - 30), 835, 200 - 12);
       const k = new THREE.CatmullRomCurve3([a, a.clone().addScaledVector(innen, 22).add(V(0, -20, 0)), scharnier, u.B.clone().add(V(0, -15, 22)), u.B], false, 'centripetal');
-      rohrNeu(u.m, k, 40, 9, 10);
+      rohrNeu(u.m, k, 40, 9);
     }
   }
   SCHRANK.hmiTakt -= dt;

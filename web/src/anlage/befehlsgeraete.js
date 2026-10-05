@@ -146,8 +146,8 @@ export function vorOrtStation(pos, bmk, k) {
   label('Vor-Ort-Steuerstelle −' + bmk, g, 0, 1000 + H + 40, 50, 'klein');
   // Leitung: unter dem Gehäuse in die Säule, am Fuß heraus und am Boden zum Schaltschrank
   const fuss = W0(0, 14, -26), zBoden = fuss.z;
-  if (k.leitung !== false) kabel([W0(0, 986, 75), W0(0, 960, 75), W0(0, 960, -26), fuss, V(-1220 + k.dx, 14, zBoden), V(-1220 + k.dx, 14, -60)], anlage, M.kabelGrau, 3.5);
-  else kabel([W0(0, 986, 75), W0(0, 960, 75), W0(0, 960, -26), fuss], anlage, M.kabelGrau, 3.5);
+  if (k.leitung !== false) kabel([W0(0, 986, 75), W0(0, 945, 75), W0(0, 945, -26), fuss, V(-1220 + k.dx, 14, zBoden), V(-1220 + k.dx, 14, -60)], anlage, M.kabelGrau, 3.5);
+  else kabel([W0(0, 986, 75), W0(0, 945, 75), W0(0, 945, -26), fuss], anlage, M.kabelGrau, 3.5);
   return fuss;
 }
 // −S10 hinten am Bandanfang beim Antrieb −MA1 (außerhalb der Umhausung), Front nach hinten zum Werker

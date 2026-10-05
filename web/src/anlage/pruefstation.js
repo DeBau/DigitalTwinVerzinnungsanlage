@@ -301,7 +301,7 @@ function trichterGeo(o, u) {
     for (const sx of [-1, 1]) box(6, 230, 6, M.anthrazit, sx * 40, 120, 0, rl);                      // Halter Ringlicht
     label('Keyence CV-X Kamera −KF10', k2, 0, 90, 0, 'klein');
     // Kamera- und Ringlichtleitung über den Ausleger zur Säule
-    leitung([V(ST.kamX + 10, 660, z), V(ST.kamX + 10, 760, z), V(ST.kamX + 10, 760, z - 30), V(cx - 10, 800, z - 30), V(cx - 10, 800, cz + 25)], M.kabel, 3, 20);
+    leitung([V(ST.kamX + 10, 660, z), V(ST.kamX + 10, 780, z), V(cx - 10, 800, z - 60), V(cx - 10, 800, cz + 25)], M.kabel, 3, 20);
     A.kf10 = V(cx - 10, 800, cz + 25);
   }
   // Ausblasdüse −MB16: Flachstrahldüse vorn am Seitenprofil, bläst n.i.O.-Teile durch die Lücke hinten auf die Rutsche

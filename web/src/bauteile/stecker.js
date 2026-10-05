@@ -25,3 +25,18 @@ export function stecker(parent, p, dir, gross = false) {
   mesh(dreh('stGriff' + r, [[0, 9], [5.6 * k, 9], [6.6 * k, 10], [6.8 * k, 13], [6.2 * k, 17], [6.2 * k, 20], [6.8 * k, 24], [6.4 * k, 26.5], [4.8 * k, 28], [4.2 * k, 33], [0, 33]], 16), M.kunststoff, g);
   return g;
 }
+// M8/M12-Steckverbinder gewinkelt (Bauart ifm EVW): Rändelmutter entlang dir, Kabelabgang um 90° nach abgang.
+// Gibt den Kabelaustritt (Koordinaten von parent) zurück – dort beginnt die Leitung in Richtung abgang.
+const ACHSE = { '+x': [1, 0, 0], '-x': [-1, 0, 0], '+y': [0, 1, 0], '-y': [0, -1, 0], '+z': [0, 0, 1], '-z': [0, 0, -1] };
+export function steckerWinkel(parent, p, dir, abgang, gross = false) {
+  const g = new THREE.Group(); g.position.copy(p); parent.add(g);
+  const a = new THREE.Vector3(...ACHSE[dir]), b = new THREE.Vector3(...ACHSE[abgang]);
+  g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), a);
+  const r = gross ? 7.5 : 5, k = r / 7.5;
+  mesh(raendel(r), M.stahl, g);                                                    // Rändelmutter
+  mesh(dreh('stWKopf' + r, [[0, 9], [5.6 * k, 9], [6.6 * k, 10], [6.8 * k, 13], [6.8 * k, 25], [6.2 * k, 27], [0, 27]], 16), M.kunststoff, g);
+  const arm = new THREE.Group(); arm.position.set(0, 19 * k + 4, 0); g.add(arm);
+  arm.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), b.clone().applyQuaternion(g.quaternion.clone().invert()));
+  mesh(dreh('stWArm' + r, [[0, 0], [6.4 * k, 0], [6.4 * k, 13], [5.4 * k, 15], [4.8 * k, 18], [4.2 * k, 24], [0, 24]], 16), M.kunststoff, arm);
+  return p.clone().addScaledVector(a, 19 * k + 4).addScaledVector(b, 24);
+}

@@ -62,7 +62,23 @@ Die Bridge-Version wird trotzdem mitgezogen, damit alle vier Stellen gleich blei
 ```bat
 node tools\shot.mjs       :: Screenshot plus Konsolenfehler, für schnelle Sichtprüfung
 node tools\zyklen.mjs     :: prüft die ES-Module auf Importzyklen
+node tools\biegung.mjs    :: listet Leitungsbögen unter dem Mindestbiegeradius
 ```
+
+## Leitungen verlegen
+
+`bauteile/leitungen.js` erzeugt alle Kabel und Schläuche:
+
+- `leitung(punkte, material, r, R)` – fest verlegt. Gerade Strecken, jede Ecke ein Kreisbogen mit
+  mindestens 5 × Außendurchmesser (`BIEGEFAKTOR`). Kurze Versätze werden automatisch zu einem
+  flachen S. Ist eine Strecke für den Bogen zu kurz, wird er enger und landet in der Liste von
+  `tools\biegung.mjs` – dann die Punkte so legen, dass zwischen zwei 90°-Ecken mindestens 2 × R Platz ist.
+- `schlauch(punkte, …)` – frei hängend oder bewegt (glatte Kurve durch die Punkte).
+- `rohr(…)` – starre Rohre und Wellschlauch, Radius wie angegeben.
+- Sensorleitungen zu einem Feldverteiler laufen über `zumPort()` (`anlage/verdrahtung.js`): Bündel
+  senkrecht vor dem Verteiler, jede Leitung in eigener Lage, mit Radius gerade in den Stecker.
+- Wo kein Platz für einen Bogen hinter dem Stecker ist, einen gewinkelten Stecker nehmen
+  (`steckerWinkel()` in `bauteile/stecker.js`).
 
 ## Konventionen
 
