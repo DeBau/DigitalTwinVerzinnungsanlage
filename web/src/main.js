@@ -100,7 +100,8 @@ window.__zwilling = { renderer, sun, st, ZYL, demo, koerbe, scene, anlage, THREE
 const uhr = new THREE.Clock();
 // Zeitmessung je Abschnitt (nur aktiv, wenn window.__zeiten gesetzt ist – Diagnose)
 const ZM = (name, f) => { if (!window.__zeiten) return f(); const t = performance.now(); f(); const d = performance.now() - t; const z = window.__zeiten; z[name] = Math.max(z[name] || 0, d); };
-renderer.setAnimationLoop(() => {
+// Ein Anlagenschritt; zeichnen = false rechnet nur (Fenster minimiert oder verdeckt)
+function schritt(zeichnen) {
   const dt = Math.min(uhr.getDelta(), 0.05);
   // Feste Teilschritte, damit Pneumatik und Sensoren auch bei langsamen Bildraten sauber schalten
   const n = Math.max(1, Math.ceil(dt / 0.01));
@@ -108,6 +109,7 @@ renderer.setAnimationLoop(() => {
   ZM('visual', () => visual(dt));
   ZM('schrank', () => { schrankAktualisieren(dt); spsLedsAktualisieren(dt); });
   ZM('monitor', () => { if (TAKT.bild % 6 === 3) monitorAktualisieren(); wzAufzeichnen(dt); eingaengeSenden(false); });
+  if (!zeichnen) { TAKT.bild++; return; }
   controls.update();
   qualitaetPruefen();
   ZM('leds', () => { ledsAktualisieren(); if (STUFEN[Q.stufe].lambert) lambertAbgleich(); });
@@ -117,4 +119,17 @@ renderer.setAnimationLoop(() => {
   ZM('render', () => renderer.render(scene, camera));
   ZM('labels', () => labelRenderer.render(scene, camera));
   ZM('ordnen', () => beschriftungOrdnen());
-});
+}
+renderer.setAnimationLoop(() => schritt(true));
+
+// Im Hintergrund liefert der Browser keine Animationsbilder mehr, die Anlage (und die
+// Eingänge an PLCSIM) würde stehen bleiben. Timer in einem Worker werden dabei nicht
+// gedrosselt, anders als setInterval im Hauptfenster (1×/s, später 1×/min).
+let hintergrundTakt;
+try {
+  const url = URL.createObjectURL(new Blob(['setInterval(() => postMessage(0), 20);'], { type: 'text/javascript' }));
+  hintergrundTakt = new Worker(url);
+  hintergrundTakt.onmessage = () => { if (document.hidden) schritt(false); };
+} catch {
+  setInterval(() => { if (document.hidden) schritt(false); }, 20);   // Notlösung: gedrosselt, aber besser als Stillstand
+}
