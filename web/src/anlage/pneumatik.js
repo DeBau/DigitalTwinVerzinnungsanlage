@@ -9,7 +9,7 @@ import { dekor, label, platte, tafel } from '../core/beschriftung.js';
 import { t as tr } from '../core/sprache.js';
 import { profil } from '../bauteile/aluprofil.js';
 import { sensorLed } from '../core/leds.js';
-import { halter, leitung, schlauch } from '../bauteile/leitungen.js';
+import { halter, kurvenRohr, leitung, schlauch } from '../bauteile/leitungen.js';
 import { steckverschraubung } from '../bauteile/zylinder.js';
 import { BAD_X } from './zinnbad.js';
 import { mm4 } from './abdeckung.js';
@@ -113,12 +113,14 @@ mano.position.set(38, 0, 83.3); wartung.add(mano);
 label('Wartungseinheit 6 bar', wartung, 5, 110, 40, 'klein');
 const druckluftMat = new THREE.MeshStandardMaterial({ color: 0x2f7fd0, roughness: 0.45 });
 // Druckluft-Fallleitung (Hallennetz) mit Kugelhahn, dann zur Wartungseinheit
-zyl(11, 1980, M.alu, -805, 620 + 990, -130, null);
-zyl(14, 40, M.messing, -805, 760, -130, null, anlage, 6);
-box(70, 8, 14, M.rot, -770, 772, -130);
-for (const y of [1000, 1500, 2000]) box(30, 20, 120, M.deckel, -805, y, -190);
-leitung([[-805, 620, -130], [-805, 580, -130], [-805, 580, -170], [-772, 580, -170]], druckluftMat, 5, 30);
-leitung([[-620, 580, -170], [-596, 580, -170], [-596, 780, -170], [-596, 780, -130], [-752, 780, -130], [-752, 840, -130], [-752, 840, -164]], druckluftMat, 4, 30);
+// (Fallleitung in Flucht mit dem Eingang der Wartungseinheit: ein einziger Bogen nach unten/vorn)
+zyl(11, 1960, M.alu, -830, 640 + 980, -170, null);
+zyl(14, 40, M.messing, -830, 760, -170, null, anlage, 6);
+box(70, 8, 14, M.rot, -795, 772, -170);
+for (const y of [1000, 1500, 2000]) box(30, 20, 120, M.deckel, -830, y, -230);
+leitung([[-830, 640, -170], [-830, 580, -170], [-772, 580, -170]], druckluftMat, 5, 30);
+// Wartungseinheit → Ventilinsel: hoch, vor der Ventilinsel herüber und von vorn in den Anschluss 1
+leitung([[-620, 580, -170], [-580, 580, -170], [-580, 840, -170], [-580, 840, -90], [-752, 840, -90], [-752, 840, -164]], druckluftMat, 4, 30);
 
 // Pneumatikschläuche: je Zylinder A (Kolbenseite) und B (Stangenseite); leuchten, wenn belüftet
 for (const c of ZYL_LISTE) {
@@ -135,10 +137,10 @@ for (const y of [1010, 1130, 1250, 1370]) for (const q of ventilPorts) halter(q.
 // −MM3 auf der Traverse
 {
   const A = inAnlage(mm3.g, mm3.portA), B = inAnlage(mm3.g, mm3.portB), q = ventilPorts[2];
-  for (const [ziel, p, mat, yo] of [[A, q.p4, ZYL.MM3.matA, 1440], [B, q.p2, ZYL.MM3.matB, 1456]]) {
-    leitung([p, V(p.x, yo, p.z), V(p.x, yo, -232), V(ziel.x, yo, -232), V(ziel.x, yo, ziel.z), ziel], mat, 3, 30);
-  }
-  for (const x of [-500, -300]) box(16, 30, 60, M.kunststoff, x, 1440, -232);
+  // oben schräg auf die Zylinderachse, darüber entlang und senkrecht in die Anschlüsse
+  leitung([q.p4, V(q.p4.x, 1440, q.p4.z), V(A.x, 1440, A.z), A], ZYL.MM3.matA, 3, 30);
+  leitung([q.p2, V(q.p2.x, 1456, q.p2.z), V(q.p2.x + 60, 1456, B.z), V(B.x, 1456, B.z), B], ZYL.MM3.matB, 3, 30);
+  for (const x of [-500, -300]) box(16, 8, 30, M.kunststoff, x, 1452, B.z);
 }
 // −MM1/−MM2 in die Kettenwanne bis zum Festpunkt der Energiekette
 [0, 1].forEach((i) => {
@@ -152,7 +154,7 @@ for (const y of [1010, 1130, 1250, 1370]) for (const q of ventilPorts) halter(q.
 {
   const q = ventilPorts[3];
   [[q.p4, ZYL.MM4.matA], [q.p2, ZYL.MM4.matB]].forEach(([p, mat], k) => {
-    leitung([p, V(p.x, 1480 + k * 10, p.z), V(-775 + k * 12, 1480 + k * 10, p.z), V(-775 + k * 12, 1480 + k * 10, -230)], mat, 3, 30);
+    leitung([p, V(p.x, 1480 + k * 10, p.z), V(-775 + k * 12, 1480 + k * 10, p.z), V(-775 + k * 12, 1480 + k * 10, -250)], mat, 3, 30);
   });
 }
 // Kabelkanäle (PVC, mit Deckel) an den Portalsäulen
@@ -162,7 +164,7 @@ function kabelkanal(x, z, y0, y1, b = 60, t = 60) {
 }
 const RINNE_Y = 2150;
 kabelkanal(-775, -260, 1000, RINNE_Y - 30);
-kabelkanal(835, -260, 470, RINNE_Y - 30);
+kabelkanal(835, -260, 560, RINNE_Y - 30);                                       // endet über −XD2: Leitungen treten unten gerade aus
 // Gitterrinne (verzinkt) über dem Portal vom Schaltschrank bis zur rechten Säule
 function gitterrinne(x0, x1, y, z, b = 200, h = 60) {
   const L = x1 - x0, xm = (x0 + x1) / 2;
@@ -195,61 +197,106 @@ profil(45, 45, RINNE_Y - 2100 - 14, 'y', -1500, (RINNE_Y + 2100 - 14) / 2, -260)
 {
   const A = inAnlage(mm4.g, mm4.portA), B = inAnlage(mm4.g, mm4.portB);
   [[A, ZYL.MM4.matA, 0], [B, ZYL.MM4.matB, 1]].forEach(([ziel, mat, k]) => {
-    const z1 = -205 - k * 10, y1 = 470 + k * 10;
-    leitung([V(835, 480, -230 + k * 8), V(835, 480, z1), V(870, 480, z1), V(870, y1, z1), V(ziel.x, y1, z1), V(ziel.x, y1, ziel.z), ziel], mat, 3, 30);
+    // im Kanal hinunter, unten heraus, in eigener Höhe zum Zylinder und von oben in den Anschluss
+    const z1 = -175 - k * 5, yh = 510 + k * 12;
+    leitung([V(835, 900, -250 + k * 8), V(835, yh, -250 + k * 8), V(835, yh, z1), V(ziel.x, yh, z1), V(ziel.x, yh, ziel.z), ziel], mat, 3, 30);
   });
 }
 // Ventilinsel-Multipolleitung in den Kanal
-leitung([[-744, 868, -143], [-744, 832, -143], [-840, 832, -143], [-840, 960, -143], [-840, 960, -260], [-805, 960, -260], [-790, 1000, -260]], M.kabel, 4, 25);
+leitung([[-744, 868, -143], [-744, 820, -143], [-860, 820, -143], [-860, 900, -143], [-860, 900, -260], [-775, 900, -260], [-775, 1060, -260]], M.kabel, 4, 25);
 // Heizungsleitung (Last) vom Bad in den Kanal
-leitung([[BAD_X + 120, 120, -170], [BAD_X + 120, 120, -235], [835, 120, -235], [835, 470, -235]], M.kabel, 5, 35);
+leitung([[BAD_X + 120, 120, -170], [BAD_X + 120, 120, -235], [835, 120, -235], [835, 600, -235]], M.kabel, 5, 35);
 
+// Kabelwanne zum Hubmodul (Gitterrinne verzinkt wie über dem Portal, 60 × 35 bzw. 48 × 35):
+// Steigwanne am Mitnehmer der X-Kette, Längswanne über Traverse und Konsole nach vorn, Querwanne über der
+// Z-Grundplatte. Alle Leitungen zum Hubmodul (−MM1, −MM2, −BG1…−BG4) liegen nebeneinander auf dem Wannenboden,
+// jede in ihrer eigenen Spur, und verlassen die Wanne nach unten an ihrem Abgang.
+// Die Querwanne endet bei z −14: die Führungsstangen (z 0) fahren in der oberen Endlage bis y 1664 hoch.
+export const WANNE = { y: 1530, xL: 65, bL: 60, z0: -325, zQ: -38, bQ: 48, x0: -40, x1: 190, h: 35 };
+function gitterwanne(achse, a0, a1, y, c, b, h, parent) {
+  const L = a1 - a0, m = (a0 + a1) / 2, lang = (q, yy) => achse === 'x' ? zyl(2, L, M.verzinkt, m, yy, c + q, 'x', parent, 6) : zyl(2, L, M.verzinkt, c + q, yy, m, 'z', parent, 6);
+  for (const q of [-b / 2, -b / 4, 0, b / 4, b / 2]) lang(q, y);
+  for (const s of [-1, 1]) for (const dy of [h / 2, h]) lang(s * b / 2, y + dy);
+  for (let t = a0 + 10; t <= a1 - 5; t += 50) {
+    if (achse === 'x') { box(4, 4, b, M.verzinkt, t, y - 2, c, parent); for (const s of [-1, 1]) box(4, h, 4, M.verzinkt, t, y + h / 2, c + s * b / 2, parent); }
+    else { box(b, 4, 4, M.verzinkt, c, y - 2, t, parent); for (const s of [-1, 1]) box(4, h, 4, M.verzinkt, c + s * b / 2, y + h / 2, t, parent); }
+  }
+}
+{
+  const W = WANNE;
+  gitterwanne('z', W.z0, W.zQ - W.bQ / 2, W.y, W.xL, W.bL, W.h, schlitten);                  // Längswanne
+  gitterwanne('x', W.x0, W.x1, W.y, W.zQ, W.bQ, W.h, schlitten);                             // Querwanne
+  // Steigwanne: senkrecht hinter der Kette, Boden in der Ebene z −370, Seiten nach vorn
+  const ys = 1419, L = W.y - ys, ym = (ys + W.y) / 2;
+  for (const x of [35, 50, 65, 80, 95]) zyl(2, L, M.verzinkt, x, ym, -370, null, schlitten, 6);
+  for (const x of [35, 95]) for (const dz of [17, 35]) zyl(2, L, M.verzinkt, x, ym, -370 + dz, null, schlitten, 6);
+  for (const y of [ys + 15, ys + 65]) { box(60, 4, 4, M.verzinkt, 65, y, -370, schlitten); for (const x of [35, 95]) box(4, 4, 35, M.verzinkt, x, y, -352.5, schlitten); }
+  box(70, 6, 50, M.deckel, 65, ys - 3, -355, schlitten);                                      // y 1413 … 1419 auf dem Mitnehmerarm                                      // Zugentlastungsblech auf dem Mitnehmer
+  for (const z of [-345, -335]) box(66, 3, 4, M.kunststoff, 65, ys + 40, z, schlitten);      // Kabelbinder an der Steigwanne
+  // Stütze der Längswanne auf der Kopfplatte, Konsolen der Querwanne auf der Z-Grundplatte
+  box(20, W.y - 10 - 1313, 20, M.deckel, W.xL, (W.y - 10 + 1313) / 2, -230, schlitten);
+  box(70, 6, 30, M.deckel, W.xL, W.y - 7, -230, schlitten);
+  for (const x of [-20, 135]) { box(24, W.y - 10 - 1500, 30, M.deckel, x, (W.y - 10 + 1500) / 2, -47, schlitten); box(30, 6, 50, M.deckel, x, W.y - 7, -40, schlitten); }
+  label('Kabelwanne Hubmodul', schlitten, 65, 1610, -200, 'klein');
+}
+// Spuren in der Wanne: x-Spur in der Längswanne, z-Spur in der Querwanne (größere x-Spur biegt weiter hinten ab → keine Kreuzung)
+export const SPUR = {
+  BG4: { x: 48, z: -20, dz: -2 }, BG3: { x: 42, z: -26, dz: -8 }, BG1: { x: 56, z: -32, dz: -16, ab: 180 },
+  MM1B: { x: 64, z: -38, dz: 4, ab: 174 }, MM1A: { x: 72, z: -44, dz: -4, ab: 168 },
+  MM2B: { x: 80, z: -50, dz: 11, ab: 98 }, MM2A: { x: 88, z: -56, dz: -11, ab: 92 },
+};
+// Weg vom Kettenende der X-Kette durch Steigwanne und Längswanne bis zum Abgang in der Querwanne (r = Leitungsradius)
+export function wannenWeg(sp, r, yEnde = 1398) {
+  const yc = WANNE.y + 2 + r, z = KETTE.z + sp.dz;
+  return [V(60, yEnde, z), V(60, 1418, z), V(sp.x, 1446, z), V(sp.x, yc, z), V(sp.x, yc, sp.z), V(sp.ab, yc, sp.z)];
+}
 // vom Kettenmitnehmer (Schlitten) zu −MM2
 {
   const A = inSchlitten(mm2.g, mm2.portA), B = inSchlitten(mm2.g, mm2.portB);
-  // Querversatz ±11 (die −MM1-Schläuche liegen bei ±4): auf dem freien Stück über der Kette dürfen sich die Schläuche nicht berühren
-  for (const [ziel, mat, dz] of [[A, ZYL.MM2.matA, -11], [B, ZYL.MM2.matB, 11]]) {
-    schlauch([[60, 1398, KETTE.z + dz], [60, 1430, -300 + dz], [50, 1440, -160 + dz], [ziel.x + 70, ziel.y + 10, ziel.z - 30 + dz], [ziel.x + 18, ziel.y, ziel.z + dz * 0.3], ziel], mat, 2.8, schlitten);
+  // aus der Querwanne nach unten, unter der Wanne nach vorn vor die Grundplatte, zwischen oberer Lagereinheit (x ≤ 85) und Kettenrinne (x ≥ 104) hinunter
+  for (const [ziel, mat, sp] of [[A, ZYL.MM2.matA, SPUR.MM2A], [B, ZYL.MM2.matB, SPUR.MM2B]]) {
+    leitung([...wannenWeg(sp, 2.8), V(sp.ab, 1515, sp.z), V(sp.ab, 1515, -30), V(sp.ab, ziel.y, -30), V(sp.ab, ziel.y, ziel.z), ziel], mat, 2.8, 8, schlitten);
   }
+  for (const y of [1200, 1400]) box(14, 8, 12, M.kunststoff, 95, y, -31, schlitten);     // Schlauchhalter x 88 … 102 (Rinne ab x 104), auf der Grundplatte
 }
-// Energiezuführung zum Hubteil (−MM1 und die Geber −BG1/−BG2): vertikale
-// Energiekette in einer Führungsrinne am Schlitten. Hub 300 mm, beide
-// Druckluftschläuche und die Sensorleitung laufen gemeinsam in EINER Kette.
+// Energiezuführung zum Hubteil (−MM1 und die Geber −BG1/−BG2): stehende Energiekette in einer
+// Rinne an der Z-Grundplatte (x 104 … 146, y 1060 … 1490, zur Außenseite +x offen). Hub 300 mm,
+// beide Druckluftschläuche und die Sensorleitung laufen gemeinsam in EINER Kette.
 //
-// Gleitende Anordnung mit Festpunkt UNTEN: die Umlenkung wandert mit halbem Hub
-// und liegt in jeder Stellung über dem Mitnehmer (200 mm Luft unten, 50 mm oben).
-// Hängend mit Festpunkt oben ginge es bei diesem Hub nicht - dort wandert die
-// Schlaufe nach unten und würde den Mitnehmer unterlaufen.
-profil(45, 45, 235, 'x', 202.5, 1172, -2, schlitten);                            // Ausleger an der Schlittenplatte
-export const HK1 = { x: 300, zF: -10, zM: 46, R: 28, yA: 560, yC0: 620, L: 548, glied: 22 };
+// Festpunkt unten in der vorderen Gasse (z 68), bewegtes Ende unten in der hinteren Gasse (z −12)
+// am Kopf des Mitnehmerschwerts. Die Umlenkung wandert mit halbem Hub und bleibt immer oberhalb
+// y 1060 – weit weg vom Zinnbad. Unter dem Mitnehmer ist die hintere Gasse frei für das Schwert.
+export const HK1 = { x: 125, zF: 68, zM: -12, R: 40, yA: 1080, yC0: 1096, L: 528, glied: 22 };
 {
-  const yu = 540, yo = 1160, h = yo - yu, yc = (yu + yo) / 2;
-  box(4, h, 108, M.blech, HK1.x + 26, yc, 18, schlitten);                        // Rücken der Rinne
-  for (const z of [HK1.zF - 24, HK1.zM + 24]) box(32, h, 4, M.blech, HK1.x + 10, yc, z, schlitten);   // Seitenwangen
-  for (const y of [1040, 1130]) box(38, 8, 112, M.verzinkt, HK1.x + 8, y, 18, schlitten);             // Traversen zum Ausleger (über dem Kettenweg), 1 mm über die Wangen
-  box(26, 18, 40, M.verzinkt, HK1.x, HK1.yA - 12, HK1.zF, schlitten);            // Festpunkt unten
-  label('Energiekette Hub −MM2', schlitten, HK1.x + 60, 1070, 18, 'klein');
+  const yu = 1060, yo = 1490, h = yo - yu, yc = (yu + yo) / 2;
+  box(2, h, 119, M.blech, 105, yc, 22.5, schlitten);                             // Innenwand
+  box(40, h, 2, M.blech, 126, yc, 81, schlitten);                                // Vorderwand (stößt an die Innenwand)
+  box(44, 2, 121, M.blech, 124, yo + 1, 22.5, schlitten);                        // Deckel
+  box(42, 4, 32, M.blech, 125, yu - 2, 66, schlitten);                           // Boden vordere Gasse (hintere Gasse offen für das Schwert)
+  for (const y of [yu + 30, yo - 30]) box(16, 20, 4, M.blech, 114, y, -35, schlitten);   // Befestigungslaschen an der Grundplatte
+  box(38, 20, 26, M.verzinkt, HK1.x, HK1.yA - 10, HK1.zF, schlitten);            // Festpunkt
+  label('Energiekette Hub −MM2', schlitten, 175, 1300, 30, 'klein');
 }
-box(80, 10, 44, M.blau, 262, 614, HK1.zM, haken);                                // Mitnehmer am Hubteil
-box(26, 18, 40, M.verzinkt, HK1.x, HK1.yC0, HK1.zM, haken);                      // Kettenanschluss am Mitnehmer
+box(38, 20, 24, M.verzinkt, HK1.x, HK1.yC0 - 10, HK1.zM, haken);                 // Kettenanschluss am Schwertkopf
 const mm1PortA = inSchlitten(mm1.g, mm1.portA), mm1PortB = inSchlitten(mm1.g, mm1.portB);
-// Zuleitung am Schlitten: Ventilinsel → Ausleger → Rinne hinunter zum Festpunkt
-for (const [ziel, mat] of [[mm1PortA, ZYL.MM1.matA], [mm1PortB, ZYL.MM1.matB]]) {
-  const dz = ziel === mm1PortA ? -4 : 4;                                        // beide Schläuche nebeneinander, nicht ineinander
-  schlauch([[60, 1398, KETTE.z + dz], [80, 1430, -300 + dz], [250, 1420, -60 + dz], [292, 1270, 20 + dz], [HK1.x, 1150, HK1.zF + dz], [HK1.x, 900, HK1.zF + dz], [HK1.x, HK1.yA + 6, HK1.zF + dz]], mat, 2.4, schlitten, 56);
+// Zuleitung am Schlitten: X-Kette → Kabelwanne → rechts neben der Grundplatte hinunter → seitlich in den Festpunkt
+for (const [mat, sp] of [[ZYL.MM1.matA, SPUR.MM1A], [ZYL.MM1.matB, SPUR.MM1B]]) {
+  leitung([...wannenWeg(sp, 2.4), V(sp.ab, 1070, sp.z), V(sp.ab, 1070, HK1.zF + sp.dz), V(HK1.x + 19, 1070, HK1.zF + sp.dz)], mat, 2.4, 12, schlitten);
 }
-// Am Hubteil: vom Mitnehmer zu den Anschlüssen von −MM1 (fährt mit, keine Nachführung nötig)
-for (const [ziel, mat] of [[mm1PortA, ZYL.MM1.matA], [mm1PortB, ZYL.MM1.matB]]) {
-  const dz = ziel === mm1PortA ? -5 : 5;
-  schlauch([[HK1.x - 4, HK1.yC0, HK1.zM + dz], [HK1.x - 46, HK1.yC0 - 12, HK1.zM - 6 + dz], [ziel.x + 44, ziel.y + 34, ziel.z + 26], [ziel.x + 10, ziel.y + 8, ziel.z + 12], ziel], mat, 2.4, haken, 40);
+for (const y of [1160, 1300, 1440]) { box(4, 24, 30, M.deckel, 162, y, -38, schlitten); box(26, 8, 24, M.kunststoff, 175, y, -38, schlitten); }   // Schlauchhalter an der Plattenkante
+// Am Hubteil: vom Kettenanschluss am Schwert entlang hinunter zu −MM1 (fährt mit, keine Nachführung nötig)
+for (const [ziel, mat, dx] of [[mm1PortA, ZYL.MM1.matA, 0], [mm1PortB, ZYL.MM1.matB, 6]]) {
+  leitung([V(HK1.x + 19, HK1.yC0 - 10, HK1.zM), V(146 + dx, HK1.yC0 - 10, HK1.zM), V(146 + dx, 640, HK1.zM), V(146 + dx, 640, ziel.z), V(ziel.x, 640, ziel.z), ziel], mat, 2.4, 16, haken);
 }
+for (const y of [700, 820, 940]) box(18, 8, 14, M.kunststoff, 148, y, HK1.zM, haken);
+for (const q of [mm1PortA, mm1PortB]) zyl(5.5, 24, M.schwarz, q.x, 594, q.z, null, haken, 12);       // Durchführungstüllen im Hakenträger       // Clips am Schwert
 // Kettenglieder (ein InstancedMesh, wird je Bild nur umgesetzt)
 const hubGlieder = new THREE.InstancedMesh(new THREE.BoxGeometry(34, HK1.glied - 2, 18), M.kette, Math.floor(HK1.L / HK1.glied));
 hubGlieder.castShadow = true;
 schlitten.add(hubGlieder);
 let mm1Off = -1;
-export function rohrNeu(m, kurve, seg, r, rad) {
-  const neu = new THREE.TubeGeometry(kurve, seg, r, rad), alt = m.geometry;
+export function rohrNeu(m, kurve, seg, r) {
+  const neu = kurvenRohr(kurve, r, seg), alt = m.geometry;
   if (alt.attributes.position && alt.attributes.position.count === neu.attributes.position.count) {
     alt.attributes.position.array.set(neu.attributes.position.array); alt.attributes.position.needsUpdate = true;
     alt.attributes.normal.array.set(neu.attributes.normal.array); alt.attributes.normal.needsUpdate = true;
@@ -270,8 +317,9 @@ export function mm1SchlaeucheAktualisieren() {
     if (s < s1) { dummy.position.set(x, yA + s, zF); dummy.rotation.set(0, 0, 0); }
     else if (s < s1 + s2) {
       const phi = (s - s1) / R;
-      dummy.position.set(x, yB + R * Math.sin(phi), zF + R - R * Math.cos(phi));
-      dummy.rotation.set(phi, 0, 0);
+      const dir = Math.sign(zM - zF);
+      dummy.position.set(x, yB + R * Math.sin(phi), zF + dir * (R - R * Math.cos(phi)));
+      dummy.rotation.set(dir * phi, 0, 0);
     } else { dummy.position.set(x, yB - (s - s1 - s2), zM); dummy.rotation.set(Math.PI, 0, 0); }
     dummy.scale.set(i % 2 ? 1 : 0.94, 1, 1); dummy.updateMatrix(); dummy.scale.set(1, 1, 1);   // Innen-/Außenlaschen
     hubGlieder.setMatrixAt(i, dummy.matrix);
