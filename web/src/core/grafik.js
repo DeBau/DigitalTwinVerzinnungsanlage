@@ -35,6 +35,8 @@ const lambertVon = (m) => {
   }
   return LAMBERT.get(m);
 };
+// Entfernter Korb: Lambert-Kopie seines Materials freigeben (sonst wächst die Liste, die jedes Bild abgeglichen wird)
+window.__lambertFreigeben = (m) => { const l = LAMBERT.get(m); if (l) { l.dispose(); LAMBERT.delete(m); } };
 function materialienSetzen(lambert) {
   scene.traverse((o) => {
     if (!o.isMesh || Array.isArray(o.material)) return;

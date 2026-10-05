@@ -4,8 +4,18 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Zinnbad-Zwilling</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* IBM Plex (SIL Open Font License, siehe lib/LICENSE-ibm-plex.txt), Zeichensatz Latin.
+   Lokal statt Google Fonts, damit der Zwilling ohne Internet gleich aussieht; build.mjs bettet die Dateien ein. */
+@font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-weight: 500; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-weight: 600; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans Condensed"; font-weight: 400; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-condensed-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans Condensed"; font-weight: 500; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-condensed-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans Condensed"; font-weight: 600; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-condensed-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-display: swap; src: url("./lib/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap; src: url("./lib/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
+</style>
 <style>
 /* Layout: Leitstand – 3D-Anlage links, Bedienfeld/Prozess/Diagramm/Signale rechts (am Handy untereinander) */
 :root {
@@ -89,6 +99,8 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(-
 .toast b { color: var(--fault); font-family: var(--font-label); margin-right: 6px; }
 .offline-banner { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--panel); border: 1px solid var(--fault); color: var(--fg); border-radius: 8px; padding: 12px 16px; max-width: 320px; text-align: center; box-shadow: 0 6px 24px rgba(0,0,0,.18); }
 .offline-banner b { color: var(--fault); display: block; font-family: var(--font-label); }
+.grafik-fehler { z-index: 20; max-width: min(400px, calc(100% - 32px)); }
+.grafik-fehler span { display: block; margin-top: 4px; }
 
 .tag3d { font: 500 11px/1 var(--font-label); letter-spacing: .04em; padding: 3px 6px; border-radius: 4px; background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; transition: border-color .15s, color .15s; }
 .tag3d.on { border-color: var(--led); color: var(--fg); box-shadow: 0 0 0 2px color-mix(in srgb, var(--led) 30%, transparent); }
@@ -102,6 +114,7 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(-
 .side[hidden] { display: none; }
 .side-top { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 8px; padding: 9px 10px 9px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
 .side-top b { flex: 1; font: 600 11px/1.2 var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.side-top .version { font: 400 11px var(--font-data); color: var(--muted); white-space: nowrap; }
 .side-mini { font: 500 11px var(--font-label); color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; cursor: pointer; white-space: nowrap; }
 .side-mini:hover { color: var(--fg); border-color: var(--accent); }
 .side-mini.side-x { font-size: 15px; line-height: 1; padding: 2px 8px 4px; border-radius: 6px; }
@@ -245,6 +258,23 @@ tr.forced td { background: color-mix(in srgb, var(--led) 12%, transparent); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
+<script>
+// Startfehler sichtbar machen: bricht der Aufbau ab (kein WebGL, Treiberfehler, Fehler im Code),
+// bliebe sonst nur eine graue Fläche. Läuft als erstes Skript, also auch vor dem Zwilling selbst.
+window.zwillingFehler = (titel, text) => {
+  const el = document.getElementById('grafik-fehler');
+  if (!el) return;
+  document.getElementById('gf-titel').textContent = titel;
+  document.getElementById('gf-text').textContent = text;
+  el.hidden = !titel;
+};
+const startfehler = (grund) => {
+  if (window.__zwilling || !document.getElementById('grafik-fehler')?.hidden) return;   // läuft schon bzw. bereits gemeldet
+  window.zwillingFehler('Zwilling konnte nicht starten', 'Bitte die Seite neu laden (F5). Hilft das nicht: aktuellen Chrome, Edge oder Firefox verwenden. Fehlermeldung: ' + grund);
+};
+addEventListener('error', (e) => startfehler(e.message || String(e.error)));
+addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
+</script>
 <script type="importmap">
 { "imports": {
   "three": "./lib/three.module.min.js",
@@ -294,11 +324,13 @@ tr.forced td { background: color-mix(in srgb, var(--led) 12%, transparent); }
       <b>Keine Verbindung zur SPS</b>
       <span id="offline-text">Bridge nicht erreichbar. Ausgänge bleiben auf dem letzten Stand.</span>
     </div>
+    <div class="offline-banner grafik-fehler" id="grafik-fehler" role="alert" hidden><b id="gf-titel"></b><span id="gf-text"></span></div>
   </section>
 
   <aside class="side" id="side">
     <div class="side-top">
       <b>Bedienen &amp; Beobachten</b>
+      <small class="version" id="version" title="Version des Zwillings"></small>
       <button type="button" class="side-mini" id="side-alle" title="Alle Bereiche auf- oder zuklappen">Alle zuklappen</button>
       <button type="button" class="side-mini side-x" id="side-zu" aria-label="Seitenleiste ausblenden" title="Seitenleiste ausblenden">×</button>
     </div>

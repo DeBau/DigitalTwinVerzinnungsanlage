@@ -31,7 +31,8 @@ echo API-DLL: %PLCSIMADV_API_DLL%
   ZwillingBridge.cs
 if errorlevel 1 (
   echo.
-  echo FEHLER beim Kompilieren - bitte die Meldungen oben an Claude schicken.
+  echo FEHLER beim Kompilieren - siehe Meldungen oben.
+  echo Hinweise zur Fehlersuche: docs\01-inbetriebnahme.md
   pause & exit /b 1
 )
 echo.

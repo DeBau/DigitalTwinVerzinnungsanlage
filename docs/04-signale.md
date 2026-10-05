@@ -45,6 +45,8 @@ Browser  ──WebSocket──►  ZwillingBridge.exe  ──Runtime-API──�
 - Mehrere offene Registerkarten: nur die **zuletzt geöffnete im Modus PLCSIM** schreibt Eingänge,
   die anderen beobachten. Sonst würden sich zwei Zwillinge gegenseitig überschreiben und jedes Bit
   zappeln. Eine Registerkarte im Demo-Modus übernimmt die Steuerung nie.
+- Verbinden darf sich nur der Zwilling selbst (über `http://localhost:<Port>` oder per Doppelklick
+  geöffnet). Andere Webseiten im Browser weist die Bridge ab und meldet das in der Konsole.
 
 ## Signalmonitor im Browser
 

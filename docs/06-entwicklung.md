@@ -31,8 +31,15 @@ PLCSIM-Advanced-API-DLL ein, die es selbst sucht.
 | `anlage/` | Die Anlage selbst: Halle, Bänder, Zinnbad, Portal, Rollenkurve, Kühlung, Prüfstation, Körbe, Pneumatik, Verdrahtung, Schaltschrank, Befehlsgeräte, Werker |
 | `logik/` | Zustand, Eingänge berechnen, Prozessmodell (Physik der Zylinder, Förderer, Körbe, Temperatur), Demo-SPS |
 | `ui/` | Seitenleiste, Bedienung, Signalmonitor, Weg-Zeit-Diagramm, Ereignisliste, Ansichten, Bridge-Verbindung |
-| `lib/` | three.js r170 und three-mesh-bvh, lokal eingebunden (Lizenzen liegen daneben) |
+| `lib/` | three.js r170, three-mesh-bvh und die Schrift IBM Plex (`lib/fonts/`, wird beim Build eingebettet), lokal eingebunden (Lizenzen liegen daneben) |
 | `signale.js` | Fallback-Signalliste, falls die Bridge keine `signale.csv` liefert |
+| `version.js` | Versionsnummer des Zwillings |
+
+## Neue Version
+
+Die Versionsnummer steht an vier Stellen und muss überall gleich sein: `web/src/version.js`,
+`web/package.json`, `Bridge.Version` in `Bridge/ZwillingBridge.cs` und ein neuer Abschnitt in
+`CHANGELOG.md`. Weichen Zwilling und Bridge voneinander ab, meldet der Zwilling das beim Verbinden.
 
 ## Werkzeuge
 

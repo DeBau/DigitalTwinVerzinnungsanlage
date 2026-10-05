@@ -1,4 +1,5 @@
 import { SIGNALE } from '../signale.js';
+import { VERSION } from '../version.js';
 import { st } from '../logik/zustand.js';
 import { ereignis } from './ereignisse.js';
 import { eingang } from '../logik/eingaenge.js';
@@ -26,6 +27,10 @@ export function verbinden() {
   ws.onerror = () => {};
   ws.onmessage = (ev) => {
     let m; try { m = JSON.parse(ev.data); } catch { return; }
+    if (m.typ === 'hallo' && m.version !== VERSION) {
+      // Seite und Bridge aus verschiedenen Ständen: Bridge neu bauen, sonst fehlen ihr Neuerungen der Seite
+      ereignis(`Bridge ${m.version ? 'v' + m.version : '(alte Version)'} passt nicht zum Zwilling v${VERSION}: Bridge\\build.bat ausführen und die Bridge neu starten.`, 'err');
+    }
     if (m.typ === 'hallo' && Array.isArray(m.signale) && m.signale.length) {
       SIGNALE.splice(0, SIGNALE.length, ...m.signale);
       const fehlend = ['MB1_Einhaengen', 'MB3_Senken', 'BG1_MM1_eingehaengt', 'BG11_Korb', 'SF1_Start']

@@ -64,7 +64,8 @@ import './ui/beschriftung.js';
 import './core/zusammenfassen.js';
 import * as THREE from 'three';
 import { ZYL, st } from './logik/zustand.js';
-import { KAMERA, TAKT, anlage, camera, controls, labelRenderer, renderer, scene, sun } from './core/szene.js';
+import { $, KAMERA, TAKT, anlage, camera, controls, labelRenderer, renderer, scene, sun } from './core/szene.js';
+import { VERSION } from './version.js';
 import { M } from './core/materialien.js';
 import { ledsAktualisieren } from './core/leds.js';
 import { BAND, BAND2, KURVE } from './anlage/baender.js';
@@ -86,6 +87,7 @@ import { beschriftungOrdnen } from './ui/beschriftung.js';
 // ----------------------------------------------------------------------------
 // Hauptschleife
 // ----------------------------------------------------------------------------
+$('version').textContent = 'v' + VERSION;
 monitorAufbauen();
 modusSetzen('demo', false);
 verbinden();

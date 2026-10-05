@@ -96,6 +96,8 @@ ihren eigenen Lizenzen; die vollständigen Texte liegen in web/src/lib/:
                     web/src/lib/LICENSE-three.txt
   three-mesh-bvh    MIT License, © 2020 Garrett Johnson
                     web/src/lib/LICENSE-three-mesh-bvh.txt
+  IBM Plex (Schrift) SIL Open Font License 1.1, © IBM Corp.
+                    web/src/lib/LICENSE-ibm-plex.txt
 
 SIMATIC, TIA Portal, S7-1500, STEP 7 und PLCSIM sind Marken der Siemens AG.
 Keyence, Festo, Rittal, Interroll und ifm sind Marken der jeweiligen Inhaber.

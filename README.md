@@ -124,6 +124,7 @@ Schulungslaptop bis zur Workstation.
 | **[04 – Signale und TIA](docs/04-signale.md)** | `signale.csv`, Adressbelegung, Bridge, Signalmonitor, Öffner und Schließer |
 | **[05 – Übungsaufgaben](docs/05-uebungen.md)** | 15 Aufgaben vom Einstieg bis zur Ausschussbehandlung, nach Schwierigkeit geordnet |
 | **[06 – Entwicklung](docs/06-entwicklung.md)** | Build, Aufbau des Quellcodes, Werkzeuge, Konventionen |
+| **[Änderungen](CHANGELOG.md)** | Was sich in welcher Version geändert hat |
 
 ---
 
@@ -172,8 +173,9 @@ Bestandteil eines anderen Produkts. Bei Weitergabe bitte nennen:
 Für alles darüber hinaus gibt es eine Lizenzvereinbarung — frag einfach an.
 
 Der Zwilling verwendet [three.js](https://threejs.org) und
-[three-mesh-bvh](https://github.com/gkjohnson/three-mesh-bvh) unter MIT-Lizenz; die Lizenztexte
-liegen in `web/src/lib/`. SIMATIC, TIA Portal, S7-1500 und PLCSIM sind Marken der Siemens AG;
+[three-mesh-bvh](https://github.com/gkjohnson/three-mesh-bvh) unter MIT-Lizenz sowie die Schrift
+[IBM Plex](https://github.com/IBM/plex) unter SIL Open Font License; die Lizenztexte liegen in
+`web/src/lib/`. SIMATIC, TIA Portal, S7-1500 und PLCSIM sind Marken der Siemens AG;
 Keyence, Festo, Rittal, Interroll und ifm sind Marken der jeweiligen Hersteller. Dieses Projekt
 steht in keiner Verbindung zu diesen Unternehmen – die Betriebsmittel sind nachgebildet, damit die
 Anlage aussieht und sich verhält wie eine reale Maschine.

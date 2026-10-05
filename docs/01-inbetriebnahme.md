@@ -55,7 +55,8 @@ Zum Anschauen ohne Bridge reicht auch ein Doppelklick auf `web\index.html`. Ohne
 | Meldung / Effekt | Ursache und Lösung |
 |---|---|
 | `build.bat`: API-DLL nicht gefunden | Pfad setzen: `set PLCSIMADV_API_DLL=C:\Program Files\Common Files\Siemens\PLCSIMADV\API\<Version>\Siemens.Simatic.Simulation.Runtime.Api.x64.dll`, dann `build.bat` im selben Fenster starten. |
-| `build.bat`: Kompilierfehler | Meldung kopieren und mir schicken, dann passe ich die Bridge an deine API-Version an. |
+| `build.bat`: Kompilierfehler | Meist eine abweichende PLCSIM-Advanced-API-Version. Meldung und API-Version (Ordnername unter `…\PLCSIMADV\API\`) als [Issue](https://github.com/DeBau/DigitalTwinVerzinnungsanlage/issues) melden. |
+| Seite bleibt grau, Meldung „3D-Darstellung nicht möglich“ | Browser oder Grafiktreiber stellen kein WebGL 2 bereit. Aktuellen Chrome, Edge oder Firefox verwenden, Grafiktreiber aktualisieren, in den Browsereinstellungen die Hardwarebeschleunigung einschalten. |
 | *Runtime-Manager läuft nicht* | PLCSIM Advanced Control Panel öffnen. |
 | *Instanz 'Zinnbad' nicht gefunden* | Instanzname im Control Panel prüfen oder in `start.bat` anpassen. |
 | Webserver startet nicht | Port belegt → `PORT` in `start.bat` ändern. Bei „Zugriff verweigert“ einmalig als Administrator: `netsh http add urlacl url=http://localhost:8181/ user=%USERNAME%` |

@@ -33,6 +33,12 @@ const inline = {
       if (!html.includes(tag)) throw new Error(`${tag} nicht in src/index.html gefunden`);
       const banner = '/* Gebündelt aus src/ und three.js 0.170 (MIT-Lizenz, siehe src/lib/LICENSE-three.txt) */';
       html = html.replace(tag, () => `<script>\n${banner}\n${js}</script>`);
+      // Schriften als data:-URL einbetten (läuft ohne Internet und ohne Nachbardateien)
+      const schriften = [...new Set([...html.matchAll(/url\("\.\/(lib\/fonts\/[^"]+\.woff2)"\)/g)].map((m) => m[1]))];
+      for (const f of schriften) {
+        const b64 = (await readFile(path.join(src, f))).toString('base64');
+        html = html.replaceAll(`url("./${f}")`, `url("data:font/woff2;base64,${b64}")`);
+      }
       await writeFile(path.join(dir, 'index.html'), html);
       console.log(`index.html geschrieben (${(html.length / 1e6).toFixed(2)} MB)`);
     });

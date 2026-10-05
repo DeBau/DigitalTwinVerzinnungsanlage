@@ -179,4 +179,8 @@ export const rauchMat = new THREE.SpriteMaterial({ map: TEX.rauch, transparent: 
 export function korbEntfernen(k) {
   k.g.parent?.remove(k.g);
   koerbe.splice(koerbe.indexOf(k), 1);
+  // Nur was diesem Korb allein gehört freigeben: Instanzpuffer und Teilematerial (Geometrien und Korbmaterial sind geteilt)
+  for (const m of k.teileMesh) m.dispose();
+  window.__lambertFreigeben?.(k.teilMat);
+  k.teilMat.dispose();
 }

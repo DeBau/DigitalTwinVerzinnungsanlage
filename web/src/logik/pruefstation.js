@@ -56,7 +56,7 @@ export function pruefstation(dt) {
       // Startpunkt an der Korböffnung (Mulde lokal x −110 … −30, y 0), Geschwindigkeit entlang der Öffnungsnormalen
       const c = Math.cos(winkel), s = Math.sin(winkel), lx = -30 - Math.random() * 80, ly = 0, v = 250 + Math.random() * 150;
       ST.teile.push({ korb, gut, zustand: 'fall', x: ST.kipX + lx * c + ly * s, y: ST.kipY - lx * s + ly * c, z: ST.z + (Math.random() - 0.5) * 100, vx: s * v, vy: c * v, vz: (Math.random() - 0.5) * 60, rx: Math.random() * 6, ry: Math.random() * 6, farbe: korb.beschichtung });
-      const sm = ST.korbSumme.get(korb.nr) || { gut: 0, schlecht: 0, offen: TEILE_JE_KORB }; ST.korbSumme.set(korb.nr, sm);
+      const sm = ST.korbSumme.get(korb.nr) || { gut: 0, schlecht: 0, daneben: 0, offen: TEILE_JE_KORB }; ST.korbSumme.set(korb.nr, sm);
       if (korb.rest === 0) { korb.entleert = true; korb.teileMesh.forEach(m => { m.visible = false; }); }
     }
   }
@@ -125,7 +125,11 @@ export function pruefstation(dt) {
     if (t.zustand === 'fall') {
       t.vy -= 9810 * dt * 0.6; t.x += t.vx * dt; t.y += t.vy * dt; t.z += t.vz * dt; t.rx += dt * 8; t.ry += dt * 5;
       if (t.y < ST.trY && t.x > 3040 && t.x < 3280) { t.zustand = 'trichter'; ST.trichter.push(t); }
-      else if (t.y < 10) { t.zustand = 'weg'; ereignis('Teil neben den Trichter gefallen', 'err', 'daneben'); }
+      else if (t.y < 10) {
+        t.zustand = 'weg'; ereignis('Teil neben den Trichter gefallen', 'err', 'daneben');
+        const s = ST.korbSumme.get(t.korb.nr);
+        if (s) { s.daneben++; s.offen--; korbSummeMelden(t.korb.nr, s); }   // zählt mit, sonst kommt die Korbmeldung nie
+      }
     } else if (t.zustand === 'trichter') {
       const i = ST.trichter.indexOf(t);
       t.x = 3180 + Math.sin(i * 2.4) * 22; t.z = ST.z + Math.cos(i * 1.7) * 20; t.y = 302 + Math.floor(i / 6) * 10;
@@ -160,10 +164,14 @@ function teilAbschliessen(t) {
     ST.klt++; if (s) { s.gut++; s.offen--; }
     if (!t.gut) ereignis('n.i.O.-Teil im i.O.-KLT (nicht ausgeblasen)', 'err', 'schlupf');
   }
-  if (s && s.offen <= 0) {
-    ereignis(`Korb ${t.korb.nr} geprüft: ${s.gut} i.O. im KLT, ${s.schlecht} n.i.O. ausgeschleust`, s.schlecht > 5 ? 'err' : 'ok');
-    ST.korbSumme.delete(t.korb.nr);
-  }
+  if (s) korbSummeMelden(t.korb.nr, s);
+}
+// Sind alle Teile eines Korbs angekommen (KLT, ausgeschleust oder daneben), Zusammenfassung melden
+function korbSummeMelden(nr, s) {
+  if (s.offen > 0) return;
+  ereignis(`Korb ${nr} geprüft: ${s.gut} i.O. im KLT, ${s.schlecht} n.i.O. ausgeschleust` + (s.daneben ? `, ${s.daneben} neben den Trichter gefallen` : ''),
+    s.schlecht > 5 || s.daneben ? 'err' : 'ok');
+  ST.korbSumme.delete(nr);
 }
 export function pruefstationZeichnen() {
   // Kipper und Zylinder: Kolbenweg → Kippwinkel (Geometrie), Zylinder schwenkt um den Lagerbock, Stange um den Kolbenweg

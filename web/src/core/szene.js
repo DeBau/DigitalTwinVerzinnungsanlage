@@ -13,6 +13,11 @@ THREE.Mesh.prototype.raycast = acceleratedRaycast;
 // ----------------------------------------------------------------------------
 export const $ = (id) => document.getElementById(id);
 export const host = $('viewport');
+// Ohne WebGL 2 (alter Treiber, Hardwarebeschleunigung aus, Remote-Desktop) gibt es keine 3D-Darstellung
+if (!document.createElement('canvas').getContext('webgl2')) {
+  window.zwillingFehler?.('3D-Darstellung nicht möglich', 'Browser oder Grafiktreiber stellen kein WebGL 2 bereit. Aktuellen Chrome, Edge oder Firefox verwenden, den Grafiktreiber aktualisieren und in den Browsereinstellungen die Hardwarebeschleunigung einschalten.');
+  throw new Error('WebGL 2 nicht verfügbar');
+}
 export const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));   // Qualitätsautomatik regelt bei Bedarf herunter
 renderer.shadowMap.enabled = true;
@@ -28,8 +33,25 @@ host.appendChild(labelRenderer.domElement);
 
 export const scene = new THREE.Scene();
 const pmrem = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+const umgebungBerechnen = () => { scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; };
+umgebungBerechnen();
 scene.environmentIntensity = 0.75;
+
+// Grafiktreiber-Reset (Treiberupdate, Standby, GPU überlastet): three.js baut den Kontext selbst neu auf,
+// was nur auf der Grafikkarte entstanden ist (Umgebungslicht, Schattenkarte), wird hier neu berechnet.
+// Die Anlage rechnet in der Zwischenzeit weiter, nur das Bild steht.
+let neuLadenHinweis = 0;
+renderer.domElement.addEventListener('webglcontextlost', () => {
+  window.zwillingFehler?.('3D-Darstellung unterbrochen', 'Der Grafiktreiber hat die Darstellung zurückgesetzt. Sie wird wiederhergestellt, die Anlage läuft weiter.');
+  neuLadenHinweis = setTimeout(() => window.zwillingFehler?.('3D-Darstellung unterbrochen', 'Der Grafiktreiber stellt die Darstellung nicht wieder her. Bitte die Seite neu laden (F5).'), 8000);
+});
+renderer.domElement.addEventListener('webglcontextrestored', () => {
+  clearTimeout(neuLadenHinweis);
+  scene.environment?.dispose();
+  umgebungBerechnen();
+  renderer.shadowMap.needsUpdate = true;
+  window.zwillingFehler?.('');
+});
 // Hallenhintergrund: heller Verlauf wie Hallenwand/Hallendach, Dunst in der Tiefe
 {
   const c = document.createElement('canvas'); c.width = 4; c.height = 256;

@@ -241,6 +241,9 @@ namespace ZwillingBridge
     // ------------------------------------------------------------------------
     static class Bridge
     {
+        // gleich wie web/src/version.js - die Seite warnt, wenn Bridge und Zwilling nicht zusammenpassen
+        public const string Version = "1.2.2";
+
         static string instanzName = "Zinnbad";
         static int port = 8181;
         static string webDir;
@@ -275,7 +278,7 @@ namespace ZwillingBridge
             var csv = Path.Combine(wurzel, "signale.csv");
 
             Console.WriteLine("==============================================================");
-            Console.WriteLine("  Zwilling-Bridge  |  PLCSIM-Advanced-Instanz: " + instanzName);
+            Console.WriteLine("  Zwilling-Bridge v" + Version + "  |  PLCSIM-Advanced-Instanz: " + instanzName);
             Console.WriteLine("==============================================================");
 
             if (!File.Exists(csv)) { Log.Fehler("signale.csv nicht gefunden: " + csv); Console.ReadKey(); return 1; }
@@ -355,6 +358,16 @@ namespace ZwillingBridge
             {
                 if (ctx.Request.Url.AbsolutePath == "/ws" && ctx.Request.IsWebSocketRequest)
                 {
+                    // WebSockets kennen keine Sperre zwischen Webseiten: jede im Browser offene Seite
+                    // koennte sich sonst verbinden und Eingaenge in die SPS schreiben.
+                    var herkunft = ctx.Request.Headers["Origin"];
+                    if (!HerkunftErlaubt(herkunft))
+                    {
+                        Log.Warnung("Verbindung abgewiesen: Seite von " + herkunft + " ist nicht der Zwilling");
+                        ctx.Response.StatusCode = 403;
+                        ctx.Response.Close();
+                        return;
+                    }
                     var modus = ctx.Request.QueryString["modus"];
                     var wsCtx = await ctx.AcceptWebSocketAsync(null);
                     await WebSocketClient(wsCtx.WebSocket, modus == null || modus == "sps");
@@ -367,6 +380,15 @@ namespace ZwillingBridge
                 Log.Warnung("HTTP: " + ex.Message);
                 try { ctx.Response.Abort(); } catch { }
             }
+        }
+
+        // Erlaubt: der Zwilling ueber http://localhost:<Port> und per Doppelklick geoeffnet (file://,
+        // der Browser meldet dann "null"). Ohne Origin kommt die Verbindung nicht aus einem Browser.
+        static bool HerkunftErlaubt(string herkunft)
+        {
+            if (string.IsNullOrEmpty(herkunft) || herkunft == "null") return true;
+            return herkunft.Equals("http://localhost:" + port, StringComparison.OrdinalIgnoreCase)
+                || herkunft.Equals("http://127.0.0.1:" + port, StringComparison.OrdinalIgnoreCase);
         }
 
         static void DateiAusliefern(HttpListenerContext ctx)
@@ -420,6 +442,13 @@ namespace ZwillingBridge
                     var r = await ws.ReceiveAsync(new ArraySegment<byte>(puffer), CancellationToken.None);
                     if (r.MessageType == WebSocketMessageType.Close) break;
                     sb.Append(Encoding.UTF8.GetString(puffer, 0, r.Count));
+                    if (sb.Length > 1024 * 1024)
+                    {
+                        // Eingaenge sind wenige kB - alles darueber ist kein Zwilling
+                        Log.Warnung("Nachricht zu gross, Verbindung getrennt");
+                        await ws.CloseAsync(WebSocketCloseStatus.MessageTooBig, "zu gross", CancellationToken.None);
+                        break;
+                    }
                     if (!r.EndOfMessage) continue;
                     var text = sb.ToString();
                     sb.Clear();
@@ -549,6 +578,7 @@ namespace ZwillingBridge
         {
             return json.Serialize(new Dictionary<string, object> {
                 { "typ", "hallo" },
+                { "version", Version },
                 { "instanz", instanzName },
                 { "signale", signale.Select(s => new Dictionary<string, object> {
                     { "name", s.Name }, { "adresse", s.Adresse },
