@@ -8,7 +8,7 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 ## 1.5.0 – 2026-10-05
 
-Bridge neu bauen (`Bridgeuild.bat`): Sie hat sich nicht geändert, trägt aber die neue
+Bridge neu bauen (`Bridgebuild.bat`): Sie hat sich nicht geändert, trägt aber die neue
 Nebenversion – sonst meldet der Zwilling beim Verbinden einen Versionsunterschied.
 
 **Neu**
@@ -30,7 +30,7 @@ Nebenversion – sonst meldet der Zwilling beim Verbinden einen Versionsuntersch
 
 **Doku**
 - `docs/06-entwicklung.md`: Abschnitt „Leitungen verlegen“; neues Prüfwerkzeug
-  `node toolsiegung.mjs` listet Bögen unter dem Mindestbiegeradius.
+  `node toolsbiegung.mjs` listet Bögen unter dem Mindestbiegeradius.
 
 ## 1.4.0 – 2026-10-05
 
