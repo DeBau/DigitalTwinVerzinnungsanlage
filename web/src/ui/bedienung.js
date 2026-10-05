@@ -11,7 +11,7 @@ import { ereignis, zuletzt } from './ereignisse.js';
 import { demo } from '../logik/demo-sps.js';
 import { korbAuflegen, prozessZuruecksetzen } from '../logik/prozess.js';
 import { rollenkurveZuruecksetzen } from '../logik/rollenkurve.js';
-import { verlauf, wzZeichnen } from './diagramm.js';
+import { wzFensterOeffnen, wzZuruecksetzen } from './diagramm.js';
 import { monitorAufbauen } from './signalmonitor.js';
 import { modusSetzen } from './status.js';
 import { eingaengeSenden } from './bridge.js';
@@ -25,6 +25,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   if (!hit) return;
   const { taster: key, art } = hit.object.userData;
   if (art === 'lichtvorhang') { personStarten(); return; }
+  if (art === 'drossel') { wzFensterOeffnen(key); return; }          // Drosselrückschlagventil: Einstellung im Weg-Zeit-Fenster
   if (art === 'notHalt') { st.notHalt[key] = !st.notHalt[key]; bedienSync(); return; }
   if (art === 'wahl') { st[key] = !st[key]; bedienSync(); return; }
   pultGedrueckt = key;
@@ -160,8 +161,7 @@ function anlageZuruecksetzen() {
   $('btn-heizung').textContent = 'Heizung ein';
   st.force = {};
   monitorAufbauen();
-  verlauf.length = 0;
-  wzZeichnen();
+  wzZuruecksetzen();
   $('events').innerHTML = '<li class="empty">Noch keine Ereignisse.</li>';
   zuletzt.clear();
   $('toast').hidden = true;

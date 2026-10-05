@@ -1,6 +1,7 @@
 import { SCHALT_AUS, SCHALT_EIN, st } from './zustand.js';
 import { ereignis } from '../ui/ereignisse.js';
 import { wirksam } from './eingaenge.js';
+import { drosselFaktor } from './drosseln.js';
 
 // ----------------------------------------------------------------------------
 // Pneumatik-Modell: 5/2-Ventil bistabil, Schaltverzug + Druckaufbau,
@@ -17,11 +18,12 @@ export function zylinderBewegen(c, dt, { xMax = c.hub, gesperrt = false, sperrTe
   else {
     const ziel = dir > 0 ? c.hub : 0;
     const rest = Math.abs(ziel - c.x);
-    const vNenn = c.hub / c.zeit * st.speed * last;
+    const vOhneDrossel = c.hub / c.zeit * st.speed * last;
+    const vNenn = vOhneDrossel * drosselFaktor(c.kurz, dir);   // Drosselrückschlagventil der Abluftseite
     const daempf = Math.min(25, c.hub * 0.15);
     const vMax = rest < daempf ? vNenn * Math.max(0.18, rest / daempf) : vNenn;
     const vZiel = rest < 0.01 ? 0 : dir * vMax;
-    const a = vNenn / 0.09;                       // ca. 90 ms bis zur Nenngeschwindigkeit
+    const a = vOhneDrossel / 0.09;                // ca. 90 ms bis zur Nenngeschwindigkeit (auch abbremsen bei zugedrehter Drossel)
     c.v += Math.max(-a * dt, Math.min(a * dt, vZiel - c.v));
     if (gesperrt && c.v * dir > 0) { if (rest > 0.5) ereignis(sperrText, 'err', sperrText); c.v = 0; }
   }

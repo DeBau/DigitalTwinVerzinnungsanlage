@@ -27,6 +27,27 @@ Seitenleiste. Beide zeigen denselben Zustand und schreiben dieselben Eingänge.
 
 
 
+## Weg-Zeit-Diagramm und Drosseln
+
+- **Seitenleiste:** Das Weg-Zeit-Diagramm zeigt die letzten 60 s aller sieben Zylinder (−MM1…−MM6, −MM8),
+  in der Demo mit den Schrittnummern. Stellung 1 = Kolbenstange ausgefahren.
+- **Groß öffnen:** Der Knopf unter dem Diagramm (oder ein Klick auf ein Drosselventil in der 3D-Ansicht)
+  öffnet ein eigenes Fenster. Es lässt sich am Kopf verschieben und an der Ecke unten rechts in der Größe
+  ziehen; Esc schließt es.
+  - **Zeitfenster** 5…120 s, **Anhalten** friert die Anzeige ein, das Mausrad blättert dann zurück.
+  - **Messlinien:** Ein Klick setzt Linie 1, ein zweiter Linie 2, oben steht Δt. Die Linien rasten an
+    Bewegungsanfang und -ende des Zylinders unter dem Zeiger ein (mit gedrückter Alt-Taste frei),
+    lassen sich ziehen und halten das Diagramm automatisch an.
+- **Drosselrückschlagventile:** An jedem Zylinderanschluss sitzt eines (Abluftdrosselung: das Ventil an
+  Anschluss B bremst das Ausfahren, das an A das Einfahren). Im Fenster ist jede Richtung jedes
+  Zylinders einzeln einstellbar: 50 % = Nennzeit, 100 % = doppelt so schnell, **0 % = zu, der Zylinder
+  steht** (gut zum Testen von Überwachungszeiten). Daneben stehen ein Richtwert und die zuletzt
+  **gemessene Fahrzeit** von Endlage zu Endlage. Die Einstellung bleibt im Browser gespeichert;
+  „Alle auf 50 %“ stellt die Grundeinstellung wieder her. Der Regler „Geschwindigkeit aller Zylinder“
+  unter *Prozess* wirkt zusätzlich auf alle gemeinsam.
+
+
+
 ## Übungsumfang umschalten
 
 | Umschalter | „automatisch“ | „SPS“ |

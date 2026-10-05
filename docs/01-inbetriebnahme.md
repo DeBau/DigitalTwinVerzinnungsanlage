@@ -46,7 +46,7 @@ Zum Anschauen ohne Bridge reicht auch ein Doppelklick auf `web\index.html`. Ohne
    - **Heizung aus** (bzw. Übungsumfang Zinnbad: SPS) → unter 250 °C fällt −BG9 ab, kein neuer Start. Regler selbst programmieren: 2-Punkt, PWM, PID_Compact.
    - Übungsumfang Band: SPS → Band mit Nachlaufzeit, Anschlag und Vereinzeler selbst programmieren, Vor-Ort-Steuerstelle mit Schlüsselschalter, Übergabe über die Rollenkurve −MA6 auf Band 2.
    - Im Signalmonitor **−BG7 auf 0 forcen** → das Programm wartet in Schritt 5 (Bad öffnen).
-   - **Zylindergeschwindigkeit** verringern → längere Fahrzeiten, gut für Überwachungszeiten.
+   - **Drossel** eines Zylinders zudrehen (Klick auf das Drosselventil in 3D oder Weg-Zeit-Diagramm → „Groß öffnen“) → längere Fahrzeit oder bei 0 % Stillstand, gut für Überwachungszeiten. Mit den Messlinien im Diagramm die Fahrzeiten ausmessen.
 
 
 

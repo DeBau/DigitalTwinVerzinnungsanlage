@@ -6,6 +6,20 @@ Version haben, sonst meldet der Zwilling das in der Ereignisliste.
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.3.0 – 2026-10-05
+
+**Neu**
+- Weg-Zeit-Diagramm mit allen sieben Zylindern (−MM1…−MM6, −MM8) statt nur −MM1…−MM4.
+- Großes Diagrammfenster (verschiebbar, in der Größe ziehbar): Zeitfenster 5…120 s, Anhalten und
+  Zurückblättern, zwei Messlinien mit Δt, die an Bewegungsanfang und -ende einrasten.
+- Drosselrückschlagventile an jedem Zylinder, Ausfahren und Einfahren getrennt einstellbar
+  (0…100 %, 0 % = Zylinder steht), mit Richtwert und gemessener Fahrzeit je Richtung. Die Ventile
+  sitzen sichtbar an den Zylinderanschlüssen; ein Klick darauf öffnet die Einstellung.
+
+**Geändert**
+- Der Regler „Zylindergeschwindigkeit“ heißt jetzt „Geschwindigkeit aller Zylinder“ und wirkt auch auf
+  −MM5/−MM6.
+
 ## 1.2.2 – 2026-10-05
 
 **Neu**

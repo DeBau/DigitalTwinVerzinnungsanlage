@@ -3,6 +3,7 @@ import { M } from '../core/materialien.js';
 import { box, cached, mesh, zyl } from '../core/geometrie.js';
 import { label, platte, tafel } from '../core/beschriftung.js';
 import { NUT_OBEN, nutSensor } from './nutsensor.js';
+import { KLICK, PULT_TASTER } from '../anlage/register.js';
 
 // Drehteil um die y-Achse aus Profilpunkten [r, y] (r in Vielfachen von s), gecacht je Schlüssel
 function drehteil(key, pkte, s, seg) {
@@ -16,6 +17,26 @@ export function steckverschraubung(parent, x, y, z, r = 6) {
   const l = mesh(drehteil('qsRing', [[0.62, 11], [0.96, 11], [1.0, 11.6], [1.0, 14.2], [0.9, 14.9], [0.6, 15]], r, 16), M.qsBlau, parent);
   l.position.set(x, y, z);
   return new THREE.Vector3(x, y + 15, z);
+}
+
+// Drosselrückschlagventil (Bauart GRLA, Abluftdrosselung) direkt im Zylinderanschluss, zeigt in +y:
+// Einschraubsechskant, Alu-Gehäuse mit seitlicher Drosselschraube und Kontermutter, Steckanschluss oben.
+// Anklickbar (öffnet das Weg-Zeit-Diagramm mit den Drosseln); liefert die Schlauchöffnung.
+export function drosselVentil(parent, x, y, z, r, kurz) {
+  zyl(r * 1.15, 4.2, M.stahl, x, y + 2.1, z, null, parent, 6);                    // Sechskant G1/8
+  const w = Math.max(9, r * 2.4), d = Math.max(8, r * 2), h = 14;
+  box(w, h, d, M.festoAlu, x, y + 4.2 + h / 2, z, parent);
+  zyl(Math.max(1.6, r * 0.45), 7, M.messing, x + w / 2 + 3.5, y + 13, z, 'x', parent, 10);   // Drosselschraube
+  zyl(Math.max(2.4, r * 0.7), 2.2, M.stahl, x + w / 2 + 1.1, y + 13, z, 'x', parent, 6);      // Kontermutter
+  zyl(r * 0.95, 4, M.stahl, x, y + 4.2 + h + 2, z, null, parent, 16);              // Steckanschluss
+  zyl(r, 2.4, M.qsBlau, x, y + 4.2 + h + 5.2, z, null, parent, 16);                // Lösering
+  // Klickfläche etwas größer als das Ventil, damit es sich auch aus der Übersicht treffen lässt
+  const klick = new THREE.Mesh(cached('drosselKlick', () => new THREE.BoxGeometry(1, 1, 1)), KLICK);
+  klick.scale.set(w + 16, h + 20, d + 16); klick.position.set(x, y + 4.2 + h / 2, z);
+  klick.userData = { art: 'drossel', taster: kurz };
+  parent.add(klick);
+  if (kurz) PULT_TASTER.push({ key: 'drossel' + kurz, kappe: klick, art: 'drossel' });
+  return new THREE.Vector3(x, y + 4.2 + h + 6.4, z);
 }
 
 // Hauptmaße nach ISO 15552 / Festo DSBC (Katalog 2017/12): E Kantenmaß, B Zentrierbund, TG Lochbild Deckel,
@@ -59,7 +80,7 @@ function typSchild(bohrung, hub) {
   }, 8);
 }
 // ISO-15552-Profilzylinder (Festo DSBC) entlang lokaler +x (Boden bei x = 0, Stange tritt bei x = laenge aus)
-export function profilZylinder(parent, { laenge, bohrung, position, rotation, name, sensoren = [], fuesse = false, seite = 1 }) {
+export function profilZylinder(parent, { laenge, bohrung, position, rotation, name, sensoren = [], fuesse = false, seite = 1, drossel = null }) {
   const g = new THREE.Group();
   g.position.copy(position);
   if (rotation) g.rotation.copy(rotation);
@@ -88,8 +109,10 @@ export function profilZylinder(parent, { laenge, bohrung, position, rotation, na
   // Zentrierbund Ø B (Länge 4) und Abstreifer an der Stangenseite
   zyl(iso.B / 2, 4, M.deckel, laenge + 2, 0, 0, 'x', g, 28);
   zyl(bohrung * 0.26, 1.6, M.schwarz, laenge + 4.6, 0, 0, 'x', g, 20);
-  const portA = steckverschraubung(g, kap / 2, a / 2 + 0.3, 0, a * 0.1);
-  const portB = steckverschraubung(g, laenge - kap / 2, a / 2 + 0.3, 0, a * 0.1);
+  // drossel = Kurzname des Zylinders: Drosselrückschlagventile statt einfacher Steckverschraubungen
+  const anschluss = (px) => drossel ? drosselVentil(g, px, a / 2 + 0.3, 0, a * 0.1, drossel) : steckverschraubung(g, px, a / 2 + 0.3, 0, a * 0.1);
+  const portA = anschluss(kap / 2);
+  const portB = anschluss(laenge - kap / 2);
   // Laserbeschriftung auf der sensorfreien Seite (unterhalb der Seitennut)
   if (laenge > 160) platte(typSchild(bohrung, Math.max(10, Math.round((laenge - 2 * a) / 10) * 10)), 70, 9, g, laenge / 2, -a * 0.25, -seite * (a / 2 + 0.05), seite > 0 ? Math.PI : 0);
   // Fußbefestigung HNC (verzinktes Stahlblech, Winkel an beiden Deckeln, Fuß zeigt nach außen)

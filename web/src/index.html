@@ -61,7 +61,7 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(-
 .app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 400px; }
 .app.seite-zu { grid-template-columns: minmax(0, 1fr); }
 .stage { position: relative; min-width: 0; background: linear-gradient(var(--viewport-top), var(--viewport-bottom)); overflow: hidden; }
-#viewport { position: absolute; inset: 0; }
+#viewport { position: absolute; inset: 0; isolation: isolate; }   /* z-index der 3D-Beschriftungen bleibt in der Ansicht */
 #viewport canvas { display: block; }
 
 .stage-head { position: absolute; top: 14px; left: 16px; right: 16px; display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; pointer-events: none; flex-wrap: wrap; }
@@ -218,8 +218,42 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(-
 .param output { font: 500 13px var(--font-data); font-variant-numeric: tabular-nums; }
 
 /* Diagramm */
-#wz { width: 100%; height: 190px; display: block; }
+#wz { width: 100%; height: 290px; display: block; }
 .legend { display: flex; justify-content: space-between; font: 400 11px var(--font-data); color: var(--muted); }
+#btn-wz-gross { justify-self: start; }
+
+/* Fenster Weg-Zeit-Diagramm (verschiebbar, Größe am Rand unten rechts ziehbar) */
+.fenster { position: fixed; left: 24px; top: 24px; z-index: 30; width: min(980px, calc(100vw - 16px)); height: min(720px, calc(100vh - 16px));
+  min-width: 420px; min-height: 360px; max-width: calc(100vw - 8px); max-height: calc(100vh - 8px); resize: both; overflow: hidden;
+  display: flex; flex-direction: column; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.28); }
+.fenster-kopf { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--line);
+  background: var(--panel-2); cursor: move; user-select: none; touch-action: none; }
+.fenster-kopf b { flex: 1; font: 600 13px var(--font-label); letter-spacing: .04em; }
+.fenster-kopf .btn, .fenster-kopf select, .fenster-kopf label { cursor: pointer; }
+.wzf-mess { margin: 0; padding: 6px 14px; min-height: 30px; font: 400 12.5px var(--font-data); font-variant-numeric: tabular-nums; color: var(--muted);
+  border-bottom: 1px solid var(--line); }
+.wzf-mess b { color: var(--fg); font-weight: 500; }
+#wzf-canvas { flex: 1 1 auto; min-height: 180px; width: 100%; display: block; cursor: crosshair; touch-action: none; }
+.drosseln { flex: 0 0 auto; border-top: 1px solid var(--line); max-height: 45%; display: flex; flex-direction: column; }
+.drosseln-kopf { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 7px 14px; }
+.drosseln-kopf b { font: 600 12px var(--font-label); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.drosseln-kopf .hint { flex: 1; margin: 0; }
+.drosseln-liste { overflow-y: auto; padding: 0 14px 10px; display: grid; gap: 2px; }
+.dr-zeile { display: grid; grid-template-columns: 150px 1fr 1fr; gap: 6px 18px; align-items: center; padding: 5px 6px; border-radius: 6px; }
+.dr-zeile.markiert { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.dr-name { font: 500 13px var(--font-label); }
+.dr-name small { display: block; color: var(--muted); font: 400 11.5px var(--font-ui); }
+.dr-rich { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; align-items: center; font-size: 12px; }
+.dr-rich span { color: var(--muted); }
+.dr-rich output { font: 500 12.5px var(--font-data); font-variant-numeric: tabular-nums; }
+.dr-rich input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); margin: 2px 0; }
+.dr-rich small { grid-column: 1 / -1; font: 400 11.5px var(--font-data); font-variant-numeric: tabular-nums; color: var(--muted); }
+.dr-rich small.zu { color: var(--fault); }
+@media (max-width: 700px) {
+  .fenster { left: 4px !important; top: 4px !important; width: calc(100vw - 8px); height: calc(100vh - 8px); min-width: 0; resize: none; }
+  .dr-zeile { grid-template-columns: 1fr; }
+}
 
 /* Ereignisse */
 .events { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 180px; overflow-y: auto; font-size: 12.5px; }
@@ -533,9 +567,10 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
         </div>
         <p class="hint" id="bad-info"></p>
         <div class="param">
-          <label for="p-speed">Zylindergeschwindigkeit (Drosseln)</label><output id="o-speed" for="p-speed">100 %</output>
+          <label for="p-speed">Geschwindigkeit aller Zylinder</label><output id="o-speed" for="p-speed">100 %</output>
           <input type="range" id="p-speed" min="0.3" max="2" step="0.1" value="1">
         </div>
+        <p class="hint">Jeden Zylinder einzeln stellen die Drosselrückschlagventile an seinen Anschlüssen: Klick auf ein Ventil in der 3D-Ansicht oder „Groß öffnen“ im Weg-Zeit-Diagramm.</p>
         <p class="hint">Jedes Tauchen verbraucht Zinn. Unter 40&nbsp;% meldet −BG10 „Füllhöhe unterschritten“, unter 250&nbsp;°C fällt −BG9 ab. Temperatur (−BT1, 0…400&nbsp;°C) und Füllstand (−BL1, 0…100&nbsp;%) liegen zusätzlich als Analogwerte 0…27648 an.</p>
       </div>
     </details>
@@ -543,8 +578,9 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
     <details class="sec" id="sec-diagramm">
       <summary><h2>Weg-Zeit-Diagramm (live, 60&nbsp;s)</h2></summary>
       <div class="inhalt">
-        <canvas id="wz" aria-label="Weg-Zeit-Diagramm der Zylinder"></canvas>
+        <canvas id="wz" aria-label="Weg-Zeit-Diagramm aller Zylinder"></canvas>
         <div class="legend"><span>−60 s</span><span>Schrittnummern der Demo-SPS oben</span><span>jetzt</span></div>
+        <button type="button" class="btn" id="btn-wz-gross">Groß öffnen · Messlinien · Drosseln</button>
       </div>
     </details>
 
@@ -571,6 +607,27 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
     </details>
   </aside>
 </div>
+<section class="fenster" id="wzf" role="dialog" aria-labelledby="wzf-titel" hidden>
+  <header class="fenster-kopf" id="wzf-kopf">
+    <b id="wzf-titel">Weg-Zeit-Diagramm · Drosseln</b>
+    <label class="chip-sel"><span>Zeitfenster</span><select id="wzf-spanne" aria-label="Zeitfenster">
+      <option value="5">5 s</option><option value="10">10 s</option><option value="30" selected>30 s</option><option value="60">60 s</option><option value="120">120 s</option>
+    </select></label>
+    <button type="button" class="btn" id="wzf-halt" aria-pressed="false">Anhalten</button>
+    <button type="button" class="btn" id="wzf-linien-weg">Messlinien löschen</button>
+    <button type="button" class="side-mini side-x" id="wzf-zu" aria-label="Fenster schließen" title="Schließen (Esc)">×</button>
+  </header>
+  <p class="wzf-mess" id="wzf-mess" aria-live="polite"></p>
+  <canvas id="wzf-canvas" aria-label="Weg-Zeit-Diagramm aller Zylinder mit Messlinien"></canvas>
+  <div class="drosseln">
+    <div class="drosseln-kopf">
+      <b>Drosselrückschlagventile</b>
+      <span class="hint">Abluftdrosselung · 50&nbsp;% = Nennzeit, 100&nbsp;% = doppelt so schnell, 0&nbsp;% = zu</span>
+      <button type="button" class="btn" id="dr-grund">Alle auf 50&nbsp;%</button>
+    </div>
+    <div class="drosseln-liste" id="dr-liste"></div>
+  </div>
+</section>
 <script type="module" src="./main.js"></script>
 </body>
 </html>

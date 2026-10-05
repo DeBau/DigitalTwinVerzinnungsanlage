@@ -7,6 +7,7 @@ import { koerbe, korbEntfernen, korbErzeugen, tropfen, tropfenErzeugen } from '.
 import { ereignis } from '../ui/ereignisse.js';
 import { wirksam } from './eingaenge.js';
 import { zylinderBewegen } from './pneumatik-modell.js';
+import { drosselFaktor } from './drosseln.js';
 import { uebergabeUndBand2 } from './band2.js';
 import { UEBERGABE, kurveEinlauf, vBand1 } from './rollenkurve.js';
 import { pruefstation } from './pruefstation.js';
@@ -72,12 +73,14 @@ export function prozess(dt) {
     anschlagZu = !wirksam('MB9_Anschlag_auf');                          // Federrückstellung: ohne Spannung zu
     vereinzelerZu = wirksam('MB10_Vereinzeler_zu');                      // Federrückstellung: ohne Spannung offen
   }
-  const fahre = (pos, zu, zf) => {
+  // Stellung 0 = zu (Kolbenstange aus), 1 = offen; Nennschwenkzeit 1/6 s, je Richtung gedrosselt
+  const fahre = (pos, zu, zf, kurz) => {
     const ziel = zu && !(pos > HEBEL_FREI && ueberdeckt(zf)) ? 0 : 1;   // Hebel schwenkt nicht in einen Korb hinein
-    return pos + Math.max(-dt * 6, Math.min(dt * 6, ziel - pos));
+    const schritt = dt * 6 * st.speed * drosselFaktor(kurz, ziel === 0 ? 1 : -1);
+    return pos + Math.max(-schritt, Math.min(schritt, ziel - pos));
   };
-  BAND.anschlagPos = fahre(BAND.anschlagPos, anschlagZu, 55);            // Anschlagfläche −MM5
-  BAND.vereinzelerPos = fahre(BAND.vereinzelerPos, vereinzelerZu, -95);   // Anschlagfläche −MM6
+  BAND.anschlagPos = fahre(BAND.anschlagPos, anschlagZu, 55, 'MM5');            // Anschlagfläche −MM5
+  BAND.vereinzelerPos = fahre(BAND.vereinzelerPos, vereinzelerZu, -95, 'MM6');   // Anschlagfläche −MM6
   const grenzen = bandGrenzen(bandKoerbe);
   let vZiel;
   if (st.betriebBand === 'auto' && st.sa2) {

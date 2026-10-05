@@ -19,7 +19,7 @@ for (const x of [-700, 760]) {
 profil(90, 90, 1550, 'x', 30, PORTAL_Y, PORTAL_Z);
 for (const y of [PORTAL_Y - 25, PORTAL_Y + 25]) box(1440, 15, 15, M.stahl, 30, y, PORTAL_Z + 52);
 export const mm3 = profilZylinder(anlage, {
-  laenge: 540, bohrung: 40, position: new THREE.Vector3(-660, 1330, PORTAL_Z), name: '−MM3 Verschieben', fuesse: true,
+  laenge: 540, bohrung: 40, position: new THREE.Vector3(-660, 1330, PORTAL_Z), name: '−MM3 Verschieben', fuesse: true, drossel: 'MM3',
   sensoren: [{ x: 60, signal: 'BG5_MM3_Band', text: '−BG5', dir: -1 }, { x: 480, signal: 'BG6_MM3_Bad', text: '−BG6', dir: 1 }],
 });
 // Endanschläge der Verschiebeachse mit Industrie-Stoßdämpfern
@@ -59,7 +59,7 @@ for (const sx of [-1, 1]) for (const y of [1080, 1300]) {
   for (const dx of [-17, 17]) for (const dy of [-18, 18]) zyl(3, 1.5, M.schwarz, sx * 62 + dx, y + dy, -28.3, 'z', schlitten, 8);
 }
 export const mm2 = profilZylinder(schlitten, {
-  laenge: 440, bohrung: 50, position: new THREE.Vector3(0, 1480, 0), rotation: new THREE.Euler(0, 0, -Math.PI / 2), name: '−MM2 Tauchen',
+  laenge: 440, bohrung: 50, position: new THREE.Vector3(0, 1480, 0), rotation: new THREE.Euler(0, 0, -Math.PI / 2), name: '−MM2 Tauchen', drossel: 'MM2',
   sensoren: [{ x: 40, signal: 'BG3_MM2_oben', text: '−BG3', dir: -1 }, { x: 400, signal: 'BG4_MM2_unten', text: '−BG4', dir: 1 }],
 });
 
@@ -104,7 +104,7 @@ zyl(4, 22, M.stahl, 0, HK.hebel, 0, 'z', hakenKoerper, 12);                     
 export const mm1Piv = new THREE.Group(); mm1Piv.position.copy(HK.C); haken.add(mm1Piv);
 zyl(9, 14, M.deckel, 0, 0, 0, 'z', mm1Piv, 20);                                   // Lagerauge am Zylinderboden
 export const mm1 = profilZylinder(mm1Piv, {
-  laenge: 100, bohrung: 25, position: V(-12, 0, 0), rotation: new THREE.Euler(Math.PI / 2, Math.PI, 0), name: '−MM1 Einhängen', seite: -1,
+  laenge: 100, bohrung: 25, position: V(-12, 0, 0), rotation: new THREE.Euler(Math.PI / 2, Math.PI, 0), name: '−MM1 Einhängen', seite: -1, drossel: 'MM1',
   sensoren: [{ x: 30, signal: 'BG1_MM1_eingehaengt', text: '−BG1' }, { x: 70, signal: 'BG2_MM1_geloest', text: '−BG2' }],
 });
 export const mm1Stange = new THREE.Group(); mm1Piv.add(mm1Stange);                     // Kolbenstange + Gabelkopf, Ende bei −d

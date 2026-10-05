@@ -15,6 +15,7 @@ import { VENTIL_LEDS, inAnlage, rohrNeu } from './pneumatik.js';
 import { FELD_LEDS, feldverteiler, kabel, zumPort } from './verdrahtung.js';
 import { KIPPER_NACHFUEHREN, MM8, ST } from './pruefstation.js';
 import { S40_FUSS } from './befehlsgeraete.js';
+import { KLICK, PULT_TASTER } from './register.js';
 
 // ----------------------------------------------------------------------------
 // Peripherie der Entleer- und Prüfstation (Kipper −MM8 … KLT)
@@ -126,6 +127,9 @@ leitung([V(2996, 270, 1323.5), V(3002, 270, 1323.5), V(3002, 240, 1327.5), V(300
 const zg = ST.zylBody, mm = ST.mm8, gx = 40;
 const grla = (p) => {
   box(14, 16, 12, M.festoAlu, gx + p.x, p.y + 8, p.z, zg);
+  const klick = new THREE.Mesh(new THREE.BoxGeometry(34, 36, 40), KLICK);      // anklickbar: öffnet die Drosseln von −MM8
+  klick.position.set(gx + p.x, p.y + 8, p.z + 6); klick.userData = { art: 'drossel', taster: 'MM8' }; zg.add(klick);
+  PULT_TASTER.push({ key: 'drosselMM8', kappe: klick, art: 'drossel' });
   zyl(3.5, 8, M.blau, gx + p.x, p.y + 20, p.z, null, zg, 10);                     // Drosselschraube
   zyl(4.5, 10, M.stahl, gx + p.x, p.y + 8, p.z + 11, 'z', zg, 10);                 // Steckanschluss seitlich
   return V(gx + p.x, p.y + 8, p.z + 16);

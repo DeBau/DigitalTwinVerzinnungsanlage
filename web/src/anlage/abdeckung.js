@@ -39,7 +39,7 @@ zyl(8, 380, M.stahl, 195 + 190, 380, 0, 'x', deckel);
 zyl(11, 10, M.stahl, 204, 380, 0, 'x', deckel, 6);
 export const mm4 = profilZylinder(anlage, {
   laenge: 400, bohrung: 40, position: new THREE.Vector3(1360, 380, 0), rotation: new THREE.Euler(0, Math.PI, 0),
-  name: '−MM4 Abstreifen', fuesse: true, seite: -1,
+  name: '−MM4 Abstreifen', fuesse: true, seite: -1, drossel: 'MM4',
   sensoren: [{ x: 40, signal: 'BG7_MM4_offen', text: '−BG7', dir: -1 }, { x: 360, signal: 'BG8_MM4_zu', text: '−BG8', dir: 1 }],
 });
 

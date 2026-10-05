@@ -5,7 +5,7 @@ import { V, box, zyl } from '../core/geometrie.js';
 import { label, platte, tafel } from '../core/beschriftung.js';
 import { SENSOREN } from './register.js';
 import { sensorLed } from '../core/leds.js';
-import { steckverschraubung } from '../bauteile/zylinder.js';
+import { drosselVentil, steckverschraubung } from '../bauteile/zylinder.js';
 import { schlauch } from '../bauteile/leitungen.js';
 import { B1, BAND, BAND_Y, LS_POS } from './baender.js';
 import { getriebemotor, gurtband, inkrementalgeber } from '../bauteile/foerderer.js';
@@ -58,11 +58,12 @@ function bandAnschlag(za, name, sigZu, sigOffen, txtZu, txtOffen, ventil) {
   zyl(7, 4, M.deckel, xc, 280, zm, null, fest, 16);                                              // Lagerbund
   for (const dz of [-10, 10]) box(0.8, 64, 3, M.schwarz, xc + 17.1, 240, zm + dz, fest);         // Sensornuten
   platte(tafel('adn20', 30, 9, (c) => { c.fillStyle = '#c4c9ce'; c.fillRect(0, 0, 30, 9); c.fillStyle = '#1d1f22'; c.font = '700 4px Arial'; c.fillText('FESTO', 1.5, 4); c.font = '500 2.6px Arial'; c.fillText('ADN-20-40-A-P-A', 1.5, 7.6); }, 10), 30, 9, fest, xc, 246, zm + 17.3, 0);
-  const anschluss = [];
+  // Anschlüsse mit Drosselrückschlagventilen (Abluftdrosselung), Steckanschluss nach −z
+  const anschluss = [], kurz = name.match(/MM\d/)[0];
   for (const y of [214, 266]) {
     const p = new THREE.Group(); p.position.set(xc, y, zm - 18); p.rotation.x = -Math.PI / 2; fest.add(p);
-    steckverschraubung(p, 0, 0, 0, 3.2);
-    anschluss.push(V(xc, y, za + zm - 33));
+    const oeffnung = drosselVentil(p, 0, 0, 0, 3.2, kurz);
+    anschluss.push(V(xc, y, za + zm - 18 - oeffnung.y));
   }
   BAND.stopperAnschluss[ventil] = anschluss;                                                       // [Kolbenseite, Stangenseite]
   // Nutsensoren SMT-8M: „zu“ oben (Stange aus), „offen“ unten; Kabel in der Nut nach unten, an der Konsole vorbei
