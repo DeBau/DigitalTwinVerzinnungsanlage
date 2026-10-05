@@ -36,15 +36,21 @@ Seitenleiste. Beide zeigen denselben Zustand und schreiben dieselben Eingänge.
   ziehen; Esc schließt es.
   - **Zeitfenster** 5…120 s, **Anhalten** friert die Anzeige ein, das Mausrad blättert dann zurück.
   - **Messlinien:** Ein Klick setzt Linie 1, ein zweiter Linie 2, oben steht Δt. Die Linien rasten an
-    Bewegungsanfang und -ende des Zylinders unter dem Zeiger ein (mit gedrückter Alt-Taste frei),
-    lassen sich ziehen und halten das Diagramm automatisch an.
+    den Flanken der Endlagensensoren des Zylinders unter dem Zeiger ein (mit gedrückter Alt-Taste
+    frei), lassen sich ziehen und halten das Diagramm automatisch an.
+
+![Weg-Zeit-Diagramm mit Messlinien und Drosseln](bilder/09-weg-zeit-diagramm.jpg)
+
 - **Drosselrückschlagventile:** An jedem Zylinderanschluss sitzt eines (Abluftdrosselung: das Ventil an
   Anschluss B bremst das Ausfahren, das an A das Einfahren). Im Fenster ist jede Richtung jedes
   Zylinders einzeln einstellbar: 50 % = Nennzeit, 100 % = doppelt so schnell, **0 % = zu, der Zylinder
   steht** (gut zum Testen von Überwachungszeiten). Daneben stehen ein Richtwert und die zuletzt
-  **gemessene Fahrzeit** von Endlage zu Endlage. Die Einstellung bleibt im Browser gespeichert;
-  „Alle auf 50 %“ stellt die Grundeinstellung wieder her. Der Regler „Geschwindigkeit aller Zylinder“
-  unter *Prozess* wirkt zusätzlich auf alle gemeinsam.
+  **gemessene Fahrzeit** – vom Verlassen des einen bis zum Erreichen des anderen Endlagensensors,
+  also genau die Zeit, die auch dein SPS-Programm sieht. Die Einstellung bleibt im Browser
+  gespeichert; „Alle auf 50 %“ stellt die Grundeinstellung wieder her. Der Regler „Geschwindigkeit
+  aller Zylinder“ unter *Prozess* wirkt zusätzlich auf alle gemeinsam.
+
+![Drosselrückschlagventile am Anschlag −MM5](bilder/10-drosselventile.jpg)
 
 
 

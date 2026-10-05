@@ -77,6 +77,7 @@ ihre Betriebsmittelkennzeichen nach EN 81346, so wie sie auch in `signale.csv` u
 ## Leitungsführung
 
 - Druckluft aus der Hallenleitung über Kugelhahn und Wartungseinheit zur Ventilinsel −QM1 (Portal) und −QM2 (Band).
+- In beiden Anschlüssen jedes Zylinders sitzt ein Drosselrückschlagventil (Bauart GRLA, Abluftdrosselung) mit Drosselschraube und Kontermutter; der Schlauch steckt im Ventil. Klick auf ein Ventil öffnet die Einstellung, siehe [Bedienen](03-bedienung.md#weg-zeit-diagramm-und-drosseln).
 - Fabrikate: Feldverteiler ifm (oranges PA-Gehäuse), Lichtschranken Keyence PZ-G mit Reflektor R-2, Ventilinseln Festo (mit Spulenschildern −MBx/Spule 12/14), Bediengehäuse Rittal, Steuerung Siemens.
 - **Jeder Endschalter einzeln verdrahtet:** Sensorkabel in der Zylindernut bis zum Zylinderboden, dann mit Kabelbindern an den Profilen entlang und mit M12-Stecker auf seinen Port am passiven Feldverteiler:
   - −XD1 (linke Portalsäule): X0 −BG1/−BG2 (über Y-Verteiler am Haken und Spiralkabel), X1 −BG3, X2 −BG4 (beide durch die Energiekette), X3 −BG5, X4 −BG6, X5–X7 Schutzkappen.
@@ -107,6 +108,9 @@ Stellungen 0/1 wie im Weg-Schritt-Diagramm:
 | −MM2 | oben (−BG3) | unten (−BG4) | 1 |
 | −MM3 | über Band (−BG5) | über Zinnbad (−BG6) | 0 |
 | −MM4 | Bad offen (−BG7) | Bad abgedeckt (−BG8) | 1 |
+| −MM5 Anschlag | offen (−BG15) | zu (−BG14) | je nach Korblage |
+| −MM6 Vereinzeler | offen (−BG17) | zu (−BG16) | je nach Korblage |
+| −MM8 Kipper | unten (−BG30) | gekippt (−BG31) | 0 |
 
 **−SF2 STOP** ist als Öffner verdrahtet (unbetätigt = 1). Wenn dein Programm einen Schließer erwartet, den Haken „STOP als Öffner“ im Bedienfeld entfernen. **−SF7 Halt**, −SF25, −SF32 und **−SF35** sind ebenfalls Öffner, die Not-Halt-Meldekontakte `SFx_NotHalt_frei` auch (1 = entriegelt).
 

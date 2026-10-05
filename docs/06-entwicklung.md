@@ -39,7 +39,9 @@ PLCSIM-Advanced-API-DLL ein, die es selbst sucht.
 
 Die Versionsnummer steht an vier Stellen und muss überall gleich sein: `web/src/version.js`,
 `web/package.json`, `Bridge.Version` in `Bridge/ZwillingBridge.cs` und ein neuer Abschnitt in
-`CHANGELOG.md`. Weichen Zwilling und Bridge voneinander ab, meldet der Zwilling das beim Verbinden.
+`CHANGELOG.md`. Weichen Haupt- oder Nebenversion von Zwilling und Bridge voneinander ab, meldet der
+Zwilling das beim Verbinden; eine reine Fehlerbehebung (x.y.**z**) braucht keine neu gebaute Bridge.
+Die Bridge-Version wird trotzdem mitgezogen, damit alle vier Stellen gleich bleiben.
 
 ## Werkzeuge
 

@@ -1,17 +1,29 @@
 # Änderungen
 
 Alle nennenswerten Änderungen am Zwilling und an der Bridge. Die Version steht im Zwilling oben in
-der Seitenleiste und in der Kopfzeile der Bridge-Konsole. Zwilling und Bridge sollten immer dieselbe
-Version haben, sonst meldet der Zwilling das in der Ereignisliste.
+der Seitenleiste und in der Kopfzeile der Bridge-Konsole. Zwilling und Bridge sollten dieselbe
+Haupt- und Nebenversion haben (z. B. 1.3.x), sonst meldet der Zwilling das in der Ereignisliste.
 
 [◀ Zurück zur Übersicht](README.md)
+
+## 1.3.1 – 2026-10-05
+
+**Geändert**
+- Fahrzeiten und Messlinien beziehen sich auf die Endlagensensoren (Sensor verlassen bis anderen
+  Sensor erreicht) – genau die Zeit, die auch das SPS-Programm sieht. Vorher rasteten die Linien
+  kurz vor dem Hubende ein, das wegen der Endlagendämpfung deutlich später liegt.
+- Die Versionswarnung kommt nur noch, wenn sich Haupt- oder Nebenversion von Zwilling und Bridge
+  unterscheiden; Fehlerbehebungen (x.y.**z**) brauchen keine neu gebaute Bridge.
+- Doku: Weg-Zeit-Diagramm, Drosseln und zwei neue Übungsaufgaben (Überwachungszeiten auslegen,
+  Taktzeit optimieren), Bilder 09 und 10.
 
 ## 1.3.0 – 2026-10-05
 
 **Neu**
 - Weg-Zeit-Diagramm mit allen sieben Zylindern (−MM1…−MM6, −MM8) statt nur −MM1…−MM4.
 - Großes Diagrammfenster (verschiebbar, in der Größe ziehbar): Zeitfenster 5…120 s, Anhalten und
-  Zurückblättern, zwei Messlinien mit Δt, die an Bewegungsanfang und -ende einrasten.
+  Zurückblättern, zwei Messlinien mit Δt, die an Bewegungsanfang und -ende einrasten
+  (ab 1.3.1 an den Endlagensensoren).
 - Drosselrückschlagventile an jedem Zylinder, Ausfahren und Einfahren getrennt einstellbar
   (0…100 %, 0 % = Zylinder steht), mit Richtwert und gemessener Fahrzeit je Richtung. Die Ventile
   sitzen sichtbar an den Zylinderanschlüssen; ein Klick darauf öffnet die Einstellung.

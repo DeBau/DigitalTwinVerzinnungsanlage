@@ -242,7 +242,7 @@ namespace ZwillingBridge
     static class Bridge
     {
         // gleich wie web/src/version.js - die Seite warnt, wenn Bridge und Zwilling nicht zusammenpassen
-        public const string Version = "1.3.0";
+        public const string Version = "1.3.1";
 
         static string instanzName = "Zinnbad";
         static int port = 8181;

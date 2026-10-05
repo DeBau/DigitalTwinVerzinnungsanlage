@@ -59,14 +59,20 @@ programmiert.
 
 13. Im Signalmonitor **−BG7 auf 0 forcen** → das Programm muss in Schritt „Bad öffnen“ warten und
     nach Überwachungszeit melden.
-14. **Zylindergeschwindigkeit** drosseln (Regler in der Seitenleiste) → längere Fahrzeiten, gute
-    Probe für Überwachungszeiten.
+14. **Überwachungszeiten auslegen.** Im Weg-Zeit-Diagramm („Groß öffnen“) die Fahrzeit jedes
+    Zylinders mit den Messlinien ausmessen und daraus die Überwachungszeiten der Schrittkette
+    ableiten. Danach die Drossel eines Zylinders zudrehen (0 % = Zylinder steht) oder stark
+    drosseln → dein Programm muss die Störung mit Zylinder und Richtung melden.
 15. **Motorschutz** auslösen, **Lichtvorhang −BG20** unterbrechen (Person durchlaufen lassen),
     **Heizung aus** → unter 250 °C fällt −BG9 ab, kein neuer Start.
+16. **Taktzeit optimieren.** Drosseln so einstellen, dass die Zykluszeit sinkt, ohne dass ein
+    Zylinder hart in die Endlage schlägt oder sich Bewegungen überschneiden. Ergebnis mit den
+    Messlinien (Schrittwechsel 2 bis Schrittwechsel 1) belegen.
 
 ## Was der Zwilling selbst meldet
 
 Die Ereignisliste in der Seitenleiste ist ein Korrektiv, kein Logbuch: Sie nennt Fehlverhalten im
 Klartext – hängender Korb an einer Übergabe (>4 s), Gutteil ausgeblasen, n.i.O.-Teil im KLT,
-KLT übervoll, Korb nicht abgeblasen, Zinn nicht auf Temperatur. Das Weg-Zeit-Diagramm zeichnet die
-letzten 60 s aller Zylinder mit Schrittnummern mit.
+KLT übervoll, Korb nicht abgeblasen, Zinn nicht auf Temperatur. Das Weg-Zeit-Diagramm zeichnet alle
+sieben Zylinder mit Schrittnummern mit und misst je Zylinder und Richtung die Fahrzeit zwischen den
+Endlagensensoren.

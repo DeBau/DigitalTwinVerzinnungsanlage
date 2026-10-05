@@ -27,7 +27,8 @@ export function verbinden() {
   ws.onerror = () => {};
   ws.onmessage = (ev) => {
     let m; try { m = JSON.parse(ev.data); } catch { return; }
-    if (m.typ === 'hallo' && m.version !== VERSION) {
+    const stand = (v) => String(v || '').split('.').slice(0, 2).join('.');   // Haupt.Neben – Fehlerbehebungen (x.y.Z) passen zusammen
+    if (m.typ === 'hallo' && stand(m.version) !== stand(VERSION)) {
       // Seite und Bridge aus verschiedenen Ständen: Bridge neu bauen, sonst fehlen ihr Neuerungen der Seite
       ereignis(`Bridge ${m.version ? 'v' + m.version : '(alte Version)'} passt nicht zum Zwilling v${VERSION}: Bridge\\build.bat ausführen und die Bridge neu starten.`, 'err');
     }

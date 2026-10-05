@@ -70,8 +70,9 @@ Lichtvorhang – und ein Werker, der die fertigen Körbe abnimmt.
 `%I0.0…%I11.7`, `%Q0.0…%Q5.2` und `%IW64/66/68`. Dein Programm sieht dieselbe Schnittstelle wie an
 der realen Anlage – kein proprietäres Protokoll, keine Bausteinbibliothek, keine Lizenzdatei.
 
-**Verhaltensmodell statt Animation.** Zylinder fahren mit Masse, Drosselquerschnitt und
-Endlagendämpfung, Sensoren haben Schaltpunkt und Hysterese, Körbe stauen sich an ihren Stoßpuffern
+**Verhaltensmodell statt Animation.** Zylinder fahren mit Schaltverzug, Beschleunigung und
+Endlagendämpfung; an jedem sitzen Drosselrückschlagventile, Aus- und Einfahren getrennt einstellbar
+bis zum Stillstand. Sensoren haben Schaltpunkt und Hysterese, Körbe stauen sich an ihren Stoßpuffern
 mit 150 mm Teilung. Die Zinntemperatur folgt einer PT1-Kette (Heizelement 6 s → Bad 150 s); 100 %
 Heizleistung ergeben 360 °C, für 280 °C sind rund 76 % nötig, jedes Tauchen kühlt um 5 K und
 verbraucht 4 % Zinn. Eine Regelung, die hier steht, steht auch an der Anlage.
@@ -85,9 +86,11 @@ RUN/STOP.
 die Schrittkette, dann die Förderstrecke mit Rollenkurve und Prüfstation, dann die
 Temperaturregelung. Den Rest fährt das Modell selbst – die Anlage ist vom ersten Tag an vollständig.
 
-**Diagnose an Bord.** Signalmonitor mit Forcen jedes einzelnen Eingangs, Weg-Zeit-Diagramm der
-letzten 60 s mit Schrittnummern, Ereignisliste im Klartext („Band 2 und Muldenrollen müssen laufen“,
-„Gutteil ausgeblasen“, „Korb hängt an der Übergabe“).
+**Diagnose an Bord.** Signalmonitor mit Forcen jedes einzelnen Eingangs, Weg-Zeit-Diagramm aller
+sieben Zylinder mit Schrittnummern – groß im eigenen Fenster mit Messlinien, die an den
+Endlagensensoren einrasten, und gemessener Fahrzeit je Zylinder und Richtung. Dazu eine
+Ereignisliste im Klartext („Band 2 und Muldenrollen müssen laufen“, „Gutteil ausgeblasen“,
+„Korb hängt an der Übergabe“).
 
 **Eine Datei, keine Installation.** Der Zwilling ist eine einzige HTML-Datei von 5 MB – kein Server,
 kein Internet, keine Laufzeitumgebung. Die Grafikstufe regelt sich selbst nach der Bildrate, vom
@@ -97,6 +100,10 @@ Schulungslaptop bis zur Workstation.
 <tr>
 <td width="50%"><img src="docs/bilder/03-schaltschrank.jpg" alt="Schaltschrank"></td>
 <td width="50%"><img src="docs/bilder/08-signalmonitor.jpg" alt="Signalmonitor"></td>
+</tr>
+<tr>
+<td><img src="docs/bilder/09-weg-zeit-diagramm.jpg" alt="Weg-Zeit-Diagramm mit Messlinien und Drosseln"></td>
+<td><img src="docs/bilder/10-drosselventile.jpg" alt="Drosselrückschlagventile am Zylinder"></td>
 </tr>
 </table>
 
@@ -120,9 +127,9 @@ Schulungslaptop bis zur Workstation.
 |---|---|
 | **[01 – Inbetriebnahme](docs/01-inbetriebnahme.md)** | Bridge bauen, TIA-Projekt vorbereiten, PLCSIM Advanced starten, koppeln, testen, Fehlersuche |
 | **[02 – Die Anlage](docs/02-anlage.md)** | Konstruktion aller Stationen, Linie nach dem Verzinnen, Leitungsführung, Schaltschrank |
-| **[03 – Bedienen](docs/03-bedienung.md)** | Bedienpult, Handbetrieb-Tableau, Vor-Ort-Steuerstellen, Not-Halt, 3D-Navigation, Grafikstufen |
+| **[03 – Bedienen](docs/03-bedienung.md)** | Bedienpult, Handbetrieb-Tableau, Vor-Ort-Steuerstellen, Not-Halt, Weg-Zeit-Diagramm und Drosseln, 3D-Navigation, Grafikstufen |
 | **[04 – Signale und TIA](docs/04-signale.md)** | `signale.csv`, Adressbelegung, Bridge, Signalmonitor, Öffner und Schließer |
-| **[05 – Übungsaufgaben](docs/05-uebungen.md)** | 15 Aufgaben vom Einstieg bis zur Ausschussbehandlung, nach Schwierigkeit geordnet |
+| **[05 – Übungsaufgaben](docs/05-uebungen.md)** | 16 Aufgaben vom Einstieg bis zur Taktzeitoptimierung, nach Schwierigkeit geordnet |
 | **[06 – Entwicklung](docs/06-entwicklung.md)** | Build, Aufbau des Quellcodes, Werkzeuge, Konventionen |
 | **[Änderungen](CHANGELOG.md)** | Was sich in welcher Version geändert hat |
 

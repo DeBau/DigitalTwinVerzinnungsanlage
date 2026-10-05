@@ -7,18 +7,20 @@ import { DROSSEL, DROSSEL_GRUND, drosselSpeichern } from '../logik/drosseln.js';
 
 // ----------------------------------------------------------------------------
 // Weg-Zeit-Diagramm aller Zylinder: klein in der Seitenleiste (60 s), groß im Fenster
-// mit Zeitfenster, Anhalten, zwei Messlinien (rasten an Bewegungsanfang/-ende ein) und
+// mit Zeitfenster, Anhalten, zwei Messlinien (rasten an den Endlagensensoren ein) und
 // den Drosselrückschlagventilen je Zylinder samt gemessener Fahrzeit.
 // Stellung 0/1 wie im Weg-Schritt-Diagramm: 1 = Kolbenstange ausgefahren.
 // ----------------------------------------------------------------------------
+// s0/s1: Endlagensensoren (wie die SPS sie sieht) – Fahrzeiten und Rastpunkte der Messlinien beziehen sich darauf
+const zyl = (c) => ({ pos: () => c.pos, s0: () => c.an0, s1: () => c.an1, nenn: c.zeit });
 export const KANAELE = [
-  { kurz: 'MM1', name: 'Einhängen', e0: 'eingehängt', e1: 'gelöst', pos: () => ZYL.MM1.pos, nenn: ZYL.MM1.zeit },
-  { kurz: 'MM2', name: 'Tauchen', e0: 'oben', e1: 'unten', pos: () => ZYL.MM2.pos, nenn: ZYL.MM2.zeit },
-  { kurz: 'MM3', name: 'Verschieben', e0: 'Band', e1: 'Bad', pos: () => ZYL.MM3.pos, nenn: ZYL.MM3.zeit },
-  { kurz: 'MM4', name: 'Abstreifen', e0: 'offen', e1: 'zu', pos: () => ZYL.MM4.pos, nenn: ZYL.MM4.zeit },
-  { kurz: 'MM5', name: 'Anschlag', e0: 'offen', e1: 'zu', pos: () => 1 - BAND.anschlagPos, nenn: 1 / 6 },
-  { kurz: 'MM6', name: 'Vereinzeler', e0: 'offen', e1: 'zu', pos: () => 1 - BAND.vereinzelerPos, nenn: 1 / 6 },
-  { kurz: 'MM8', name: 'Kippen', e0: 'unten', e1: 'gekippt', pos: () => MM8.pos, nenn: MM8.zeit },
+  { kurz: 'MM1', name: 'Einhängen', e0: 'eingehängt', e1: 'gelöst', ...zyl(ZYL.MM1) },
+  { kurz: 'MM2', name: 'Tauchen', e0: 'oben', e1: 'unten', ...zyl(ZYL.MM2) },
+  { kurz: 'MM3', name: 'Verschieben', e0: 'Band', e1: 'Bad', ...zyl(ZYL.MM3) },
+  { kurz: 'MM4', name: 'Abstreifen', e0: 'offen', e1: 'zu', ...zyl(ZYL.MM4) },
+  { kurz: 'MM5', name: 'Anschlag', e0: 'offen', e1: 'zu', pos: () => 1 - BAND.anschlagPos, s0: () => BAND.anschlagPos > 0.92, s1: () => BAND.anschlagPos < 0.08, nenn: 1 / 6 },
+  { kurz: 'MM6', name: 'Vereinzeler', e0: 'offen', e1: 'zu', pos: () => 1 - BAND.vereinzelerPos, s0: () => BAND.vereinzelerPos > 0.92, s1: () => BAND.vereinzelerPos < 0.08, nenn: 1 / 6 },
+  { kurz: 'MM8', name: 'Kippen', e0: 'unten', e1: 'gekippt', ...zyl(MM8) },
 ];
 const N = KANAELE.length;
 const fmt2 = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -27,36 +29,27 @@ const sek = (t) => (t < -0.0005 ? '−' : '') + fmt2.format(Math.abs(t)) + ' s';
 
 // ---------------------------------------------------------------- Aufzeichnung
 const PUFFER_S = 125;                 // so weit lässt sich im angehaltenen Fenster zurückblättern
-const ENDE = 0.005;                   // Endlage: innerhalb 0,5 % des Hubs
 const verlauf = [];                   // { t, p: Float32Array, s }
-const kanten = [];                    // Bewegungsanfang/-ende { t, i } – Rastpunkte der Messlinien
+const kanten = [];                    // Sensorflanken { t, i } – Rastpunkte der Messlinien
 export const MESSUNG = Object.fromEntries(KANAELE.map(k => [k.kurz, { aus: null, ein: null }]));
-const fahrt = KANAELE.map(() => ({ start: 0, richtung: 0 }));
+const fahrt = KANAELE.map(k => ({ s0: k.s0(), s1: k.s1(), start: 0, richtung: 0 }));
 let tSim = 0, zeichnenTakt = 0, fensterTakt = 0;
 
-// Zeitpunkt, an dem die Stellung zwischen zwei Aufnahmen die Schwelle kreuzt (linear dazwischen)
-const kreuzung = (t0, a, t1, b, s) => (b === a ? t1 : t0 + (t1 - t0) * (s - a) / (b - a));
-function fahrzeitenMessen(alt, t, p) {
-  for (let i = 0; i < N; i++) {
-    const a = alt.p[i], b = p[i], f = fahrt[i];
-    if (a <= ENDE && b > ENDE) { f.start = kreuzung(alt.t, a, t, b, ENDE); f.richtung = 1; kanten.push({ t: f.start, i }); }
-    else if (a >= 1 - ENDE && b < 1 - ENDE) { f.start = kreuzung(alt.t, a, t, b, 1 - ENDE); f.richtung = -1; kanten.push({ t: f.start, i }); }
-    if (a < 1 - ENDE && b >= 1 - ENDE) {
-      const te = kreuzung(alt.t, a, t, b, 1 - ENDE); kanten.push({ t: te, i });
-      if (f.richtung > 0) MESSUNG[KANAELE[i].kurz].aus = te - f.start;
-      f.richtung = 0;
-    } else if (a > ENDE && b <= ENDE) {
-      const te = kreuzung(alt.t, a, t, b, ENDE); kanten.push({ t: te, i });
-      if (f.richtung < 0) MESSUNG[KANAELE[i].kurz].ein = te - f.start;
-      f.richtung = 0;
-    }
-  }
+// Fahrzeit = Endlagensensor verlassen bis anderen Endlagensensor erreicht (das misst auch die SPS)
+function fahrzeitenMessen(t) {
+  KANAELE.forEach((k, i) => {
+    const f = fahrt[i], s0 = k.s0(), s1 = k.s1();
+    if (f.s0 && !s0) { f.start = t; f.richtung = 1; kanten.push({ t, i }); }
+    if (f.s1 && !s1) { f.start = t; f.richtung = -1; kanten.push({ t, i }); }
+    if (!f.s1 && s1) { kanten.push({ t, i }); if (f.richtung > 0) MESSUNG[k.kurz].aus = t - f.start; f.richtung = 0; }
+    if (!f.s0 && s0) { kanten.push({ t, i }); if (f.richtung < 0) MESSUNG[k.kurz].ein = t - f.start; f.richtung = 0; }
+    f.s0 = s0; f.s1 = s1;
+  });
 }
 export function wzAufzeichnen(dt) {
   tSim += dt;
   const p = Float32Array.from(KANAELE, k => k.pos());
-  const alt = verlauf[verlauf.length - 1];
-  if (alt) fahrzeitenMessen(alt, tSim, p);
+  fahrzeitenMessen(tSim);
   verlauf.push({ t: tSim, p, s: st.modus === 'demo' ? demo.schritt : null });
   while (verlauf.length && verlauf[0].t < tSim - PUFFER_S) verlauf.shift();
   while (kanten.length && kanten[0].t < tSim - PUFFER_S) kanten.shift();
@@ -68,7 +61,7 @@ export function wzAufzeichnen(dt) {
 export function wzZuruecksetzen() {
   verlauf.length = 0; kanten.length = 0; linien.length = 0;
   for (const m of Object.values(MESSUNG)) m.aus = m.ein = null;
-  for (const f of fahrt) f.richtung = 0;
+  KANAELE.forEach((k, i) => Object.assign(fahrt[i], { s0: k.s0(), s1: k.s1(), richtung: 0 }));
   wzZeichnen(); if (!fenster.hidden) fensterZeichnen();
 }
 
@@ -174,7 +167,7 @@ function fensterZeichnen() {
 function messAnzeigen() {
   const rel = (t) => sek(t - tEndeAktuell());
   if (!linien.length) {
-    messText.textContent = 'Klick ins Diagramm setzt Messlinie 1, ein zweiter Klick Messlinie 2. Sie rasten an Bewegungsanfang und -ende ein (Alt-Taste: frei). Ziehen verschiebt, Mausrad blättert im angehaltenen Diagramm.';
+    messText.textContent = 'Klick ins Diagramm setzt Messlinie 1, ein zweiter Klick Messlinie 2. Sie rasten an den Flanken der Endlagensensoren ein (Alt-Taste: frei). Ziehen verschiebt, Mausrad blättert im angehaltenen Diagramm.';
     return;
   }
   const teile = linien.map((t, n) => `Linie ${n + 1}: <b>${rel(t)}</b>`);
@@ -184,7 +177,7 @@ function messAnzeigen() {
 // Rastpunkt in der Nähe: zuerst Kanten der Bahn unter dem Zeiger, sonst beliebige
 function einrasten(t, y, frei) {
   if (frei || !geometrie) return t;
-  const { oben, bahn, breite } = geometrie, tol = 10 / breite * spanne;
+  const { oben, bahn, breite } = geometrie, tol = 14 / breite * spanne;
   const bahnNr = Math.floor((y - oben) / bahn);
   let best = null;
   for (const k of kanten) {
