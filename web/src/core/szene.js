@@ -3,6 +3,7 @@ import { CSS2DRenderer } from 'three/addons/CSS2DRenderer.js';
 import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { computeBoundsTree, acceleratedRaycast } from '../lib/three-mesh-bvh.module.js';
+import { t } from './sprache.js';
 
 // BVH-beschleunigtes Raycasting (Beschriftung, Klick auf Befehlsgeräte)
 THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
@@ -15,7 +16,7 @@ export const $ = (id) => document.getElementById(id);
 export const host = $('viewport');
 // Ohne WebGL 2 (alter Treiber, Hardwarebeschleunigung aus, Remote-Desktop) gibt es keine 3D-Darstellung
 if (!document.createElement('canvas').getContext('webgl2')) {
-  window.zwillingFehler?.('3D-Darstellung nicht möglich', 'Browser oder Grafiktreiber stellen kein WebGL 2 bereit. Aktuellen Chrome, Edge oder Firefox verwenden, den Grafiktreiber aktualisieren und in den Browsereinstellungen die Hardwarebeschleunigung einschalten.');
+  window.zwillingFehler?.(t('3D-Darstellung nicht möglich'), t('Browser oder Grafiktreiber stellen kein WebGL 2 bereit. Aktuellen Chrome, Edge oder Firefox verwenden, den Grafiktreiber aktualisieren und in den Browsereinstellungen die Hardwarebeschleunigung einschalten.'));
   throw new Error('WebGL 2 nicht verfügbar');
 }
 export const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -42,8 +43,8 @@ scene.environmentIntensity = 0.75;
 // Die Anlage rechnet in der Zwischenzeit weiter, nur das Bild steht.
 let neuLadenHinweis = 0;
 renderer.domElement.addEventListener('webglcontextlost', () => {
-  window.zwillingFehler?.('3D-Darstellung unterbrochen', 'Der Grafiktreiber hat die Darstellung zurückgesetzt. Sie wird wiederhergestellt, die Anlage läuft weiter.');
-  neuLadenHinweis = setTimeout(() => window.zwillingFehler?.('3D-Darstellung unterbrochen', 'Der Grafiktreiber stellt die Darstellung nicht wieder her. Bitte die Seite neu laden (F5).'), 8000);
+  window.zwillingFehler?.(t('3D-Darstellung unterbrochen'), t('Der Grafiktreiber hat die Darstellung zurückgesetzt. Sie wird wiederhergestellt, die Anlage läuft weiter.'));
+  neuLadenHinweis = setTimeout(() => window.zwillingFehler?.(t('3D-Darstellung unterbrochen'), t('Der Grafiktreiber stellt die Darstellung nicht wieder her. Bitte die Seite neu laden (F5).')), 8000);
 });
 renderer.domElement.addEventListener('webglcontextrestored', () => {
   clearTimeout(neuLadenHinweis);

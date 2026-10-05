@@ -22,6 +22,7 @@ import { ausgang, eingang, wirksam } from '../logik/eingaenge.js';
 import { demo } from '../logik/demo-sps.js';
 import { korbUnterkante } from '../logik/prozess.js';
 import { pruefstationZeichnen } from '../logik/pruefstation.js';
+import { t as tr } from '../core/sprache.js';
 
 // ----------------------------------------------------------------------------
 // Visualisierung
@@ -128,10 +129,10 @@ export function visual(dt) {
   $('pf9').classList.toggle('on', ausgang('PF9_VorOrt3'));
   $('pf11').classList.toggle('on', ausgang('PF11_VorOrt4'));
   $('pf7').classList.toggle('on', ausgang('PF7_Handbetrieb'));
-  $('bad-info').textContent = `Heizung −TB1: ${st.heizU ? 'EIN' : 'AUS'} · Heizelement ${fmt0.format(st.heizElement * 100)} % · BT1 = ${eingang('BT1_Temperatur')} · BL1 = ${eingang('BL1_Fuellstand')}`
-    + (st.kf2 ? '' : ' · NOT-HALT aktiv');
+  $('bad-info').textContent = tr`Heizung −TB1: ${tr(st.heizU ? 'EIN' : 'AUS')} · Heizelement ${fmt0.format(st.heizElement * 100)} % · BT1 = ${eingang('BT1_Temperatur')} · BL1 = ${eingang('BL1_Fuellstand')}`
+    + (st.kf2 ? '' : ' · ' + tr('NOT-HALT aktiv'));
 
-  $('ro-step').textContent = st.modus === 'demo' ? String(demo.schritt) + (demo.t > 0 ? ' · ' + fmt0.format(demo.t) + ' s' : '') : 'SPS';
+  $('ro-step').textContent = st.modus === 'demo' ? String(demo.schritt) + (demo.t > 0 ? ' · ' + fmt0.format(demo.t) + ' s' : '') : tr('SPS');
   $('ro-temp').textContent = fmt0.format(st.temp) + ' °C';
   $('ro-temp').classList.toggle('warn', st.temp < TEMP_SOLL);
   $('ro-level').textContent = fmt0.format(st.fuell) + ' %';

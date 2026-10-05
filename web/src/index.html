@@ -304,7 +304,10 @@ window.zwillingFehler = (titel, text) => {
 };
 const startfehler = (grund) => {
   if (window.__zwilling || !document.getElementById('grafik-fehler')?.hidden) return;   // läuft schon bzw. bereits gemeldet
-  window.zwillingFehler('Zwilling konnte nicht starten', 'Bitte die Seite neu laden (F5). Hilft das nicht: aktuellen Chrome, Edge oder Firefox verwenden. Fehlermeldung: ' + grund);
+  let en; try { en = (localStorage.getItem('zinnbad-sprache') || (/^de\b/i.test(navigator.language) ? 'de' : 'en')) === 'en'; } catch { en = !/^de\b/i.test(navigator.language); }
+  window.zwillingFehler(en ? 'The twin could not start' : 'Zwilling konnte nicht starten',
+    (en ? 'Please reload the page (F5). If that does not help, use a current Chrome, Edge or Firefox. Error: '
+        : 'Bitte die Seite neu laden (F5). Hilft das nicht: aktuellen Chrome, Edge oder Firefox verwenden. Fehlermeldung: ') + grund);
 };
 addEventListener('error', (e) => startfehler(e.message || String(e.error)));
 addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
@@ -346,7 +349,7 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
       <div class="legende-kopf"><b>Steuerung</b><button type="button" id="legende-zu" aria-label="Legende ausblenden">×</button></div>
       <dl>
         <dt><span class="maus l"></span>Linke Taste ziehen</dt><dd>Drehen um den Drehpunkt</dd>
-        <dt><span class="maus r"></span>Rechte Taste ziehen</dt><dd>Verschieben</dd>
+        <dt><span class="maus r"></span>Rechte Taste ziehen</dt><dd id="legende-pan">Verschieben</dd>
         <dt><span class="maus m"></span>Mausrad</dt><dd>Zoomen</dd>
         <dt><span class="maus l"></span>Doppelklick</dt><dd>Drehpunkt auf Bauteil setzen</dd>
         <dt><span class="maus l"></span>Klick auf Taster</dt><dd>Bedienen (Taster, Not-Halt, Schalter)</dd>
@@ -365,6 +368,7 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
     <div class="side-top">
       <b>Bedienen &amp; Beobachten</b>
       <small class="version" id="version" title="Version des Zwillings"></small>
+      <button type="button" class="side-mini" id="sprache" lang="en" title="Switch to English (reloads the page)">EN</button>
       <button type="button" class="side-mini" id="side-alle" title="Alle Bereiche auf- oder zuklappen">Alle zuklappen</button>
       <button type="button" class="side-mini side-x" id="side-zu" aria-label="Seitenleiste ausblenden" title="Seitenleiste ausblenden">×</button>
     </div>

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { $, ANSICHT, KAMERA, anlage, ansichtPos, ansichtSetzen, camera, controls, host, labelRenderer, renderer } from '../core/szene.js';
 import { SCHRANK } from '../anlage/schaltschrank.js';
+import { SPRACHE, t } from '../core/sprache.js';
 
 
 // ----------------------------------------------------------------------------
@@ -48,8 +49,8 @@ const wahl = $('ansicht-wahl');
 {
   const gruppen = new Map();
   for (const [key, a] of Object.entries(ANSICHT)) {
-    if (!gruppen.has(a.gruppe)) { const og = document.createElement('optgroup'); og.label = a.gruppe; gruppen.set(a.gruppe, og); wahl.append(og); }
-    gruppen.get(a.gruppe).append(new Option(a.name, key));
+    if (!gruppen.has(a.gruppe)) { const og = document.createElement('optgroup'); og.label = t(a.gruppe); gruppen.set(a.gruppe, og); wahl.append(og); }
+    gruppen.get(a.gruppe).append(new Option(t(a.name), key));
   }
   wahl.value = 'gesamt';
 }
@@ -77,10 +78,12 @@ function legendeZeigen(an) {
 try { if (localStorage.getItem('zinnbad-legende') === '0') legendeZeigen(false); } catch { /* kein Speicher */ }
 hilfeBtn.onclick = () => legendeZeigen(legende.hidden);
 $('legende-zu').onclick = () => legendeZeigen(false);
+// „Verschieben“ heißt in der Legende die Ansicht schieben, sonst der Zylinder −MM3: eigener Schlüssel
+if (SPRACHE !== 'de') $('legende-pan').textContent = t('Ansicht verschieben');
 $('btn-schrank').onclick = (e) => {
   SCHRANK.ziel = SCHRANK.ziel ? 0 : 1;
   e.currentTarget.setAttribute('aria-pressed', SCHRANK.ziel === 1);
-  e.currentTarget.textContent = SCHRANK.ziel ? 'Schaltschrank schließen' : 'Schaltschrank öffnen';
+  e.currentTarget.textContent = t(SCHRANK.ziel ? 'Schaltschrank schließen' : 'Schaltschrank öffnen');
   if (SCHRANK.ziel) ansichtFliegen('schrank');
 };
 // ----------------------------------------------------------------------------
@@ -108,7 +111,7 @@ for (const d of bereiche) {
 }
 const alleBtn = $('side-alle');
 function alleBeschriften() {
-  alleBtn.textContent = bereiche.some(d => d.open) ? 'Alle zuklappen' : 'Alle aufklappen';
+  alleBtn.textContent = t(bereiche.some(d => d.open) ? 'Alle zuklappen' : 'Alle aufklappen');
 }
 alleBtn.onclick = () => {
   const auf = !bereiche.some(d => d.open);

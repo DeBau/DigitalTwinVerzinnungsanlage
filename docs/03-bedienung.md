@@ -65,6 +65,15 @@ Regelstrecke Zinnbad: Heizelement PT1 (6 s) → Bad PT1 (150 s), 100 % Heizleist
 
 
 
+## Sprache
+
+Oben in der Seitenleiste schaltet **EN / DE** zwischen englischer und deutscher Oberfläche um; die
+Seite lädt dabei neu. Ohne gespeicherte Wahl richtet sich die Sprache nach dem Browser. Signalnamen,
+Adressen und Betriebsmittelkennzeichen (−MM1, −BG5 …) bleiben in beiden Sprachen gleich, damit sie
+zum TIA-Projekt passen.
+
+
+
 ## Grafik und Leistung
 
 - Knopf **„Grafik: Auto“** unten in der 3D-Ansicht. *Auto* misst laufend die Bildrate und schaltet automatisch, damit es auf jeder Grafik flüssig läuft (Ziel 60 Bilder/s). Die gefundene Stufe wird gespeichert, beim nächsten Öffnen startet der Zwilling gleich damit. Durch Klicken lassen sich *Hoch*, *Mittel* und *Niedrig* fest einstellen.

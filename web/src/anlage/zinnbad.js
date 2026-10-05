@@ -5,6 +5,7 @@ import { TEX, canvasTextur } from '../core/texturen.js';
 import { M } from '../core/materialien.js';
 import { box, mesh, zyl } from '../core/geometrie.js';
 import { label, schildPlatte } from '../core/beschriftung.js';
+import { t as tr } from '../core/sprache.js';
 import { SENSOREN } from './register.js';
 import { sensorLed } from '../core/leds.js';
 
@@ -48,7 +49,7 @@ export const zinnY = () => 270 + 1.5 * st.fuell;
 // Warnschilder und Typschild
 schildPlatte(TEX.heiss, 70, 61, bad, BAD_X - 80, 300, 170.6);
 schildPlatte(TEX.heiss, 70, 61, bad, BAD_X + 170.6, 300, 60, Math.PI / 2);
-schildPlatte(TEX.schild('Sn 99,3 · max. 300 °C', '#d8dcdf', '#1b232c', 320, 48), 120, 18, bad, BAD_X - 80, 250, 170.6);
+schildPlatte(TEX.schild(tr('Sn 99,3 · max. 300 °C'), '#d8dcdf', '#1b232c', 320, 48), 120, 18, bad, BAD_X - 80, 250, 170.6);
 // Temperaturregler mit Anzeige
 const reglerTex = canvasTextur(256, 128, () => {});
 export function reglerZeichnen() {
@@ -70,7 +71,7 @@ for (let i = 0; i < 4; i++) box(9, 5, 2, M.schwarz, BAD_X + 53 + i * 18, 280.5, 
 schildPlatte(TEX.schild('JUMO dTRON 316', '#202326', '#cfd4d8', 256, 32), 40, 5, bad, BAD_X + 61, 330, 178.2);
 // Hauptschalter und Betriebsleuchte Heizung
 zyl(14, 6, M.gelb, BAD_X + 150, 230, 173, 'z', bad, 20); zyl(9, 10, M.rot, BAD_X + 150, 230, 180, 'z', bad, 20); box(4, 22, 6, M.rot, BAD_X + 150, 230, 186, bad);
-schildPlatte(TEX.schild('Lötbad 25 kg · 3,5 kW · 400 V 3~', '#d8dcdf', '#1b232c', 384, 40), 110, 12, bad, BAD_X - 80, 220, 170.6);
+schildPlatte(TEX.schild(tr('Lötbad 25 kg · 3,5 kW · 400 V 3~'), '#d8dcdf', '#1b232c', 384, 40), 110, 12, bad, BAD_X - 80, 220, 170.6);
 // Randabsaugung an der Rückseite mit Abluftkanal
 box(298, 54, 40, M.edelstahl, BAD_X, RAND_Y + 27, -150, bad);                              // 1 mm schmaler als die Abdeckung (gleiche Seitenfläche flackerte)
 for (let i = 0; i < 7; i++) box(30, 8, 1, M.schwarz, BAD_X - 120 + i * 40, RAND_Y + 34, -129.6, bad);

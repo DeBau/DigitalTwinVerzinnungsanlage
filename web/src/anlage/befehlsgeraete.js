@@ -6,6 +6,7 @@ import { label, platte, tafel } from '../core/beschriftung.js';
 import { profil } from '../bauteile/aluprofil.js';
 import { KLICK, KNEBEL, PULT_LAMPEN, PULT_TASTER } from './register.js';
 import { kabel } from './verdrahtung.js';
+import { t as tr } from '../core/sprache.js';
 
 // 3D-Bedienpult und Vor-Ort-Steuerstelle (alle Taster/Schalter anklickbar)
 //  art 'tast' = Taster (solange gedrückt), 'notHalt' = rastend (Klick drücken / Klick entriegeln), 'wahl' = Wahl-/Schlüsselschalter
@@ -88,12 +89,12 @@ export function meldeleuchte(parent, x, y, signal, farbe) {
     const T = (t, x, y, s = 10, gw = 600) => tafelText(c, t, x + W / 2, H / 2 - y, s, gw);
     const linie = (y) => { c.strokeStyle = '#2a3038'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(14, H / 2 - y); c.lineTo(W - 14, H / 2 - y); c.stroke(); };
     linie(50); linie(-55);
-    T('EINZEL        AUTO', -30, R1 + 30, 9.5);
-    T('NOT-HALT  −SF0', -150, R1 - 53); T('BETRIEBSART  −SA1', -30, R1 - 53); T('QUITTIEREN  −SF4', 90, R1 - 53);
-    T('BETRIEB', 0, 32, 12, 700);
-    T('START  −SF1', -110, R2 - 40); T('STOP  −SF2', 20, R2 - 40); T('Anlage läuft', 150, R2 - 37, 9.5); T('−PF1', 150, R2 - 49, 8.5, 500);
-    T('MELDUNGEN', 0, -76, 12, 700);
-    [['Temperatur', '−PF2'], ['Füllhöhe unterschr.', '−PF3'], ['Korb vorhanden', '−PF4'], ['Handbetrieb', '−PF7']].forEach(([a, b], i) => { T(a, -150 + i * 100, R3 - 38, 9.5); T(b, -150 + i * 100, R3 - 51, 8.5, 500); });
+    T(tr('EINZEL        AUTO'), -30, R1 + 30, 9.5);
+    T(tr('NOT-HALT') + '  −SF0', -150, R1 - 53); T(tr('BETRIEBSART') + '  −SA1', -30, R1 - 53); T(tr('QUITTIEREN') + '  −SF4', 90, R1 - 53);
+    T(tr('BETRIEB'), 0, 32, 12, 700);
+    T('START  −SF1', -110, R2 - 40); T('STOP  −SF2', 20, R2 - 40); T(tr('Anlage läuft'), 150, R2 - 37, 9.5); T('−PF1', 150, R2 - 49, 8.5, 500);
+    T(tr('MELDUNGEN'), 0, -76, 12, 700);
+    [['Temperatur', '−PF2'], ['Füllhöhe unterschr.', '−PF3'], ['Korb vorhanden', '−PF4'], ['Handbetrieb', '−PF7']].forEach(([a, b], i) => { T(tr(a), -150 + i * 100, R3 - 38, 9.5); T(b, -150 + i * 100, R3 - 51, 8.5, 500); });
   }, k), W, H, kopf, 0, 0, 0.5);
   notHaltTaster(kopf, -150, R1, 'sf0');
   wahlschalter(kopf, -30, R1, 'sa1');
@@ -131,10 +132,10 @@ export function vorOrtStation(pos, bmk, k) {
     c.fillStyle = '#d2d4cf'; c.fillRect(0, 0, W, H);
     c.fillStyle = '#e9eaea'; c.fillRect(8, 8, W - 16, H - 16);
     const T = (t, x, y, sz = 10, gw = 600) => tafelText(c, t, x + W / 2, H / 2 - y, sz, gw);
-    T('VOR-ORT  −' + bmk, 0, H / 2 - 20, 12, 700);
-    T('0         1', -45, H / 2 - 37, 9.5); T('Schlüssel −' + k.saT, -45, H / 2 - 97, 8.5, 500); T('aktiv −' + k.pfT, 45, H / 2 - 97, 8.5, 500);
-    zeilen.forEach((z, i) => z.forEach((t) => { T(t.text, t.x, zy(i) - 28, 8.5); T('−' + t.bmk, t.x, zy(i) - 39, 8, 500); }));
-    T('NOT-HALT −' + k.nhT, -40, -H / 2 + 22, 8.5); T('QUITT. −' + k.qT, 55, -H / 2 + 47, 8.5); T('Rückstellen', 55, -H / 2 + 36, 7.5, 500);
+    T(tr('VOR-ORT') + '  −' + bmk, 0, H / 2 - 20, 12, 700);
+    T('0         1', -45, H / 2 - 37, 9.5); T(tr('Schlüssel') + ' −' + k.saT, -45, H / 2 - 97, 8.5, 500); T(tr('aktiv') + ' −' + k.pfT, 45, H / 2 - 97, 8.5, 500);
+    zeilen.forEach((z, i) => z.forEach((t) => { T(tr(t.text), t.x, zy(i) - 28, 8.5); T('−' + t.bmk, t.x, zy(i) - 39, 8, 500); }));
+    T(tr('NOT-HALT') + ' −' + k.nhT, -40, -H / 2 + 22, 8.5); T(tr('QUITT.') + ' −' + k.qT, 55, -H / 2 + 47, 8.5); T(tr('Rückstellen'), 55, -H / 2 + 36, 7.5, 500);
   }, 4), W, H, f, 0, 0, 0);
   wahlschalter(f, -45, H / 2 - 67, k.sa, true);
   meldeleuchte(f, 45, H / 2 - 67, k.pf, 0xf4f7fb);

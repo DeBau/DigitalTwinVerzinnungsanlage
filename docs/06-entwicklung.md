@@ -34,6 +34,20 @@ PLCSIM-Advanced-API-DLL ein, die es selbst sucht.
 | `lib/` | three.js r170, three-mesh-bvh und die Schrift IBM Plex (`lib/fonts/`, wird beim Build eingebettet), lokal eingebunden (Lizenzen liegen daneben) |
 | `signale.js` | Fallback-Signalliste, falls die Bridge keine `signale.csv` liefert |
 | `version.js` | Versionsnummer des Zwillings |
+| `sprache/` | Englische Wörterbücher (`en-ui`, `en-anlage`, `en-logik`, `en-signale`) |
+
+## Sprache
+
+Der Quelltext ist deutsch, der deutsche Text ist zugleich der Schlüssel ins Wörterbuch
+(`core/sprache.js`):
+
+- feste Texte: `t('Korb auflegen')`, Texte mit Werten: `` t`Korb ${nr} verzinnt` `` (Schlüssel
+  „Korb {0} verzinnt“, im Englischen mit `{0}`, `{1}` …).
+- `label()` und `ereignis()` übersetzen selbst, feste Texte brauchen dort nur einen Wörterbucheintrag.
+- Statisches HTML übersetzt `domUebersetzen()` beim Start (Textknoten, `title`, `aria-label` …).
+- Fehlt eine Übersetzung, erscheint der deutsche Text. Zum Aufspüren vor dem Laden in der Konsole
+  `window.__fehlend = new Set()` setzen (z. B. per Haltepunkt oder Playwright-Init-Skript) – danach
+  enthält die Menge jeden Text, der ohne Übersetzung angezeigt wurde.
 
 ## Neue Version
 

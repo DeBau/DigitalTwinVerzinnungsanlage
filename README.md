@@ -92,6 +92,9 @@ Endlagensensoren einrasten, und gemessener Fahrzeit je Zylinder und Richtung. Da
 Ereignisliste im Klartext („Band 2 und Muldenrollen müssen laufen“, „Gutteil ausgeblasen“,
 „Korb hängt an der Übergabe“).
 
+**Deutsch und Englisch.** Die Oberfläche schaltet per Knopf zwischen Deutsch und Englisch um –
+Signalnamen und Adressen bleiben gleich, ein TIA-Projekt passt zu beiden.
+
 **Eine Datei, keine Installation.** Der Zwilling ist eine einzige HTML-Datei von 5 MB – kein Server,
 kein Internet, keine Laufzeitumgebung. Die Grafikstufe regelt sich selbst nach der Bildrate, vom
 Schulungslaptop bis zur Workstation.

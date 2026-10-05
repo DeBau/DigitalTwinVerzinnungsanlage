@@ -4,6 +4,7 @@ import { demo } from '../logik/demo-sps.js';
 import { BAND } from '../anlage/baender.js';
 import { MM8 } from '../anlage/pruefstation.js';
 import { DROSSEL, DROSSEL_GRUND, drosselSpeichern } from '../logik/drosseln.js';
+import { LOCALE, t } from '../core/sprache.js';
 
 // ----------------------------------------------------------------------------
 // Weg-Zeit-Diagramm aller Zylinder: klein in der Seitenleiste (60 s), groß im Fenster
@@ -13,6 +14,8 @@ import { DROSSEL, DROSSEL_GRUND, drosselSpeichern } from '../logik/drosseln.js';
 // ----------------------------------------------------------------------------
 // s0/s1: Endlagensensoren (wie die SPS sie sieht) – Fahrzeiten und Rastpunkte der Messlinien beziehen sich darauf
 const zyl = (c) => ({ pos: () => c.pos, s0: () => c.an0, s1: () => c.an1, nenn: c.zeit });
+// name/e0/e1: Anzeigetexte (übersetzt)
+const uebersetzt = (k) => ({ ...k, name: t(k.name), e0: t(k.e0), e1: t(k.e1) });
 export const KANAELE = [
   { kurz: 'MM1', name: 'Einhängen', e0: 'eingehängt', e1: 'gelöst', ...zyl(ZYL.MM1) },
   { kurz: 'MM2', name: 'Tauchen', e0: 'oben', e1: 'unten', ...zyl(ZYL.MM2) },
@@ -21,10 +24,10 @@ export const KANAELE = [
   { kurz: 'MM5', name: 'Anschlag', e0: 'offen', e1: 'zu', pos: () => 1 - BAND.anschlagPos, s0: () => BAND.anschlagPos > 0.92, s1: () => BAND.anschlagPos < 0.08, nenn: 1 / 6 },
   { kurz: 'MM6', name: 'Vereinzeler', e0: 'offen', e1: 'zu', pos: () => 1 - BAND.vereinzelerPos, s0: () => BAND.vereinzelerPos > 0.92, s1: () => BAND.vereinzelerPos < 0.08, nenn: 1 / 6 },
   { kurz: 'MM8', name: 'Kippen', e0: 'unten', e1: 'gekippt', ...zyl(MM8) },
-];
+].map(uebersetzt);
 const N = KANAELE.length;
-const fmt2 = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const fmtAchse = new Intl.NumberFormat('de-DE', { maximumFractionDigits: 1 });
+const fmt2 = new Intl.NumberFormat(LOCALE, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtAchse = new Intl.NumberFormat(LOCALE, { maximumFractionDigits: 1 });
 const sek = (t) => (t < -0.0005 ? '−' : '') + fmt2.format(Math.abs(t)) + ' s';
 
 // ---------------------------------------------------------------- Aufzeichnung
@@ -96,7 +99,7 @@ function diagramm(cv, { spanne, tEnde, gross }) {
     for (let k = Math.ceil(-spanne / schritt); k <= 0; k++) {
       const x = Math.round(zuX(tEnde + k * schritt)) + 0.5;
       c.strokeStyle = F.line; c.lineWidth = 1; c.beginPath(); c.moveTo(x, oben); c.lineTo(x, h - unten); c.stroke();
-      c.fillStyle = F.muted; c.fillText(k === 0 ? (halt ? '0' : 'jetzt') : fmtAchse.format(k * schritt) + ' s', x, h - unten + 4);
+      c.fillStyle = F.muted; c.fillText(k === 0 ? (halt ? '0' : t('jetzt')) : fmtAchse.format(k * schritt) + ' s', x, h - unten + 4);
     }
     c.textAlign = 'left';
   }
@@ -167,10 +170,10 @@ function fensterZeichnen() {
 function messAnzeigen() {
   const rel = (t) => sek(t - tEndeAktuell());
   if (!linien.length) {
-    messText.textContent = 'Klick ins Diagramm setzt Messlinie 1, ein zweiter Klick Messlinie 2. Sie rasten an den Flanken der Endlagensensoren ein (Alt-Taste: frei). Ziehen verschiebt, Mausrad blättert im angehaltenen Diagramm.';
+    messText.textContent = t('Klick ins Diagramm setzt Messlinie 1, ein zweiter Klick Messlinie 2. Sie rasten an den Flanken der Endlagensensoren ein (Alt-Taste: frei). Ziehen verschiebt, Mausrad blättert im angehaltenen Diagramm.');
     return;
   }
-  const teile = linien.map((t, n) => `Linie ${n + 1}: <b>${rel(t)}</b>`);
+  const teile = linien.map((zeit, n) => t`Linie ${n + 1}: <b>${rel(zeit)}</b>`);
   if (linien.length === 2) teile.push(`Δt = <b>${sek(Math.abs(linien[1] - linien[0]))}</b>`);
   messText.innerHTML = teile.join(' &nbsp;·&nbsp; ');
 }
@@ -226,7 +229,7 @@ const haltBtn = $('wzf-halt');
 function haltSetzen(an) {
   halt = an; if (an) tHalt = tSim;
   haltBtn.setAttribute('aria-pressed', an);
-  haltBtn.textContent = an ? 'Weiter' : 'Anhalten';
+  haltBtn.textContent = t(an ? 'Weiter' : 'Anhalten');
   fensterZeichnen();
 }
 haltBtn.onclick = () => haltSetzen(!halt);
@@ -267,17 +270,17 @@ export function wzFensterOeffnen(kurz) {
 }
 
 // ---------------------------------------------------------------- Drosseln
-const RICHTUNG = { aus: { text: 'Ausfahren', ende: 'e1', anschluss: 'B' }, ein: { text: 'Einfahren', ende: 'e0', anschluss: 'A' } };
+const RICHTUNG = { aus: { text: t('Ausfahren'), ende: 'e1', anschluss: 'B' }, ein: { text: t('Einfahren'), ende: 'e0', anschluss: 'A' } };
 const zeilen = KANAELE.map((k) => {
   const el = document.createElement('div');
   el.className = 'dr-zeile';
-  el.innerHTML = `<div class="dr-name"><b>−${k.kurz}</b> ${k.name}<small>Endlagen ${k.e0} / ${k.e1}</small></div>`;
+  el.innerHTML = `<div class="dr-name"><b>−${k.kurz}</b> ${k.name}<small>${t`Endlagen ${k.e0} / ${k.e1}`}</small></div>`;
   const regler = {}, ausgabe = {}, info = {};
   for (const r of ['aus', 'ein']) {
     const R = RICHTUNG[r];
     const lab = document.createElement('label'); lab.className = 'dr-rich';
-    lab.title = `Drosselrückschlagventil an Anschluss ${R.anschluss} (drosselt die Abluft beim ${R.text})`;
-    lab.innerHTML = `<span>${R.text} → ${k[R.ende]}</span><output></output><input type="range" min="0" max="100" step="5" aria-label="−${k.kurz} Drossel ${R.text}"><small></small>`;
+    lab.title = r === 'aus' ? t`Drosselrückschlagventil an Anschluss ${R.anschluss} (drosselt die Abluft beim Ausfahren)` : t`Drosselrückschlagventil an Anschluss ${R.anschluss} (drosselt die Abluft beim Einfahren)`;
+    lab.innerHTML = `<span>${R.text} → ${k[R.ende]}</span><output></output><input type="range" min="0" max="100" step="5" aria-label="${t`−${k.kurz} Drossel ${R.text}`}"><small></small>`;
     regler[r] = lab.querySelector('input'); ausgabe[r] = lab.querySelector('output'); info[r] = lab.querySelector('small');
     regler[r].value = DROSSEL[k.kurz][r];
     regler[r].addEventListener('input', () => { DROSSEL[k.kurz][r] = Number(regler[r].value); drosselSpeichern(); drosselnAktualisieren(); });
@@ -291,8 +294,8 @@ function drosselnAktualisieren() {
     const w = DROSSEL[k.kurz][r], m = MESSUNG[k.kurz][r];
     if (Number(regler[r].value) !== w) regler[r].value = w;
     ausgabe[r].textContent = w + ' %';
-    const richtwert = w > 0 ? '≈ ' + sek(k.nenn / (w / DROSSEL_GRUND) / st.speed) : 'zu – Zylinder steht';
-    const text = richtwert + ' · gemessen ' + (m == null ? '–' : sek(m));
+    const richtwert = w > 0 ? '≈ ' + sek(k.nenn / (w / DROSSEL_GRUND) / st.speed) : t('zu – Zylinder steht');
+    const text = t`${richtwert} · gemessen ${m == null ? '–' : sek(m)}`;
     if (info[r].textContent !== text) info[r].textContent = text;
     info[r].classList.toggle('zu', w === 0);
   }

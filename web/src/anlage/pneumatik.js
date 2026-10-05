@@ -6,6 +6,7 @@ import { M } from '../core/materialien.js';
 import { V, box, cached, mesh, zyl } from '../core/geometrie.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { dekor, label, platte, tafel } from '../core/beschriftung.js';
+import { t as tr } from '../core/sprache.js';
 import { profil } from '../bauteile/aluprofil.js';
 import { sensorLed } from '../core/leds.js';
 import { halter, leitung, schlauch } from '../bauteile/leitungen.js';
@@ -47,7 +48,7 @@ platte(tafel('vtugTyp', 36, 14, (c) => {
 }, 10), 36, 14, ventilinsel, -44, -20, 36.2);
 export const VENTIL_LEDS = [];
 const ventilPorts = [];
-const etikett = (bmk, sp) => tafel('spule' + bmk, 14, 8, (cc) => { cc.fillStyle = '#f2f3f1'; cc.fillRect(0, 0, 14, 8); cc.fillStyle = '#111'; cc.textAlign = 'center'; cc.font = '700 3.8px Arial'; cc.fillText(bmk, 7, 4); cc.font = '500 2.4px Arial'; cc.fillText(sp, 7, 7.1); }, 12);
+const etikett = (bmk, sp) => tafel('spule' + bmk, 14, 8, (cc) => { cc.fillStyle = '#f2f3f1'; cc.fillRect(0, 0, 14, 8); cc.fillStyle = '#111'; cc.textAlign = 'center'; cc.font = '700 3.8px Arial'; cc.fillText(bmk, 7, 4); cc.font = '500 2.4px Arial'; cc.fillText(tr(sp), 7, 7.1); }, 12);
 ZYL_LISTE.forEach((c, i) => {
   const x = VT.x0 + i * VT.raster;
   box(18.2, 110, 30, M.festoAlu, x, 0, 21, ventilinsel);                                            // Anschlussplatte
@@ -83,7 +84,7 @@ zyl(18, 4, M.kunststoff, -26, 0, 73, 'z', wartung, 24);
 zyl(15, 12, M.rot, -26, 0, 81, 'z', wartung, 24);
 box(24, 5, 4, M.rot, -26, 0, 88, wartung);                                                           // Griffsteg
 zyl(9, 24, M.kunststoff, -26, -43, 40, null, wartung, 16);
-platte(tafel('msEM', 30, 8, (c) => { c.fillStyle = '#e9ecee'; c.fillRect(0, 0, 30, 8); c.fillStyle = '#16191c'; c.font = '700 3.4px Arial'; c.fillText('MS6-EM1-1/2', 1.5, 3.6); c.fillStyle = '#c8281f'; c.fillText('0', 22, 3.6); c.fillStyle = '#2f7a3a'; c.fillText('1', 26, 3.6); c.fillStyle = '#16191c'; c.font = '400 2.4px Arial'; c.fillText('Einschaltventil', 1.5, 6.8); }, 10), 30, 8, wartung, -26, -24, 71.2);
+platte(tafel('msEM', 30, 8, (c) => { c.fillStyle = '#e9ecee'; c.fillRect(0, 0, 30, 8); c.fillStyle = '#16191c'; c.font = '700 3.4px Arial'; c.fillText('MS6-EM1-1/2', 1.5, 3.6); c.fillStyle = '#c8281f'; c.fillText('0', 22, 3.6); c.fillStyle = '#2f7a3a'; c.fillText('1', 26, 3.6); c.fillStyle = '#16191c'; c.font = '400 2.4px Arial'; c.fillText(tr('Einschaltventil'), 1.5, 6.8); }, 10), 30, 8, wartung, -26, -24, 71.2);
 // MS6-LFR: Federhaube und Stellknopf oben, Filterbehälter mit Metallschutz unten
 zyl(22, 22, M.festoAlu, 38, 42, 40, null, wartung, 24);
 zyl(21, 26, M.kunststoff, 38, 66, 40, null, wartung, 16);

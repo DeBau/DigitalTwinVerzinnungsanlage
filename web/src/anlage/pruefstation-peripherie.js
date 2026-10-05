@@ -4,6 +4,7 @@ import { TEX } from '../core/texturen.js';
 import { M } from '../core/materialien.js';
 import { V, box, mesh, zyl } from '../core/geometrie.js';
 import { label, platte, tafel } from '../core/beschriftung.js';
+import { t as tr } from '../core/sprache.js';
 import { sensorLed } from '../core/leds.js';
 import { BRUECKE, lage } from './kabelbruecke.js';
 import { profil } from '../bauteile/aluprofil.js';
@@ -207,7 +208,7 @@ zuXD([V(3142, 240, 1327.5), V(3150, 240, 1327.5), V(3150, KY + 30, 1327.5), V(31
 {
   const gx2 = 3300, gz = KZ + 55 - 22.5 - 35;
   box(110, 150, 70, M.rittal, gx2, 335, gz);
-  platte(tafel('vibroSteuer', 70, 34, (c) => { c.fillStyle = '#2b2d30'; c.fillRect(0, 0, 70, 34); c.fillStyle = '#7fe08a'; c.font = '700 9px monospace'; c.fillText('078 %', 8, 16); c.fillStyle = '#e8eaec'; c.font = '500 4.5px Arial'; c.fillText('Schwingförderer −MA4', 8, 28); }, 8), 70, 34, anlage, gx2, 360, gz - 35.2, Math.PI);
+  platte(tafel('vibroSteuer', 70, 34, (c) => { c.fillStyle = '#2b2d30'; c.fillRect(0, 0, 70, 34); c.fillStyle = '#7fe08a'; c.font = '700 9px monospace'; c.fillText('078 %', 8, 16); c.fillStyle = '#e8eaec'; c.font = '500 4.5px Arial'; c.fillText(tr('Schwingförderer') + ' −MA4', 8, 28); }, 8), 70, 34, anlage, gx2, 360, gz - 35.2, Math.PI);
   for (const dx of [-25, 0, 25]) zyl(6, 10, M.kunststoff, gx2 + dx, 255, gz, null, anlage, 10);   // Kabelverschraubungen
   label('Steuergerät Vibrorinne −MA4', anlage, gx2, 440, gz, 'klein');
   stecker(anlage, A.ma4, '-z');

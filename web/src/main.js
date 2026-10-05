@@ -8,7 +8,8 @@
 //  die Zwilling-Bridge (PLCSIM Advanced) per WebSocket.
 //  Alle Maße im Modell in Millimetern.
 // ============================================================================
-// Module in der Reihenfolge, in der die Anlage aufgebaut wird
+// Module in der Reihenfolge, in der die Anlage aufgebaut wird (Sprache zuerst: übersetzt das statische HTML)
+import './core/sprache.js';
 import './signale.js';
 import './logik/zustand.js';
 import './core/szene.js';

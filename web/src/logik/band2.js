@@ -6,6 +6,7 @@ import { KUEHL } from '../anlage/kuehlung.js';
 import { MM8, MULDE, ST } from '../anlage/pruefstation.js';
 import { TEILE_JE_KORB, kipperKorb, koerbe } from '../anlage/koerbe.js';
 import { ereignis } from '../ui/ereignisse.js';
+import { t } from '../core/sprache.js';
 import { wirksam } from './eingaenge.js';
 import { UEBERGABE, gemeinsam, kurveAuslauf, rollenkurve, vBand2, wartetAufBand2 } from './rollenkurve.js';
 
@@ -56,7 +57,7 @@ export function uebergabeUndBand2(dt) {
     // Übergabe auf die Kippmulde: nur wenn Band 2 UND die Muldenrollen −MA7 vorwärts laufen und die Mulde unten und leer ist
     if (k.x >= E2 - 0.5 && BAND2.v > 1 && MULDE.v > 1 && !kipperKorb() && MM8.pos < 0.02) {
       k.zustand = 'kipper'; k.kx = E2; k.rest = TEILE_JE_KORB; k.entleert = false;
-      if (k.temp > 60) ereignis(`Korb ${k.nr} kommt mit ${fmt0.format(k.temp)} °C zum Kipper (nicht ausreichend abgeschreckt)`, 'err');
+      if (k.temp > 60) ereignis(t`Korb ${k.nr} kommt mit ${fmt0.format(k.temp)} °C zum Kipper (nicht ausreichend abgeschreckt)`, 'err');
       ST.kipper.add(k.g);
     }
   }
@@ -71,7 +72,7 @@ export function uebergabeUndBand2(dt) {
     const amEnde = !kk && MM8.pos < 0.02 ? b2.find(k => k.x >= E2 - 1 && BAND2.v > 1 && MULDE.v < 1) : null;
     const haengt = amEnde || (kk && MM8.pos < 0.02 && kk.kx < E2 + UEBERGABE && (BAND2.v > 1) !== (MULDE.v > 1) ? kk : null);
     blockMulde = haengt ? blockMulde + dt : 0;
-    if (blockMulde > 4) { ereignis(`Korb ${haengt.nr} hängt an der Übergabe Band 2 → Kippmulde: Band 2 (−QA5) und Muldenrollen (−QA12) müssen laufen`, 'err', 'uebergabeMulde'); blockMulde = 0; }
+    if (blockMulde > 4) { ereignis(t`Korb ${haengt.nr} hängt an der Übergabe Band 2 → Kippmulde: Band 2 (−QA5) und Muldenrollen (−QA12) müssen laufen`, 'err', 'uebergabeMulde'); blockMulde = 0; }
   } else blockMulde = 0;
   // Abkühlen: an Luft langsam (Korb voller Teile, ca. 3 min), im Sprühwasser schnell (Abschrecken, ca. 4 s);
   // gesprühte Körbe sind nass, das Luftmesser bläst sie trocken, an Luft trocknen sie nur langsam

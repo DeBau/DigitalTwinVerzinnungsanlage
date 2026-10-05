@@ -10,6 +10,7 @@ import { deckel } from '../anlage/abdeckung.js';
 import { haken, hakenKoerper, mm1Piv, mm1Stange, schlitten } from '../anlage/portal.js';
 import { SCHRANK } from '../anlage/schaltschrank.js';
 import { Q, STUFEN, stufeSetzen } from './grafik.js';
+import { t } from './sprache.js';
 
 // ----------------------------------------------------------------------------
 // Leistung: unbewegte Teile je Material und Raumbereich (1,8 m) zu einem Mesh zusammenfassen.
@@ -142,5 +143,5 @@ if (Q.modus !== 'auto') stufeSetzen({ hoch: 0, mittel: 2, niedrig: 3 }[Q.modus])
 else {
   // zuletzt im Auto-Modus gefundene Stufe gleich verwenden (kein Umschalten beim Start)
   let start = 0; try { start = +(localStorage.getItem('zinnbad-auto-stufe') || 0); } catch { /* */ }
-  if (start > 0 && start < STUFEN.length) stufeSetzen(start); else $('btn-grafik').textContent = 'Grafik: Auto (Hoch)';
+  if (start > 0 && start < STUFEN.length) stufeSetzen(start); else $('btn-grafik').textContent = t`Grafik: Auto (${t('Hoch')})`;
 }

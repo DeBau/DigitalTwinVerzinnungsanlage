@@ -5,6 +5,7 @@ import { ereignis } from './ereignisse.js';
 import { eingang } from '../logik/eingaenge.js';
 import { monitorAufbauen } from './signalmonitor.js';
 import { modusSetzen, statusAnzeigen } from './status.js';
+import { t } from '../core/sprache.js';
 
 // ----------------------------------------------------------------------------
 // Verbindung zur Bridge
@@ -30,13 +31,13 @@ export function verbinden() {
     const stand = (v) => String(v || '').split('.').slice(0, 2).join('.');   // Haupt.Neben – Fehlerbehebungen (x.y.Z) passen zusammen
     if (m.typ === 'hallo' && stand(m.version) !== stand(VERSION)) {
       // Seite und Bridge aus verschiedenen Ständen: Bridge neu bauen, sonst fehlen ihr Neuerungen der Seite
-      ereignis(`Bridge ${m.version ? 'v' + m.version : '(alte Version)'} passt nicht zum Zwilling v${VERSION}: Bridge\\build.bat ausführen und die Bridge neu starten.`, 'err');
+      ereignis(t`Bridge ${m.version ? 'v' + m.version : t('(alte Version)')} passt nicht zum Zwilling v${VERSION}: Bridge\\build.bat ausführen und die Bridge neu starten.`, 'err');
     }
     if (m.typ === 'hallo' && Array.isArray(m.signale) && m.signale.length) {
       SIGNALE.splice(0, SIGNALE.length, ...m.signale);
       const fehlend = ['MB1_Einhaengen', 'MB3_Senken', 'BG1_MM1_eingehaengt', 'BG11_Korb', 'SF1_Start']
         .filter(n => !SIGNALE.some(s => s.name === n));
-      if (fehlend.length) ereignis('signale.csv: Namen nicht gefunden: ' + fehlend.join(', '), 'err');
+      if (fehlend.length) ereignis(t`signale.csv: Namen nicht gefunden: ${fehlend.join(', ')}`, 'err');
       monitorAufbauen();
     } else if (m.typ === 'status') {
       st.plcVerbunden = m.verbunden; st.plcZustand = m.zustand; st.plcText = m.text;

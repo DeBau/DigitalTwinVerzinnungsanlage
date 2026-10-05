@@ -15,6 +15,7 @@ import { wzFensterOeffnen, wzZuruecksetzen } from './diagramm.js';
 import { monitorAufbauen } from './signalmonitor.js';
 import { modusSetzen } from './status.js';
 import { eingaengeSenden } from './bridge.js';
+import { t } from '../core/sprache.js';
 
 const raycaster = new THREE.Raycaster();
 let pultGedrueckt = null;
@@ -103,7 +104,7 @@ function bedienSync() {
   $('betrieb-hint').textContent = [
     st.betriebBand === 'sps' ? 'Band: −QA1/−QA2 (Rechts/Links), −MB9 Anschlag, −MB10 Vereinzeler, Rollenkurve −QA10/−QA11, Band 2, Muldenrollen −QA12/−QA13 und Prüfstation aus deinem Programm; −BG11…−BG13, −BG35/−BG36, −BG21…−BG24, −BG37/−BG33 (Einlauf/Endanschlag Kippmulde) und die Vor-Ort-Steuerstellen sind Eingänge.' : 'Band: Das Bandmodul fördert, stoppt, vereinzelt und übergibt über die Rollenkurve selbstständig.',
     st.betriebBad === 'sps' ? 'Zinnbad: −TB1 Heizung (2-Punkt, Impuls/PWM oder PID) und −MB11 Nachfüllen aus deinem Programm, Istwerte −BT1/−BL1 analog.' : 'Zinnbad: Der Regler am Bad hält 280 °C, nachfüllen per Knopf.',
-  ].join(' ');
+  ].map(x => t(x)).join(' ');
   eingaengeSenden(false);
 }
 bedienSync();
@@ -111,7 +112,7 @@ $('sf2-nc').addEventListener('change', (e) => { st.sf2Oeffner = e.target.checked
 $('btn-heizung').onclick = (e) => {
   st.heizung = !st.heizung;
   e.currentTarget.setAttribute('aria-pressed', st.heizung);
-  e.currentTarget.textContent = st.heizung ? 'Heizung ein' : 'Heizung aus';
+  e.currentTarget.textContent = t(st.heizung ? 'Heizung ein' : 'Heizung aus');
 };
 $('btn-fuellen').onclick = () => { st.fuell = 85; ereignis('Zinn nachgefüllt (85 %)'); };
 $('btn-korb').onclick = () => korbAuflegen(true);
@@ -158,11 +159,12 @@ function anlageZuruecksetzen() {
   Object.assign(BAND, { v: 0, wende: 0, anschlagPos: 1, vereinzelerPos: 0 });
   bedienSync();
   $('btn-heizung').setAttribute('aria-pressed', true);
-  $('btn-heizung').textContent = 'Heizung ein';
+  $('btn-heizung').textContent = t('Heizung ein');
   st.force = {};
   monitorAufbauen();
   wzZuruecksetzen();
-  $('events').innerHTML = '<li class="empty">Noch keine Ereignisse.</li>';
+  $('events').innerHTML = '';
+  $('events').append(Object.assign(document.createElement('li'), { className: 'empty', textContent: t('Noch keine Ereignisse.') }));
   zuletzt.clear();
   $('toast').hidden = true;
   eingaengeSenden(true);                       // Grundstellung sofort an die CPU

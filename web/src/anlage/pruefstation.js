@@ -3,6 +3,7 @@ import { anlage } from '../core/szene.js';
 import { M } from '../core/materialien.js';
 import { V, box, cached, mesh, zyl } from '../core/geometrie.js';
 import { label, platte, tafel } from '../core/beschriftung.js';
+import { t as tr } from '../core/sprache.js';
 import { profil, stellfuss } from '../bauteile/aluprofil.js';
 import { profilZylinder, steckverschraubung } from '../bauteile/zylinder.js';
 import { stecker } from '../bauteile/stecker.js';
@@ -222,7 +223,7 @@ function trichterGeo(o, u) {
     box(26, 12, 34, M.stahl, x + 8, 197, z + s * 24); box(26, 12, 34, M.stahl, x - 8, 153, z + s * 24);
   }
   box(420, 32, 96, M.anthrazit, rx, 131, z);                                      // Gegenschwingmasse
-  platte(tafel('vibroTyp', 60, 18, (c) => { c.fillStyle = '#d9dcdf'; c.fillRect(0, 0, 60, 18); c.fillStyle = '#111'; c.font = '700 5px Arial'; c.fillText('Linearförderer −MA4', 3, 7); c.font = '500 3.6px Arial'; c.fillText('230 V · 50 Hz · 100 Hz Schwingung', 3, 13); }, 8), 60, 18, anlage, rx + 120, 131, z - 48.2, Math.PI);
+  platte(tafel('vibroTyp', 60, 18, (c) => { c.fillStyle = '#d9dcdf'; c.fillRect(0, 0, 60, 18); c.fillStyle = '#111'; c.font = '700 5px Arial'; c.fillText(tr('Linearförderer') + ' −MA4', 3, 7); c.font = '500 3.6px Arial'; c.fillText(tr('230 V · 50 Hz · 100 Hz Schwingung'), 3, 13); }, 8), 60, 18, anlage, rx + 120, 131, z - 48.2, Math.PI);
   for (const x of [rx - 180, rx + 180]) for (const s of [-1, 1]) zyl(13, 12, M.schwarz, x, 109, z + s * 34, null, anlage, 16);   // Gummipuffer
   box(460, 8, 130, M.anthrazit, rx, 99, z);                                       // Grundplatte
   for (const s of [-1, 1]) profil(45, 45, 460, 'x', rx, 72.5, z + s * 45);

@@ -2,6 +2,7 @@ import { st } from './zustand.js';
 import { BAND, BAND2, KORB_TEILUNG, KURVE } from '../anlage/baender.js';
 import { koerbe } from '../anlage/koerbe.js';
 import { ereignis } from '../ui/ereignisse.js';
+import { t } from '../core/sprache.js';
 import { wirksam } from './eingaenge.js';
 
 // ----------------------------------------------------------------------------
@@ -82,8 +83,8 @@ export function rollenkurve(dt) {
     blockT = haengt ? blockT + dt : 0;
     if (blockT > 4) {
       const ende = haengt.zustand === 'kurve' && haengt.s > KURVE.L / 2;
-      ereignis(ende ? `Korb ${haengt.nr} hängt an der Übergabe Rollenkurve → Band 2: Band 2 (−QA5) läuft nicht mit`
-        : `Korb ${haengt.nr} hängt an der Übergabe Band 1 → Rollenkurve: beide Förderer (−QA1 und −QA10) müssen laufen`, 'err', 'uebergabe');
+      ereignis(ende ? t`Korb ${haengt.nr} hängt an der Übergabe Rollenkurve → Band 2: Band 2 (−QA5) läuft nicht mit`
+        : t`Korb ${haengt.nr} hängt an der Übergabe Band 1 → Rollenkurve: beide Förderer (−QA1 und −QA10) müssen laufen`, 'err', 'uebergabe');
       blockT = 0;
     }
   } else blockT = 0;

@@ -1,3 +1,4 @@
+import { t } from '../core/sprache.js';
 
 // Zylinder: Stellung 0/1 wie im Weg-Schritt-Diagramm, x = Kolbenweg in mm
 // aus = Spule 14 (Kolbenseite belüftet, fährt aus), ein = Spule 12 (Stangenseite, fährt ein)
@@ -36,7 +37,7 @@ export const QUITT = [
   { key: 'sf43', signal: 'SF43_Quittieren_S30', bmk: '−SF43', ort: 'an −S30', pf: 'PF14_Quitt_S30' },
   { key: 'sf44', signal: 'SF44_Quittieren_S40', bmk: '−SF44', ort: 'an −S40', pf: 'PF15_Quitt_S40' },
 ];
-export const notHaltText = (liste) => liste.map(n => `${n.bmk} (${n.ort})`).join(', ');
+export const notHaltText = (liste) => liste.map(n => `${n.bmk} (${t(n.ort)})`).join(', ');   // Ort in der Sprache der Oberfläche
 
 export const st = {
   modus: 'demo', modusManuell: false,

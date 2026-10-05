@@ -7,6 +7,7 @@ import { M } from '../core/materialien.js';
 import { V, box, cached, mesh, zyl } from '../core/geometrie.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { fmt0 } from '../core/format.js';
+import { LOCALE, t } from '../core/sprache.js';
 import { label, platte, schildPlatte, tafel } from '../core/beschriftung.js';
 import { sensorLed } from '../core/leds.js';
 import { buendel, leitung } from '../bauteile/leitungen.js';
@@ -626,7 +627,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
     c.fillStyle = '#111'; c.beginPath(); c.moveTo(70, 34); c.lineTo(48, 72); c.lineTo(64, 72); c.lineTo(54, 98); c.lineTo(82, 60); c.lineTo(66, 60); c.lineTo(76, 34); c.closePath(); c.fill();
   });
   schildPlatte(blitzTex, 90, 79, L.t, L.xm, 1600, 22.3);
-  schildPlatte(TEX.schild('−A1  Schaltschrank Zinnbad', '#d5d8d4', '#1b232c', 420, 56), 260, 35, L.t, L.xm, 1720, 22.3);
+  schildPlatte(TEX.schild('−A1  ' + t('Schaltschrank Zinnbad'), '#d5d8d4', '#1b232c', 420, 56), 260, 35, L.t, L.xm, 1720, 22.3);
 
   // --- Linke Tür: Tableau Handbetrieb ---
   const TAB = V(L.xm, 1180, 22);
@@ -638,12 +639,12 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
     platte(tafel('tuerTableau5', TW, TH, (c) => {
       c.fillStyle = '#c9cdd2'; c.fillRect(0, 0, TW, TH);
       const T = (t, x, y, sz = 10, gw = 600) => tafelText(c, t, x + TW / 2, TH / 2 - y, sz, gw);
-      T('HANDBETRIEB  −A1', 0, 326, 12, 700);
-      T('AUTO        HAND', -60, 294, 9); T('−SA3', -60, 232, 9, 500); T('Hand aktiv', 60, 232, 9, 500); T('−PF7', 60, 221, 8.5, 500);
+      T(t('HANDBETRIEB') + '  −A1', 0, 326, 12, 700);
+      T(t('AUTO        HAND'), -60, 294, 9); T('−SA3', -60, 232, 9, 500); T(t('Hand aktiv'), 60, 232, 9, 500); T('−PF7', 60, 221, 8.5, 500);
       c.strokeStyle = '#7d8790'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(12, TH / 2 - 212); c.lineTo(TW - 12, TH / 2 - 212); c.stroke();
       [['−MM1', 'einhängen', 'lösen'], ['−MM2', 'senken', 'anheben'], ['−MM3', 'zum Bad', 'zum Band'], ['−MM4', 'Bad zu', 'Bad auf'], ['−MM5', 'öffnen', 'schließen'], ['−MM6', 'schließen', 'öffnen'], ['−MM8', 'kippen', 'zurück']].forEach(([z, a, b], i) => {
         const y = ZEILE(i);
-        T(z, -100, y - 4, 11, 700); T(a, XA, y - 36, 8.5); T(b, XB, y - 36, 8.5);
+        T(z, -100, y - 4, 11, 700); T(t(a), XA, y - 36, 8.5); T(t(b), XB, y - 36, 8.5);
       });
     }, 4), TW, TH, f, 0, 0, 3.2);
     const ff = new THREE.Group(); ff.position.z = 3.2; f.add(ff);
@@ -742,58 +743,58 @@ function hmiZeichnen() {
   const E = eingang, A = ausgang;
   x.fillStyle = '#e9edf1'; x.fillRect(0, 0, 1280, 800);
   x.fillStyle = '#1f3b57'; x.fillRect(0, 0, 1280, 70);
-  x.fillStyle = '#fff'; x.font = '600 34px Arial'; x.textAlign = 'left'; x.fillText('Zinnbad – Übersicht', 24, 47);
-  x.textAlign = 'right'; x.font = '500 28px Arial'; x.fillText(new Date().toLocaleTimeString('de-DE'), 1256, 46);
-  const feld = (tx, ty, w, h, titel) => { x.fillStyle = '#fff'; x.fillRect(tx, ty, w, h); x.strokeStyle = '#b8c2cc'; x.lineWidth = 2; x.strokeRect(tx, ty, w, h); x.fillStyle = '#4a5866'; x.font = '600 22px Arial'; x.textAlign = 'left'; x.fillText(titel, tx + 14, ty + 30); };
+  x.fillStyle = '#fff'; x.font = '600 34px Arial'; x.textAlign = 'left'; x.fillText(t('Zinnbad – Übersicht'), 24, 47);
+  x.textAlign = 'right'; x.font = '500 28px Arial'; x.fillText(new Date().toLocaleTimeString(LOCALE), 1256, 46);
+  const feld = (tx, ty, w, h, titel) => { x.fillStyle = '#fff'; x.fillRect(tx, ty, w, h); x.strokeStyle = '#b8c2cc'; x.lineWidth = 2; x.strokeRect(tx, ty, w, h); x.fillStyle = '#4a5866'; x.font = '600 22px Arial'; x.textAlign = 'left'; x.fillText(t(titel), tx + 14, ty + 30); };
   const lampe = (lx, ly, an, farbe = '#2fb35c') => { x.fillStyle = an ? farbe : '#c9d1d8'; x.beginPath(); x.arc(lx, ly, 13, 0, 7); x.fill(); x.strokeStyle = '#7d8a96'; x.lineWidth = 2; x.stroke(); };
   const txt = (t, tx, ty, sz = 24, farbe = '#1b232c', gw = 500, ausr = 'left') => { x.fillStyle = farbe; x.font = `${gw} ${sz}px Arial`; x.textAlign = ausr; x.fillText(t, tx, ty); };
   // Betriebsart
   feld(20, 90, 400, 300, 'Betrieb');
   const hand = E('SA3_Handbetrieb'), auto = E('SA1_Dauerbetrieb');
-  txt(hand ? 'HAND (Schaltschrank)' : auto ? 'AUTOMATIK' : 'EINZELZYKLUS', 40, 160, 34, hand ? '#c27a00' : '#1f3b57', 700);
-  lampe(55, 210, A('PF1_Automatik')); txt('Anlage läuft', 85, 219);
-  lampe(55, 255, E('BG11_Korb')); txt('Korb am Übergabeplatz', 85, 264);
-  txt(st.modus === 'demo' ? `Schritt ${demo.schritt}: ${SCHRITT_TEXT[demo.schritt] || ''}` : 'Schritt: siehe SPS', 40, 315, 26, '#1b232c', 600);
-  txt(`Verzinnt: ${st.verzinnt}`, 40, 360, 26);
+  txt(t(hand ? 'HAND (Schaltschrank)' : auto ? 'AUTOMATIK' : 'EINZELZYKLUS'), 40, 160, 34, hand ? '#c27a00' : '#1f3b57', 700);
+  lampe(55, 210, A('PF1_Automatik')); txt(t('Anlage läuft'), 85, 219);
+  lampe(55, 255, E('BG11_Korb')); txt(t('Korb am Übergabeplatz'), 85, 264);
+  txt(st.modus === 'demo' ? t`Schritt ${demo.schritt}: ${t(SCHRITT_TEXT[demo.schritt] || '')}` : t('Schritt: siehe SPS'), 40, 315, 26, '#1b232c', 600);
+  txt(t`Verzinnt: ${st.verzinnt}`, 40, 360, 26);
   // Zinnbad
   feld(440, 90, 400, 300, 'Zinnbad');
   const T = E('BT1_Temperatur') / 27648 * 400, F = E('BL1_Fuellstand') / 27648 * 100;
   txt(`${T.toFixed(0)} °C`, 460, 175, 64, T >= TEMP_SOLL ? '#c0392b' : '#c27a00', 700);
-  txt(`Füllstand ${F.toFixed(0)} %`, 460, 230, 28, F < FUELL_MIN ? '#c0392b' : '#1b232c', 600);
+  txt(t`Füllstand ${F.toFixed(0)} %`, 460, 230, 28, F < FUELL_MIN ? '#c0392b' : '#1b232c', 600);
   x.fillStyle = '#d9e0e6'; x.fillRect(460, 255, 360, 26); x.fillStyle = '#8b97a3'; x.fillRect(460, 255, 3.6 * Math.min(100, F), 26);
-  lampe(475, 320, st.heizU, '#e5532b'); txt('Heizung −TB1', 505, 329);
+  lampe(475, 320, st.heizU, '#e5532b'); txt(t('Heizung −TB1'), 505, 329);
   lampe(475, 360, E('BG9_Temperatur')); txt('−BG9 ok', 505, 369);
-  lampe(680, 320, st.betriebBad === 'sps'); txt('SPS regelt', 710, 329, 22);
+  lampe(680, 320, st.betriebBad === 'sps'); txt(t('SPS regelt'), 710, 329, 22);
   lampe(680, 360, E('BG10_Fuellhoehe')); txt('−BG10 ok', 710, 369, 22);
   // Endlagen
   feld(860, 90, 400, 300, 'Endlagen');
   [['MM1', 'BG1_MM1_eingehaengt', 'BG2_MM1_geloest', 'ein', 'gelöst'], ['MM2', 'BG3_MM2_oben', 'BG4_MM2_unten', 'oben', 'unten'], ['MM3', 'BG5_MM3_Band', 'BG6_MM3_Bad', 'Band', 'Bad'], ['MM4', 'BG7_MM4_offen', 'BG8_MM4_zu', 'auf', 'zu'], ['MM5', 'BG14_MM5_zu', 'BG15_MM5_offen', 'zu', 'auf'], ['MM6', 'BG16_MM6_zu', 'BG17_MM6_offen', 'zu', 'auf']].forEach(([n, a, b, ta, tb], i) => {
     const y = 140 + i * 42;
     txt('−' + n, 880, y + 9, 24, '#1b232c', 700);
-    lampe(985, y, E(a), '#e3a100'); txt(ta, 1005, y + 8, 20);
-    lampe(1120, y, E(b), '#e3a100'); txt(tb, 1140, y + 8, 20);
+    lampe(985, y, E(a), '#e3a100'); txt(t(ta), 1005, y + 8, 20);
+    lampe(1120, y, E(b), '#e3a100'); txt(t(tb), 1140, y + 8, 20);
   });
   // Band
   feld(20, 410, 1240, 250, 'Förderband');
   x.fillStyle = '#3a4047'; x.fillRect(80, 530, 1120, 34);
   for (const k of koerbe) if (k.zustand === 'band') { const px = 640 + (k.z - 150) / 950 * 560; x.fillStyle = k.fertig ? '#c9cfd5' : '#b8743f'; x.fillRect(px - 36, 480, 72, 50); x.strokeStyle = '#4a5866'; x.strokeRect(px - 36, 480, 72, 50); }
   for (const [sig, t] of [['BG12_Bandanfang', 'BG12'], ['BG11_Korb', 'BG11'], ['BG13_Bandende', 'BG13']]) { const z = LS_POS[sig], px = 640 + (z - 150) / 950 * 560; lampe(px, 588, E(sig), '#e3a100'); txt(t, px, 620, 18, '#1b232c', 600, 'center'); }
-  const pfeil = BAND.v > 1 ? '→  vorwärts' : BAND.v < -1 ? '←  rückwärts' : 'Halt';
-  txt(`Band: ${pfeil}   ${Math.abs(BAND.v).toFixed(0)} mm/s   Weg ${(BAND.weg / 1000).toFixed(2)} m`, 40, 465, 24, '#1b232c', 600);
-  lampe(860, 456, E('SA2_VorOrt'), '#2f7fd0'); txt('Vor-Ort aktiv', 885, 465, 22);
-  lampe(1060, 456, st.betriebBand === 'sps', '#2f7fd0'); txt('SPS steuert', 1085, 465, 22);
+  const pfeil = t(BAND.v > 1 ? '→  vorwärts' : BAND.v < -1 ? '←  rückwärts' : 'Halt');
+  txt(t`Band: ${pfeil}   ${Math.abs(BAND.v).toFixed(0)} mm/s   Weg ${(BAND.weg / 1000).toFixed(2)} m`, 40, 465, 24, '#1b232c', 600);
+  lampe(860, 456, E('SA2_VorOrt'), '#2f7fd0'); txt(t('Vor-Ort aktiv'), 885, 465, 22);
+  lampe(1060, 456, st.betriebBand === 'sps', '#2f7fd0'); txt(t('SPS steuert'), 1085, 465, 22);
   const kp = korbAmPyrometer(), b2n = koerbe.filter(k => k.zustand === 'band2').length, kn = koerbe.filter(k => k.zustand === 'kurve').length;
-  const ri = (v) => (v > 1 ? '→' : v < -1 ? '←' : 'Halt');
-  txt(`Kurve: ${ri(KURVE.v)} ${kn} · Band 2: ${ri(BAND2.v)} ${b2n} · Mulde: ${ri(MULDE.v)} · Kühlplatz ${kp ? fmt0.format(kp.temp) + ' °C' : '–'} · Sprühen ${BAND2.spruehen > 0.5 ? 'EIN' : 'AUS'} · KLT ${ST.klt}/${ST.kltVoll} · Ausschuss ${ST.aus}`, 40, 650, 21, '#1b232c', 600);
+  const ri = (v) => (v > 1 ? '→' : v < -1 ? '←' : t('Halt'));
+  txt(t`Kurve: ${ri(KURVE.v)} ${kn} · Band 2: ${ri(BAND2.v)} ${b2n} · Mulde: ${ri(MULDE.v)} · Kühlplatz ${kp ? fmt0.format(kp.temp) + ' °C' : '–'} · Sprühen ${t(BAND2.spruehen > 0.5 ? 'EIN' : 'AUS')} · KLT ${ST.klt}/${ST.kltVoll} · Ausschuss ${ST.aus}`, 40, 650, 21, '#1b232c', 600);
   // Meldezeile
   // Not-Halt: Meldekontakte (Öffner, 1 = entriegelt) zeigen, welcher Taster betätigt ist
   const nh = !E('KF2_NotHalt_OK'), betaetigt = NOT_HALT.filter(n => !E(n.signal));
-  const nhText = betaetigt.length ? `NOT-HALT ${notHaltText(betaetigt)} – entriegeln und quittieren (${[...new Set(betaetigt.map(n => n.quitt))].join(' / ')})`
-    : !E('BG20_Lichtvorhang_frei') ? 'Lichtvorhang −BG20 unterbrochen – Schutzfeld räumen und quittieren (−SF4)' : 'NOT-HALT entriegelt – quittieren (−SF4 oder Vor-Ort −SF41…−SF44)';
+  const nhText = betaetigt.length ? t`NOT-HALT ${notHaltText(betaetigt)} – entriegeln und quittieren (${[...new Set(betaetigt.map(n => n.quitt))].join(' / ')})`
+    : t(!E('BG20_Lichtvorhang_frei') ? 'Lichtvorhang −BG20 unterbrochen – Schutzfeld räumen und quittieren (−SF4)' : 'NOT-HALT entriegelt – quittieren (−SF4 oder Vor-Ort −SF41…−SF44)');
   const rot = nh || betaetigt.length > 0;
   x.fillStyle = rot ? '#c0392b' : st.letzteStoerung ? '#f6d9a8' : '#dfe6ec'; x.fillRect(0, 680, 1280, 120);
   if (rot) txt(nhText, 24, 750, betaetigt.length > 2 ? 22 : 30, '#fff', 600);
-  else txt(st.letzteStoerung ? `${st.letzteStoerung.zeit}  ${st.letzteStoerung.text}` : 'Keine Störung', 24, 750, 30, '#1b232c', 600);
+  else txt(st.letzteStoerung ? `${st.letzteStoerung.zeit}  ${st.letzteStoerung.text}` : t('Keine Störung'), 24, 750, 30, '#1b232c', 600);
   SCHRANK.hmiTex.needsUpdate = true;
 }
 // Kanal-LEDs der DI/DQ-Baugruppen aus den Signalen (Adresse %I/%Q Byte.Bit)
@@ -825,11 +826,11 @@ export function spsLedsAktualisieren(dt) {
   x.fillStyle = '#f2f4f5'; x.fillRect(0, 0, 320, 240);
   x.fillStyle = '#2d6f8f'; x.fillRect(0, 0, 320, 44);
   x.fillStyle = '#fff'; x.font = '600 22px Arial'; x.textAlign = 'left'; x.fillText('PLC_Zinnbad', 12, 30);
-  x.textAlign = 'right'; x.font = '500 18px Arial'; x.fillText(new Date().toLocaleTimeString('de-DE').slice(0, 5), 308, 29);
+  x.textAlign = 'right'; x.font = '500 18px Arial'; x.fillText(new Date().toLocaleTimeString(LOCALE).slice(0, 5), 308, 29);
   x.fillStyle = run ? '#1f9a4c' : '#e39b00'; x.fillRect(12, 58, 296, 58);
   x.fillStyle = '#fff'; x.textAlign = 'center'; x.font = '700 38px Arial'; x.fillText(zust, 160, 101);
-  x.fillStyle = '#1b232c'; x.font = '500 17px Arial'; x.fillText(st.modus === 'demo' ? 'Demo: Steuerung im Browser' : 'PLCSIM Advanced', 160, 142);
-  const symb = ['Übersicht', 'Diagnose', 'Einstell.', 'Module', 'Display'];
+  x.fillStyle = '#1b232c'; x.font = '500 17px Arial'; x.fillText(st.modus === 'demo' ? t('Demo: Steuerung im Browser') : 'PLCSIM Advanced', 160, 142);
+  const symb = ['Übersicht', 'Diagnose', 'Einstell.', 'Module', 'Display'].map((s) => t(s));
   symb.forEach((t, i) => {
     const xx = 12 + i * 60;
     x.fillStyle = i === 0 ? '#2d6f8f' : '#cfd6db'; x.fillRect(xx, 162, 52, 48);

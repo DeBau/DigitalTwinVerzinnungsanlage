@@ -5,6 +5,7 @@ import { BAND, BAND_ENDE, BAND_Y, KORB_TEILUNG, KURVE } from '../anlage/baender.
 import { BAD_X, RAND_Y, zinnY } from '../anlage/zinnbad.js';
 import { koerbe, korbEntfernen, korbErzeugen, tropfen, tropfenErzeugen } from '../anlage/koerbe.js';
 import { ereignis } from '../ui/ereignisse.js';
+import { t } from '../core/sprache.js';
 import { wirksam } from './eingaenge.js';
 import { zylinderBewegen } from './pneumatik-modell.js';
 import { drosselFaktor } from './drosseln.js';
@@ -28,11 +29,11 @@ export function prozess(dt) {
   const quitt = QUITT.find(q => st.bedien[q.key]), quittFlanke = !!quitt && !st.sf4Alt;
   const gedrueckt = NOT_HALT.filter(n => st.notHalt[n.key]);
   const nh = gedrueckt.length > 0 || st.eingriff;
-  if (nh && st.kf2) { st.kf2 = false; ereignis(st.eingriff && !gedrueckt.length ? 'Lichtvorhang −BG20 unterbrochen: −KF2 hat Ventile, Schütze und Heizung abgeschaltet' : `NOT-HALT ${notHaltText(gedrueckt)}: Sicherheitsrelais −KF2 hat Ventile, Schütze und Heizung abgeschaltet`, 'err'); }
-  else for (const n of gedrueckt) if (!nhAlt.has(n.key)) ereignis(`NOT-HALT ${notHaltText([n])} betätigt (−KF2 hat bereits abgeschaltet)`, 'err');
+  if (nh && st.kf2) { st.kf2 = false; ereignis(st.eingriff && !gedrueckt.length ? 'Lichtvorhang −BG20 unterbrochen: −KF2 hat Ventile, Schütze und Heizung abgeschaltet' : t`NOT-HALT ${notHaltText(gedrueckt)}: Sicherheitsrelais −KF2 hat Ventile, Schütze und Heizung abgeschaltet`, 'err'); }
+  else for (const n of gedrueckt) if (!nhAlt.has(n.key)) ereignis(t`NOT-HALT ${notHaltText([n])} betätigt (−KF2 hat bereits abgeschaltet)`, 'err');
   nhAlt = new Set(gedrueckt.map(n => n.key));
-  if (!nh && !st.kf2 && quittFlanke) { st.kf2 = true; ereignis(`Not-Halt quittiert ${quitt.ort} (${quitt.bmk}): −KF2 gibt wieder frei`); }
-  if (nh && quittFlanke) ereignis(gedrueckt.length ? `Quittieren nicht möglich: Not-Halt ${notHaltText(gedrueckt)} ist noch verriegelt` : 'Quittieren nicht möglich: Schutzfeld des Lichtvorhangs ist nicht frei', '', 'nhq');
+  if (!nh && !st.kf2 && quittFlanke) { st.kf2 = true; ereignis(t`Not-Halt quittiert ${t(quitt.ort)} (${quitt.bmk}): −KF2 gibt wieder frei`); }
+  if (nh && quittFlanke) ereignis(gedrueckt.length ? t`Quittieren nicht möglich: Not-Halt ${notHaltText(gedrueckt)} ist noch verriegelt` : 'Quittieren nicht möglich: Schutzfeld des Lichtvorhangs ist nicht frei', '', 'nhq');
   st.sf4Alt = !!quitt;
 
   zylinderBewegen(ZYL.MM1, dt);
@@ -126,17 +127,17 @@ export function prozess(dt) {
     angehaengt = null;
     if (amBandUnten) {
       k.zustand = 'band'; k.z = 0; k.fertig = true;
-      if (!k.getaucht) ereignis(`Korb ${k.nr} unverzinnt abgelegt`, 'err');
+      if (!k.getaucht) ereignis(t`Korb ${k.nr} unverzinnt abgelegt`, 'err');
       else {
         const ok = k.tauch >= TAUCH_SOLL - 0.5 && k.tropf >= TROPF_SOLL - 0.5;
         if (ok) st.verzinnt++;
-        ereignis(`Korb ${k.nr} ${ok ? 'verzinnt' : 'mangelhaft'} · Tauchzeit ${fmt1.format(k.tauch)} s · Abtropfzeit ${fmt1.format(k.tropf)} s`, ok ? 'ok' : 'err');
+        ereignis(ok ? t`Korb ${k.nr} verzinnt · Tauchzeit ${fmt1.format(k.tauch)} s · Abtropfzeit ${fmt1.format(k.tropf)} s` : t`Korb ${k.nr} mangelhaft · Tauchzeit ${fmt1.format(k.tauch)} s · Abtropfzeit ${fmt1.format(k.tropf)} s`, ok ? 'ok' : 'err');
       }
     } else if (ueberBad() && korbUnterkante() < RAND_Y && ZYL.MM4.pos < 0.03) {
-      ereignis(`Korb ${k.nr} ist ins Zinnbad gefallen (−MM1 über dem Bad gelöst)`, 'err');
+      ereignis(t`Korb ${k.nr} ist ins Zinnbad gefallen (−MM1 über dem Bad gelöst)`, 'err');
       korbEntfernen(k);
     } else {
-      ereignis(`Korb ${k.nr} abgeworfen (−MM1 nicht über dem Band gelöst)`, 'err');
+      ereignis(t`Korb ${k.nr} abgeworfen (−MM1 nicht über dem Band gelöst)`, 'err');
       korbEntfernen(k);
     }
   }

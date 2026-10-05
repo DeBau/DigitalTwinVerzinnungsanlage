@@ -8,6 +8,12 @@ Haupt- und Nebenversion haben (z. B. 1.3.x), sonst meldet der Zwilling das in de
 
 ## 1.3.1 – 2026-10-05
 
+**Neu**
+- Englische Oberfläche: Umschalter DE/EN oben in der Seitenleiste (lädt die Seite neu). Übersetzt
+  sind Seitenleiste, Fenster, Meldungen, 3D-Beschriftungen, HMI-Bild und Signalkommentare;
+  Betriebsmittelkennzeichen, Signalnamen und Adressen bleiben wie in TIA. Ohne gespeicherte Wahl
+  richtet sich die Sprache nach dem Browser.
+
 **Geändert**
 - Fahrzeiten und Messlinien beziehen sich auf die Endlagensensoren (Sensor verlassen bis anderen
   Sensor erreicht) – genau die Zeit, die auch das SPS-Programm sieht. Vorher rasteten die Linien

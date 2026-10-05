@@ -9,6 +9,7 @@ import { schlitten } from '../anlage/portal.js';
 import { SCHRANK } from '../anlage/schaltschrank.js';
 import { koerbe } from '../anlage/koerbe.js';
 import { groesse } from '../ui/ansicht.js';
+import { t } from './sprache.js';
 
 // Qualität: Ist der Rechner zu langsam (z. B. Onboard-Grafik), werden Auflösung und Schattenkarte reduziert
 // ----------------------------------------------------------------------------
@@ -69,7 +70,7 @@ export function stufeSetzen(i) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, s2.pr));
   groesse();
   renderer.shadowMap.needsUpdate = true;
-  $('btn-grafik').textContent = 'Grafik: ' + (Q.modus === 'auto' ? 'Auto (' + s2.name + ')' : s2.name);
+  $('btn-grafik').textContent = Q.modus === 'auto' ? t`Grafik: Auto (${t(s2.name)})` : t`Grafik: ${t(s2.name)}`;
 }
 export function qualitaetPruefen() {
   const jetzt = performance.now(), dt = jetzt - Q.zuletzt; Q.zuletzt = jetzt;

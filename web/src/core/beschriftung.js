@@ -2,12 +2,13 @@ import { CSS2DObject } from 'three/addons/CSS2DRenderer.js';
 import * as THREE from 'three';
 import { canvasTextur } from './texturen.js';
 import { cached } from './geometrie.js';
+import { t } from './sprache.js';
 
 export const LABELS = [];
 export function label(text, obj, x, y, z, klasse = '') {
   const div = document.createElement('div');
   div.className = 'tag3d ' + klasse;
-  div.textContent = text;
+  div.textContent = t(text);
   const l = new CSS2DObject(div);
   l.position.set(x, y, z);
   obj.add(l);

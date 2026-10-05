@@ -5,6 +5,7 @@ import { kipperKinematik, kippWinkel, MM8, MULDE, ST } from '../anlage/pruefstat
 import { E2 } from '../anlage/band2.js';
 import { TEILE_JE_KORB, kipperKorb, koerbe, korbEntfernen } from '../anlage/koerbe.js';
 import { ereignis } from '../ui/ereignisse.js';
+import { t } from '../core/sprache.js';
 import { wirksam } from './eingaenge.js';
 import { zylinderBewegen } from './pneumatik-modell.js';
 
@@ -61,7 +62,7 @@ export function pruefstation(dt) {
     }
   }
   // Leerkorb: nach dem Zurückschwenken vom Werker abgenommen
-  if (korb && korb.entleert && MM8.an0) { korb.leerT = (korb.leerT || 0) + dt; if (korb.leerT > 3) { ereignis(`Leerkorb ${korb.nr} vom Kipper abgenommen`); korbEntfernen(korb); } }
+  if (korb && korb.entleert && MM8.an0) { korb.leerT = (korb.leerT || 0) + dt; if (korb.leerT > 3) { ereignis(t`Leerkorb ${korb.nr} vom Kipper abgenommen`); korbEntfernen(korb); } }
 
   // --- Antriebe Rinne / Prüfband, Kamera, Ausblasen ---
   const kltVoll = ST.klt >= ST.kltVoll;
@@ -101,7 +102,7 @@ export function pruefstation(dt) {
   }
   ST.ergebnisT = Math.max(0, ST.ergebnisT - dt);
   // KLT-Tausch durch den Werker (automatisch nach 6 s)
-  if (kltVoll) { ST.kltTausch += dt; if (ST.kltTausch > 6) { ereignis(`KLT mit ${ST.klt} i.O.-Teilen getauscht`, 'ok'); ST.klt = 0; ST.kltTausch = 0; } } else ST.kltTausch = 0;
+  if (kltVoll) { ST.kltTausch += dt; if (ST.kltTausch > 6) { ereignis(t`KLT mit ${ST.klt} i.O.-Teilen getauscht`, 'ok'); ST.klt = 0; ST.kltTausch = 0; } } else ST.kltTausch = 0;
 
   // --- Teilefluss ---
   const vR = 70 * ST.vRinne, vB = 150 * ST.vBand;
@@ -169,7 +170,7 @@ function teilAbschliessen(t) {
 // Sind alle Teile eines Korbs angekommen (KLT, ausgeschleust oder daneben), Zusammenfassung melden
 function korbSummeMelden(nr, s) {
   if (s.offen > 0) return;
-  ereignis(`Korb ${nr} geprüft: ${s.gut} i.O. im KLT, ${s.schlecht} n.i.O. ausgeschleust` + (s.daneben ? `, ${s.daneben} neben den Trichter gefallen` : ''),
+  ereignis(t`Korb ${nr} geprüft: ${s.gut} i.O. im KLT, ${s.schlecht} n.i.O. ausgeschleust` + (s.daneben ? t`, ${s.daneben} neben den Trichter gefallen` : ''),
     s.schlecht > 5 || s.daneben ? 'err' : 'ok');
   ST.korbSumme.delete(nr);
 }

@@ -2,6 +2,7 @@ import { SIGNALE } from '../signale.js';
 import { st } from '../logik/zustand.js';
 import { $ } from '../core/szene.js';
 import { ausgang, eingang, istAnalog } from '../logik/eingaenge.js';
+import { t } from '../core/sprache.js';
 
 // ----------------------------------------------------------------------------
 // Signalmonitor
@@ -20,23 +21,24 @@ export function monitorAufbauen() {
   for (const [richtung, titel] of [['ausgang', 'Ausgänge SPS → Zwilling'], ['eingang', 'Eingänge Zwilling → SPS']]) {
     const kopf = document.createElement('tr');
     kopf.className = 'dir-row';
-    kopf.innerHTML = `<td colspan="4">${titel}</td>`;
+    kopf.innerHTML = `<td colspan="4">${esc(t(titel))}</td>`;
     body.appendChild(kopf);
     for (const s of SIGNALE.filter(x => x.richtung === richtung)) {
       const tr = document.createElement('tr');
-      tr.dataset.suche = (s.name + ' ' + s.adresse + ' ' + (s.kommentar || '')).toLowerCase();
+      const kommentar = t(s.kommentar || '');             // Kommentare aus signale.csv, Übersetzung in sprache/en-signale.js
+      tr.dataset.suche = (s.name + ' ' + s.adresse + ' ' + kommentar).toLowerCase();
       const an = istAnalog(s);
       const f = s.name in st.force ? (st.force[s.name] ? '1' : '0') : 'auto';
       tr.classList.toggle('forced', f !== 'auto');
       tr.innerHTML = `<td>${an ? '<b class="wert">0</b>' : '<div class="led"></div>'}</td>
-        <td class="name">${esc(s.name)}<small>${esc(s.kommentar || '')}</small></td>
+        <td class="name">${esc(s.name)}<small>${esc(kommentar)}</small></td>
         <td class="adr">${esc(s.adresse)}</td>
         <td>${an ? '<span class="src">analog</span>' : richtung === 'eingang'
-          ? `<span class="force" role="group" aria-label="${esc(s.name)} forcen">
-               <button type="button" data-f="auto" aria-pressed="${f === 'auto'}" title="Wert aus dem Modell">A</button>
-               <button type="button" data-f="0" aria-pressed="${f === '0'}" title="Auf 0 forcen">0</button>
-               <button type="button" data-f="1" aria-pressed="${f === '1'}" title="Auf 1 forcen">1</button></span>`
-          : '<span class="src">SPS</span>'}</td>`;
+          ? `<span class="force" role="group" aria-label="${esc(t`${s.name} forcen`)}">
+               <button type="button" data-f="auto" aria-pressed="${f === 'auto'}" title="${esc(t('Wert aus dem Modell'))}">A</button>
+               <button type="button" data-f="0" aria-pressed="${f === '0'}" title="${esc(t('Auf 0 forcen'))}">0</button>
+               <button type="button" data-f="1" aria-pressed="${f === '1'}" title="${esc(t('Auf 1 forcen'))}">1</button></span>`
+          : `<span class="src">${esc(t('SPS'))}</span>`}</td>`;
       tr.querySelectorAll('.force button').forEach(b => b.onclick = () => {
         const f = b.dataset.f;
         if (f === 'auto') delete st.force[s.name]; else st.force[s.name] = f === '1';
