@@ -4,7 +4,7 @@ import { M } from '../core/materialien.js';
 import { V, box, cached, mesh, zyl } from '../core/geometrie.js';
 import { label, platte, tafel } from '../core/beschriftung.js';
 import { profil } from '../bauteile/aluprofil.js';
-import { KLICK, KNEBEL, PULT_LAMPEN, PULT_TASTER } from './register.js';
+import { KLICK, KNEBEL, POTIS, PULT_LAMPEN, PULT_TASTER } from './register.js';
 import { kabel } from './verdrahtung.js';
 import { t as tr } from '../core/sprache.js';
 
@@ -61,6 +61,19 @@ export function wahlschalter(parent, x, y, key, schluessel) {
   hit.userData = { taster: key, art: 'wahl' };
   PULT_TASTER.push({ key, kappe: hit, art: 'wahl' });
   KNEBEL.push({ key, knebel });
+}
+const zeiger = new THREE.MeshStandardMaterial({ color: 0xf2f2f2, roughness: 0.4 });
+// Drehpotentiometer Ø22 (Sollwertsteller): Knopf mit Zeigerstrich, 270° Drehwinkel; Klick links/rechts der Mitte = −/+ 10 %
+export function potentiometer(parent, x, y, key) {
+  const t = new THREE.Group(); t.position.set(x, y, 0); parent.add(t);
+  frontring(t);
+  const knopf = new THREE.Group(); knopf.position.z = 6; t.add(knopf);
+  mesh(drehZ('3suPoti', [[0, 0], [12.5, 0], [12.5, 9], [11, 11], [0, 11.5]], 36), M.schwarz, knopf);
+  box(2, 9, 1, zeiger, 0, 6, 11.8, knopf);                                          // Zeigerstrich
+  const hit = zyl(20, 30, KLICK, 0, 0, 12, 'z', t, 16); hit.castShadow = false;
+  hit.userData = { taster: key, art: 'poti' };
+  PULT_TASTER.push({ key, kappe: hit, art: 'poti' });
+  POTIS.push({ key, knopf });
 }
 export function meldeleuchte(parent, x, y, signal, farbe) {
   const t = new THREE.Group(); t.position.set(x, y, 0); parent.add(t);
@@ -135,14 +148,28 @@ export function vorOrtStation(pos, bmk, k) {
     T(tr('VOR-ORT') + '  −' + bmk, 0, H / 2 - 20, 12, 700);
     T('0         1', -45, H / 2 - 37, 9.5); T(tr('Schlüssel') + ' −' + k.saT, -45, H / 2 - 97, 8.5, 500); T(tr('aktiv') + ' −' + k.pfT, 45, H / 2 - 97, 8.5, 500);
     zeilen.forEach((z, i) => z.forEach((t) => { T(tr(t.text), t.x, zy(i) - 28, 8.5); T('−' + t.bmk, t.x, zy(i) - 39, 8, 500); }));
-    T(tr('NOT-HALT') + ' −' + k.nhT, -40, -H / 2 + 22, 8.5); T(tr('QUITT.') + ' −' + k.qT, 55, -H / 2 + 47, 8.5); T(tr('Rückstellen'), 55, -H / 2 + 36, 7.5, 500);
+    if (k.nh) { T(tr('NOT-HALT') + ' −' + k.nhT, -40, -H / 2 + 22, 8.5); T(tr('QUITT.') + ' −' + k.qT, 55, -H / 2 + 47, 8.5); T(tr('Rückstellen'), 55, -H / 2 + 36, 7.5, 500); }
+    if (k.poti) {
+      // Skala 0…100 % über 270°, Beschriftung darunter
+      const cx = W / 2, cy = H / 2 + H / 2 - 77, r = 24;
+      c.strokeStyle = '#2a3038'; c.lineWidth = 1;
+      for (let i = 0; i <= 10; i++) {
+        const a = Math.PI * (0.75 + 1.5 * i / 10), l = i % 5 ? 3 : 6;
+        c.beginPath(); c.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); c.lineTo(cx + Math.cos(a) * (r + l), cy + Math.sin(a) * (r + l)); c.stroke();
+      }
+      T('0', -27, -H / 2 + 52, 8); T('100 %', 32, -H / 2 + 52, 8);
+      T(tr(k.potiText), 0, -H / 2 + 34, 8.5); T('−' + k.potiT, 0, -H / 2 + 23, 8, 500);
+    }
   }, 4), W, H, f, 0, 0, 0);
   wahlschalter(f, -45, H / 2 - 67, k.sa, true);
   meldeleuchte(f, 45, H / 2 - 67, k.pf, 0xf4f7fb);
   zeilen.forEach((z, i) => z.forEach((t) => drucktaster(f, t.x, zy(i), t.key, t.farbe, t.sym || '-')));
-  notHaltTaster(f, -40, -H / 2 + 77, k.nh);
-  const q = drucktaster(f, 55, -H / 2 + 77, k.q, 0x3d8de0);               // Leuchttaster mit eigenem Ausgang k.pfQ
-  PULT_LAMPEN.push({ signal: k.pfQ, mat: q });
+  if (k.nh) {
+    notHaltTaster(f, -40, -H / 2 + 77, k.nh);
+    const q = drucktaster(f, 55, -H / 2 + 77, k.q, 0x3d8de0);             // Leuchttaster mit eigenem Ausgang k.pfQ
+    PULT_LAMPEN.push({ signal: k.pfQ, mat: q });
+  }
+  if (k.poti) potentiometer(f, 0, -H / 2 + 77, k.poti);
   label('Vor-Ort-Steuerstelle −' + bmk, g, 0, 1000 + H + 40, 50, 'klein');
   // Leitung: unter dem Gehäuse in die Säule, am Fuß heraus und am Boden zum Schaltschrank
   const fuss = W0(0, 14, -26), zBoden = fuss.z;
@@ -166,3 +193,10 @@ export const S40_FUSS = vorOrtStation(S40_POS, 'S40', {
     [{ key: 'sf38', x: -50, farbe: 0xf4f6f8, sym: '|', text: 'KIPPEN', bmk: 'SF38' }, { key: 'sf39', x: 50, farbe: 0x2b2f34, sym: '|', text: 'KIPPER ZURÜCK', bmk: 'SF39' }],
   ],
 });
+// −S50 Vor-Ort Prüfband: neben dem Prüfband auf der Bedienerseite, EIN/AUS und Drehzahlpotentiometer (wirkt am Umrichter −TA5).
+// Not-Halt und Quittieren an −S40 daneben; Leitung am Boden zum Fuß von −S40 und mit deren Leitung weiter
+const S50_FUSS = vorOrtStation(new THREE.Vector3(4310, 0, 2080), 'S50', {
+  sa: 'sa7', saT: 'SA7', pf: 'PF16_VorOrt5', pfT: 'PF16', leitung: false, poti: 'pbPoti', potiT: 'SF47', potiText: 'DREHZAHL',
+  zeilen: [[{ key: 'sf45', x: -45, farbe: 0x23a35a, sym: '|', text: 'PRÜFBAND EIN', bmk: 'SF45' }, { key: 'sf46', x: 45, farbe: 0xd42a1f, text: 'PRÜFBAND AUS', bmk: 'SF46' }]],
+});
+kabel([S50_FUSS, V(S50_FUSS.x - 40, 14, S50_FUSS.z), V(S40_FUSS.x + 40, 14, S40_FUSS.z), S40_FUSS], anlage, M.kabelGrau, 3.5);

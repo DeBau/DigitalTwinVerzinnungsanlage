@@ -18,6 +18,8 @@ import { drucktaster, meldeleuchte, tafelText, wahlschalter } from './befehlsger
 import { koerbe } from './koerbe.js';
 import { ausgang, eingang, korbAmPyrometer } from '../logik/eingaenge.js';
 import { demo } from '../logik/demo-sps.js';
+import { g120Aktualisieren, g120Bauen } from './g120.js';
+import { UMRICHTER_LISTE } from '../logik/umrichter.js';
 
 // ----------------------------------------------------------------------------
 // Schaltschrank −A1 (800 x 2000 x 400) mit Tür, Montageplatte und Ausrüstung
@@ -558,10 +560,21 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   }
 
   // ===== PE-Schiene, Schirmschiene mit Zugentlastung =====
-  box(420, 14, 6, new THREE.MeshStandardMaterial({ color: 0xc87533, metalness: 0.9, roughness: 0.3 }), 0, 450, PF + 25, g);
-  for (const x of [-200, 200]) box(16, 24, 22, M.kunststoff, x, 450, PF + 11, g);
-  for (let x = -180; x <= 180; x += 30) { zyl(3, 5, M.stahl, x, 450, PF + 30.5, 'z', g, 6); draht(FARBE.pe, x, 457, 600, PF + 33); }
-  lbl('−XPE Schutzleiterschiene', 0, 485, PF + 40);
+  // (rechts daneben die Umrichter −TA2…−TA5, die Schiene ist deshalb kürzer)
+  box(170, 14, 6, new THREE.MeshStandardMaterial({ color: 0xc87533, metalness: 0.9, roughness: 0.3 }), -125, 450, PF + 25, g);
+  for (const x of [-200, -50]) box(16, 24, 22, M.kunststoff, x, 450, PF + 11, g);
+  for (let x = -180; x <= -60; x += 30) { zyl(3, 5, M.stahl, x, 450, PF + 30.5, 'z', g, 6); draht(FARBE.pe, x, 457, 600, PF + 33); }
+  lbl('−XPE Schutzleiterschiene', -125, 485, PF + 40);
+  // −TA2…−TA5 Frequenzumrichter SINAMICS G120 (PROFINET, Standardtelegramm 1): Band 1, Band 2, Rollenkurve, Prüfband
+  UMRICHTER_LISTE.forEach((fu, i) => {
+    const x = 6 + i * 80, y = 466;
+    g120Bauen(g, x, y, PF, fu);
+    ab.add([[x + 15, y - 98, PF + 190], [x + 15, y - 112, PF + 190], [x + 15, y - 112, PF + 50], [x + 15, 330, PF + 50]], M.kabelOrange, 4, 12);   // Motorleitung (geschirmt)
+    ab.add([[x - 18, y - 57, PF + 195], [x - 18, y - 80, PF + 195], [x - 22, y - 110, PF + 60], [x - 22, 330, PF + 55]], M.kabelGruen, 3, 12);       // PROFINET X150 P1
+    ab.add([[x - 4, y - 98, PF + 150], [x - 4, y - 106, PF + 150], [x - 4, y - 116, PF + 70], [x - 4, 330, PF + 70]], M.kabel, 4, 12);              // Netzleitung
+    lbl(`−${fu.name} ${t(fu.foerderer)}`, x, y + 112 + (i % 2) * 20, PF + 240);
+  });
+  lbl('Umrichter SINAMICS G120 (anklickbar)', 126, 330 + 45, PF + 240);
   box(420, 10, 10, M.verzinkt, 0, 230, PF + 40, g);
   for (const x of [-200, 200]) box(16, 30, 30, M.kunststoff, x, 230, PF + 15, g);
   [M.kabelGrau, M.kabel, M.kabelOrange, M.kabelGrau, M.kabel, M.kabelGrau, M.kabelOrange, M.kabelGrau, M.kabel, M.kabelGrau].forEach((mat, i) => {
@@ -730,10 +743,12 @@ export function schrankAktualisieren(dt) {
   const sichtbar = SCHRANK.auf > 0.6;
   for (const d of SCHRANK.labels) d.hidden = !sichtbar;
   // Schaltstellungsanzeige der Schütze (gelb = angezogen), Reihenfolge wie SCHRANK.qa: QA1 QA2 QA3 QA5 QA6 QA7 QA12 QA13 QA10 QA11
-  const an = [BAND.wende > 0 || BAND.v > 1, BAND.wende < 0 || BAND.v < -1, st.kf2 && (st.betriebBad === 'sps' || st.heizung), BAND2.wende > 0 || BAND2.v > 1, BAND2.wende < 0 || BAND2.v < -1, BAND2.pumpe > 0.5, MULDE.wende > 0 || MULDE.v > 1, MULDE.wende < 0 || MULDE.v < -1, KURVE.wende > 0 || KURVE.v > 1, KURVE.wende < 0 || KURVE.v < -1];
+  // (am Umrichter bleibt die Wendekombination abgefallen)
+  const an = [!BAND.fu && (BAND.wende > 0 || BAND.v > 1), !BAND.fu && (BAND.wende < 0 || BAND.v < -1), st.kf2 && (st.betriebBad === 'sps' || st.heizung), !BAND2.fu && (BAND2.wende > 0 || BAND2.v > 1), !BAND2.fu && (BAND2.wende < 0 || BAND2.v < -1), BAND2.pumpe > 0.5, MULDE.wende > 0 || MULDE.v > 1, MULDE.wende < 0 || MULDE.v < -1, !KURVE.fu && (KURVE.wende > 0 || KURVE.v > 1), !KURVE.fu && (KURVE.wende < 0 || KURVE.v < -1)];
   SCHRANK.qa.forEach((m, i) => { m.material = an[i] ? M.gelb : M.schwarz; });
   // Halbleiterrelais: Dauer-Ein beim Aufheizen, an der Sollwertgrenze taktet der Regler langsam (Schwingungspaketsteuerung)
   SCHRANK.tb1Led.emissiveIntensity = st.heizU ? 1.8 : 0;
+  g120Aktualisieren(dt);
 }
 // Prozessbild auf dem HMI TP1200 Comfort (1280 × 800)
 const SCHRITT_TEXT = ['', 'Grundstellung', 'MM1 einhängen', 'MM2 anheben', 'MM3 zum Bad', 'Bad öffnen', 'Tauchen', 'Abtropfen', 'Zum Band / Bad zu', 'Absenken', 'Korb lösen'];

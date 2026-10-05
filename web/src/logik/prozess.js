@@ -7,6 +7,7 @@ import { koerbe, korbEntfernen, korbErzeugen, tropfen, tropfenErzeugen } from '.
 import { ereignis } from '../ui/ereignisse.js';
 import { t } from '../core/sprache.js';
 import { wirksam } from './eingaenge.js';
+import { amUmrichter, umrichterFahren } from './antriebe.js';
 import { zylinderBewegen } from './pneumatik-modell.js';
 import { drosselFaktor } from './drosseln.js';
 import { uebergabeUndBand2 } from './band2.js';
@@ -83,7 +84,7 @@ export function prozess(dt) {
   BAND.anschlagPos = fahre(BAND.anschlagPos, anschlagZu, 55, 'MM5');            // Anschlagfläche −MM5
   BAND.vereinzelerPos = fahre(BAND.vereinzelerPos, vereinzelerZu, -95, 'MM6');   // Anschlagfläche −MM6
   const grenzen = bandGrenzen(bandKoerbe);
-  let vZiel;
+  let vZiel = 0;
   if (st.betriebBand === 'auto' && st.sa2) {
     // Vor-Ort-Steuerstelle (Schlüsselschalter): Rechts/Links mit Selbsthaltung, Halt (Öffner), gegenseitig verriegelt
     const vo = BAND.vorOrt;
@@ -97,6 +98,8 @@ export function prozess(dt) {
     // Bedarf: ein Korb kann weiter, oder ein Korb liegt noch im Übergabebereich am Kurvenanfang (Band 1 muss mitlaufen)
     const bedarf = bandKoerbe.some(k => k.z < grenzen.get(k).max - 0.5) || koerbe.some(k => k.zustand === 'kurve' && k.s < UEBERGABE && KURVE.wende > 0);
     vZiel = bedarf && st.kf2 ? BAND.vSoll : 0;
+  } else if (amUmrichter('TA2')) {
+    // Umrichter −TA2: das Telegramm kommt von der SPS
   } else {
     // Wendeschützkombination −QA1/−QA2: mechanisch verriegelt, das zuerst angezogene Schütz bleibt
     let r = wirksam('QA1_Band_Rechts'), l = wirksam('QA2_Band_Links');
@@ -104,7 +107,12 @@ export function prozess(dt) {
     BAND.wende = st.fa1Ok ? (r ? 1 : l ? -1 : 0) : 0;
     vZiel = BAND.wende * BAND.vSoll;
   }
-  BAND.v += Math.max(-BAND.a * dt, Math.min(BAND.a * dt, vZiel - BAND.v));
+  BAND.fu = amUmrichter('TA2');
+  if (BAND.fu) {
+    // Umrichter −TA2 (Rampen macht der Umrichter, Not-Halt −KF2 wählt STO an); im Übungsumfang „automatisch“ führt ihn das Bandmodul
+    BAND.wende = 0;
+    BAND.v = umrichterFahren('TA2', dt, st.betriebBand === 'sps' ? null : vZiel);
+  } else BAND.v += Math.max(-BAND.a * dt, Math.min(BAND.a * dt, vZiel - BAND.v));
   BAND.weg += BAND.v * dt;
   for (const k of bandKoerbe) {
     const g = grenzen.get(k);

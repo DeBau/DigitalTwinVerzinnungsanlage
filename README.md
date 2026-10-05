@@ -44,7 +44,7 @@ zusammenhängen – ein Korb läuft vom Bandanfang bis in die Kiste durch:
 | **Portal und Zinnbad** | Einhängen −MM1 (Schwenkhaken), Tauchen −MM2, Verschieben −MM3, Abstreifen −MM4; beheiztes Zinnbad 280 °C mit Füllstandsüberwachung und Nachfülleinrichtung |
 | **90°-Rollenkurve −MA6** | Angetriebene Kurvenrollenbahn mit 14 konischen Tragrollen und Rundriemen, Vor-Ort-Steuerstelle −S30 |
 | **Band 2 mit Sprühkühlung** | Edelstahl-Drahtgurt, Abschreck-Tunnel mit Umwälzpumpe und Sprührohren, Pyrometer −BT2, Luftmesser, Vor-Ort-Steuerstelle −S20 |
-| **Korbkipper −MM8** | Angetriebene Kippmulde, 126° Kippwinkel, Schurre in den Trichter, Vor-Ort-Steuerstelle −S40 |
+| **Korbkipper −MM8** | Angetriebene Kippmulde, 126° Kippwinkel, Schurre in den Trichter, Vor-Ort-Steuerstelle −S40; am Prüfband −S50 mit Drehzahlpotentiometer |
 | **Prüfstation** | Vibrorinne, Prüfband, Keyence-Kamera je Teil, Ausblasdüse für n.i.O.-Teile, KLT mit Füllstandsüberwachung |
 
 Dazu ein **Bedienpult**, ein begehbarer **Schaltschrank −A1** mit S7-1500, Schützen, Klemmen und
@@ -66,8 +66,10 @@ Lichtvorhang – und ein Werker, der die fertigen Körbe abnimmt.
 
 ## Leistungsmerkmale
 
-**134 Signale an frei wählbaren Adressen.** 92 Eingänge, davon 3 analog, und 42 Ausgänge auf
-`%I0.0…%I11.7`, `%Q0.0…%Q5.2` und `%IW64/66/68`. Dein Programm sieht dieselbe Schnittstelle wie an
+**155 Signale an frei wählbaren Adressen.** 104 Eingänge, davon 4 analog, und 51 Ausgänge auf
+`%I0.0…%I11.7`, `%Q0.0…%Q5.3` und `%IW64…70`, dazu die PROFINET-Telegramme der vier Umrichter
+−TA2…−TA5 (Band 1, Band 2, Rollenkurve, Prüfband) auf `%IW256…270/%QW256…270` – für
+Technologieobjekte `TO_SpeedAxis` wie an echten SINAMICS G120. Dein Programm sieht dieselbe Schnittstelle wie an
 der realen Anlage – kein proprietäres Protokoll, keine Bausteinbibliothek, keine Lizenzdatei.
 
 **Verhaltensmodell statt Animation.** Zylinder fahren mit Schaltverzug, Beschleunigung und
@@ -98,7 +100,8 @@ denn die Bridge koppelt über die Adressen.
 
 **Eine Datei, keine Installation.** Der Zwilling ist eine einzige HTML-Datei von 5 MB – kein Server,
 kein Internet, keine Laufzeitumgebung. Die Grafikstufe regelt sich selbst nach der Bildrate, vom
-Schulungslaptop bis zur Workstation.
+Schulungslaptop bis zur Workstation; zuschaltbare Tiefenschatten (Ambient Occlusion) für eine noch
+realistischere Darstellung.
 
 <table>
 <tr>
@@ -108,6 +111,10 @@ Schulungslaptop bis zur Workstation.
 <tr>
 <td><img src="docs/bilder/09-weg-zeit-diagramm.jpg" alt="Weg-Zeit-Diagramm mit Messlinien und Drosseln"></td>
 <td><img src="docs/bilder/10-drosselventile.jpg" alt="Drosselrückschlagventile am Zylinder"></td>
+</tr>
+<tr>
+<td><img src="docs/bilder/11-umrichter.jpg" alt="Fenster Umrichter: Bedienpanel, Telegramm 1 Bit für Bit, Rampen live"></td>
+<td><img src="docs/bilder/12-umrichter-schrank.jpg" alt="Vier SINAMICS G120 im Schaltschrank"></td>
 </tr>
 </table>
 
@@ -148,7 +155,7 @@ Bridge/
   start.bat                 Instanzname, Port, CPU-Zykluszeit
   ZwillingBridge.cs         Quellcode der Bridge
 TIA/
-  PLC_Variablen_Zinnbad.xlsx  alle 134 Signale zum Import (deutsche Namen)
+  PLC_Variablen_Zinnbad.xlsx  alle 155 Signale zum Import (deutsche Namen)
   PLC_Tags_Tinning_EN.xlsx    dieselben Signale mit englischen Namen
 web/
   index.html                der fertige Zwilling – eine Datei, läuft per Doppelklick

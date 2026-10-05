@@ -57,4 +57,13 @@ export default {
   'n.i.O.-Teil im i.O.-KLT (nicht ausgeblasen)': 'NOK part in the OK KLT bin (not blown off)',
   'Korb {0} geprüft: {1} i.O. im KLT, {2} n.i.O. ausgeschleust': 'Basket {0} inspected: {1} OK in KLT bin, {2} NOK rejected',
   ', {0} neben den Trichter gefallen': ', {0} fell beside the hopper',
+  // --- Umrichter −TA2 ---
+  // --- Umrichter −TA2…−TA5 ---
+  '{0} jetzt am Umrichter −{1} (PROFINET, Standardtelegramm 1)': '{0} now on drive −{1} (PROFINET, standard telegram 1)',
+  '{0} jetzt an den Schützen {1}': '{0} now on contactors {1}',
+  'Umrichter −{0}: Störung F30005 Leistungsteil Überlast I2t': 'Drive −{0}: fault F30005 power unit overload I2t',
+  'Umrichter −{0}: Kaltleiter im Motor {1} hat angesprochen (F07011)': 'Drive −{0}: PTC in motor {1} has responded (F07011)',
+  'Motor {0} abgekühlt: F07011 lässt sich quittieren': 'Motor {0} cooled down: F07011 can be acknowledged',
+  'Umrichter −{0}: HAND – das Bedienpanel führt, das Telegramm der SPS ist ohne Wirkung': 'Drive −{0}: HAND – the operator panel is in control, the PLC telegram has no effect',
+  'Umrichter −{0}: AUTO – Führung wieder über PROFINET': 'Drive −{0}: AUTO – control via PROFINET again',
 };

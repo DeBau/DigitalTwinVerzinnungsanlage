@@ -211,4 +211,9 @@ export default {
   'Diagnose': 'Diagnost.',
   'Einstell.': 'Settings',
   'Module': 'Modules',
+  'Umrichter SINAMICS G120 (anklickbar)': 'Drives SINAMICS G120 (clickable)',
+  'Vor-Ort-Steuerstelle −S50': 'Local control station −S50',
+  'PRÜFBAND EIN': 'CONVEYOR ON',
+  'PRÜFBAND AUS': 'CONVEYOR OFF',
+  'DREHZAHL': 'SPEED',
 };

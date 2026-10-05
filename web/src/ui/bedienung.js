@@ -10,8 +10,10 @@ import { daempfe, koerbe, korbEntfernen, korbErzeugen, korbNrZuruecksetzen, trop
 import { ereignis, zuletzt } from './ereignisse.js';
 import { demo } from '../logik/demo-sps.js';
 import { korbAuflegen, prozessZuruecksetzen } from '../logik/prozess.js';
+import { UMRICHTER, UMRICHTER_LISTE, umrichterZuruecksetzen } from '../logik/umrichter.js';
 import { rollenkurveZuruecksetzen } from '../logik/rollenkurve.js';
 import { wzFensterOeffnen, wzZuruecksetzen } from './diagramm.js';
+import { fuFensterOeffnen } from './umrichter.js';
 import { monitorAufbauen } from './signalmonitor.js';
 import { modusSetzen } from './status.js';
 import { eingaengeSenden } from './bridge.js';
@@ -19,21 +21,59 @@ import { t } from '../core/sprache.js';
 
 const raycaster = new THREE.Raycaster();
 let pultGedrueckt = null;
-renderer.domElement.addEventListener('pointerdown', (e) => {
+function treffer(e) {
   const r = renderer.domElement.getBoundingClientRect();
   raycaster.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
-  const hit = raycaster.intersectObjects(PULT_TASTER.map(t => t.kappe), false)[0];
+  return raycaster.intersectObjects(PULT_TASTER.map(t => t.kappe), false)[0];
+}
+// Potentiometer wie ein Drehknopf: ziehen (nach oben/rechts = mehr, 160 px = 0…100 %), Mausrad 5 % je Raste.
+// Neben dem Mauszeiger steht dabei der Wert.
+let potiZug = null, tippAus = 0;
+const tipp = document.createElement('div');
+tipp.className = 'poti-tipp'; tipp.hidden = true; document.body.append(tipp);
+function potiSetzen(key, wert, e) {
+  st[key] = Math.max(0, Math.min(1, wert));
+  tipp.textContent = t`Drehzahl ${fmt0.format(st[key] * 100)} %`;
+  tipp.style.left = e.clientX + 16 + 'px'; tipp.style.top = e.clientY - 10 + 'px';
+  tipp.hidden = false;
+  bedienSync();
+}
+renderer.domElement.addEventListener('wheel', (e) => {
+  const hit = treffer(e);
+  if (!hit || hit.object.userData.art !== 'poti') return;
+  e.preventDefault(); e.stopImmediatePropagation();                    // nicht zoomen
+  const key = hit.object.userData.taster;
+  potiSetzen(key, Math.round((st[key] + (e.deltaY < 0 ? 0.05 : -0.05)) * 20) / 20, e);
+  clearTimeout(tippAus); tippAus = setTimeout(() => { if (!potiZug) tipp.hidden = true; }, 1200);
+}, { capture: true, passive: false });
+window.addEventListener('pointermove', (e) => {
+  if (potiZug) potiSetzen(potiZug.key, potiZug.v0 + ((e.clientX - potiZug.x) - (e.clientY - potiZug.y)) / 160, e);
+});
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  const hit = treffer(e);
   if (!hit) return;
   const { taster: key, art } = hit.object.userData;
   if (art === 'lichtvorhang') { personStarten(); return; }
   if (art === 'drossel') { wzFensterOeffnen(key); return; }          // Drosselrückschlagventil: Einstellung im Weg-Zeit-Fenster
+  if (art === 'umrichter') { fuFensterOeffnen(key); return; }        // Umrichter −TA2…−TA5 im Schaltschrank
   if (art === 'notHalt') { st.notHalt[key] = !st.notHalt[key]; bedienSync(); return; }
   if (art === 'wahl') { st[key] = !st[key]; bedienSync(); return; }
+  if (art === 'poti') {
+    potiZug = { key, x: e.clientX, y: e.clientY, v0: st[key] };
+    controls.enabled = false;
+    potiSetzen(key, st[key], e);
+    return;
+  }
   pultGedrueckt = key;
   st.bedien[key] = true;
   $(key).classList.add('down');
   controls.enabled = false;
   eingaengeSenden(false);            // nicht bis zum naechsten Bild warten
+});
+window.addEventListener('pointerup', () => {
+  if (!potiZug) return;
+  potiZug = null; controls.enabled = true;
+  clearTimeout(tippAus); tippAus = setTimeout(() => { tipp.hidden = true; }, 600);
 });
 window.addEventListener('pointerup', () => {
   if (!pultGedrueckt) return;
@@ -56,7 +96,7 @@ function taster(el, key) {
   el.addEventListener('keydown', (e) => { if (e.key === ' ' || e.key === 'Enter') down(e); });
   el.addEventListener('keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') up(); });
 }
-for (const k of ['sf1', 'sf2', 'sf4', 'sf41', 'sf42', 'sf43', 'sf44', 'sf5', 'sf6', 'sf7', 'sf23', 'sf24', 'sf25', 'sf30', 'sf31', 'sf32', 'sf34', 'sf35', 'sf36', 'sf37', 'sf38', 'sf39', 'sf28', 'sf29', 'sf19', 'sf20', 'sf21', 'sf22', 'sf11', 'sf12', 'sf13', 'sf14', 'sf15', 'sf16', 'sf17', 'sf18']) taster($(k), k);
+for (const k of ['sf1', 'sf2', 'sf4', 'sf41', 'sf42', 'sf43', 'sf44', 'sf5', 'sf6', 'sf7', 'sf23', 'sf24', 'sf25', 'sf30', 'sf31', 'sf32', 'sf34', 'sf35', 'sf36', 'sf37', 'sf38', 'sf39', 'sf45', 'sf46', 'sf28', 'sf29', 'sf19', 'sf20', 'sf21', 'sf22', 'sf11', 'sf12', 'sf13', 'sf14', 'sf15', 'sf16', 'sf17', 'sf18']) taster($(k), k);
 $('sa3').onclick = () => { st.sa3 = !st.sa3; bedienSync(); };
 $('btn-lv').onclick = () => personStarten();
 // Not-Halt-Taster rasten ein (Klick = drücken, nochmal Klick = entriegeln), Wahl- und Schlüsselschalter rasten
@@ -67,6 +107,8 @@ $('sf9').onclick = () => notHaltSchalten('sf9');
 $('sf10').onclick = () => notHaltSchalten('sf10');
 $('sf33').onclick = () => notHaltSchalten('sf33');
 $('sa6').onclick = () => { st.sa6 = !st.sa6; bedienSync(); };
+$('sa7').onclick = () => { st.sa7 = !st.sa7; bedienSync(); };
+$('sf47').addEventListener('input', (e) => { st.pbPoti = Number(e.target.value) / 100; bedienSync(); });
 $('sa5').onclick = () => { st.sa5 = !st.sa5; bedienSync(); };
 $('sa4').onclick = () => { st.sa4 = !st.sa4; bedienSync(); };
 $('sa1').onclick = () => { st.sa1 = !st.sa1; bedienSync(); };
@@ -80,6 +122,16 @@ function betriebSetzen(was, wert) {
 }
 $('bm-auto').onclick = () => betriebSetzen('band', 'auto');
 $('bm-sps').onclick = () => betriebSetzen('band', 'sps');
+// Antriebe: je Förderer Schütz oder Umrichter (−TA2 Band 1, −TA3 Band 2, −TA4 Rollenkurve, −TA5 Prüfband)
+const antriebKnoepfe = [...document.querySelectorAll('[data-antrieb]')];
+for (const b of antriebKnoepfe) b.onclick = () => antriebSetzen(b.dataset.antrieb, b.dataset.art);
+function antriebSetzen(name, art) {
+  if (st.antrieb[name] === art) return;
+  st.antrieb[name] = art;
+  const fu = UMRICHTER[name], wo = `${t(fu.foerderer)} ${fu.motor}`;
+  ereignis(art === 'fu' ? t`${wo} jetzt am Umrichter −${name} (PROFINET, Standardtelegramm 1)` : t`${wo} jetzt an den Schützen ${fu.schuetz}`);
+  bedienSync();
+}
 $('zb-auto').onclick = () => betriebSetzen('bad', 'auto');
 $('zb-sps').onclick = () => betriebSetzen('bad', 'sps');
 function bedienSync() {
@@ -93,18 +145,23 @@ function bedienSync() {
   $('sa5').setAttribute('aria-pressed', st.sa5);
   $('sf10').setAttribute('aria-pressed', st.notHalt.sf10);
   $('sa6').setAttribute('aria-pressed', st.sa6);
+  $('sa7').setAttribute('aria-pressed', st.sa7);
+  $('sf47').value = Math.round(st.pbPoti * 100);
+  $('o-sf47').textContent = fmt0.format(st.pbPoti * 100) + ' %';
   $('sf33').setAttribute('aria-pressed', st.notHalt.sf33);
   $('sa3').setAttribute('aria-pressed', st.sa3);
   $('bm-auto').setAttribute('aria-pressed', st.betriebBand === 'auto');
   $('bm-sps').setAttribute('aria-pressed', st.betriebBand === 'sps');
   $('zb-auto').setAttribute('aria-pressed', st.betriebBad === 'auto');
   $('zb-sps').setAttribute('aria-pressed', st.betriebBad === 'sps');
+  for (const b of antriebKnoepfe) b.setAttribute('aria-pressed', st.antrieb[b.dataset.antrieb] === b.dataset.art);
   $('btn-heizung').disabled = st.betriebBad === 'sps';
   $('btn-fuellen').disabled = st.betriebBad === 'sps';
   $('betrieb-hint').textContent = [
     st.betriebBand === 'sps' ? 'Band: −QA1/−QA2 (Rechts/Links), −MB9 Anschlag, −MB10 Vereinzeler, Rollenkurve −QA10/−QA11, Band 2, Muldenrollen −QA12/−QA13 und Prüfstation aus deinem Programm; −BG11…−BG13, −BG35/−BG36, −BG21…−BG24, −BG37/−BG33 (Einlauf/Endanschlag Kippmulde) und die Vor-Ort-Steuerstellen sind Eingänge.' : 'Band: Das Bandmodul fördert, stoppt, vereinzelt und übergibt über die Rollenkurve selbstständig.',
+    UMRICHTER_LISTE.some(fu => st.antrieb[fu.name] === 'fu') ? t`Am Umrichter: ${UMRICHTER_LISTE.filter(fu => st.antrieb[fu.name] === 'fu').map(fu => '−' + fu.name).join(', ')}. ${t(st.betriebBand === 'sps' ? 'Dein Programm führt sie über Standardtelegramm 1 (STW1/NSOLL_A → ZSW1/NIST_A), z. B. mit TO_SpeedAxis; die zugehörigen Schütze sind ohne Wirkung.' : 'Das Bandmodul führt sie selbst. Mit „SPS steuert“ übernimmt dein Programm die Telegramme.')}` : '',
     st.betriebBad === 'sps' ? 'Zinnbad: −TB1 Heizung (2-Punkt, Impuls/PWM oder PID) und −MB11 Nachfüllen aus deinem Programm, Istwerte −BT1/−BL1 analog.' : 'Zinnbad: Der Regler am Bad hält 280 °C, nachfüllen per Knopf.',
-  ].map(x => t(x)).join(' ');
+  ].filter(Boolean).map(x => t(x)).join(' ');
   eingaengeSenden(false);
 }
 bedienSync();
@@ -141,6 +198,7 @@ function anlageZuruecksetzen() {
     c.an0 = c.x <= 0; c.an1 = c.x >= c.hub;
   }
   prozessZuruecksetzen();
+  umrichterZuruecksetzen();
   for (const k of [...koerbe]) korbEntfernen(k);
   for (const t of tropfen.splice(0)) anlage.remove(t.m);
   for (const d of daempfe.splice(0)) { anlage.remove(d.s); d.s.material.dispose(); }
@@ -148,11 +206,11 @@ function anlageZuruecksetzen() {
   korbErzeugen(-150);
   Object.assign(st, { temp: 266, heizung: true, fuell: 62, verzinnt: 0 });
   for (const k in st.bedien) st.bedien[k] = false;
-  Object.assign(st, { notHalt: { sf0: false, sf8: false, sf9: false, sf10: false, sf33: false }, kf2: true, eingriff: false, sa1: true, sa2: false, sa3: false, sa4: false, sa5: false, sa6: false, heizElement: 0.76 });
+  Object.assign(st, { notHalt: { sf0: false, sf8: false, sf9: false, sf10: false, sf33: false }, kf2: true, eingriff: false, sa1: true, sa2: false, sa3: false, sa4: false, sa5: false, sa6: false, sa7: false, pbPoti: 1, heizElement: 0.76 });
   Object.assign(BAND2, { v: 0, wende: 0, pruefT: 0, ergebnisT: 0, pumpe: 0, spruehen: 0, blasen: 0 });
-  Object.assign(ST, { teile: [], trichter: [], klt: 0, aus: 0, kltTausch: 0, kipBefehl: false, pruefT: 0, ergebnisT: 0, vorOrt: { pruef: false, kip: false } });
+  Object.assign(ST, { teile: [], trichter: [], klt: 0, aus: 0, kltTausch: 0, kipBefehl: false, pruefT: 0, ergebnisT: 0, vorOrt: { pruef: false, kip: false, pb: false } });
   Object.assign(MULDE, { v: 0, wende: 0 });
-  Object.assign(demo.ps, { kip: false, kt: 0, gekippt: false, nachlauf: 0, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false }); ST.korbSumme.clear(); MM8.x = 0; MM8.v = 0; MM8.ventil = -1; MM8.an0 = true; MM8.an1 = false; rollenkurveZuruecksetzen();
+  Object.assign(demo.ps, { kip: false, kt: 0, gekippt: false, nachlauf: 0, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false, voPb: false }); ST.korbSumme.clear(); MM8.x = 0; MM8.v = 0; MM8.ventil = -1; MM8.an0 = true; MM8.an1 = false; rollenkurveZuruecksetzen();
   Object.assign(demo.kurve, { rechts: false, links: false, nachlauf: 0 });
   Object.assign(demo.band, { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Zeit: 0, bg11Aus: 0, uebNach: 0 });
   demo.b2.mulde = false;

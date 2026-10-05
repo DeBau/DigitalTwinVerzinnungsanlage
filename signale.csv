@@ -161,3 +161,29 @@ BG37_Kipper_Einlauf;%I11.7;Lichtschranke Einlauf Kippmulde (Korb in der Mulde, s
 BT1_Temperatur;%IW64;Zinntemperatur analog 0...27648 = 0...400 Grad C
 BL1_Fuellstand;%IW66;Fuellstand analog 0...27648 = 0...100 %
 BT2_Korbtemperatur;%IW68;Pyrometer Kuehlplatz: Korbtemperatur 0...27648 = 0...400 Grad C
+# --- Umrichter -TA2 Bandmotor -MA1 (SINAMICS G120, PROFINET, Standardtelegramm 1) - nur bei Antrieb "Umrichter" ---
+TA2_STW1;%QW256;Umrichter -TA2 Steuerwort 1 (STW1)
+TA2_NSOLL_A;%QW258;Umrichter -TA2 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 100 mm/s)
+TA2_ZSW1;%IW256;Umrichter -TA2 Zustandswort 1 (ZSW1)
+TA2_NIST_A;%IW258;Umrichter -TA2 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 100 mm/s)
+# --- Umrichter -TA3 Band 2 -MA2 (SINAMICS G120, PROFINET, Standardtelegramm 1) - nur bei Antrieb "Umrichter" ---
+TA3_STW1;%QW260;Umrichter -TA3 Steuerwort 1 (STW1)
+TA3_NSOLL_A;%QW262;Umrichter -TA3 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 120 mm/s)
+TA3_ZSW1;%IW260;Umrichter -TA3 Zustandswort 1 (ZSW1)
+TA3_NIST_A;%IW262;Umrichter -TA3 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 120 mm/s)
+# --- Umrichter -TA4 Rollenkurve -MA6 (SINAMICS G120, PROFINET, Standardtelegramm 1) - nur bei Antrieb "Umrichter" ---
+TA4_STW1;%QW264;Umrichter -TA4 Steuerwort 1 (STW1)
+TA4_NSOLL_A;%QW266;Umrichter -TA4 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 110 mm/s)
+TA4_ZSW1;%IW264;Umrichter -TA4 Zustandswort 1 (ZSW1)
+TA4_NIST_A;%IW266;Umrichter -TA4 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 110 mm/s)
+# --- Umrichter -TA5 Pruefband -MA5 (SINAMICS G120, PROFINET, Standardtelegramm 1) - nur bei Antrieb "Umrichter" ---
+TA5_STW1;%QW268;Umrichter -TA5 Steuerwort 1 (STW1)
+TA5_NSOLL_A;%QW270;Umrichter -TA5 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 150 mm/s)
+TA5_ZSW1;%IW268;Umrichter -TA5 Zustandswort 1 (ZSW1)
+TA5_NIST_A;%IW270;Umrichter -TA5 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 150 mm/s)
+# --- Vor-Ort-Steuerstelle -S50 Pruefband (Schluessel -SA7, EIN/AUS, Drehzahlpotentiometer an AI 8 Kanal 3) ---
+SA7_VorOrt5;%I11.2;Schluesselschalter Vor-Ort-Steuerstelle Pruefband -S50 (1 = Vor-Ort)
+SF45_Pruefband_Ein;%I11.3;Vor-Ort -S50 Pruefband EIN (Schliesser)
+SF46_Pruefband_Aus;%I11.4;Vor-Ort -S50 Pruefband AUS (Oeffner: 1 = nicht betaetigt)
+SF47_Pruefband_Drehzahl;%IW70;Vor-Ort -S50 Drehzahlpotentiometer Pruefband 0...27648 = 0...100 %
+PF16_VorOrt5;%Q5.3;Leuchte Vor-Ort-Steuerstelle Pruefband -S50 aktiv

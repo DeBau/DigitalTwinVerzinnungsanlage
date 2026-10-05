@@ -1,7 +1,7 @@
 import { SIGNALE } from '../signale.js';
 import { st } from '../logik/zustand.js';
 import { $ } from '../core/szene.js';
-import { ausgang, eingang, istAnalog } from '../logik/eingaenge.js';
+import { ausgang, ausgangWort, eingang, istAnalog } from '../logik/eingaenge.js';
 import { signalName, t } from '../core/sprache.js';
 
 // ----------------------------------------------------------------------------
@@ -34,7 +34,7 @@ export function monitorAufbauen() {
       tr.innerHTML = `<td>${an ? '<b class="wert">0</b>' : '<div class="led"></div>'}</td>
         <td class="name"${name !== s.name ? ` title="${esc(t`Name in signale.csv: ${s.name}`)}"` : ''}>${esc(name)}<small>${esc(kommentar)}</small></td>
         <td class="adr">${esc(s.adresse)}</td>
-        <td>${an ? '<span class="src">analog</span>' : richtung === 'eingang'
+        <td>${an ? `<span class="src">${richtung === 'eingang' ? 'analog' : esc(t('Wort'))}</span>` : richtung === 'eingang'
           ? `<span class="force" role="group" aria-label="${esc(t`${name} forcen`)}">
                <button type="button" data-f="auto" aria-pressed="${f === 'auto'}" title="${esc(t('Wert aus dem Modell'))}">A</button>
                <button type="button" data-f="0" aria-pressed="${f === '0'}" title="${esc(t('Auf 0 forcen'))}">0</button>
@@ -77,7 +77,8 @@ export function monitorAktualisieren() {
   for (const s of SIGNALE) {
     const z = monZeilen.get(s.name);
     if (!z || z.tr.hidden) continue;
-    const wert = z.analog ? eingang(s.name) : (s.richtung === 'eingang' ? !!eingang(s.name) : ausgang(s.name));
+    let wert = z.analog ? (s.richtung === 'eingang' ? eingang(s.name) : ausgangWort(s.name)) : (s.richtung === 'eingang' ? !!eingang(s.name) : ausgang(s.name));
+    if (z.analog && /_[SZ]TW\d$/.test(s.name)) wert = '16#' + (wert & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');   // Steuer-/Zustandswort
     if (letzterWert.get(s.name) === wert) continue;
     letzterWert.set(s.name, wert);
     if (z.analog) z.el.textContent = wert; else z.el.classList.toggle('on', wert);

@@ -44,14 +44,16 @@ export const st = {
   bridgeOffen: false, plcVerbunden: false, plcZustand: 'getrennt', plcText: '',
   steuernd: true, offeneZwillinge: 1,     // false = eine andere Registerkarte steuert (nur beobachten)
   spsAusgaenge: {}, demoAusgaenge: {},
-  bedien: { sf1: false, sf2: false, sf4: false, sf5: false, sf6: false, sf7: false, sf11: false, sf12: false, sf13: false, sf14: false, sf15: false, sf16: false, sf17: false, sf18: false, sf19: false, sf20: false, sf21: false, sf22: false, sf23: false, sf24: false, sf25: false, sf28: false, sf29: false, sf30: false, sf31: false, sf32: false, sf34: false, sf35: false, sf36: false, sf37: false, sf38: false, sf39: false, sf41: false, sf42: false, sf43: false, sf44: false },
+  bedien: { sf1: false, sf2: false, sf4: false, sf5: false, sf6: false, sf7: false, sf11: false, sf12: false, sf13: false, sf14: false, sf15: false, sf16: false, sf17: false, sf18: false, sf19: false, sf20: false, sf21: false, sf22: false, sf23: false, sf24: false, sf25: false, sf28: false, sf29: false, sf30: false, sf31: false, sf32: false, sf34: false, sf35: false, sf36: false, sf37: false, sf38: false, sf39: false, sf41: false, sf42: false, sf43: false, sf44: false, sf45: false, sf46: false },
   sf2Oeffner: true,
   force: {},
   temp: 266, heizung: true, fuell: 62,
   betriebBand: 'auto', betriebBad: 'auto',                 // Übungsumfang: 'auto' = Anlage regelt selbst, 'sps' = SPS-Programm
+  antrieb: { TA2: 'schuetz', TA3: 'schuetz', TA4: 'schuetz', TA5: 'schuetz' },   // je Förderer 'schuetz' oder 'fu' = Umrichter (Telegramm 1)
   notHalt: { sf0: false, sf8: false, sf9: false, sf10: false, sf33: false }, kf2: true, sf4Alt: false, eingriff: false,
-  sa1: true, sa2: false, sa3: false, sa4: false, sa5: false, sa6: false, fa1Ok: true, fa5Ok: true, fa7Ok: true, fa8Ok: true,
+  sa1: true, sa2: false, sa3: false, sa4: false, sa5: false, sa6: false, sa7: false, fa1Ok: true, fa5Ok: true, fa7Ok: true, fa8Ok: true,
   heizElement: 0.76, heizU: 0, regelEin: false,
+  pbPoti: 1,                                               // Drehzahlpotentiometer −SF47 an −S50 (0…1 = 0…100 %)
   zufuhr: true, speed: 1, verzinnt: 0,
   stoerungBis: 0,
 };

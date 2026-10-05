@@ -2,6 +2,7 @@ import { FUELL_MIN, NOT_HALT, QUITT, TEMP_SOLL, ZYL_LISTE, st } from './zustand.
 import { BAND, BAND2, KURVE, LS_POS, TROMMEL_R } from '../anlage/baender.js';
 import { MM8, ST } from '../anlage/pruefstation.js';
 import { kipperKorb, koerbe } from '../anlage/koerbe.js';
+import { UMRICHTER, nistA, zsw1 } from './umrichter.js';
 
 // ----------------------------------------------------------------------------
 // Signale lesen
@@ -13,7 +14,13 @@ export function ausgang(name) {
 // bei Not-Halt sind sie spannungslos, auch wenn die SPS den Ausgang noch setzt
 const KF2_GESCHALTET = /^(MB\d+|QA\d+|TB\d)_/;
 export function wirksam(name) { return ausgang(name) && (st.kf2 || !KF2_GESCHALTET.test(name)); }
-export const istAnalog = (s) => /^%?\s*[IE]W/i.test(s.adresse || '');
+// Wortausgänge (%QW, Int −32768…32767), z. B. das Telegramm zu einem Umrichter
+export function ausgangWort(name) {
+  const v = st.modus === 'sps' ? st.spsAusgaenge[name] : st.demoAusgaenge[name];
+  return typeof v === 'number' ? v : 0;
+}
+export const istAnalog = (s) => /^%?\s*[IEQA]W/i.test(s.adresse || '');
+const alsInt = (w) => (w << 16) >> 16;                 // 16 Bit als INT (die Bridge schreibt −32768…32767)
 // Lichtschranken: 1, solange der Korbkörper (110 mm, ±55 um die Korbmitte) den Strahl an der Stelle LS_POS unterbricht
 function korbAn(z0, b = 55) { return koerbe.some(k => k.zustand === 'band' && Math.abs(k.z - z0) < b); }
 function korbAmBand() { return korbAn(LS_POS.BG11_Korb); }
@@ -32,6 +39,8 @@ const GEBER = { impulse: 10, mmProUmdrehung: 2 * Math.PI * (TROMMEL_R + 3) };
 function geberPhase(versatz) { const n = BAND.weg / (GEBER.mmProUmdrehung / GEBER.impulse) + versatz; return n - Math.floor(n); }
 const analog = (v, max) => Math.round(Math.max(0, Math.min(1, v / max)) * 27648);
 function rohEingang(name) {
+  const tg = /^(TA\d)_(ZSW1|NIST_A)$/.exec(name);                  // Telegramm 1 der Umrichter
+  if (tg && UMRICHTER[tg[1]]) return tg[2] === 'ZSW1' ? alsInt(zsw1(UMRICHTER[tg[1]])) : nistA(UMRICHTER[tg[1]]);
   for (const n of NOT_HALT) if (name === n.signal) return !st.notHalt[n.key];     // Meldekontakt Öffner: 1 = entriegelt
   for (const q of QUITT) if (name === q.signal) return st.bedien[q.key];          // Quittiertaster (Schließer)
   for (const c of ZYL_LISTE) {
@@ -99,6 +108,10 @@ function rohEingang(name) {
     case 'SF37_Mulde_Zurueck': return st.bedien.sf37;
     case 'SF38_Kipper_Kippen': return st.bedien.sf38;
     case 'SF39_Kipper_Zurueck': return st.bedien.sf39;
+    case 'SA7_VorOrt5': return st.sa7;
+    case 'SF45_Pruefband_Ein': return st.bedien.sf45;
+    case 'SF46_Pruefband_Aus': return !st.bedien.sf46;
+    case 'SF47_Pruefband_Drehzahl': return analog(st.pbPoti, 1);
     case 'FA8_Motorschutz4': return st.fa8Ok;
     case 'BG27_Geber2_A': return geber2Phase(0) < 0.5;
     case 'BG27_Geber2_B': return geber2Phase(0.25) < 0.5;

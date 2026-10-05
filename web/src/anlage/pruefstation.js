@@ -29,7 +29,7 @@ export const ST = {
   trig: false, pruefT: 0, ergebnis: null, ergebnisT: 0, blasen: 0, kipBefehl: false, kipFertig: false, korbSumme: new Map(),
   kamLicht: null, ausschussPlane: null, kltPlane: null, rinneGruppe: null,
   ans: {}, zeichnen: [], mm8: null,                                     // Anschlusspunkte / Zeichen-Hooks der Peripherie
-  vorOrt: { pruef: false, kip: false },                                 // Vor-Ort −S40 im Bandmodul „automatisch“: Selbsthaltungen
+  vorOrt: { pruef: false, kip: false, pb: false },                      // Vor-Ort −S40/−S50 im Bandmodul „automatisch“: Selbsthaltungen
 };
 // Rollenantrieb der Kippmulde −MA7 (Wendeschützkombination −QA12 vor / −QA13 zurück, Motorschutz −FA8), Geschwindigkeit wie Band 2
 export const MULDE = { v: 0, vSoll: 120, a: 300, wende: 0, weg: 0 };

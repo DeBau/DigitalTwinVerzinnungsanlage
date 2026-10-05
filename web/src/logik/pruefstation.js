@@ -7,6 +7,7 @@ import { TEILE_JE_KORB, kipperKorb, koerbe, korbEntfernen } from '../anlage/koer
 import { ereignis } from '../ui/ereignisse.js';
 import { t } from '../core/sprache.js';
 import { wirksam } from './eingaenge.js';
+import { amUmrichter, umrichterFahren } from './antriebe.js';
 import { zylinderBewegen } from './pneumatik-modell.js';
 
 // Entleer- und Prüfstation: Korb auf die Kippmulde, Kippen, Teilefluss Trichter → Rinne → Prüfband → Kamera → Ausblasen/KLT
@@ -90,6 +91,19 @@ export function pruefstation(dt) {
     ST.trig = trig;
     ST.blasen = wirksam('MB16_Ausblasen') ? 1 : 0;
   }
+  // Vor-Ort −S50 Prüfband (Schlüssel −SA7, Vorrang vor −S40 und dem Bandmodul): EIN −SF45 mit Selbsthaltung, AUS −SF46 (Öffner),
+  // Drehzahl am Potentiometer −SF47 – die wirkt nur am Umrichter −TA5, am Schütz −QA9 läuft das Band mit Nenngeschwindigkeit
+  let pbSoll = ST.vBand;
+  if (auto && st.sa7) {
+    if (st.bedien.sf46 || !st.kf2) ST.vorOrt.pb = false;
+    else if (st.bedien.sf45) ST.vorOrt.pb = true;
+    ST.vBand = ST.vorOrt.pb ? 1 : 0;
+    pbSoll = ST.vorOrt.pb ? st.pbPoti : 0;
+  } else ST.vorOrt.pb = false;
+  // Prüfband am Umrichter −TA5 (sonst Schütz −QA9, Faktor 0/1): im Übungsumfang „automatisch“ führt ihn das Bandmodul.
+  // Das Band fördert nur vorwärts: im Umrichter ist die negative Drehrichtung gesperrt (p1110).
+  ST.fuBand = amUmrichter('TA5');
+  if (ST.fuBand) ST.vBand = Math.max(0, umrichterFahren('TA5', dt, auto ? pbSoll * 150 : null) / 150);
   // Kamera: Belichtung, dann Ergebnis für das Teil im Bild (0,3 s gültig)
   if (ST.pruefT > 0) {
     ST.pruefT -= dt;

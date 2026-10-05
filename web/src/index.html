@@ -74,12 +74,12 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(-
 .readout b.warn { color: var(--fault); }
 
 .stage-foot { position: absolute; left: 16px; bottom: 14px; right: 16px; display: flex; gap: 6px; flex-wrap: wrap; }
-.chip-btn { font: 500 12px var(--font-label); letter-spacing: .03em; color: var(--fg); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+.chip-btn { font: 500 12px var(--font-label); letter-spacing: .03em; color: var(--fg); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; cursor: pointer; }
 .chip-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
 .chip-btn:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .chip-sel { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--font-label); letter-spacing: .03em; color: var(--muted); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 2px 4px 2px 11px; }
-.chip-sel select { font: 500 12px var(--font-label); color: var(--fg); background: transparent; border: 0; padding: 3px 4px; cursor: pointer; max-width: 230px; }
+.chip-sel select { font: 500 12px var(--font-label); color: var(--fg); background: transparent; border: 0; padding: 3px 4px; cursor: pointer; max-width: 160px; text-overflow: ellipsis; }
 .chip-sel select option, .chip-sel select optgroup { color: #1b232c; background: #fff; }
 .legende { position: absolute; left: 16px; bottom: 52px; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px 9px; font-size: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.14); max-width: min(330px, calc(100% - 32px)); }
 .legende-kopf { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
@@ -191,6 +191,9 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(-
 /* Stellungstexte stehen ueber dem Schalter - genau wie auf dem echten Tableau */
 .stellung { order: -1; display: flex; justify-content: space-between; width: 64px; font: 600 9.5px var(--font-label); letter-spacing: .04em; }
 .plate.klein { padding: 10px; gap: 10px; }
+.op.poti { width: 100%; }
+.poti-tipp { position: fixed; z-index: 40; pointer-events: none; font: 600 12px var(--font-ui); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+.op.poti input { width: 90%; accent-color: var(--accent); }
 .plate .row.five { grid-template-columns: repeat(5, 1fr); }
 .betrieb { display: grid; gap: 4px; }
 .betrieb > span { font: 500 12.5px var(--font-ui); }
@@ -253,6 +256,86 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(-
 @media (max-width: 700px) {
   .fenster { left: 4px !important; top: 4px !important; width: calc(100vw - 8px); height: calc(100vh - 8px); min-width: 0; resize: none; }
   .dr-zeile { grid-template-columns: 1fr; }
+}
+
+/* Fenster Umrichter −TA2 */
+.fu-fenster { width: min(1080px, calc(100vw - 16px)); height: min(900px, calc(100vh - 16px)); left: 48px; top: 24px; }
+.fu-wahl { display: flex; flex: 0 1 auto; }
+.fu-wahl button { padding: 5px 10px; }
+.antriebe { display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; align-items: center; }
+.antriebe > span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.fu-verlauf { flex: 0 0 auto; border-top: 1px solid var(--line); padding: 8px 14px 12px; display: grid; gap: 6px; }
+.fu-verlauf-kopf { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.fu-verlauf-kopf b { font: 600 12px var(--font-label); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.fu-verlauf-kopf .chip-sel { margin-left: auto; }
+.fu-legende { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.fu-legende i { width: 18px; height: 0; border-top: 2px solid; }
+.fu-legende i.soll { border-color: var(--muted); border-top-style: dashed; }
+.fu-legende i.wirk { border-color: var(--led); }
+.fu-legende i.ist { border-color: #009999; border-top-width: 3px; }
+#fu-kurve { width: 100%; height: 190px; display: block; }
+.fu-inhalt { flex: 1 1 auto; min-height: 0; overflow: auto; display: grid; grid-template-columns: 230px 1fr; gap: 18px; padding: 14px; }
+.g120 { align-self: start; display: grid; gap: 0; width: 210px; justify-self: center; }
+.g120-cu { background: linear-gradient(90deg, #41474d, #50575e 50%, #41474d); border-radius: 6px 6px 2px 2px; padding: 10px 8px 8px;
+  display: grid; gap: 9px; box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 4px 10px rgba(0,0,0,.3); position: relative; z-index: 1; }
+.iop { background: linear-gradient(#202326, #141618); border-radius: 9px; padding: 8px 9px 11px; display: grid; gap: 9px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 3px 8px rgba(0,0,0,.45); }
+.iop-marke { font: 700 13px/1 Arial, "Helvetica Neue", sans-serif; letter-spacing: .03em; color: #fff; }
+.iop-display { width: 100%; aspect-ratio: 4 / 3; display: block; border-radius: 2px; border: 2px solid #08090a; background: #0d1114; }
+.iop-reihe { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.iop-reihe.unten { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.iop-taste { font: 700 10px Arial, sans-serif; letter-spacing: .04em; color: #d6dadd; background: linear-gradient(#3b4045, #2b2f33); border: 1px solid #0b0c0d;
+  border-radius: 5px; height: 24px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 2px 0 #000; padding: 0; }
+.iop-taste:active, .iop-taste.gedrueckt { transform: translateY(1px); box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.iop-taste.ein { background: linear-gradient(#26a957, #1a8043); color: #fff; font: 700 15px Arial; height: 28px; }
+.iop-taste.aus { background: linear-gradient(#d83a3a, #a82424); color: #fff; font: 700 15px Arial; height: 28px; }
+.iop-taste.hand { height: 28px; display: grid; place-items: center; }
+.iop-taste.hand svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.iop-taste.hand[aria-pressed="true"] { color: #ffb000; }
+.iop-rad { width: 62px; height: 62px; border-radius: 50%; border: 1px solid #000; cursor: pointer; padding: 0; position: relative;
+  background: repeating-conic-gradient(#2c3034 0 6deg, #3a3f44 6deg 12deg); box-shadow: 0 2px 4px rgba(0,0,0,.6), inset 0 0 0 3px #1b1d20; }
+.iop-ok { position: absolute; inset: 15px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #5d646b, #2f3438 70%);
+  font: 700 9px Arial; color: #c9cdd1; display: grid; place-items: center; box-shadow: 0 1px 2px rgba(0,0,0,.7); }
+.iop-rad:active .iop-ok { transform: scale(.96); }
+.g120-leds { display: flex; gap: 16px; padding: 0 4px; font: 700 9px Arial, sans-serif; letter-spacing: .05em; color: #d7dde2; }
+.g120-leds span, .g120-ports span { display: flex; align-items: center; gap: 5px; }
+.g120-klappe { border: 1px solid #2f3438; border-radius: 3px; padding: 8px 8px 22px; color: #d7dde2; display: grid; gap: 2px;
+  background: linear-gradient(#4b5258, #444a50); }
+.g120-klappe b { font: 700 11px Arial, sans-serif; letter-spacing: .06em; }
+.g120-klappe small { font: 500 9.5px Arial, sans-serif; }
+.g120-pm { background: linear-gradient(90deg, #32373b, #3f454a 50%, #32373b); margin: 0 3px; padding: 12px 10px 10px; color: #cfd6dc; display: grid; gap: 2px;
+  border-radius: 0 0 4px 4px; box-shadow: 0 6px 14px rgba(0,0,0,.3); }
+.g120-pm b { font: 700 10.5px Arial, sans-serif; }
+.g120-pm small { font: 500 9px Arial, sans-serif; color: #aab4bc; }
+.g120-pm .klemmen { margin-top: 6px; padding-top: 6px; border-top: 1px solid #262a2e; font-family: var(--font-data); }
+.g120-ports { display: flex; justify-content: center; gap: 18px; padding: 6px 0 0; font: 600 9.5px var(--font-data); color: var(--muted); }
+.g120-hinweis { margin: 8px 0 0; text-align: center; font-size: 11px; color: var(--muted); }
+.fu-led { width: 8px; height: 8px; border-radius: 50%; background: #6d757c; box-shadow: inset 0 1px 1px rgba(0,0,0,.5); flex: none; }
+.fu-led.gruen { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+.fu-led.rot { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+.fu-led.gelb { background: #facc15; box-shadow: 0 0 6px #facc15; }
+.fu-led.blinkt { animation: fu-blink 1s steps(1) infinite; }
+@keyframes fu-blink { 50% { background: #6d757c; box-shadow: none; } }
+.fu-telegramm { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.fu-zustaende { display: flex; flex-wrap: wrap; gap: 6px; }
+.fu-zustaende span { font: 500 11.5px var(--font-label); padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.fu-zustaende span.an { background: var(--accent); border-color: var(--accent); color: #fff; }
+.fu-zustaende span.stoerung.an { background: var(--fault); border-color: var(--fault); }
+.fu-woerter { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.fu-wort { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.fu-wort-kopf { display: flex; align-items: baseline; gap: 8px; }
+.fu-wort-kopf b { font: 600 13px var(--font-label); }
+.fu-wort-kopf span { flex: 1; font-size: 11.5px; color: var(--muted); }
+.fu-wort-kopf code { font: 500 12.5px var(--font-data); }
+.fu-bits { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; font-size: 12px; }
+.fu-bits li { display: grid; grid-template-columns: 26px 12px 1fr; gap: 6px; align-items: center; padding: 2px 4px; border-radius: 4px; }
+.fu-bits li:nth-child(odd) { background: color-mix(in srgb, var(--line) 35%, transparent); }
+.fu-bits li b { font: 400 11px var(--font-data); color: var(--muted); text-align: right; }
+.fu-bits li .led { width: 10px; height: 10px; }
+.fu-bits li.aus { color: var(--muted); }
+.fu-zahl { margin: 0; font: 400 12.5px var(--font-data); font-variant-numeric: tabular-nums; }
+@media (max-width: 700px) {
+  .fu-inhalt, .fu-woerter { grid-template-columns: 1fr; }
 }
 
 /* Ereignisse */
@@ -339,6 +422,7 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
     <div class="stage-foot">
       <button class="chip-btn" id="btn-labels" aria-pressed="true" type="button">Beschriftung</button>
       <button class="chip-btn" id="btn-grafik" type="button" title="Grafikqualität: Auto regelt nach Bildrate">Grafik: Auto</button>
+      <button class="chip-btn" id="btn-tiefenschatten" aria-pressed="false" type="button" title="Tiefenschatten (Ambient Occlusion): Verschattung in Ecken, Nuten und Spalten – realistischer, kostet Grafikleistung">Tiefenschatten</button>
       <button class="chip-btn" id="btn-cam" type="button">Ansicht zurücksetzen</button>
       <label class="chip-sel"><span>Ansicht</span><select id="ansicht-wahl" aria-label="Feste Ansicht wählen"></select></label>
       <button class="chip-btn" id="btn-hilfe" aria-pressed="true" type="button" title="Maussteuerung anzeigen">Steuerung</button>
@@ -399,6 +483,20 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
             <button type="button" id="bm-auto" aria-pressed="true">Bandmodul automatisch</button>
             <button type="button" id="bm-sps" aria-pressed="false">SPS steuert</button>
           </div>
+        </div>
+        <div class="betrieb">
+          <span>Antriebe: Schütz oder Umrichter (SINAMICS G120, Telegramm 1)</span>
+          <div class="antriebe">
+            <span>Band 1 −MA1</span>
+            <div class="seg klein" role="group" aria-label="Antrieb Band 1 −MA1"><button type="button" data-antrieb="TA2" data-art="schuetz">Schütz −QA1/−QA2</button><button type="button" data-antrieb="TA2" data-art="fu">Umrichter −TA2</button></div>
+            <span>Band 2 −MA2</span>
+            <div class="seg klein" role="group" aria-label="Antrieb Band 2 −MA2"><button type="button" data-antrieb="TA3" data-art="schuetz">Schütz −QA5/−QA6</button><button type="button" data-antrieb="TA3" data-art="fu">Umrichter −TA3</button></div>
+            <span>Rollenkurve −MA6</span>
+            <div class="seg klein" role="group" aria-label="Antrieb Rollenkurve −MA6"><button type="button" data-antrieb="TA4" data-art="schuetz">Schütz −QA10/−QA11</button><button type="button" data-antrieb="TA4" data-art="fu">Umrichter −TA4</button></div>
+            <span>Prüfband −MA5</span>
+            <div class="seg klein" role="group" aria-label="Antrieb Prüfband −MA5"><button type="button" data-antrieb="TA5" data-art="schuetz">Schütz −QA9</button><button type="button" data-antrieb="TA5" data-art="fu">Umrichter −TA5</button></div>
+          </div>
+          <button type="button" class="btn" id="btn-fu">Umrichter und Telegramme öffnen</button>
         </div>
         <div class="betrieb">
           <span>Zinnbad: Temperatur und Füllstand</span>
@@ -518,6 +616,24 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
             </div>
           </div>
         </details>
+        <details class="sub" id="sec-s50">
+          <summary><h2>Vor-Ort-Steuerstelle Prüfband (−S50)</h2></summary>
+          <div class="inhalt">
+            <div class="plate klein">
+              <div class="row four">
+                <div class="op"><button type="button" class="wahl schluessel" id="sa7" aria-pressed="false" aria-label="Schlüsselschalter Vor-Ort Prüfband (SA7)"></button><span class="stellung"><span>0</span><span>1</span></span><code>−SA7</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf45" aria-label="Prüfband EIN (SF45)"><span class="pf">I</span></button><small>Prüfband EIN</small><code>−SF45</code></div>
+                <div class="op"><button type="button" class="pb rot" id="sf46" aria-label="Prüfband AUS (SF46)"><span class="pf">0</span></button><small>Prüfband AUS</small><code>−SF46</code></div>
+                <div class="op"><span class="lamp white" id="pf16"></span><small>Vor-Ort aktiv</small><code>−PF16</code></div>
+              </div>
+              <div class="op poti">
+                <input type="range" id="sf47" min="0" max="100" step="1" value="100" aria-label="Drehzahl Prüfband (SF47)">
+                <small>Drehzahl <output id="o-sf47">100 %</output></small><code>−SF47</code>
+              </div>
+            </div>
+            <p class="hint">Hat Vorrang vor −S40. Die Drehzahl wirkt nur am Umrichter −TA5, am Schütz −QA9 läuft das Prüfband mit Nenngeschwindigkeit. Not-Halt und Quittieren an −S40.</p>
+          </div>
+        </details>
       </div>
     </details>
 
@@ -611,6 +727,76 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
     </details>
   </aside>
 </div>
+<section class="fenster fu-fenster" id="fuf" role="dialog" aria-labelledby="fuf-titel" hidden>
+  <header class="fenster-kopf" id="fuf-kopf">
+    <b id="fuf-titel">Umrichter · SINAMICS G120 · Standardtelegramm 1</b>
+    <div class="seg klein fu-wahl" id="fu-wahl" role="group" aria-label="Umrichter wählen"></div>
+    <button type="button" class="btn" id="fu-ueberlast" title="Störung F30005 im Umrichter auslösen (sofort quittierbar)">Störung Überlast</button>
+    <button type="button" class="btn" id="fu-heiss" aria-pressed="false" title="Kaltleiter im Motor spricht an: F07011, quittierbar erst nach dem Abkühlen">Motor überhitzt</button>
+    <button type="button" class="side-mini side-x" id="fuf-zu" aria-label="Fenster schließen" title="Schließen (Esc)">×</button>
+  </header>
+  <div class="fu-inhalt">
+    <div class="g120" role="group" aria-label="Frontansicht Umrichter (SINAMICS G120)">
+      <div class="g120-cu">
+        <div class="iop">
+          <div class="iop-marke">SIEMENS</div>
+          <canvas class="iop-display" id="iop-display" width="320" height="240" aria-label="Display Bedienpanel IOP-2"></canvas>
+          <div class="iop-reihe">
+            <button type="button" class="iop-taste klein" data-taste="esc" title="ESC: zurück zur Statusanzeige">ESC</button>
+            <button type="button" class="iop-rad" id="iop-rad" title="Drehrad: Mausrad, Pfeiltasten oder Klick auf den linken/rechten Rand drehen, Mitte drücken = OK" aria-label="Drehrad"><span class="iop-ok">OK</span></button>
+            <button type="button" class="iop-taste klein" data-taste="info" title="INFO: Diagnose (Störungen und Warnungen)">INFO</button>
+          </div>
+          <div class="iop-reihe unten">
+            <button type="button" class="iop-taste ein" data-taste="ein" title="EIN (nur in HAND)" aria-label="EIN">I</button>
+            <button type="button" class="iop-taste hand" data-taste="handAuto" id="iop-hand" title="Umschalten HAND / AUTO" aria-label="HAND/AUTO" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-6.5V4a1.5 1.5 0 0 1 3 0v7m0-6a1.5 1.5 0 0 1 3 0v6m0-3.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1.2a6 6 0 0 1-4.6-2.2L3.3 15.4a1.6 1.6 0 0 1 2.4-2.1L8 15.5"/></svg>
+            </button>
+            <button type="button" class="iop-taste aus" data-taste="aus" title="AUS (AUS1, nur in HAND)" aria-label="AUS">O</button>
+          </div>
+        </div>
+        <div class="g120-leds">
+          <span><i class="fu-led" id="fu-led-rdy"></i>RDY</span>
+          <span><i class="fu-led" id="fu-led-bf"></i>BF</span>
+          <span><i class="fu-led" id="fu-led-safe"></i>SAFE</span>
+        </div>
+        <div class="g120-klappe"><b>SINAMICS</b><small>CU240E-2 PN</small></div>
+      </div>
+      <div class="g120-pm"><b>PM240-2</b><small>FSA · 0,37 kW · 3 AC 400 V</small><small class="klemmen">U2 V2 W2 · L1 L2 L3 · PE</small></div>
+      <div class="g120-ports"><span><i class="fu-led" id="fu-led-lnk"></i>X150 P1</span><span><i class="fu-led"></i>P2</span></div>
+      <p class="g120-hinweis">Tasten bedienbar · Mausrad am Drehrad</p>
+    </div>
+    <div class="fu-telegramm">
+      <div class="fu-zustaende" id="fu-zustaende"></div>
+      <div class="fu-woerter">
+        <div class="fu-wort">
+          <div class="fu-wort-kopf"><b>STW1</b><span>SPS → Umrichter · <span id="fu-adr-stw">%QW256</span></span><code id="fu-stw-hex">16#0000</code></div>
+          <ol class="fu-bits" id="fu-stw-bits"></ol>
+          <div class="fu-wort-kopf"><b>NSOLL_A</b><span>Drehzahlsollwert · <span id="fu-adr-nsoll">%QW258</span></span><code id="fu-nsoll-hex">16#0000</code></div>
+          <p class="fu-zahl" id="fu-nsoll-wert">0</p>
+        </div>
+        <div class="fu-wort">
+          <div class="fu-wort-kopf"><b>ZSW1</b><span>Umrichter → SPS · <span id="fu-adr-zsw">%IW256</span></span><code id="fu-zsw-hex">16#0000</code></div>
+          <ol class="fu-bits" id="fu-zsw-bits"></ol>
+          <div class="fu-wort-kopf"><b>NIST_A</b><span>Drehzahlistwert · <span id="fu-adr-nist">%IW258</span></span><code id="fu-nist-hex">16#0000</code></div>
+          <p class="fu-zahl" id="fu-nist-wert">0</p>
+        </div>
+      </div>
+      <p class="hint" id="fu-hinweis"></p>
+    </div>
+  </div>
+  <div class="fu-verlauf">
+    <div class="fu-verlauf-kopf">
+      <b>Rampen live</b>
+      <span class="fu-legende"><i class="soll"></i>Sollwert NSOLL_A</span>
+      <span class="fu-legende"><i class="wirk"></i>wirksamer Sollwert (Hochlaufgeber-Eingang)</span>
+      <span class="fu-legende"><i class="ist"></i>Istdrehzahl NIST_A</span>
+      <label class="chip-sel"><span>Zeitfenster</span><select id="fu-spanne" aria-label="Zeitfenster">
+        <option value="10">10 s</option><option value="20" selected>20 s</option><option value="60">60 s</option>
+      </select></label>
+    </div>
+    <canvas id="fu-kurve" aria-label="Verlauf von Sollwert und Istdrehzahl des Umrichters"></canvas>
+  </div>
+</section>
 <section class="fenster" id="wzf" role="dialog" aria-labelledby="wzf-titel" hidden>
   <header class="fenster-kopf" id="wzf-kopf">
     <b id="wzf-titel">Weg-Zeit-Diagramm · Drosseln</b>

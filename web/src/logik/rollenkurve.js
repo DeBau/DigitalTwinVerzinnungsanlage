@@ -4,6 +4,7 @@ import { koerbe } from '../anlage/koerbe.js';
 import { ereignis } from '../ui/ereignisse.js';
 import { t } from '../core/sprache.js';
 import { wirksam } from './eingaenge.js';
+import { amUmrichter, umrichterFahren } from './antriebe.js';
 
 // ----------------------------------------------------------------------------
 // Rollenkurve −MA6 (90°-Kurvenrollenbahn zwischen Band 1 und Band 2)
@@ -65,7 +66,12 @@ export function rollenkurve(dt) {
     if (r && l) { ereignis('Wendeschütz Rollenkurve: Rechts- und Linkslauf gleichzeitig angesteuert (mechanisch verriegelt)', 'err', 'wende3'); r = KURVE.wende > 0; l = KURVE.wende < 0; }
     KURVE.wende = st.fa7Ok ? (r ? 1 : l ? -1 : 0) : 0;
   }
-  KURVE.v += Math.max(-KURVE.a * dt, Math.min(KURVE.a * dt, KURVE.wende * KURVE.vSoll - KURVE.v));
+  KURVE.fu = amUmrichter('TA4');
+  if (KURVE.fu) {
+    // Umrichter −TA4: im Übungsumfang „automatisch“ führt ihn das Bandmodul, sonst das Telegramm der SPS (−QA10/−QA11 ohne Wirkung)
+    if (!auto) KURVE.wende = 0;
+    KURVE.v = umrichterFahren('TA4', dt, auto ? KURVE.wende * KURVE.vSoll : null);
+  } else KURVE.v += Math.max(-KURVE.a * dt, Math.min(KURVE.a * dt, KURVE.wende * KURVE.vSoll - KURVE.v));
   KURVE.weg += KURVE.v * dt;
   // Körbe in der Kurve bewegen, Übergabe an Band 2 bzw. (rückwärts) an Band 1
   for (const k of kk) {

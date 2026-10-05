@@ -88,6 +88,7 @@ export const ANSICHT = {
   s30: A('Steuerstellen', 'Vor-Ort −S30 Rollenkurve', -0.36, 1.35, 2.75, -0.48, 1.165, 1.81),
   s20: A('Steuerstellen', 'Vor-Ort −S20 Band 2', 2.54, 1.35, 2.95, 2.42, 1.165, 2.03),
   s40: A('Steuerstellen', 'Vor-Ort −S40 Prüfstation', 3.72, 1.55, 3.55, 3.42, 1.05, 2.0),
+  s50: A('Steuerstellen', 'Vor-Ort −S50 Prüfband', 4.43, 1.35, 3.0, 4.31, 1.165, 2.13),
 };
 export const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;

@@ -67,6 +67,9 @@ ihre Betriebsmittelkennzeichen nach EN 81346, so wie sie auch in `signale.csv` u
 | SF0/SF8/SF9/SF10/SF33_NotHalt_frei | %I9.1…%I9.5 | Not-Halt-Meldekontakte (Öffner, 1 = entriegelt) |
 | SF41…SF44_Quittieren_S10…S40 | %I10.6, %I10.7, %I11.0, %I11.1 | Quittiertaster der Vor-Ort-Steuerstellen |
 | BG37_Kipper_Einlauf | %I11.7 | Lichtschranke Einlauf Kippmulde (Korb in der Mulde, schwenkt mit) |
+| SA7_VorOrt5, SF45_Pruefband_Ein, SF46_Pruefband_Aus | %I11.2, %I11.3, %I11.4 | Vor-Ort −S50 Prüfband: Schlüssel, EIN, AUS (Öffner) |
+| SF47_Pruefband_Drehzahl | %IW70 | Vor-Ort −S50: Drehzahlpotentiometer 0…27648 = 0…100 % |
+| PF16_VorOrt5 | %Q5.3 | Leuchte Vor-Ort-Steuerstelle −S50 |
 | PF12…PF15_Quitt_S10…S40 | %Q4.7, %Q5.0…%Q5.2 | Leuchttaster Quittieren der Vor-Ort-Steuerstellen |
 
 - Fehlerbilder: Kupfer sichtbar (nicht/zu kurz getaucht), Wasserflecken (nicht abgeblasen), ungleichmäßige Zinnschicht, gelegentlich Zinnzapfen. Die Ereignisliste zeigt je Korb „x i.O. im KLT, y n.i.O. ausgeschleust“ und meldet Fehlverhalten: Gutteil ausgeblasen, n.i.O.-Teil im KLT, KLT übervoll.
@@ -90,13 +93,17 @@ ihre Betriebsmittelkennzeichen nach EN 81346, so wie sie auch in `signale.csv` u
 
 ## Schaltschrank −A1 („Schaltschrank öffnen“)
 
+![Schaltschrank −A1](bilder/03-schaltschrank.jpg)
+
+![Umrichter −TA2…−TA5 im Schaltschrank](bilder/12-umrichter-schrank.jpg)
+
 | Reihe | Betriebsmittel |
 |---|---|
 | Einspeisung | −X0 Einspeiseklemmen, −FA1 Motorschutz 3RV2, −FA2 LS C16 3-polig, −FA3/−FA4 LS B6, −TA1 SITOP PSU8200 24 V/10 A, −XD9 Servicesteckdose, −FA5/−FA6 Motorschutz Band 2/Pumpe, −FA8 Motorschutz Muldenantrieb, −QB1 Hauptschalter (Welle zum Seitengriff) |
 | SIMATIC S7-1500 | PM 1507, −KF1 CPU 1516-3 PN/DP mit Display, DI 32 (%I0.0–%I3.7), DI 32 (%I4.0–%I7.7), DI 32 (%I8.0–%I11.7), DQ 32 (%Q0.0–%Q3.7), DQ 32 (%Q4.0–%Q7.7), AI 8 (%IW64 BT1, %IW66 BL1), Reserve; rechts neben der Profilschiene −KF10 Keyence CV-X |
 | Leistung | −QA1/−QA2 Wendeschützkombination Band (mechanisch verriegelt), −QA3 Heizungsschütz, −TB1 Halbleiterrelais 3RF2, −KF2 Sicherheitsrelais 3SK1, −KF3…−KF6 Koppelrelais, −QA5/−QA6 Wendekombination Band 2, −QA7 Pumpe, −QA12/−QA13 Wendekombination Muldenrollen |
 | Klemmen | −X1 400 V, −X2 24 V DC, −X3 Eingänge, −X4 Ausgänge, −X5 Feld (8WH, Federzug); rechts daneben −QA10/−QA11 Wendekombination Rollenkurve und −FA7 Motorschutz Rollenkurve |
-| Unten | −XPE Schutzleiterschiene, Schirmauflage mit Zugentlastung |
+| Unten | −XPE Schutzleiterschiene, rechts daneben die Umrichter −TA2 Band 1, −TA3 Band 2, −TA4 Rollenkurve, −TA5 Prüfband (je SINAMICS G120: PM240-2, CU240E-2 PN, IOP-2), Schirmauflage mit Zugentlastung |
 
 Die Kanal-LEDs der DI/DQ-Baugruppe zeigen live die Signale aus `signale.csv`. Das CPU-Display zeigt RUN/STOP von PLCSIM Advanced oder DEMO. Die Schaltstellungsanzeigen der Schütze und die LED des Halbleiterrelais folgen dem Prozess.
 

@@ -29,7 +29,7 @@ PLCSIM-Advanced-API-DLL ein, die es selbst sucht.
 | `core/` | Renderer, Szene, Kamera, Materialien, Texturen, Beschriftungen, Grafikregelung, Mesh-Zusammenfassung |
 | `bauteile/` | Wiederverwendbare Konstruktionsteile: Aluprofil, ISO-15552-Zylinder, Nutsensor, Lichtschranke, Förderer, Leitungen, Stecker |
 | `anlage/` | Die Anlage selbst: Halle, Bänder, Zinnbad, Portal, Rollenkurve, Kühlung, Prüfstation, Körbe, Pneumatik, Verdrahtung, Schaltschrank, Befehlsgeräte, Werker |
-| `logik/` | Zustand, Eingänge berechnen, Prozessmodell (Physik der Zylinder, Förderer, Körbe, Temperatur), Demo-SPS |
+| `logik/` | Zustand, Eingänge berechnen, Prozessmodell (Physik der Zylinder, Förderer, Körbe, Temperatur), Umrichter −TA2…−TA5 (PROFIdrive-Zustandsmaschine, Telegramm 1, `umrichter.js`; Kopplung an die Förderer in `antriebe.js`), Demo-SPS |
 | `ui/` | Seitenleiste, Bedienung, Signalmonitor, Weg-Zeit-Diagramm, Ereignisliste, Ansichten, Bridge-Verbindung |
 | `lib/` | three.js r170, three-mesh-bvh und die Schrift IBM Plex (`lib/fonts/`, wird beim Build eingebettet), lokal eingebunden (Lizenzen liegen daneben) |
 | `signale.js` | Fallback-Signalliste, falls die Bridge keine `signale.csv` liefert |
@@ -63,6 +63,7 @@ Die Bridge-Version wird trotzdem mitgezogen, damit alle vier Stellen gleich blei
 node tools\shot.mjs       :: Screenshot plus Konsolenfehler, für schnelle Sichtprüfung
 node tools\zyklen.mjs     :: prüft die ES-Module auf Importzyklen
 node tools\biegung.mjs    :: listet Leitungsbögen unter dem Mindestbiegeradius
+node tools\doku-bilder.mjs [name]  :: Bilder in docs\bilder neu aufnehmen (sichtbares Chrome-Fenster, Stufe Hoch)
 ```
 
 ## Leitungen verlegen

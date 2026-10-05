@@ -8,6 +8,7 @@ import { TEILE_JE_KORB, kipperKorb, koerbe } from '../anlage/koerbe.js';
 import { ereignis } from '../ui/ereignisse.js';
 import { t } from '../core/sprache.js';
 import { wirksam } from './eingaenge.js';
+import { amUmrichter, umrichterFahren } from './antriebe.js';
 import { UEBERGABE, gemeinsam, kurveAuslauf, rollenkurve, vBand2, wartetAufBand2 } from './rollenkurve.js';
 
 
@@ -48,7 +49,12 @@ export function uebergabeUndBand2(dt) {
   }
   if (auto && st.sa4) BAND2.pumpe = BAND2.spruehen = BAND2.blasen = 0;
   vZiel = BAND2.wende * BAND2.vSoll;
-  BAND2.v += Math.max(-BAND2.a * dt, Math.min(BAND2.a * dt, vZiel - BAND2.v));
+  BAND2.fu = amUmrichter('TA3');
+  if (BAND2.fu) {
+    // Umrichter −TA3: im Übungsumfang „automatisch“ führt ihn das Bandmodul, sonst das Telegramm der SPS (−QA5/−QA6 ohne Wirkung)
+    if (!auto) BAND2.wende = 0;
+    BAND2.v = umrichterFahren('TA3', dt, auto ? vZiel : null);
+  } else BAND2.v += Math.max(-BAND2.a * dt, Math.min(BAND2.a * dt, vZiel - BAND2.v));
   BAND2.weg += BAND2.v * dt;
   const g2 = band2Grenzen(b2);
   for (const k of b2) {

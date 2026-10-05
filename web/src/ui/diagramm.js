@@ -5,6 +5,7 @@ import { BAND } from '../anlage/baender.js';
 import { MM8 } from '../anlage/pruefstation.js';
 import { DROSSEL, DROSSEL_GRUND, drosselSpeichern } from '../logik/drosseln.js';
 import { LOCALE, t } from '../core/sprache.js';
+import { fensterVerschiebbar } from './fenster.js';
 
 // ----------------------------------------------------------------------------
 // Weg-Zeit-Diagramm aller Zylinder: klein in der Seitenleiste (60 s), groß im Fenster
@@ -237,28 +238,8 @@ $('wzf-linien-weg').onclick = () => { linien.length = 0; fensterZeichnen(); };
 $('wzf-spanne').onchange = (e) => { spanne = Number(e.target.value); fensterZeichnen(); };
 $('wzf-zu').onclick = () => { fenster.hidden = true; };
 $('btn-wz-gross').onclick = () => wzFensterOeffnen();
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !fenster.hidden) fenster.hidden = true; });
 new ResizeObserver(() => { if (!fenster.hidden) fensterZeichnen(); }).observe(cv);
-
-// Fenster am Kopf verschieben (bleibt im sichtbaren Bereich)
-{
-  const kopf = $('wzf-kopf');
-  let start = null;
-  kopf.addEventListener('pointerdown', (e) => {
-    if (e.target.closest('button, select, label')) return;
-    const r = fenster.getBoundingClientRect();
-    start = { x: e.clientX - r.left, y: e.clientY - r.top };
-    kopf.setPointerCapture(e.pointerId);
-  });
-  kopf.addEventListener('pointermove', (e) => {
-    if (!start) return;
-    const r = fenster.getBoundingClientRect();
-    fenster.style.left = Math.max(0, Math.min(innerWidth - 120, e.clientX - start.x)) + 'px';
-    fenster.style.top = Math.max(0, Math.min(innerHeight - 40, e.clientY - start.y)) + 'px';
-    fenster.style.width = r.width + 'px'; fenster.style.height = r.height + 'px';
-  });
-  kopf.addEventListener('pointerup', () => { start = null; });
-}
+fensterVerschiebbar(fenster, $('wzf-kopf'));
 
 // kurz: Zylinder, dessen Drosseln hervorgehoben werden (Klick auf ein Ventil in der 3D-Ansicht)
 export function wzFensterOeffnen(kurz) {

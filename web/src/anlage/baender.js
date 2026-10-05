@@ -9,13 +9,13 @@
 export const BAND_Y = 300, TROMMEL_R = 36;
 // Rollenkurve: Mittellinie mit Radius R um den Punkt (R, zA); Anfang (0, zA) in +z, Ende (R, zA + R) in +x.
 // Bahn 254 mm zwischen den Seitenwangen, Innenradius ca. 300 mm, Länge der Mittellinie L = R·π/2
-export const KURVE = { R: 420, zA: 1100, L: 0, v: 0, vSoll: 110, a: 300, wende: 0, weg: 0, vorOrt: { r: false, l: false }, rollen: [] };
+export const KURVE = { R: 420, zA: 1100, L: 0, v: 0, vSoll: 110, a: 300, wende: 0, fu: false, weg: 0, vorOrt: { r: false, l: false }, rollen: [] };
 KURVE.L = KURVE.R * Math.PI / 2;
 export const B1 = { z0: -850, z1: KURVE.zA - 20 }; B1.L = B1.z1 - B1.z0; B1.zm = (B1.z0 + B1.z1) / 2;
 export const B2 = { x0: KURVE.R + 5, x1: 2820, z: KURVE.zA + KURVE.R }; B2.L = B2.x1 - B2.x0; B2.xm = (B2.x0 + B2.x1) / 2;
 // Gurtweg in mm (Obertrum, + = Förderrichtung): BAND.weg / BAND2.weg
-export const BAND = { weg: 0, v: 0, vSoll: 100, a: 250, wende: 0, sensorAus: {}, vorOrt: { r: false, l: false }, trommeln: [], anschlag: null, vereinzeler: null, anschlagPos: 1, vereinzelerPos: 0, stecker: {} };
-export const BAND2 = { weg: 0, v: 0, vSoll: 120, a: 300, wende: 0, vorOrt: { r: false, l: false }, trommeln: [], halt: 0, pruefT: 0, ergebnis: null, ergebnisT: 0, triggerAlt: false, pumpe: 0, spruehen: 0, blasen: 0 };
+export const BAND = { weg: 0, v: 0, vSoll: 100, a: 250, wende: 0, fu: false, sensorAus: {}, vorOrt: { r: false, l: false }, trommeln: [], anschlag: null, vereinzeler: null, anschlagPos: 1, vereinzelerPos: 0, stecker: {} };
+export const BAND2 = { weg: 0, v: 0, vSoll: 120, a: 300, wende: 0, fu: false, vorOrt: { r: false, l: false }, trommeln: [], halt: 0, pruefT: 0, ergebnis: null, ergebnisT: 0, triggerAlt: false, pumpe: 0, spruehen: 0, blasen: 0 };
 
 export const BAND_ENDE = 720, KORB_TEILUNG = 150;
 // Strahlpositionen der Lichtschranken (Korbmitte unter dem Strahl; das Signal ist 1, solange der Korbkörper ±55 mm den Strahl

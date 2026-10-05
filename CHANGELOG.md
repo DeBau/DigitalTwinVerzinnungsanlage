@@ -6,6 +6,51 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.6.0 – 2026-10-05
+
+Bridge neu bauen (`Bridge\build.bat`) und mit der neuen `signale.csv` starten: Der Code der Bridge
+hat sich nicht geändert, aber sie trägt die neue Nebenversion, und erst mit der neuen Signalliste
+kennt sie die Telegrammwörter der Umrichter.
+
+**Neu**
+- Band 1, Band 2, Rollenkurve und Prüfband wahlweise an **Frequenzumrichtern −TA2…−TA5**
+  (SINAMICS G120, PROFINET, Standardtelegramm 1) statt an ihren Schützen: Umschalter je Antrieb unter
+  *Übungsumfang → Antriebe*. Ein Technologieobjekt `TO_SpeedAxis` fährt jeden Förderer wie einen
+  echten G120. Am Prüfband ist die negative Drehrichtung gesperrt (p1110).
+- Umrichtermodell mit PROFIdrive-Zustandsmaschine (S1…S5), AUS1/AUS2/AUS3, Hochlaufgeber,
+  Sollwertinvertierung, STO über Not-Halt −KF2 sowie den Störungen F30005 und F07011 mit Quittierung.
+- Vier Umrichter im Schaltschrank (je PM240-2 FSA, CU240E-2 PN, Bedienpanel IOP-2) mit Live-Display,
+  LEDs RDY/BF/SAFE und Kennzeichnungsschild, anklickbar.
+- Fenster **Umrichter** (−TA2…−TA5 wählbar): Gerätefront mit bedienbarem Bedienpanel (HAND/AUTO,
+  I/O, Drehrad, ESC, INFO, Quittieren), STW1/ZSW1 Bit für Bit, NSOLL_A/NIST_A in Hex, Prozent und
+  1/min sowie **Rampen live** (Sollwert, wirksamer Sollwert, Istdrehzahl über 10/20/60 s).
+- Der Umrichter läuft in jedem Übungsumfang: Bei *Bandmodul automatisch* (und in der Demo) führt
+  ihn das Bandmodul über dasselbe Telegramm, bei *SPS steuert* dein Programm, in HAND das Panel.
+- Signale `TA2_…` bis `TA5_…` (STW1, NSOLL_A, ZSW1, NIST_A auf `%QW/%IW256…270`) in
+  `signale.csv` und in beiden TIA-Variablentabellen. Die Demo-SPS fährt alle vier Förderer auch über
+  die Umrichter.
+- **Vor-Ort-Steuerstelle −S50** am Prüfband: Schlüssel −SA7, EIN −SF45 / AUS −SF46, Drehzahl-
+  potentiometer −SF47 (%IW70, 0…100 %, wirkt am Umrichter −TA5), Leuchte −PF16; in 3D und in der
+  Seitenleiste bedienbar, Vorrang vor −S40. Die Demo-SPS wertet sie aus.
+- Signalmonitor zeigt Wortausgänge an, Steuer- und Zustandswörter in Hex.
+- **Tiefenschatten** (Ambient Occlusion, GTAO aus three.js r170) zuschaltbar über den Knopf unten in der
+  3D-Ansicht; Zustand wird im Browser gemerkt, Standard aus.
+
+**Geändert**
+- Rohre, Schläuche und Kabel: Dreiecke mit richtigem Umlaufsinn – sichtbar ist jetzt die Außenseite
+  (vorher die Innenseite der hinteren Wand), Leitungen erscheinen in ihrer echten Farbe.
+- Drehpotentiometer in 3D: ziehen oder Mausrad (5 %), der Wert steht neben dem Mauszeiger.
+- Untere Leiste etwas kompakter, damit der neue Knopf Platz hat.
+- Neue Ansicht „Vor-Ort −S50 Prüfband“.
+
+**Doku**
+- `docs/04-signale.md`: Abschnitt „Umrichter und Technologieobjekt“ mit Projektierung in TIA.
+- `docs/05-uebungen.md`: Aufgaben 17–20 zur Antriebstechnik.
+- `docs/02-anlage.md`: Umrichter −TA2…−TA5 in der Belegung des Schaltschranks, Signale von −S50.
+- `docs/03-bedienung.md`: Vor-Ort-Steuerstelle −S50.
+- Bilder neu: Gesamtanlage, Schaltschrank, Prüfstation; dazu Umrichter-Fenster, Umrichter im Schrank
+  und −S50. Neues Werkzeug `node tools\doku-bilder.mjs` nimmt sie neu auf.
+
 ## 1.5.0 – 2026-10-05
 
 Bridge neu bauen (`Bridge\build.bat`): Sie hat sich nicht geändert, trägt aber die neue

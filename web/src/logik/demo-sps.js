@@ -4,8 +4,15 @@ import { eingang } from './eingaenge.js';
 // ----------------------------------------------------------------------------
 // Demo-SPS – Schrittkette im Browser, wenn keine SPS gekoppelt ist
 // ----------------------------------------------------------------------------
-export const demo = { hand8: false, kurve: { rechts: false, links: false, nachlauf: 0 }, ps: { kip: false, kt: 0, gekippt: false, nachlauf: 0, bg32Alt: false, niOAlt: false, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false }, nh: { aktiv: [], erst: null, quittiertAn: null, freiAlt: true }, b2: { mulde: false, rechts: false, links: false, nachlauf: 0, trig: false, tt: 0, geprueft: false }, hand5: false, hand6: false, schritt: 1, auto: false, t: 0, korbFertig: false, mitKorb: false, sf1Alt: false, warten: false,
+export const demo = { hand8: false, kurve: { rechts: false, links: false, nachlauf: 0 }, ps: { kip: false, kt: 0, gekippt: false, nachlauf: 0, bg32Alt: false, niOAlt: false, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false, voPb: false }, nh: { aktiv: [], erst: null, quittiertAn: null, freiAlt: true }, b2: { mulde: false, rechts: false, links: false, nachlauf: 0, trig: false, tt: 0, geprueft: false }, hand5: false, hand6: false, schritt: 1, auto: false, t: 0, korbFertig: false, mitKorb: false, sf1Alt: false, warten: false,
   band: { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Zeit: 0, bg11Aus: 0, uebNach: 0 }, bad: { heiz: false, fuell: false } };
+// Telegramm 1: 16#047F = Betrieb, 16#047E = AUS1, aus der Einschaltsperre (ZSW1.6) erst mit AUS1 = 0;
+// Störungen quittiert ein Quittiertaster über STW1.7
+function telegramm(A, name, vor, zurueck, nsoll = 0x4000) {
+  const quitt = QUITT.some(q => eingang(q.signal)), sperre = (eingang(name + '_ZSW1') & 0x0040) !== 0;
+  A[name + '_STW1'] = ((vor || zurueck) && !sperre ? 0x047F : 0x047E) | (quitt ? 0x0080 : 0);
+  A[name + '_NSOLL_A'] = zurueck ? -nsoll : nsoll;
+}
 export function demoSps(dt) {
   const E = eingang, A = st.demoAusgaenge;
   const frei = E('KF2_NotHalt_OK'), dauer = E('SA1_Dauerbetrieb'), hand = E('SA3_Handbetrieb');
@@ -192,7 +199,9 @@ export function demoSps(dt) {
     A.KF10_Kamera_Trigger = bg32 && !p.bg32Alt; p.bg32Alt = bg32;
     if (E('BG29_Pruefung_niO') && !p.niOAlt) p.ausblasZeiten.push(1.3);          // 200 mm bis zur Düse bei 150 mm/s
     p.niOAlt = E('BG29_Pruefung_niO');
-    p.ausblasZeiten = p.ausblasZeiten.map(t => t - (A.QA9_Pruefband ? dt : 0));
+    // Laufzeit bis zur Düse: am Umrichter −TA5 mit der Istdrehzahl (NIST_A), sonst mit Nenngeschwindigkeit
+    const vPb = st.antrieb.TA5 === 'fu' ? Math.max(0, E('TA5_NIST_A')) / 0x4000 : (A.QA9_Pruefband ? 1 : 0);
+    p.ausblasZeiten = p.ausblasZeiten.map(t => t - vPb * dt);
     A.MB16_Ausblasen = p.ausblasZeiten.some(t => t < 0.12 && t > -0.12);
     p.ausblasZeiten = p.ausblasZeiten.filter(t => t > -0.2);
   }
@@ -229,6 +238,23 @@ export function demoSps(dt) {
     } else { p.voPruef = false; p.voKip = false; }
     A.PF11_VorOrt4 = E('SA6_VorOrt4');
   }
+  // Vor-Ort-Steuerstelle −S50 Prüfband (Schlüssel −SA7, Vorrang vor −S40): EIN −SF45 mit Selbsthaltung, AUS −SF46 (Öffner)
+  {
+    const p = demo.ps;
+    if (E('SA7_VorOrt5')) {
+      if (!E('SF46_Pruefband_Aus') || !frei) p.voPb = false;
+      else if (E('SF45_Pruefband_Ein')) p.voPb = true;
+      A.QA9_Pruefband = p.voPb;
+    } else p.voPb = false;
+    A.PF16_VorOrt5 = E('SA7_VorOrt5');
+  }
+
+  // Antriebe am Umrichter: dieselben Fahrbefehle als Telegramm 1 (wirken nur, wenn der Antrieb auf „Umrichter“ steht)
+  telegramm(A, 'TA2', A.QA1_Band_Rechts, A.QA2_Band_Links);
+  telegramm(A, 'TA3', A.QA5_B2_Rechts, A.QA6_B2_Links);
+  telegramm(A, 'TA4', A.QA10_Kurve_Rechts, A.QA11_Kurve_Links);
+  // Prüfband: an −S50 Drehzahl vom Potentiometer −SF47 (0…27648 = 0…100 %)
+  telegramm(A, 'TA5', A.QA9_Pruefband, false, E('SA7_VorOrt5') ? Math.round(E('SF47_Pruefband_Drehzahl') / 27648 * 0x4000) : 0x4000);
 
   // Zinnbad (wirkt nur bei „SPS regelt“): Zweipunktregler 275/285 °C, Nachfüllen 50 → 80 %
   const T = E('BT1_Temperatur') / 27648 * 400, L = E('BL1_Fuellstand') / 27648 * 100;

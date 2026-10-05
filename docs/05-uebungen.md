@@ -12,7 +12,7 @@ programmiert.
 | Stufe | Dein Programm macht | Das Modell macht |
 |---|---|---|
 | **1 – Nur Verzinnen** | Schrittkette −MM1…−MM4, Betriebsarten, Meldeleuchten | Band, Rollenkurve, Band 2, Kühlung, Prüfstation, Temperaturregelung |
-| **2 – + Förderstrecke** | zusätzlich Band 1, Anschlag, Vereinzeler, Rollenkurve, Band 2, Kippmulde, Prüfstation, Vor-Ort-Steuerstellen | Temperaturregelung |
+| **2 – + Förderstrecke** | zusätzlich Band 1, Anschlag, Vereinzeler, Rollenkurve, Band 2, Kippmulde, Prüfstation, Vor-Ort-Steuerstellen; Band 1, Band 2, Rollenkurve und Prüfband wahlweise über Schütz oder Umrichter (Telegramm 1) | Temperaturregelung |
 | **3 – + Zinnbad** | zusätzlich Heizung −TB1 und Nachfüllen −MB11 aus Analogwerten | nichts mehr – die ganze Anlage hängt an deinem Programm |
 
 ## Aufgaben nach Schwierigkeit
@@ -68,6 +68,25 @@ programmiert.
 16. **Taktzeit optimieren.** Drosseln so einstellen, dass die Zykluszeit sinkt, ohne dass ein
     Zylinder hart in die Endlage schlägt oder sich Bewegungen überschneiden. Ergebnis mit den
     Messlinien (Schrittwechsel 2 bis Schrittwechsel 1) belegen.
+
+### Antriebstechnik
+
+17. **Förderstrecke am Umrichter.** Unter *Übungsumfang → Antriebe* Band 1, Rollenkurve und Band 2
+    auf *Umrichter* stellen und jeden Förderer über ein `TO_SpeedAxis` mit Standardtelegramm 1 fahren
+    (Projektierung in [Signale und TIA-Anbindung](04-signale.md#umrichter-und-technologieobjekt)):
+    `MC_Power`, `MC_MoveVelocity`, `MC_Halt`. An den Übergaben bewegt sich ein Korb nur so schnell wie
+    der langsamere Förderer – Geschwindigkeiten aufeinander abstimmen, Rückwärtslauf über negative
+    Geschwindigkeit. Rampen im Fenster *Umrichter* unter *Rampen live* prüfen.
+18. **Telegramm von Hand.** Dasselbe ohne Technologieobjekt: STW1 und NSOLL_A selbst bilden, ZSW1
+    auswerten (Einschaltsperre → `16#047E`, dann `16#047F`). Im Fenster *Umrichter* Bit für Bit
+    mitverfolgen.
+20. **Prüfband mit variabler Geschwindigkeit.** Vor-Ort-Steuerstelle −S50 auswerten: Schlüssel −SA7,
+    EIN/AUS mit Selbsthaltung, Drehzahl vom Potentiometer −SF47 (%IW70, 0…27648) als NSOLL_A an
+    −TA5 (`16#4000` = 100 %). Die Ausblaszeit der n.i.O.-Teile aus NIST_A berechnen statt aus einer
+    festen Laufzeit (200 mm von der Kamera bis zur Düse).
+19. **Antriebsstörungen.** Im Fenster des Umrichters *Störung Überlast* und *Motor überhitzt*
+    auslösen, Not-Halt drücken (STO) und am Bedienpanel auf HAND schalten (ZSW1.9 fällt ab). Dein Programm meldet Störung (ZSW1.3) und Einschaltsperre
+    (ZSW1.6) und quittiert mit `MC_Reset` bzw. STW1.7 – F07011 erst, wenn der Motor abgekühlt ist.
 
 ## Was der Zwilling selbst meldet
 

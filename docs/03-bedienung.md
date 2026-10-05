@@ -18,6 +18,10 @@ Seitenleiste. Beide zeigen denselben Zustand und schreiben dieselben Eingänge.
 - **Vor-Ort-Steuerstelle −S10** hinten am Bandanfang beim Antrieb −MA1 (außerhalb der Umhausung): Schlüsselschalter −SA2, Links −SF6 / Halt −SF7 / Rechts −SF5, Leuchte −PF6, NOT-HALT −SF8, Quittieren −SF41 (Leuchte −PF12).
 - **Vor-Ort-Steuerstelle −S30** an der Rollenkurve: Schlüsselschalter −SA5, Links −SF31 / Halt −SF32 (Öffner) / Rechts −SF30, Leuchte −PF9, NOT-HALT −SF10, Quittieren −SF43 (Leuchte −PF14). Rechts/Links mit Selbsthaltung, gegenseitig verriegelt.
 - **Vor-Ort-Steuerstelle −S40** an der Entleer- und Prüfstation (Bedienerseite zwischen Kipper und Ausschussbehälter, Blick auf Mulde, Rinne und Prüfband): Schlüsselschalter −SA6 (1 = Vor-Ort, die Automatik der Station ruht), Leuchte −PF11, Prüfung EIN −SF34 / AUS −SF35 (Öffner) für Vibrorinne + Prüfband mit Selbsthaltung, Muldenrollen ◀ −SF37 / ▶ −SF36 im Tippbetrieb (nur mit Kipper unten), KIPPEN −SF38 / KIPPER ZURÜCK −SF39 (5/2-Ventil monostabil, daher Selbsthaltung wie am Tableau; Kippen nur mit Korb am Endanschlag −BG33 oder ohne Korb an der Übergabe), NOT-HALT −SF33, Quittieren −SF44 (Leuchte −PF15). Leitung am Boden unter dem Prüfband in den Kabelkanal der Prüfstation und über die Kabelbrücke zum Schaltschrank.
+- **Vor-Ort-Steuerstelle −S50** am Prüfband (Bedienerseite zwischen Ausschussbehälter und KLT): Schlüsselschalter −SA7 (1 = Vor-Ort, Vorrang vor −S40), Leuchte −PF16, Prüfband EIN −SF45 / AUS −SF46 (Öffner) mit Selbsthaltung, **Drehzahlpotentiometer −SF47** (0…100 %, analog auf %IW70). Die Drehzahl wirkt nur, wenn das Prüfband am Umrichter −TA5 läuft; am Schütz −QA9 fährt es mit Nenngeschwindigkeit. Im 3D-Modell dreht man den Knopf durch Ziehen (nach oben oder rechts = mehr) oder mit dem Mausrad in 5-%-Schritten, der Wert steht dabei neben dem Mauszeiger; in der Seitenleiste gibt es einen Schieberegler. Not-Halt und Quittieren an −S40 daneben.
+
+  ![Vor-Ort-Steuerstelle −S50 Prüfband](bilder/13-vorort-pruefband.jpg)
+
 - **Not-Halt:** −SF0 (Bedienpult), −SF8 (−S10), −SF9 (−S20), −SF10 (−S30) und −SF33 (−S40) wirken über das Sicherheitsrelais −KF2. Es schaltet die Ventile, die Schütze und die Heizung spannungsfrei, auch wenn die SPS noch Ausgänge setzt. Wieder frei erst nach Entriegeln **und** Quittieren. −KF2_NotHalt_OK meldet den Zustand an die SPS.
   - **Meldekontakte:** Jeder Not-Halt-Taster hat zusätzlich einen Hilfskontakt (Öffner, drahtbruchsicher) auf einen normalen SPS-Eingang: `SF0_NotHalt_frei`, `SF8_NotHalt_frei`, `SF9_NotHalt_frei`, `SF10_NotHalt_frei`, `SF33_NotHalt_frei` (%I9.1…%I9.5, **1 = entriegelt**, 0 = betätigt). Die Abschaltung bleibt hart über −KF2. Ereignisliste und HMI-Meldezeile nennen den Taster, z. B. „NOT-HALT −SF9 (Band 2) – entriegeln und quittieren (−SF42)“.
   - **Quittiertaster:** −SF4 (Bedienpult), −SF41 (−S10), −SF42 (−S20), −SF43 (−S30), −SF44 (−S40) liegen parallel am Reset-Eingang von −KF2 – jeder quittiert. Jeder hat einen eigenen Eingang (`SF4_Quittieren`, `SF41_Quittieren_S10` … `SF44_Quittieren_S40`), die SPS sieht also, wo quittiert wurde („Not-Halt quittiert an −S20 (−SF42)“), und einen eigenen Leuchtmelder (−PF5, −PF12…−PF15), der bei Quittierbedarf blinkt.
@@ -84,6 +88,11 @@ zum TIA-Projekt passen.
 | Mittel | einfache Beleuchtung, Schatten der festen Teile einmal vorberechnet, 85 % Auflösung |
 | Niedrig | wie Mittel, 70 % Auflösung |
 | (Auto zusätzlich) Minimal | ohne Schatten, 55 % Auflösung |
+
+- Knopf **„Tiefenschatten“** daneben (hervorgehoben = an): Ambient Occlusion (GTAO) verschattet Ecken, Nuten, Spalten und
+  die Bereiche unter Bändern und Geräten – deutlich plastischer. Kostet etwa eine zweite Szenendarstellung je Bild
+  (Bildrate etwa halbiert); *Grafik: Auto* stellt dann gegebenenfalls eine Stufe niedriger. Standard: aus, der
+  Zustand wird im Browser gemerkt. Durchsichtige Scheiben (Umhausung, Lichtvorhang) verschatten nicht.
 
 - Für die beste Darstellung im Browser die starke Grafikkarte verwenden: Windows-Einstellungen → System → Anzeige → Grafik → Chrome/Edge → *Hohe Leistung*.
 

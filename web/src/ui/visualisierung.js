@@ -3,7 +3,7 @@ import { FUELL_MIN, QUITT, TEMP_SOLL, ZYL, ZYL_LISTE, st } from '../logik/zustan
 import { $, TAKT, anlage } from '../core/szene.js';
 import { M } from '../core/materialien.js';
 import { fmt0 } from '../core/format.js';
-import { KNEBEL, LICHTVORHANG, PULT_LAMPEN, PULT_TASTER, SENSOREN } from '../anlage/register.js';
+import { KNEBEL, LICHTVORHANG, POTIS, PULT_LAMPEN, PULT_TASTER, SENSOREN } from '../anlage/register.js';
 import { personBewegen } from '../anlage/werker.js';
 import { B1, B2, BAND, BAND2, BAND_Y, KURVE, TROMMEL_R } from '../anlage/baender.js';
 import { QM2 } from '../anlage/band1.js';
@@ -117,6 +117,7 @@ export function visual(dt) {
     else if (t.art === 'notHalt') t.kappe.position.z = t.z0 - (st.notHalt[t.key] ? 6 : 0);
   }
   for (const k of KNEBEL) k.knebel.rotation.z = st[k.key] ? -Math.PI / 4 : Math.PI / 4;
+  for (const p of POTIS) p.knopf.rotation.z = Math.PI * (0.75 - 1.5 * st[p.key]);   // 0 % links unten, 100 % rechts unten
 
   if (TAKT.bild % 6 !== 0) return;                                       // Seitenleiste (DOM) nur ~10× pro Sekunde
   $('pf1').classList.toggle('on', ausgang('PF1_Automatik'));
@@ -128,6 +129,7 @@ export function visual(dt) {
   $('pf8').classList.toggle('on', ausgang('PF8_VorOrt2'));
   $('pf9').classList.toggle('on', ausgang('PF9_VorOrt3'));
   $('pf11').classList.toggle('on', ausgang('PF11_VorOrt4'));
+  $('pf16').classList.toggle('on', ausgang('PF16_VorOrt5'));
   $('pf7').classList.toggle('on', ausgang('PF7_Handbetrieb'));
   $('bad-info').textContent = tr`Heizung −TB1: ${tr(st.heizU ? 'EIN' : 'AUS')} · Heizelement ${fmt0.format(st.heizElement * 100)} % · BT1 = ${eingang('BT1_Temperatur')} · BL1 = ${eingang('BL1_Fuellstand')}`
     + (st.kf2 ? '' : ' · ' + tr('NOT-HALT aktiv'));

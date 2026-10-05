@@ -109,8 +109,10 @@ function rohrGeometrie(Q, r, rad = seiten(r)) {
   const idx = new (n * rad > 65535 ? Uint32Array : Uint16Array)((n - 1) * rad * 6);
   let o = 0;
   for (let i = 0; i < n - 1; i++) for (let k = 0; k < rad; k++) {
+    // Umlaufsinn passend zu den Normalen (nach außen): sonst ist die Innenseite die Vorderseite, man sähe die hintere
+    // Rohrwand von innen, und Tiefenschatten (Normalen zeigen von der Kamera weg) würden das Rohr schwarz färben
     const a = i * rad + k, b = i * rad + (k + 1) % rad, c = a + rad, e = b + rad;
-    idx[o++] = a; idx[o++] = c; idx[o++] = b; idx[o++] = b; idx[o++] = c; idx[o++] = e;
+    idx[o++] = a; idx[o++] = b; idx[o++] = c; idx[o++] = b; idx[o++] = e; idx[o++] = c;
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));

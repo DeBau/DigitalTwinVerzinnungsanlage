@@ -57,10 +57,12 @@ import './logik/band2.js';
 import './logik/pruefstation.js';
 import './ui/visualisierung.js';
 import './ui/diagramm.js';
+import './ui/umrichter.js';
 import './ui/signalmonitor.js';
 import './ui/status.js';
 import './ui/bridge.js';
 import './core/grafik.js';
+import './core/tiefenschatten.js';
 import './ui/beschriftung.js';
 import './core/zusammenfassen.js';
 import * as THREE from 'three';
@@ -79,11 +81,13 @@ import { demo, demoSps } from './logik/demo-sps.js';
 import { prozess } from './logik/prozess.js';
 import { visual } from './ui/visualisierung.js';
 import { wzAufzeichnen } from './ui/diagramm.js';
+import { fuAufzeichnen, fuFensterAktualisieren } from './ui/umrichter.js';
 import { monitorAktualisieren, monitorAufbauen } from './ui/signalmonitor.js';
 import { modusSetzen } from './ui/status.js';
 import { eingaengeSenden, verbinden } from './ui/bridge.js';
 import { Q, STUFEN, lambertAbgleich, qualitaetPruefen } from './core/grafik.js';
 import { beschriftungOrdnen } from './ui/beschriftung.js';
+import { szeneZeichnen } from './core/tiefenschatten.js';
 
 // ----------------------------------------------------------------------------
 // Hauptschleife
@@ -113,7 +117,7 @@ function schritt(zeichnen) {
   ZM('prozess', () => { if (!st.pause) for (let i = 0; i < n; i++) { if (st.modus === 'demo') demoSps(dt / n); prozess(dt / n); } });
   ZM('visual', () => visual(dt));
   ZM('schrank', () => { schrankAktualisieren(dt); spsLedsAktualisieren(dt); });
-  ZM('monitor', () => { if (TAKT.bild % 6 === 3) monitorAktualisieren(); wzAufzeichnen(dt); eingaengeSenden(false); });
+  ZM('monitor', () => { if (TAKT.bild % 6 === 3) monitorAktualisieren(); if (TAKT.bild % 3 === 1) fuFensterAktualisieren(); wzAufzeichnen(dt); fuAufzeichnen(dt); eingaengeSenden(false); });
   if (!zeichnen) { TAKT.bild++; return; }
   controls.update();
   qualitaetPruefen();
@@ -121,7 +125,7 @@ function schritt(zeichnen) {
   const sa = STUFEN[Q.stufe].schattenAlle;
   if (sa > 0) renderer.shadowMap.needsUpdate = TAKT.bild % sa === 0;      // sa < 0: bleibt stehen (einmal berechnet)
   TAKT.bild++;
-  ZM('render', () => renderer.render(scene, camera));
+  ZM('render', () => szeneZeichnen());
   ZM('labels', () => labelRenderer.render(scene, camera));
   ZM('ordnen', () => beschriftungOrdnen());
 }
