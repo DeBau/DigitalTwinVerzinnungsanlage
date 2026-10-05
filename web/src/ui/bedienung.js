@@ -3,7 +3,7 @@ import { ZYL, st } from '../logik/zustand.js';
 import { $, anlage, camera, controls, renderer } from '../core/szene.js';
 import { fmt0 } from '../core/format.js';
 import { PULT_TASTER } from '../anlage/register.js';
-import { personStarten } from '../anlage/werker.js';
+import { personEntfernen, personStarten } from '../anlage/werker.js';
 import { BAND, BAND2 } from '../anlage/baender.js';
 import { MM8, MULDE, ST } from '../anlage/pruefstation.js';
 import { daempfe, koerbe, korbEntfernen, korbErzeugen, korbNrZuruecksetzen, tropfen } from '../anlage/koerbe.js';
@@ -130,7 +130,8 @@ $('btn-reset').onclick = () => anlageZuruecksetzen();
 // Gilt in beiden Betriebsarten. Mit PLCSIM Advanced bleibt das CPU-Programm wie es ist:
 // zurückgesetzt wird das Modell, die Ausgänge der CPU greifen danach sofort wieder.
 function anlageZuruecksetzen() {
-  Object.assign(demo, { schritt: 1, auto: false, t: 0, korbFertig: false, sf1Alt: false, warten: false });
+  Object.assign(demo, { schritt: 1, auto: false, t: 0, korbFertig: false, mitKorb: false, sf1Alt: false, warten: false });
+  personEntfernen();
   st.demoAusgaenge = {};
   const grund = { MM1: 1, MM2: 1, MM3: 0, MM4: 1 };
   for (const [n, c] of Object.entries(ZYL)) {

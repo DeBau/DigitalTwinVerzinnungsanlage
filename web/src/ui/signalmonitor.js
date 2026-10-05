@@ -14,6 +14,9 @@ export function monitorAufbauen() {
   const body = $('mon-body');
   body.innerHTML = '';
   monZeilen.clear();
+  // Forcen überlebt den Neuaufbau (z. B. „hallo“ der Bridge nach jedem Verbinden) und muss dann
+  // auch wieder zu sehen sein. Signale, die es in der neuen Liste nicht mehr gibt, sind nicht mehr geforct.
+  for (const n of Object.keys(st.force)) if (!SIGNALE.some(s => s.name === n && s.richtung === 'eingang')) delete st.force[n];
   for (const [richtung, titel] of [['ausgang', 'Ausgänge SPS → Zwilling'], ['eingang', 'Eingänge Zwilling → SPS']]) {
     const kopf = document.createElement('tr');
     kopf.className = 'dir-row';
@@ -23,14 +26,16 @@ export function monitorAufbauen() {
       const tr = document.createElement('tr');
       tr.dataset.suche = (s.name + ' ' + s.adresse + ' ' + (s.kommentar || '')).toLowerCase();
       const an = istAnalog(s);
+      const f = s.name in st.force ? (st.force[s.name] ? '1' : '0') : 'auto';
+      tr.classList.toggle('forced', f !== 'auto');
       tr.innerHTML = `<td>${an ? '<b class="wert">0</b>' : '<div class="led"></div>'}</td>
         <td class="name">${esc(s.name)}<small>${esc(s.kommentar || '')}</small></td>
         <td class="adr">${esc(s.adresse)}</td>
         <td>${an ? '<span class="src">analog</span>' : richtung === 'eingang'
           ? `<span class="force" role="group" aria-label="${esc(s.name)} forcen">
-               <button type="button" data-f="auto" aria-pressed="true" title="Wert aus dem Modell">A</button>
-               <button type="button" data-f="0" aria-pressed="false" title="Auf 0 forcen">0</button>
-               <button type="button" data-f="1" aria-pressed="false" title="Auf 1 forcen">1</button></span>`
+               <button type="button" data-f="auto" aria-pressed="${f === 'auto'}" title="Wert aus dem Modell">A</button>
+               <button type="button" data-f="0" aria-pressed="${f === '0'}" title="Auf 0 forcen">0</button>
+               <button type="button" data-f="1" aria-pressed="${f === '1'}" title="Auf 1 forcen">1</button></span>`
           : '<span class="src">SPS</span>'}</td>`;
       tr.querySelectorAll('.force button').forEach(b => b.onclick = () => {
         const f = b.dataset.f;

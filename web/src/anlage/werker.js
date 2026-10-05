@@ -18,6 +18,12 @@ export function personStarten() {
   PERSON.g.visible = true;
   ereignis('Ein Werker geht durch den Lichtvorhang in die Anlage');
 }
+// Rücksetzen: Person ist sofort weg, sonst unterbräche sie gleich danach wieder den Lichtvorhang
+export function personEntfernen() {
+  PERSON.zustand = 'weg';
+  if (PERSON.g) PERSON.g.visible = false;
+  st.eingriff = false;
+}
 export function personBewegen(dt) {
   const P = PERSON;
   if (!P || P.zustand === 'weg') { st.eingriff = false; return; }

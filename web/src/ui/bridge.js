@@ -12,8 +12,11 @@ const WS_URL = (location.protocol.startsWith('http') && /^(localhost|127\.0\.0\.
   ? `ws://${location.host}/ws` : 'ws://localhost:8181/ws';
 let ws = null;
 let letzteEingaenge = '';
+let gemeldeterModus = null;
 export function verbinden() {
-  try { ws = new WebSocket(WS_URL); } catch { setTimeout(verbinden, 3000); return; }
+  // Die Betriebsart geht schon beim Verbinden mit: Steuern darf nur eine Registerkarte im Modus PLCSIM
+  try { ws = new WebSocket(WS_URL + '?modus=' + st.modus); } catch { setTimeout(verbinden, 3000); return; }
+  gemeldeterModus = st.modus;
   ws.onopen = () => { st.bridgeOffen = true; letzteEingaenge = ''; statusAnzeigen(); };
   ws.onclose = () => {
     st.bridgeOffen = false; st.plcVerbunden = false; st.plcZustand = 'getrennt'; st.steuernd = true;
@@ -41,7 +44,7 @@ export function verbinden() {
       if (m.steuernd !== st.steuernd) {
         ereignis(m.steuernd
           ? 'Diese Registerkarte steuert die Anlage.'
-          : 'Nur Beobachten: eine neuere Registerkarte steuert die Anlage. Diese hier sendet keine Eingänge mehr.', m.steuernd ? 'ok' : 'err');
+          : 'Nur Beobachten: eine andere Registerkarte im Modus PLCSIM steuert die Anlage. Diese hier sendet keine Eingänge mehr.', m.steuernd ? 'ok' : 'err');
       }
       st.steuernd = m.steuernd; st.offeneZwillinge = m.offen;
       letzteEingaenge = '';
@@ -50,7 +53,12 @@ export function verbinden() {
   };
 }
 export function eingaengeSenden(erzwingen) {
-  if (!ws || ws.readyState !== 1 || st.modus !== 'sps' || !st.steuernd) return;
+  if (!ws || ws.readyState !== 1) return;
+  if (st.modus !== gemeldeterModus) {            // Betriebsart umgeschaltet: Bridge vergibt die Steuerung neu
+    gemeldeterModus = st.modus;
+    ws.send(JSON.stringify({ typ: 'modus', modus: st.modus }));
+  }
+  if (st.modus !== 'sps' || !st.steuernd) return;
   const werte = {};
   for (const s of SIGNALE) if (s.richtung === 'eingang') werte[s.name] = eingang(s.name);
   const txt = JSON.stringify(werte);

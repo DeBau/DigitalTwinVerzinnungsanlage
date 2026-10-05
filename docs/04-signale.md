@@ -42,8 +42,9 @@ Browser  ──WebSocket──►  ZwillingBridge.exe  ──Runtime-API──�
 - Prozessabbild **blockweise** statt Signal für Signal – ein Durchlauf je CPU-Zyklus.
 - `start.bat` setzt die **Mindestzykluszeit** der virtuellen CPU (Vorgabe 10 ms). Der TIA-Standard von
   100 ms macht aus jedem Tastendruck bis zu 200 ms Verzögerung; mit 10 ms reagiert die Anlage sofort.
-- Mehrere offene Registerkarten: nur die **zuletzt geöffnete** schreibt Eingänge, die anderen
-  beobachten. Sonst würden sich zwei Zwillinge gegenseitig überschreiben und jedes Bit zappeln.
+- Mehrere offene Registerkarten: nur die **zuletzt geöffnete im Modus PLCSIM** schreibt Eingänge,
+  die anderen beobachten. Sonst würden sich zwei Zwillinge gegenseitig überschreiben und jedes Bit
+  zappeln. Eine Registerkarte im Demo-Modus übernimmt die Steuerung nie.
 
 ## Signalmonitor im Browser
 
@@ -73,6 +74,10 @@ Ohne Bridge und ohne PLCSIM Advanced läuft im Browser eine Schrittkette mit, di
 selbstständig fährt. Sie ist kein Teil deiner Aufgabe, sondern ein Vergleichsmaßstab: Du siehst
 jederzeit, wie sich die Anlage verhalten *soll* – Betriebsarten, Verriegelungen, Handshakes an den
 Übergaben, Not-Halt und Quittierung. Umschalten in der Seitenleiste unter *Verbindung*.
+
+Steht die Anlage beim START nicht in Grundstellung (nach Handbetrieb, Umschalten der Betriebsart
+oder einem abgebrochenen Zyklus), fährt die Schrittkette zuerst zurück: Schritte 11–14 heben,
+fahren zum Band und schließen das Bad, senken und lösen. Ein dabei abgelegter Korb fährt ab.
 
 ## Variablentabelle
 

@@ -4,7 +4,7 @@ import { eingang } from './eingaenge.js';
 // ----------------------------------------------------------------------------
 // Demo-SPS – Schrittkette im Browser, wenn keine SPS gekoppelt ist
 // ----------------------------------------------------------------------------
-export const demo = { hand8: false, kurve: { rechts: false, links: false, nachlauf: 0 }, ps: { kip: false, kt: 0, gekippt: false, nachlauf: 0, bg32Alt: false, niOAlt: false, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false }, nh: { aktiv: [], erst: null, quittiertAn: null, freiAlt: true }, b2: { mulde: false, rechts: false, links: false, nachlauf: 0, trig: false, tt: 0, geprueft: false }, hand5: false, hand6: false, schritt: 1, auto: false, t: 0, korbFertig: false, sf1Alt: false, warten: false,
+export const demo = { hand8: false, kurve: { rechts: false, links: false, nachlauf: 0 }, ps: { kip: false, kt: 0, gekippt: false, nachlauf: 0, bg32Alt: false, niOAlt: false, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false }, nh: { aktiv: [], erst: null, quittiertAn: null, freiAlt: true }, b2: { mulde: false, rechts: false, links: false, nachlauf: 0, trig: false, tt: 0, geprueft: false }, hand5: false, hand6: false, schritt: 1, auto: false, t: 0, korbFertig: false, mitKorb: false, sf1Alt: false, warten: false,
   band: { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Zeit: 0, bg11Aus: 0, uebNach: 0 }, bad: { heiz: false, fuell: false } };
 export function demoSps(dt) {
   const E = eingang, A = st.demoAusgaenge;
@@ -33,8 +33,21 @@ export function demoSps(dt) {
   const weiter = frei && !demo.warten && !hand;
 
   const alt = demo.schritt;
+  // Schritte 11…14: Grundstellungsfahrt. Nach Handbetrieb, Betriebsartwechsel oder abgebrochenem
+  // Zyklus steht die Anlage irgendwo; START fährt sie zuerst zurück (heben, zum Band und Bad zu,
+  // senken, lösen). Ein dabei abgelegter Korb gilt wie bei Schritt 10 als fertig und fährt ab.
   if (weiter) switch (demo.schritt) {
-    case 1: if (bed && (demo.auto || handStart)) demo.schritt = 2; break;
+    case 1:
+      if (bed && (demo.auto || handStart)) demo.schritt = 2;
+      else if (!grund && (demo.auto || handStart)) {
+        demo.mitKorb = E('BG1_MM1_eingehaengt');
+        demo.schritt = !(E('BG5_MM3_Band') && E('BG8_MM4_zu')) ? (E('BG3_MM2_oben') ? 12 : 11) : !E('BG4_MM2_unten') ? 13 : 14;
+      }
+      break;
+    case 11: if (E('BG3_MM2_oben')) demo.schritt = 12; break;
+    case 12: if (E('BG5_MM3_Band') && E('BG8_MM4_zu')) demo.schritt = 13; break;
+    case 13: if (E('BG4_MM2_unten')) demo.schritt = 14; break;
+    case 14: if (E('BG2_MM1_geloest')) { demo.schritt = 1; demo.korbFertig = demo.korbFertig || demo.mitKorb; } break;
     case 2: if (E('BG1_MM1_eingehaengt')) demo.schritt = 3; break;
     case 3: if (E('BG3_MM2_oben')) demo.schritt = 4; break;
     case 4: if (E('BG6_MM3_Bad')) demo.schritt = 5; break;
@@ -50,13 +63,13 @@ export function demoSps(dt) {
 
   const s = demo.schritt;
   A.MB1_Einhaengen = s === 2;
-  A.MB4_Anheben = s === 3 || s === 7;
+  A.MB4_Anheben = s === 3 || s === 7 || s === 11;
   A.MB5_Zinnbad = s === 4;
   A.MB8_Oeffnen = s === 5;
-  A.MB3_Senken = s === 6 || s === 9;
-  A.MB6_Foerderband = s === 8;
-  A.MB7_Schliessen = s === 8;
-  A.MB2_Loesen = s === 10;
+  A.MB3_Senken = s === 6 || s === 9 || s === 13;
+  A.MB6_Foerderband = s === 8 || s === 12;
+  A.MB7_Schliessen = s === 8 || s === 12;
+  A.MB2_Loesen = s === 10 || s === 14;
   if (hand) {
     // Handbetrieb: Tippbetrieb je Ventilspule, mit Verriegelungen
     const H = (n) => E(n);
@@ -196,7 +209,7 @@ export function demoSps(dt) {
     A.MB15_Kippen = demo.hand8;
     A.QA8_Vibro = A.QA9_Pruefband = false;
     A.QA12_Mulde_Vor = A.QA13_Mulde_Zurueck = false;
-  } else { demo.hand5 = false; demo.hand6 = false; demo.hand8 = false; }
+  } else { demo.hand5 = false; demo.hand6 = true; demo.hand8 = false; }   // beim Umschalten auf Hand bleibt der Vereinzeler zu
   // Vor-Ort-Steuerstelle −S40 (Schlüssel −SA6): Automatik der Prüfstation ruht
   {
     const p = demo.ps, okM = frei && E('FA8_Motorschutz4');

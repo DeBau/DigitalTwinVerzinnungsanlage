@@ -102,7 +102,9 @@ const uhr = new THREE.Clock();
 const ZM = (name, f) => { if (!window.__zeiten) return f(); const t = performance.now(); f(); const d = performance.now() - t; const z = window.__zeiten; z[name] = Math.max(z[name] || 0, d); };
 // Ein Anlagenschritt; zeichnen = false rechnet nur (Fenster minimiert oder verdeckt)
 function schritt(zeichnen) {
-  const dt = Math.min(uhr.getDelta(), 0.05);
+  // Bis 4 fps hält die Anlage Schritt mit der Uhr der SPS (sonst laufen deren Überwachungszeiten ab,
+  // obwohl das Programm stimmt); nur nach echten Hängern wird die Zeit gekappt.
+  const dt = Math.min(uhr.getDelta(), 0.25);
   // Feste Teilschritte, damit Pneumatik und Sensoren auch bei langsamen Bildraten sauber schalten
   const n = Math.max(1, Math.ceil(dt / 0.01));
   ZM('prozess', () => { if (!st.pause) for (let i = 0; i < n; i++) { if (st.modus === 'demo') demoSps(dt / n); prozess(dt / n); } });

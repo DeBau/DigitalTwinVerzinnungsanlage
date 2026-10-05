@@ -25,7 +25,7 @@ export function statusAnzeigen() {
   $('offline-text').textContent = !st.bridgeOffen
     ? 'Bridge nicht erreichbar. Ausgänge bleiben auf dem letzten Stand.'
     : nurSehen
-      ? 'Nur Beobachten: Diese Seite ist ' + st.offeneZwillinge + '× geöffnet, gesteuert wird von der zuletzt geöffneten Registerkarte. Schließe die anderen oder lade diese Seite neu, um hier zu steuern.'
+      ? 'Nur Beobachten: Diese Seite ist ' + st.offeneZwillinge + '× geöffnet, gesteuert wird von der zuletzt geöffneten Registerkarte im Modus PLCSIM. Schließe die anderen oder lade diese Seite neu, um hier zu steuern.'
       : (st.plcText || 'Instanz nicht verbunden.');
 }
 

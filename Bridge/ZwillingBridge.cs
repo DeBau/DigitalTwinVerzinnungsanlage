@@ -229,7 +229,8 @@ namespace ZwillingBridge
     class Client
     {
         public WebSocket Ws;
-        public int Nr;              // laufende Nummer, die hoechste steuert
+        public int Nr;              // laufende Nummer, die hoechste (im Modus PLCSIM) steuert
+        public bool Sps = true;     // Betriebsart der Seite; aeltere Seiten melden keine und gelten als PLCSIM
         public bool Steuernd;
         public readonly object Sync = new object();
         public readonly Queue<string> Reihe = new Queue<string>();
@@ -354,8 +355,9 @@ namespace ZwillingBridge
             {
                 if (ctx.Request.Url.AbsolutePath == "/ws" && ctx.Request.IsWebSocketRequest)
                 {
+                    var modus = ctx.Request.QueryString["modus"];
                     var wsCtx = await ctx.AcceptWebSocketAsync(null);
-                    await WebSocketClient(wsCtx.WebSocket);
+                    await WebSocketClient(wsCtx.WebSocket, modus == null || modus == "sps");
                     return;
                 }
                 DateiAusliefern(ctx);
@@ -397,9 +399,9 @@ namespace ZwillingBridge
         }
 
         // ------------------------------------------------------------- WebSocket
-        static async Task WebSocketClient(WebSocket ws)
+        static async Task WebSocketClient(WebSocket ws, bool sps)
         {
-            var client = new Client { Ws = ws };
+            var client = new Client { Ws = ws, Sps = sps };
             lock (clientLock) { client.Nr = ++clientZaehler; clients.Add(client); }
             Log.Ok("Zwilling verbunden (" + clients.Count + " offen)");
 
@@ -436,13 +438,21 @@ namespace ZwillingBridge
 
         static void NachrichtVerarbeiten(string text, Client von)
         {
-            if (!von.Steuernd) return;            // nur beobachtende Zwillinge schreiben nicht
             Dictionary<string, object> msg;
             try { msg = json.Deserialize<Dictionary<string, object>>(text); }
             catch { Log.Warnung("Ungueltige Nachricht: " + text); return; }
 
             object typ;
             if (!msg.TryGetValue("typ", out typ) || !(typ is string)) return;
+            if ((string)typ == "modus")
+            {
+                // Seite hat zwischen Demo und PLCSIM umgeschaltet: Steuerung neu vergeben
+                object m;
+                von.Sps = msg.TryGetValue("modus", out m) && (m as string) == "sps";
+                RollenVergeben();
+                return;
+            }
+            if (!von.Steuernd) return;            // nur beobachtende Zwillinge schreiben nicht
             if ((string)typ == "eingaenge")
             {
                 object werteObj;
@@ -509,8 +519,9 @@ namespace ZwillingBridge
         }
 
         // Genau ein Zwilling darf die Eingaenge stellen - sonst ueberschreiben sich
-        // zwei offene Registerkarten gegenseitig und jedes Bit zappelt. Der zuletzt
-        // verbundene steuert, die uebrigen schauen zu.
+        // zwei offene Registerkarten gegenseitig und jedes Bit zappelt. Es steuert der
+        // zuletzt verbundene im Modus PLCSIM (eine Seite im Demo-Modus sendet keine
+        // Eingaenge), die uebrigen schauen zu.
         static void RollenVergeben()
         {
             Client[] kopie;
@@ -518,18 +529,19 @@ namespace ZwillingBridge
             {
                 kopie = clients.ToArray();
                 Client neuester = null;
-                foreach (var c in kopie) if (neuester == null || c.Nr > neuester.Nr) neuester = c;
+                foreach (var c in kopie)
+                    if (neuester == null || (c.Sps && !neuester.Sps) || (c.Sps == neuester.Sps && c.Nr > neuester.Nr)) neuester = c;
                 foreach (var c in kopie) c.Steuernd = c == neuester;
             }
-            foreach (var c in kopie) Senden(c, RollenNachricht(c), true);
+            foreach (var c in kopie) Senden(c, RollenNachricht(c, kopie.Length), true);
             var zahl = kopie.Length;
-            if (zahl > 1) Log.Warnung(zahl + " Zwillinge offen - nur der zuletzt verbundene steuert, die anderen beobachten nur");
+            if (zahl > 1) Log.Warnung(zahl + " Zwillinge offen - nur der zuletzt verbundene im Modus PLCSIM steuert, die anderen beobachten nur");
         }
 
-        static string RollenNachricht(Client c)
+        static string RollenNachricht(Client c, int offen)
         {
             return json.Serialize(new Dictionary<string, object> {
-                { "typ", "rolle" }, { "steuernd", c.Steuernd }, { "offen", clients.Count }
+                { "typ", "rolle" }, { "steuernd", c.Steuernd }, { "offen", offen }
             });
         }
 
