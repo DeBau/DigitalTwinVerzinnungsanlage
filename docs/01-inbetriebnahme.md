@@ -20,7 +20,7 @@ Zum Anschauen ohne Bridge reicht auch ein Doppelklick auf `web\index.html`. Ohne
 
 1. **Simulation erlauben:** Projekt → Eigenschaften → *Schutz* → *Simulation bei Kompilierung von Bausteinen unterstützen*.
 2. **Hardware:** CPU 1516-3 PN/DP, DI 32x24VDC HF, DQ 32x24VDC/0.5A ST, AI 8xU/I/RTD/TC ST (Kanal 0/1 auf %IW64/%IW66). Andere Adressen sind kein Problem, dann nur `signale.csv` anpassen.
-3. **Variablen importieren:** PLC-Variablen → Rechtsklick → *Importieren* → `TIA\PLC_Variablen_Zinnbad.xlsx`. Die Namen bitte beibehalten, der Zwilling erkennt die Signale am Namen.
+3. **Variablen importieren:** PLC-Variablen → Rechtsklick → *Importieren* → `TIA\PLC_Variablen_Zinnbad.xlsx` (deutsche Namen) oder `TIA\PLC_Tags_Tinning_EN.xlsx` (englische Namen, gleiche Adressen). Die Namen im TIA-Projekt sind frei – die Bridge koppelt über die **Adressen**. Der Signalmonitor zeigt in der englischen Oberfläche die englischen Namen.
 4. **Programm schreiben.** Welchen Teil der Anlage dein Programm übernimmt, legst du in der Seitenleiste unter *Übungsumfang* fest – siehe [Übungsaufgaben](05-uebungen.md). Den Rest fährt das Modell selbst, du kannst also mit der Schrittkette anfangen und später erweitern.
 5. Übersetzen.
 

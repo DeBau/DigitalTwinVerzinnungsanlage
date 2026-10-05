@@ -92,8 +92,9 @@ Endlagensensoren einrasten, und gemessener Fahrzeit je Zylinder und Richtung. Da
 Ereignisliste im Klartext („Band 2 und Muldenrollen müssen laufen“, „Gutteil ausgeblasen“,
 „Korb hängt an der Übergabe“).
 
-**Deutsch und Englisch.** Die Oberfläche schaltet per Knopf zwischen Deutsch und Englisch um –
-Signalnamen und Adressen bleiben gleich, ein TIA-Projekt passt zu beiden.
+**Deutsch und Englisch.** Die Oberfläche schaltet per Knopf zwischen Deutsch und Englisch um, und
+die TIA-Variablentabelle gibt es mit deutschen und mit englischen Namen – bei gleichen Adressen,
+denn die Bridge koppelt über die Adressen.
 
 **Eine Datei, keine Installation.** Der Zwilling ist eine einzige HTML-Datei von 5 MB – kein Server,
 kein Internet, keine Laufzeitumgebung. Die Grafikstufe regelt sich selbst nach der Bildrate, vom
@@ -147,7 +148,8 @@ Bridge/
   start.bat                 Instanzname, Port, CPU-Zykluszeit
   ZwillingBridge.cs         Quellcode der Bridge
 TIA/
-  PLC_Variablen_Zinnbad.xlsx  alle 134 Signale zum Import
+  PLC_Variablen_Zinnbad.xlsx  alle 134 Signale zum Import (deutsche Namen)
+  PLC_Tags_Tinning_EN.xlsx    dieselben Signale mit englischen Namen
 web/
   index.html                der fertige Zwilling – eine Datei, läuft per Doppelklick
   src/                      Quellcode als ES-Module

@@ -298,4 +298,5 @@ export default {
   'Wert aus dem Modell': 'Value from the model',
   'Auf 0 forcen': 'Force to 0',
   'Auf 1 forcen': 'Force to 1',
+  'Name in signale.csv: {0}': 'Name in signale.csv (internal): {0}',
 };

@@ -10,6 +10,7 @@ import EN_UI from '../sprache/en-ui.js';
 import EN_ANLAGE from '../sprache/en-anlage.js';
 import EN_LOGIK from '../sprache/en-logik.js';
 import EN_SIGNALE from '../sprache/en-signale.js';
+import EN_SIGNALNAMEN from '../sprache/en-signalnamen.js';
 
 const SPEICHER = 'zinnbad-sprache';
 export const SPRACHE = (() => {
@@ -41,6 +42,12 @@ export function t(s, ...werte) {
   }
   if (s == null || s === '') return s;
   return nachschlagen(norm(s)) ?? s;
+}
+
+// Variablenname, wie er im TIA-Projekt der jeweiligen Sprache heißt (TIA/PLC_Variablen_Zinnbad.xlsx bzw.
+// TIA/PLC_Tags_Tinning_EN.xlsx). Intern und in signale.csv bleibt immer der deutsche Name.
+export function signalName(name) {
+  return SPRACHE === 'en' ? (EN_SIGNALNAMEN[name] ?? name) : name;
 }
 
 // Statisches HTML: Textknoten und beschreibende Attribute (Leerraum außen bleibt erhalten)

@@ -2,7 +2,7 @@ import { SIGNALE } from '../signale.js';
 import { st } from '../logik/zustand.js';
 import { $ } from '../core/szene.js';
 import { ausgang, eingang, istAnalog } from '../logik/eingaenge.js';
-import { t } from '../core/sprache.js';
+import { signalName, t } from '../core/sprache.js';
 
 // ----------------------------------------------------------------------------
 // Signalmonitor
@@ -26,15 +26,16 @@ export function monitorAufbauen() {
     for (const s of SIGNALE.filter(x => x.richtung === richtung)) {
       const tr = document.createElement('tr');
       const kommentar = t(s.kommentar || '');             // Kommentare aus signale.csv, Übersetzung in sprache/en-signale.js
-      tr.dataset.suche = (s.name + ' ' + s.adresse + ' ' + kommentar).toLowerCase();
+      const name = signalName(s.name);                    // wie im TIA-Projekt der gewählten Sprache
+      tr.dataset.suche = (name + ' ' + s.name + ' ' + s.adresse + ' ' + kommentar).toLowerCase();
       const an = istAnalog(s);
       const f = s.name in st.force ? (st.force[s.name] ? '1' : '0') : 'auto';
       tr.classList.toggle('forced', f !== 'auto');
       tr.innerHTML = `<td>${an ? '<b class="wert">0</b>' : '<div class="led"></div>'}</td>
-        <td class="name">${esc(s.name)}<small>${esc(kommentar)}</small></td>
+        <td class="name"${name !== s.name ? ` title="${esc(t`Name in signale.csv: ${s.name}`)}"` : ''}>${esc(name)}<small>${esc(kommentar)}</small></td>
         <td class="adr">${esc(s.adresse)}</td>
         <td>${an ? '<span class="src">analog</span>' : richtung === 'eingang'
-          ? `<span class="force" role="group" aria-label="${esc(t`${s.name} forcen`)}">
+          ? `<span class="force" role="group" aria-label="${esc(t`${name} forcen`)}">
                <button type="button" data-f="auto" aria-pressed="${f === 'auto'}" title="${esc(t('Wert aus dem Modell'))}">A</button>
                <button type="button" data-f="0" aria-pressed="${f === '0'}" title="${esc(t('Auf 0 forcen'))}">0</button>
                <button type="button" data-f="1" aria-pressed="${f === '1'}" title="${esc(t('Auf 1 forcen'))}">1</button></span>`

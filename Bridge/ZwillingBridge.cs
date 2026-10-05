@@ -172,6 +172,12 @@ namespace ZwillingBridge
         static readonly Regex AdrRegex = new Regex(@"^%?\s*([IQEA])\s*(\d+)\.([0-7])$", RegexOptions.IgnoreCase);
         static readonly Regex WortRegex = new Regex(@"^%?\s*([IQEA])W\s*(\d+)$", RegexOptions.IgnoreCase);
 
+        // Kommentar = alles ab der dritten Spalte: ein Semikolon im Kommentartext gehoert zum Kommentar
+        static string KommentarAus(string[] teile)
+        {
+            return teile.Length > 2 ? string.Join(";", teile, 2, teile.Length - 2).Trim() : "";
+        }
+
         public static List<Signal> Laden(string datei)
         {
             var liste = new List<Signal>();
@@ -192,7 +198,7 @@ namespace ZwillingBridge
                     {
                         Name = teile[0].Trim(),
                         Adresse = teile[1].Trim(),
-                        Kommentar = teile.Length > 2 ? teile[teile.Length - 1].Trim() : "",
+                        Kommentar = KommentarAus(teile),
                         IstAusgang = b == 'Q' || b == 'A',
                         IstWort = true,
                         ByteAdr = uint.Parse(w.Groups[2].Value, CultureInfo.InvariantCulture)
@@ -211,7 +217,7 @@ namespace ZwillingBridge
                 {
                     Name = teile[0].Trim(),
                     Adresse = teile[1].Trim(),
-                    Kommentar = teile.Length > 2 ? teile[teile.Length - 1].Trim() : "",
+                    Kommentar = KommentarAus(teile),
                     IstAusgang = bereich == 'Q' || bereich == 'A',
                     ByteAdr = uint.Parse(m.Groups[2].Value, CultureInfo.InvariantCulture),
                     BitAdr = byte.Parse(m.Groups[3].Value, CultureInfo.InvariantCulture)
@@ -242,7 +248,7 @@ namespace ZwillingBridge
     static class Bridge
     {
         // gleich wie web/src/version.js - die Seite warnt, wenn Bridge und Zwilling nicht zusammenpassen
-        public const string Version = "1.3.1";
+        public const string Version = "1.4.0";
 
         static string instanzName = "Zinnbad";
         static int port = 8181;

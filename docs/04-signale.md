@@ -13,13 +13,19 @@ Bausteinbibliothek, keine Lizenzdatei.
 ```
 Name;Adresse;Kommentar
 SF1_Start;%I0.0;Taster START (Schliesser)
-MB1_Einhaengen;%Q0.0;-MM1 Einhaengezylinder: Korb einhaengen
+MB1_Einhaengen;%Q0.0;Einhaengezylinder -MM1: Korb einhaengen
 BT1_Temperatur;%IW64;Zinntemperatur analog 0...27648 = 0...400 Grad C
 ```
 
-- **Namen bleiben wie geliefert.** Der Zwilling erkennt jedes Signal an seinem Namen.
+- **Namen bleiben wie geliefert.** Der Zwilling erkennt jedes Signal an seinem Namen in dieser
+  Datei. Das betrifft nur `signale.csv` – wie die Variablen in deinem TIA-Projekt heißen, ist frei,
+  denn die Bridge schreibt und liest die SPS über die Adressen.
 - **Adressen sind frei.** Passen die Adressen deiner Hardware-Konfiguration nicht, änderst du nur
   die mittlere Spalte – weder Bridge noch Browser müssen neu gebaut werden.
+- **In Excel bearbeiten geht:** Kein Kommentar beginnt mit `-`, `+`, `=` oder `@` (Excel würde ihn
+  als Formel lesen und `#NAME?` daraus machen), und kein Kommentar enthält ein Semikolon. Bei eigenen
+  Kommentaren das Kennzeichen deshalb hinter den Begriff setzen („Tauchzylinder -MM2: senken“).
+  Speichern als *CSV (Trennzeichen-getrennt)*, ohne Umlaute.
 - Die Bridge liest die Datei beim Start und schickt die Liste an den Browser. Findet der Zwilling
   einen erwarteten Namen nicht, meldet er das in der Ereignisliste statt still falsch zu laufen.
 
@@ -83,5 +89,15 @@ fahren zum Band und schließen das Bad, senken und lösen. Ein dabei abgelegter 
 
 ## Variablentabelle
 
-`TIA/PLC_Variablen_Zinnbad.xlsx` enthält alle 134 Signale zum Import in TIA
-(PLC-Variablen → Rechtsklick → *Importieren*).
+Zwei Variablentabellen mit denselben 134 Signalen und denselben Adressen, zum Import in TIA
+(PLC-Variablen → Rechtsklick → *Importieren*):
+
+| Datei | Namen und Kommentare | Beispiel |
+|---|---|---|
+| `TIA/PLC_Variablen_Zinnbad.xlsx` | deutsch, Tabelle „Zinnbad“ | `MB1_Einhaengen`, `BG11_Korb`, `SF0_NotHalt_frei` |
+| `TIA/PLC_Tags_Tinning_EN.xlsx` | englisch, Tabelle „Tinning“ | `MB1_HookIn`, `BG11_Basket`, `SF0_EStop_Released` |
+
+Das Betriebsmittelkennzeichen steht in beiden Sprachen vorn, so passen Schaltplan, Zwilling und
+TIA-Projekt zusammen. Die Zuordnung deutsch → englisch steht in `web/src/sprache/en-signalnamen.js`;
+in der englischen Oberfläche zeigt der Signalmonitor die englischen Namen (der interne Name aus
+`signale.csv` steht im Tooltip, die Suche findet beide).

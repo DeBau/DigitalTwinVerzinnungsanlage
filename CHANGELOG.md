@@ -6,6 +6,27 @@ Haupt- und Nebenversion haben (z. B. 1.3.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.4.0 – 2026-10-05
+
+Bridge neu bauen (`Bridge\build.bat`): Die Nebenversion hat sich geändert, und die Bridge liest
+Kommentare mit Semikolon jetzt vollständig.
+
+**Neu**
+- Englische TIA-Variablentabelle `TIA/PLC_Tags_Tinning_EN.xlsx`: dieselben 134 Signale und Adressen
+  mit englischen Namen (Kennzeichen vorn, z. B. `MB1_HookIn`, `BG11_Basket`) und Kommentaren.
+- Der Signalmonitor zeigt in der englischen Oberfläche die englischen Variablennamen; der interne
+  Name aus `signale.csv` steht im Tooltip, die Suche findet beide.
+
+**Behoben**
+- `signale.csv` ist Excel-fest: Kommentare beginnen nicht mehr mit `-` (Excel machte daraus
+  `#NAME?`), das Kennzeichen steht jetzt hinter dem Begriff („Tauchzylinder -MM2: senken“).
+  Semikolons in Kommentaren durch Kommas ersetzt.
+- Bridge: Ein Semikolon im Kommentar schnitt bisher alles davor ab (z. B. bei −BG20).
+
+**Doku**
+- Klargestellt: Fest sind nur die Namen in `signale.csv`; die Namen im TIA-Projekt sind frei, weil
+  die Bridge über die Adressen koppelt.
+
 ## 1.3.1 – 2026-10-05
 
 **Neu**

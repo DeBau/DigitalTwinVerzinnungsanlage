@@ -1,19 +1,22 @@
 Name;Adresse;Kommentar
 # ============================================================
-#  Zinnbad - Signalliste (Name;Adresse;Kommentar)
+#  Zinnbad - Signalliste, Spalten: Name / Adresse / Kommentar
 #  Adressen frei aenderbar, Namen bitte beibehalten (der Zwilling
 #  erkennt die Signale am Namen). %I/%E und %Q/%A gehen beide.
+#  Die Namen im TIA-Projekt sind frei, die Bridge koppelt ueber die Adressen.
 #  Analogwerte als Wort: %IW64 / %EW64 (Int, 0...27648).
+#  Excel-fest: kein Kommentar beginnt mit - + = @, kein Semikolon im Text.
+#  Beim Speichern aus Excel: CSV (Trennzeichen-getrennt), keine Umlaute.
 # ============================================================
 # --- Ausgaenge der SPS (5/2-Wegeventile bistabil, Bedienfeld-Leuchten) ---
-MB1_Einhaengen;%Q0.0;-MM1 Einhaengezylinder: Korb einhaengen (faehrt ein, Haken schwenkt unter den Buegel)
-MB2_Loesen;%Q0.1;-MM1 Einhaengezylinder: Korb loesen (faehrt aus, Haken schwenkt frei)
-MB3_Senken;%Q0.2;-MM2 Tauchzylinder: senken (faehrt aus)
-MB4_Anheben;%Q0.3;-MM2 Tauchzylinder: anheben (faehrt ein)
-MB5_Zinnbad;%Q0.4;-MM3 Verschiebezylinder: zum Zinnbad (faehrt aus)
-MB6_Foerderband;%Q0.5;-MM3 Verschiebezylinder: zum Foerderband (faehrt ein)
-MB7_Schliessen;%Q0.6;-MM4 Abstreifzylinder: Bad abdecken (faehrt aus)
-MB8_Oeffnen;%Q0.7;-MM4 Abstreifzylinder: Bad oeffnen (faehrt ein)
+MB1_Einhaengen;%Q0.0;Einhaengezylinder -MM1: Korb einhaengen (faehrt ein, Haken schwenkt unter den Buegel)
+MB2_Loesen;%Q0.1;Einhaengezylinder -MM1: Korb loesen (faehrt aus, Haken schwenkt frei)
+MB3_Senken;%Q0.2;Tauchzylinder -MM2: senken (faehrt aus)
+MB4_Anheben;%Q0.3;Tauchzylinder -MM2: anheben (faehrt ein)
+MB5_Zinnbad;%Q0.4;Verschiebezylinder -MM3: zum Zinnbad (faehrt aus)
+MB6_Foerderband;%Q0.5;Verschiebezylinder -MM3: zum Foerderband (faehrt ein)
+MB7_Schliessen;%Q0.6;Abstreifzylinder -MM4: Bad abdecken (faehrt aus)
+MB8_Oeffnen;%Q0.7;Abstreifzylinder -MM4: Bad oeffnen (faehrt ein)
 PF1_Automatik;%Q1.0;Meldeleuchte Anlage laeuft (Automatik-Dauerbetrieb aktiv)
 PF2_Temperatur;%Q1.1;Meldeleuchte Zinnbad Betriebstemperatur erreicht
 PF3_Fuellhoehe;%Q1.2;Meldeleuchte Fuellhoehe unterschritten
@@ -24,8 +27,8 @@ PF7_Handbetrieb;%Q1.6;Leuchte Handbetrieb aktiv (Schaltschranktuer)
 # --- Band (nur wirksam bei Uebungsumfang "SPS steuert") ---
 QA1_Band_Rechts;%Q2.0;Schuetz Bandmotor Rechtslauf (Foerderrichtung)
 QA2_Band_Links;%Q2.1;Schuetz Bandmotor Linkslauf (Wendeschuetz, mech. verriegelt)
-MB9_Anschlag_auf;%Q2.2;-MM5 Anschlag Uebergabeplatz oeffnen (5/2 monostabil, Feder schliesst)
-MB10_Vereinzeler_zu;%Q2.3;-MM6 Vereinzeler sperren (5/2 monostabil, Feder oeffnet)
+MB9_Anschlag_auf;%Q2.2;Anschlag -MM5 Uebergabeplatz oeffnen (5/2 monostabil, Feder schliesst)
+MB10_Vereinzeler_zu;%Q2.3;Vereinzeler -MM6 sperren (5/2 monostabil, Feder oeffnet)
 # --- Zinnbad (nur wirksam bei Uebungsumfang "SPS regelt") ---
 TB1_Heizung;%Q2.4;Heizung Zinnbad ueber Halbleiterrelais (2-Punkt oder Impuls/PWM)
 MB11_Nachfuellen;%Q2.5;Zinn-Nachfuelleinrichtung oeffnen (ca. 2 %/s)
@@ -39,7 +42,7 @@ PF8_VorOrt2;%Q3.3;Leuchte Vor-Ort-Steuerstelle Band 2 aktiv
 MB13_Spruehwasser;%Q3.4;Spruehventil Abschrecken (wirkt nur bei laufender Pumpe -QA7)
 MB14_Luftmesser;%Q3.5;Luftmesser am Tunnelauslauf (blaest das Wasser ab)
 # --- Entleer- und Pruefstation (2. DQ-Baugruppe ab %Q4.0) ---
-MB15_Kippen;%Q3.6;-MM8 Korbkipper kippen (5/2 monostabil)
+MB15_Kippen;%Q3.6;Korbkipper -MM8 kippen (5/2 monostabil)
 QA8_Vibro;%Q3.7;Vibrorinne -MA4 (vereinzelt die Teile)
 QA9_Pruefband;%Q4.0;Pruefband -MA5
 MB16_Ausblasen;%Q4.1;Ausblasduese n.i.O.-Teile in den Ausschussbehaelter
@@ -56,14 +59,14 @@ PF13_Quitt_S20;%Q5.0;Leuchttaster Quittieren -SF42 an -S20 (blinkt: Not-Halt qui
 PF14_Quitt_S30;%Q5.1;Leuchttaster Quittieren -SF43 an -S30 (blinkt: Not-Halt quittieren)
 PF15_Quitt_S40;%Q5.2;Leuchttaster Quittieren -SF44 an -S40 (blinkt: Not-Halt quittieren)
 # --- Eingaenge der SPS (Endlagen, Prozesssensoren, Bedienfeld) ---
-BG1_MM1_eingehaengt;%I0.0;-MM1 eingefahren = Korb eingehaengt
-BG2_MM1_geloest;%I0.1;-MM1 ausgefahren = Haken geloest (Grundstellung)
-BG3_MM2_oben;%I0.2;-MM2 eingefahren = angehoben
-BG4_MM2_unten;%I0.3;-MM2 ausgefahren = abgesenkt (Grundstellung)
-BG5_MM3_Band;%I0.4;-MM3 eingefahren = ueber Foerderband (Grundstellung)
-BG6_MM3_Bad;%I0.5;-MM3 ausgefahren = ueber Zinnbad
-BG7_MM4_offen;%I0.6;-MM4 eingefahren = Bad offen
-BG8_MM4_zu;%I0.7;-MM4 ausgefahren = Bad abgedeckt (Grundstellung)
+BG1_MM1_eingehaengt;%I0.0;Endlage -MM1 eingefahren = Korb eingehaengt
+BG2_MM1_geloest;%I0.1;Endlage -MM1 ausgefahren = Haken geloest (Grundstellung)
+BG3_MM2_oben;%I0.2;Endlage -MM2 eingefahren = angehoben
+BG4_MM2_unten;%I0.3;Endlage -MM2 ausgefahren = abgesenkt (Grundstellung)
+BG5_MM3_Band;%I0.4;Endlage -MM3 eingefahren = ueber Foerderband (Grundstellung)
+BG6_MM3_Bad;%I0.5;Endlage -MM3 ausgefahren = ueber Zinnbad
+BG7_MM4_offen;%I0.6;Endlage -MM4 eingefahren = Bad offen
+BG8_MM4_zu;%I0.7;Endlage -MM4 ausgefahren = Bad abgedeckt (Grundstellung)
 BG9_Temperatur;%I1.0;Betriebstemperatur Zinn erreicht (1 = ok, ab 250 Grad C)
 BG10_Fuellhoehe;%I1.1;Fuellhoehe Zinnbad ausreichend (1 = ok, ab 40 %)
 BG11_Korb;%I1.2;Lichtschranke Materialkorb am Uebergabeplatz
@@ -90,19 +93,19 @@ SF16_MM3_Band;%I3.5;Handtaster -MM3 zum Band
 SF17_MM4_Schliessen;%I3.6;Handtaster -MM4 Bad abdecken
 SF18_MM4_Oeffnen;%I3.7;Handtaster -MM4 Bad oeffnen
 # --- Band: Endlagen Stopperzylinder (Feldverteiler -XD3) und Inkrementalgeber (2. DI-Baugruppe) ---
-BG14_MM5_zu;%I4.0;-MM5 Anschlag geschlossen (Finger ueber dem Band)
-BG15_MM5_offen;%I4.1;-MM5 Anschlag offen
-BG16_MM6_zu;%I4.2;-MM6 Vereinzeler geschlossen (sperrt)
-BG17_MM6_offen;%I4.3;-MM6 Vereinzeler offen
+BG14_MM5_zu;%I4.0;Anschlag -MM5 geschlossen (Finger ueber dem Band)
+BG15_MM5_offen;%I4.1;Anschlag -MM5 offen
+BG16_MM6_zu;%I4.2;Vereinzeler -MM6 geschlossen (sperrt)
+BG17_MM6_offen;%I4.3;Vereinzeler -MM6 offen
 BG18_Geber_A;%I4.4;Inkrementalgeber Band Spur A (10 Imp/U, 24,5 mm Bandweg je Impuls)
-BG18_Geber_B;%I4.5;Inkrementalgeber Band Spur B (90 Grad versetzt; vorwaerts: B = 1 bei steigender Flanke A)
+BG18_Geber_B;%I4.5;Inkrementalgeber Band Spur B (90 Grad versetzt, vorwaerts: B = 1 bei steigender Flanke A)
 BG18_Geber_N;%I4.6;Inkrementalgeber Band Nullimpuls (1 je Umdrehung = 245 mm)
 # --- Handbetrieb MM5/MM6 (Tableau Schaltschranktuer, Selbsthaltung in der SPS) ---
 SF19_MM5_Oeffnen;%I5.0;Handtaster -MM5 Anschlag oeffnen
 SF20_MM5_Schliessen;%I5.1;Handtaster -MM5 Anschlag schliessen
 SF21_MM6_Schliessen;%I5.2;Handtaster -MM6 Vereinzeler schliessen
 SF22_MM6_Oeffnen;%I5.3;Handtaster -MM6 Vereinzeler oeffnen
-BG20_Lichtvorhang_frei;%I4.7;Sicherheitslichtvorhang -BG20 Schutzfeld frei (1 = frei; Abschaltung ueber -KF2)
+BG20_Lichtvorhang_frei;%I4.7;Sicherheitslichtvorhang -BG20 Schutzfeld frei (1 = frei, Abschaltung ueber -KF2)
 # --- Rollenkurve, Band 2, Kuehlung, Pruefung ---
 BG21_B2_Anfang;%I5.4;Lichtschranke Band 2 Anfang (Korb von der Rollenkurve uebernommen)
 BG22_B2_Kuehlung;%I5.5;Lichtschranke Kuehlplatz
@@ -120,11 +123,11 @@ SF23_B2_Rechts;%I7.0;Vor-Ort Band 2 Rechtslauf (Schliesser)
 SF24_B2_Links;%I7.1;Vor-Ort Band 2 Linkslauf (Schliesser)
 SF25_B2_Halt;%I7.2;Vor-Ort Band 2 Halt (Oeffner: 1 = nicht betaetigt)
 FA5_Motorschutz2;%I7.3;Motorschutzschalter Band 2 Hilfskontakt (1 = OK)
-BG30_MM8_unten;%I7.4;-MM8 Kipper unten (Grundstellung)
-BG31_MM8_gekippt;%I7.5;-MM8 Kipper gekippt
+BG30_MM8_unten;%I7.4;Kipper -MM8 unten (Grundstellung)
+BG31_MM8_gekippt;%I7.5;Kipper -MM8 gekippt
 BG33_Kipper_Korb;%I7.6;Korb am Endanschlag der Kippmulde
 BG34_KLT_voll;%I7.7;KLT i.O.-Teile voll (104 Teile)
-# --- Handbetrieb MM8 (3. DI-Baugruppe ab %I8.0; %I8.0/%I8.1 Reserve) ---
+# --- Handbetrieb MM8 (3. DI-Baugruppe ab %I8.0, %I8.0/%I8.1 Reserve) ---
 SF28_MM8_Kippen;%I8.2;Handtaster -MM8 Kipper kippen
 SF29_MM8_Zurueck;%I8.3;Handtaster -MM8 Kipper zurueck
 # --- Rollenkurve: Vor-Ort-Steuerstelle -S30, Motorschutz -FA7 ---
@@ -133,7 +136,7 @@ SF30_Kurve_Rechts;%I8.5;Vor-Ort Rollenkurve Rechtslauf (Schliesser)
 SF31_Kurve_Links;%I8.6;Vor-Ort Rollenkurve Linkslauf (Schliesser)
 SF32_Kurve_Halt;%I8.7;Vor-Ort Rollenkurve Halt (Oeffner: 1 = nicht betaetigt)
 FA7_Motorschutz3;%I9.0;Motorschutzschalter Rollenkurve -FA7 Hilfskontakt (1 = OK)
-# --- Not-Halt-Meldekontakte (Hilfskontakt Oeffner je Not-Halt-Taster; Abschaltung bleibt hart ueber -KF2) ---
+# --- Not-Halt-Meldekontakte (Hilfskontakt Oeffner je Not-Halt-Taster, Abschaltung bleibt hart ueber -KF2) ---
 SF0_NotHalt_frei;%I9.1;Not-Halt -SF0 Bedienpult Meldekontakt (Oeffner: 1 = entriegelt, 0 = betaetigt)
 SF8_NotHalt_frei;%I9.2;Not-Halt -SF8 Vor-Ort -S10 Band 1 Meldekontakt (Oeffner: 1 = entriegelt, 0 = betaetigt)
 SF9_NotHalt_frei;%I9.3;Not-Halt -SF9 Vor-Ort -S20 Band 2 Meldekontakt (Oeffner: 1 = entriegelt, 0 = betaetigt)
@@ -148,7 +151,7 @@ SF37_Mulde_Zurueck;%I10.2;Vor-Ort -S40 Muldenrollen zurueck tippen (Schliesser)
 SF38_Kipper_Kippen;%I10.3;Vor-Ort -S40 Kipper kippen (Schliesser, nur mit Korb an -BG33 oder leerer Mulde)
 SF39_Kipper_Zurueck;%I10.4;Vor-Ort -S40 Kipper zurueck (Schliesser)
 FA8_Motorschutz4;%I10.5;Motorschutzschalter Muldenantrieb -MA7 -FA8 Hilfskontakt (1 = OK)
-# --- Quittiertaster der Vor-Ort-Steuerstellen (Schliesser, parallel zu -SF4 am Reset-Eingang -KF2; eigener Eingang = Ort der Quittierung) ---
+# --- Quittiertaster der Vor-Ort-Steuerstellen (Schliesser, parallel zu -SF4 am Reset-Eingang -KF2, eigener Eingang = Ort der Quittierung) ---
 SF41_Quittieren_S10;%I10.6;Taster Quittieren Vor-Ort -S10 Band 1 (Schliesser, parallel zu -SF4 an -KF2)
 SF42_Quittieren_S20;%I10.7;Taster Quittieren Vor-Ort -S20 Band 2 (Schliesser, parallel zu -SF4 an -KF2)
 SF43_Quittieren_S30;%I11.0;Taster Quittieren Vor-Ort -S30 Rollenkurve (Schliesser, parallel zu -SF4 an -KF2)

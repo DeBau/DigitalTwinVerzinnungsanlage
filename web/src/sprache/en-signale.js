@@ -1,6 +1,38 @@
 // Englische Texte – Kommentare der Signalliste (signale.csv / signale.js).
 // Schlüssel = deutscher Text wie im Quelltext (Leerraum egal), Werte in Vorlagen als {0}, {1} …
 export default {
+  // --- nur in TIA/PLC_Variablen_Zinnbad.xlsx anders formuliert ---
+  'Lichtschranke Korb am Bandende': 'Light barrier basket at conveyor end',
+  'Lichtschranke Band 2 Anfang (Uebergabe)': 'Light barrier conveyor 2 start (transfer)',
+  'Lichtschranke Band 2 Ende (Entnahme)': 'Light barrier conveyor 2 end (removal)',
+  // --- signale.csv, Excel-feste Fassung (kein - am Anfang, kein ; im Kommentar) ---
+  'Einhaengezylinder -MM1: Korb einhaengen (faehrt ein, Haken schwenkt unter den Buegel)': '-MM1 hook-in cylinder: hook in basket (retracts, hook swings under the bail)',
+  'Einhaengezylinder -MM1: Korb loesen (faehrt aus, Haken schwenkt frei)': '-MM1 hook-in cylinder: release basket (extends, hook swings clear)',
+  'Tauchzylinder -MM2: senken (faehrt aus)': '-MM2 dip cylinder: lower (extends)',
+  'Tauchzylinder -MM2: anheben (faehrt ein)': '-MM2 dip cylinder: lift (retracts)',
+  'Verschiebezylinder -MM3: zum Zinnbad (faehrt aus)': '-MM3 traverse cylinder: to tin bath (extends)',
+  'Verschiebezylinder -MM3: zum Foerderband (faehrt ein)': '-MM3 traverse cylinder: to conveyor (retracts)',
+  'Abstreifzylinder -MM4: Bad abdecken (faehrt aus)': '-MM4 cover cylinder: cover bath (extends)',
+  'Abstreifzylinder -MM4: Bad oeffnen (faehrt ein)': '-MM4 cover cylinder: open bath (retracts)',
+  'Anschlag -MM5 Uebergabeplatz oeffnen (5/2 monostabil, Feder schliesst)': '-MM5 open stop at transfer position (5/2 monostable, spring closes)',
+  'Vereinzeler -MM6 sperren (5/2 monostabil, Feder oeffnet)': '-MM6 block separator (5/2 monostable, spring opens)',
+  'Korbkipper -MM8 kippen (5/2 monostabil)': '-MM8 tip basket tipper (5/2 monostable)',
+  'Endlage -MM1 eingefahren = Korb eingehaengt': '-MM1 retracted = basket hooked in',
+  'Endlage -MM1 ausgefahren = Haken geloest (Grundstellung)': '-MM1 extended = hook released (home position)',
+  'Endlage -MM2 eingefahren = angehoben': '-MM2 retracted = lifted',
+  'Endlage -MM2 ausgefahren = abgesenkt (Grundstellung)': '-MM2 extended = lowered (home position)',
+  'Endlage -MM3 eingefahren = ueber Foerderband (Grundstellung)': '-MM3 retracted = above conveyor (home position)',
+  'Endlage -MM3 ausgefahren = ueber Zinnbad': '-MM3 extended = above tin bath',
+  'Endlage -MM4 eingefahren = Bad offen': '-MM4 retracted = bath open',
+  'Endlage -MM4 ausgefahren = Bad abgedeckt (Grundstellung)': '-MM4 extended = bath covered (home position)',
+  'Anschlag -MM5 geschlossen (Finger ueber dem Band)': '-MM5 stop closed (finger above the conveyor)',
+  'Anschlag -MM5 offen': '-MM5 stop open',
+  'Vereinzeler -MM6 geschlossen (sperrt)': '-MM6 separator closed (blocking)',
+  'Vereinzeler -MM6 offen': '-MM6 separator open',
+  'Inkrementalgeber Band Spur B (90 Grad versetzt, vorwaerts: B = 1 bei steigender Flanke A)': 'Incremental encoder conveyor track B (offset by 90 deg, forward: B = 1 on rising edge of A)',
+  'Sicherheitslichtvorhang -BG20 Schutzfeld frei (1 = frei, Abschaltung ueber -KF2)': 'Safety light curtain -BG20 protective field clear (1 = clear, shutdown via -KF2)',
+  'Kipper -MM8 unten (Grundstellung)': '-MM8 tipper down (home position)',
+  'Kipper -MM8 gekippt': '-MM8 tipper tipped',
   // --- signale.csv (ASCII, kommt über die Bridge) ---
   '-MM1 Einhaengezylinder: Korb einhaengen (faehrt ein, Haken schwenkt unter den Buegel)': '-MM1 hook-in cylinder: hook in basket (retracts, hook swings under the bail)',
   '-MM1 Einhaengezylinder: Korb loesen (faehrt aus, Haken schwenkt frei)': '-MM1 hook-in cylinder: release basket (extends, hook swings clear)',
