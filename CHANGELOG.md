@@ -6,6 +6,32 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.5.0 – 2026-10-05
+
+Bridge neu bauen (`Bridgeuild.bat`): Sie hat sich nicht geändert, trägt aber die neue
+Nebenversion – sonst meldet der Zwilling beim Verbinden einen Versionsunterschied.
+
+**Neu**
+- Kabel und Schläuche sind rund verlegt: Jede Ecke ist ein echter Bogen mit mindestens 5 × Außen-
+  durchmesser statt eines Knicks, der Querschnitt ist rund, kurze Versätze laufen als flaches S.
+- An den Feldverteilern −XD1, −XD2, −XD3 und −XD5 laufen die Sensorleitungen als geordnetes Bündel
+  senkrecht vor dem Verteiler und biegen jede in ihrer eigenen Lage gerade in den Stecker – keine
+  Schlaufen und Kreuzungen mehr.
+- Gewinkelte M12-Stecker, wo hinter dem Stecker kein Platz für einen Bogen ist (Lichtschranken,
+  Drehgeber, −BG37, Multipol −QM4).
+- Schlitten und Hubteil überarbeitet: Schlittenplatte, Konsole und Z-Grundplatte als geschlossener
+  Kasten, stehende Hub-Energiekette in einer Rinne an der Grundplatte, Mitnehmerschwert am Haken.
+
+**Geändert**
+- Leitungswege neu geführt: Kettenleitungen durch eine Kabeltülle im Wannenboden zu −XD1,
+  −MM3-/−MM4-Schläuche ohne kurze Versätze, Druckluft-Fallleitungen fluchtend mit der Wartungseinheit,
+  Ventilinsel −QM4 30 mm höher, Kabelkanal an der rechten Portalsäule endet über −XD2, Schläuche zum
+  Luftmesser Ø8.
+
+**Doku**
+- `docs/06-entwicklung.md`: Abschnitt „Leitungen verlegen“; neues Prüfwerkzeug
+  `node toolsiegung.mjs` listet Bögen unter dem Mindestbiegeradius.
+
 ## 1.4.0 – 2026-10-05
 
 Bridge neu bauen (`Bridge\build.bat`): Die Nebenversion hat sich geändert, und die Bridge liest
