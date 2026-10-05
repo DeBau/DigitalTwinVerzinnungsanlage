@@ -2,7 +2,7 @@
 
 Alle nennenswerten Änderungen am Zwilling und an der Bridge. Die Version steht im Zwilling oben in
 der Seitenleiste und in der Kopfzeile der Bridge-Konsole. Zwilling und Bridge sollten dieselbe
-Haupt- und Nebenversion haben (z. B. 1.3.x), sonst meldet der Zwilling das in der Ereignisliste.
+Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in der Ereignisliste.
 
 [◀ Zurück zur Übersicht](README.md)
 
@@ -12,6 +12,9 @@ Bridge neu bauen (`Bridge\build.bat`): Die Nebenversion hat sich geändert, und 
 Kommentare mit Semikolon jetzt vollständig.
 
 **Neu**
+- Englische Oberfläche: Umschalter DE/EN oben in der Seitenleiste (lädt die Seite neu). Übersetzt
+  sind Seitenleiste, Fenster, Meldungen, 3D-Beschriftungen, HMI-Bild und Signalkommentare. Ohne
+  gespeicherte Wahl richtet sich die Sprache nach dem Browser.
 - Englische TIA-Variablentabelle `TIA/PLC_Tags_Tinning_EN.xlsx`: dieselben 134 Signale und Adressen
   mit englischen Namen (Kennzeichen vorn, z. B. `MB1_HookIn`, `BG11_Basket`) und Kommentaren.
 - Der Signalmonitor zeigt in der englischen Oberfläche die englischen Variablennamen; der interne
@@ -28,12 +31,6 @@ Kommentare mit Semikolon jetzt vollständig.
   die Bridge über die Adressen koppelt.
 
 ## 1.3.1 – 2026-10-05
-
-**Neu**
-- Englische Oberfläche: Umschalter DE/EN oben in der Seitenleiste (lädt die Seite neu). Übersetzt
-  sind Seitenleiste, Fenster, Meldungen, 3D-Beschriftungen, HMI-Bild und Signalkommentare;
-  Betriebsmittelkennzeichen, Signalnamen und Adressen bleiben wie in TIA. Ohne gespeicherte Wahl
-  richtet sich die Sprache nach dem Browser.
 
 **Geändert**
 - Fahrzeiten und Messlinien beziehen sich auf die Endlagensensoren (Sensor verlassen bis anderen
