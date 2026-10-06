@@ -85,6 +85,7 @@ function leistungKlemmen(leistung, k){
   }
 }
 
+// Letztes Glied eines Abgangs: der Verbraucher (Motor, Heizung)
 const verbraucherVon = a => a.glieder[a.glieder.length - 1];
 
 // Klemmensatz L1 L2 L3 (optional PE) auf −X1; liefert die vier Nummern (PE leer, wenn ohne)

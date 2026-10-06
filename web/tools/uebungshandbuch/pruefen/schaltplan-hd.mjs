@@ -11,7 +11,7 @@ const browser = await starte();
 const { page, meldungen } = await neueSeite(browser, html + '#/schaltplan/1');
 await page.waitForSelector('#sp-blatt svg');
 await page.setViewportSize({ width: 2400, height: 1700 });
-const gesamt = await page.locator('.sp-inhalt a, .sp-seiten a').count();
+const gesamt = await page.locator('.sp-seiten a').count();
 for (let nr = +von; nr <= Math.min(+bis, gesamt); nr++) {
   await page.evaluate(n => { location.hash = '#/schaltplan/' + n; }, nr);
   await page.waitForSelector('#sp-blatt svg');

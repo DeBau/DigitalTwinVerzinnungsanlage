@@ -37,6 +37,7 @@ import './schaltplan/liste.js';
 import './schaltplan/deckblatt.js';
 import './schaltplan/bloecke.js';
 import './schaltplan/plan.js';
+import './schaltplan/zoom.js';
 import { init as init_schaltplan_ansicht } from './schaltplan/ansicht.js';
 import { init as init_app_tooltip } from './app/tooltip.js';
 import { init as init_app_router } from './app/router.js';

@@ -19,9 +19,11 @@ function spaltenKopf(){
   return s;
 }
 
-// Schriftfeld: Firma | Anlage | Seitentitel | Ort und Stand | Seitennummer
+// Schriftfeld: Firma | Anlage | Seitentitel | Ort und Stand | Seitennummer. FELDER = linke Kanten der Felder.
+const UNTEN = 830, FELDER = [X0, 290, 560, 930, 1060, X1];
+
 function schriftfeld(seite, gesamt, meta){
-  const y = FUSS, h = 830 - FUSS, x = [X0, 290, 560, 930, 1060, X1];
+  const y = FUSS, h = UNTEN - FUSS, x = FELDER;
   // Schrift so groß, dass der Text ins Feld passt
   const passend = (t, breite, max) => Math.min(max, Math.round(breite / (String(t).length * .52) * 10) / 10);
   const feld = (i, oben, unten, gross = false) => text(x[i] + 8, y + 18, oben, {g: 8, f: GRAU})
@@ -36,11 +38,11 @@ function schriftfeld(seite, gesamt, meta){
 
 // Komplettes Blatt als SVG-Text; inhalt ist der fertig gezeichnete Seiteninhalt
 export function blatt(seite, gesamt, meta, inhalt){
-  const rahmen = kasten(X0, Y0, X1 - X0, 830 - Y0, "none");
+  const rahmen = kasten(X0, Y0, X1 - X0, UNTEN - Y0, "none");
   return `<svg class="sp-svg" viewBox="0 0 ${BREITE} ${HOEHE}" xmlns="http://www.w3.org/2000/svg" role="img" `
     + `aria-label="${maskiere(`Seite ${seite.nr}: ${seite.titel}`)}" font-family="Plex Sans,Segoe UI,sans-serif">`
     + `<rect width="${BREITE}" height="${HOEHE}" fill="#fff"/>${rahmen}${spaltenKopf()}`
-    + `<g class="sp-inhalt" stroke-linecap="round">${inhalt}</g>${schriftfeld(seite, gesamt, meta)}</svg>`;
+    + `<g class="sp-zeichnung" stroke-linecap="round">${inhalt}</g>${schriftfeld(seite, gesamt, meta)}</svg>`;
 }
 
 // Überschrift über dem Seiteninhalt (für Tabellen und Übersichten)

@@ -1,6 +1,6 @@
 // Die reinen Schaltplan-Module (Modell, Zeichnung, Schaltzeichen) in Node laden: esbuild bündelt sie zu einem
 // ES-Modul im Speicher. Genutzt von build.mjs (Prüfung der Plandaten) und pruefen/tests/schaltplan.mjs.
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -15,7 +15,9 @@ export { SYM } from './src/symbole/iec60617.js';`;
     stdin: { contents: eingang, resolveDir: hier, sourcefile: 'schaltplan-node.js' },
     bundle: true, write: false, format: 'esm', platform: 'node', logLevel: 'error',
   });
-  const datei = path.join(mkdtempSync(path.join(tmpdir(), 'schaltplan-')), 'schaltplan.mjs');
+  // Node lädt ES-Module nur aus Dateien: kurz in einen Temp-Ordner schreiben, laden, Ordner wieder löschen
+  const ordner = mkdtempSync(path.join(tmpdir(), 'schaltplan-')), datei = path.join(ordner, 'schaltplan.mjs');
   writeFileSync(datei, ergebnis.outputFiles[0].text);
-  return import(pathToFileURL(datei).href);
+  try { return await import(pathToFileURL(datei).href); }
+  finally { rmSync(ordner, { recursive: true, force: true }); }
 }

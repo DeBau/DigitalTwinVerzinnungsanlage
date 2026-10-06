@@ -402,42 +402,59 @@ pre.code code{font-size:inherit}
   .sign{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:10mm;font-size:9pt;color:#444}
   .sign div{border-top:.6pt solid #333;padding-top:1mm}
 }
-/* Schaltplan der Anlage (#/schaltplan): Seitenleiste, Blatt, Verweise, Druck A3 und A4 quer */
+/* Schaltplan der Anlage (#/schaltplan): Seitenleiste, Blatt mit Zoom, Verweise, Druck A3 und A4 quer */
 .sp{display:grid;grid-template-columns:290px minmax(0,1fr);gap:22px;max-width:1640px;margin:0 auto;padding:22px 20px 40px}
+.sp.sp-ohne-leiste{grid-template-columns:minmax(0,1fr);max-width:none}
+.sp.sp-ohne-leiste .sp-seitenleiste{display:none}
 .sp-seitenleiste{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);display:flex;flex-direction:column;gap:10px}
 .sp-seitenleiste h1{font-size:22px}
 .sp-treffer:empty{display:none}
-.sp-treffer,.sp-inhalt{display:flex;flex-direction:column;gap:1px}
+.sp-treffer,.sp-seiten{display:flex;flex-direction:column;gap:1px}
 .sp-treffer{flex:none;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:6px;max-height:34vh;overflow:auto}
-.sp-treffer a,.sp-inhalt a{display:flex;gap:10px;align-items:baseline;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13.5px;line-height:1.35}
+.sp-treffer a,.sp-seiten a{display:flex;gap:10px;align-items:baseline;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13.5px;line-height:1.35}
 .sp-treffer a span{margin-left:auto;color:var(--ink2);font-size:12px;white-space:nowrap}
-.sp-treffer a:hover,.sp-inhalt a:hover{background:var(--blue-soft)}
-.sp-inhalt{flex:1;min-height:0;overflow:auto;padding-right:4px}
+.sp-treffer a:hover,.sp-seiten a:hover{background:var(--blue-soft)}
+.sp-seiten{flex:1;min-height:0;overflow:auto;padding-right:4px}
 .sp-seitenleiste input{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%}
-.sp-inhalt .nr{font:600 12px var(--mono);color:var(--ink2);min-width:2.2em;text-align:right}
-.sp-inhalt a[aria-current]{background:var(--blue);color:var(--onblue)}
-.sp-inhalt a[aria-current] .nr{color:var(--onblue)}
-.sp-leiste{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sp-seiten .nr{font:600 12px var(--mono);color:inherit;opacity:.75;min-width:2.2em;text-align:right}
+.sp-seiten a[aria-current]{background:var(--blue);color:var(--onblue);font-weight:600}
+.sp-seiten a[aria-current] .nr{opacity:1}
+.sp-leiste{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:10px}
 .sp-leiste .grow{flex:1}
 .sp-leiste [aria-disabled]{opacity:.4;cursor:default}
 .sp-pos{font-size:14.5px}
-.sp-blatt{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;box-shadow:0 8px 28px rgba(16,30,45,.10)}
-.sp-blatt svg{display:block;width:100%;height:auto}
+.sp-zoom{display:inline-flex;align-items:center;gap:6px}
+#sp-zoom-wert{font:500 12.5px var(--mono);min-width:4.4em;text-align:center;color:var(--ink2)}
+.sp-blatt{position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(16,30,45,.10);touch-action:none}
+.sp-blatt svg{display:block;width:100%;height:auto;transform-origin:0 0}
+.sp-blatt.sp-gezoomt{cursor:grab}
+.sp-blatt.sp-gezoomt:active{cursor:grabbing}
+.sp-haupt:fullscreen{background:var(--paper);padding:14px;overflow:auto}
+.sp-haupt:fullscreen .sp-blatt{height:calc(100vh - 80px)}
+.sp-haupt:fullscreen .sp-blatt svg{height:100%;width:auto;max-width:100%;margin:0 auto}
+.sp-haupt:fullscreen .sp-tipp{display:none}
 .sp-tipp{font-size:13px;margin-top:10px}
 .sp-ref{cursor:pointer}
 .sp-ref:hover{text-decoration:underline}
 .sp-bmk{cursor:pointer}
 .sp-bmk:hover text{fill:var(--blue)}
+#sp-blatt [tabindex]:focus-visible{outline:2px solid #F2B705;outline-offset:2px}
 svg.sp-svg text.sig{font:600 7.8px var(--cond);cursor:help}
 svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
 .sp-markiert{fill:#F2B705;fill-opacity:.16;stroke:#F2B705;stroke-width:1.5;pointer-events:none;animation:sp-blinken 1.6s ease-out 1 both}
 @keyframes sp-blinken{0%{fill-opacity:.45}100%{fill-opacity:.16}}
-@media (max-width:980px){.sp{grid-template-columns:1fr}.sp-seitenleiste{position:static;max-height:none}.sp-inhalt{max-height:40vh}}
+/* Schmal: das Blatt zuerst, das Inhaltsverzeichnis darunter */
+@media (max-width:980px){
+  .sp{grid-template-columns:1fr;padding:14px 16px 30px}
+  .sp-haupt{order:-1}
+  .sp-seitenleiste{position:static;max-height:none}
+  .sp-seiten{max-height:40vh}
+}
 @page sp-a3{size:A3 landscape;margin:5mm}
 @media print{
   .pp.sp-druck::after{content:none}
   .pp.sp-a3{page:sp-a3}
-  .pp.sp-druck svg{width:100%;height:auto;display:block}
+  .pp.sp-druck svg{width:100%;height:auto;display:block;transform:none}
   .pp.sp-a3 svg{max-height:286mm}
   .pp.sp-druck .sp-ref{fill:#000}
   .pp.sp-druck .sp-markiert{display:none}
@@ -5113,7 +5130,6 @@ END_CASE;`)}
     };
   }
   var glied = ([sym, bmk, an = "", text2 = "", annahme2 = 0]) => ({ sym, bmk, an, text: text2, annahme: !!annahme2 });
-  var verbraucher = (abgang) => abgang.glieder[abgang.glieder.length - 1];
   function betriebsmittel(plan2, kanaele) {
     const liste = new Map(plan2.geraete.map(([bmk, text2, ort, annahme2, typ2 = ""]) => [bmk, { bmk, text: text2, ort, typ: typ2, annahme: !!annahme2 }]));
     for (const k of kanaele) {
@@ -5159,8 +5175,9 @@ END_CASE;`)}
     }
     return s;
   }
+  var UNTEN = 830, FELDER = [X0, 290, 560, 930, 1060, X1];
   function schriftfeld(seite, gesamt, meta) {
-    const y = FUSS, h = 830 - FUSS, x = [X0, 290, 560, 930, 1060, X1];
+    const y = FUSS, h = UNTEN - FUSS, x = FELDER;
     const passend = (t, breite, max) => Math.min(max, Math.round(breite / (String(t).length * 0.52) * 10) / 10);
     const feld = (i, oben, unten, gross = false) => text(x[i] + 8, y + 18, oben, { g: 8, f: GRAU }) + text(x[i] + 8, y + (gross ? 46 : 42), unten, { g: passend(unten, x[i + 1] - x[i] - 16, gross ? 17 : 11), w: 600, schrift: SCHMAL });
     let s = linie(`M${X0} ${y}H${X1}`, 1.2) + x.slice(1, -1).map((v) => linie(`M${v} ${y}V${y + h}`, 0.8)).join("");
@@ -5171,8 +5188,8 @@ END_CASE;`)}
     return s;
   }
   function blatt(seite, gesamt, meta, inhalt) {
-    const rahmen = kasten(X0, Y0, X1 - X0, 830 - Y0, "none");
-    return `<svg class="sp-svg" viewBox="0 0 ${BREITE} ${HOEHE}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${maskiere(`Seite ${seite.nr}: ${seite.titel}`)}" font-family="Plex Sans,Segoe UI,sans-serif"><rect width="${BREITE}" height="${HOEHE}" fill="#fff"/>${rahmen}${spaltenKopf()}<g class="sp-inhalt" stroke-linecap="round">${inhalt}</g>${schriftfeld(seite, gesamt, meta)}</svg>`;
+    const rahmen = kasten(X0, Y0, X1 - X0, UNTEN - Y0, "none");
+    return `<svg class="sp-svg" viewBox="0 0 ${BREITE} ${HOEHE}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${maskiere(`Seite ${seite.nr}: ${seite.titel}`)}" font-family="Plex Sans,Segoe UI,sans-serif"><rect width="${BREITE}" height="${HOEHE}" fill="#fff"/>${rahmen}${spaltenKopf()}<g class="sp-zeichnung" stroke-linecap="round">${inhalt}</g>${schriftfeld(seite, gesamt, meta)}</svg>`;
   }
   var ueberschrift = (t, unter = "") => text(X0 + 20, 60, t, { g: 20, w: 600, schrift: SCHMAL, f: TINTE }) + (unter ? text(X0 + 20, 80, unter, { g: 10, f: GRAU }) : "");
 
@@ -5469,7 +5486,7 @@ END_CASE;`)}
 
   // src/schaltplan/pfade.js
   var SCHIENE = 64, SCHIENE2 = 80, MODUL = { y: 36, h: 50 }, LUECKE = 16, START_MARKE = 112;
-  var UNTEN = { kanal: 520, pfad: 700 };
+  var UNTEN2 = { kanal: 520, pfad: 700 };
   var istPotenzial = (name) => name && !name.startsWith("−");
   function schiene(ctx, name, y) {
     const hier = { seite: ctx.seite.nr, spalte: 0 };
@@ -5565,7 +5582,7 @@ END_CASE;`)}
     return text(x - SPALTE / 2 + 6, y, k.signal, { g: 7.8, w: 600, k: "sig", attr: `data-tag="${tag}" tabindex="0"`, schrift: SCHMAL }) + absatz(x - SPALTE / 2 + 6, y + 11, umbrechen([...zusatz, kommentar].join(". "), SPALTE - 12, 7.2).slice(0, 10), { g: 7.2, f: GRAU });
   }
   function pfadInhalt(ctx) {
-    const s = ctx.seite, unten = s.signaltext ? UNTEN.kanal : UNTEN.pfad;
+    const s = ctx.seite, unten = s.signaltext ? UNTEN2.kanal : UNTEN2.pfad;
     let svg = "";
     if (s.oben) svg += schiene(ctx, s.oben, SCHIENE);
     if (s.oben2) svg += schiene(ctx, s.oben2, SCHIENE2);
@@ -5941,48 +5958,155 @@ END_CASE;`)}
     };
   }
 
+  // src/schaltplan/zoom.js
+  var MIN = 1, MAX = 8, SCHRITT = 1.25, ZIEHEN_AB = 4;
+  var kamera = { z: 1, x: 0, y: 0 };
+  var zeiger = /* @__PURE__ */ new Map();
+  var gezogen = false;
+  var begrenze = (v, min, max) => Math.min(max, Math.max(min, v));
+  function anwenden() {
+    const blatt2 = $("#sp-blatt"), svg = $("#sp-blatt svg");
+    if (!svg) return;
+    const breite = blatt2.clientWidth, hoehe = blatt2.clientHeight;
+    kamera.x = begrenze(kamera.x, breite - breite * kamera.z, 0);
+    kamera.y = begrenze(kamera.y, hoehe - hoehe * kamera.z, 0);
+    svg.style.transform = `translate(${kamera.x}px, ${kamera.y}px) scale(${kamera.z})`;
+    blatt2.classList.toggle("sp-gezoomt", kamera.z > 1);
+    const wert = $("#sp-zoom-wert");
+    if (wert) wert.textContent = `${Math.round(kamera.z * 100)} %`;
+  }
+  function zoomeUm(faktor, px, py) {
+    const blatt2 = $("#sp-blatt");
+    if (!blatt2) return;
+    const z = begrenze(kamera.z * faktor, MIN, MAX), f = z / kamera.z;
+    const mx = px ?? blatt2.clientWidth / 2, my = py ?? blatt2.clientHeight / 2;
+    kamera.x = mx - (mx - kamera.x) * f;
+    kamera.y = my - (my - kamera.y) * f;
+    kamera.z = z;
+    anwenden();
+  }
+  var zoomeRein = () => zoomeUm(SCHRITT);
+  var zoomeRaus = () => zoomeUm(1 / SCHRITT);
+  function einpassen() {
+    Object.assign(kamera, { z: 1, x: 0, y: 0 });
+    anwenden();
+  }
+  function vollbild() {
+    const haupt = $(".sp-haupt");
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (haupt && haupt.requestFullscreen) haupt.requestFullscreen();
+  }
+  var abstand = () => {
+    const [a, b] = [...zeiger.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
+  var mitte = () => {
+    const [a, b] = [...zeiger.values()];
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  };
+  function relativ(e) {
+    const r = $("#sp-blatt").getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  function runter(e) {
+    zeiger.set(e.pointerId, relativ(e));
+    gezogen = false;
+  }
+  function bewegen(e) {
+    if (!zeiger.has(e.pointerId)) return;
+    const vorher = zeiger.get(e.pointerId), jetzt = relativ(e);
+    if (zeiger.size === 2) {
+      const alt = abstand();
+      zeiger.set(e.pointerId, jetzt);
+      const m = mitte();
+      zoomeUm(abstand() / alt, m.x, m.y);
+      gezogen = true;
+      return;
+    }
+    zeiger.set(e.pointerId, jetzt);
+    if (kamera.z === 1) return;
+    if (!gezogen && Math.hypot(jetzt.x - vorher.x, jetzt.y - vorher.y) < ZIEHEN_AB) return;
+    gezogen = true;
+    kamera.x += jetzt.x - vorher.x;
+    kamera.y += jetzt.y - vorher.y;
+    anwenden();
+  }
+  var hoch = (e) => zeiger.delete(e.pointerId);
+  function rad(e) {
+    e.preventDefault();
+    const p = relativ(e);
+    zoomeUm(e.deltaY < 0 ? SCHRITT : 1 / SCHRITT, p.x, p.y);
+  }
+  var warGezogen = () => gezogen;
+  function bindeZoom() {
+    const blatt2 = $("#sp-blatt");
+    blatt2.addEventListener("wheel", rad, { passive: false });
+    blatt2.addEventListener("pointerdown", runter);
+    blatt2.addEventListener("pointermove", bewegen);
+    for (const art of ["pointerup", "pointercancel", "pointerleave"]) blatt2.addEventListener(art, hoch);
+    anwenden();
+  }
+
   // src/schaltplan/ansicht.js
-  var plan = null, aktuell = 1;
-  var ladePlan = () => plan || (plan = zeichnePlan(aufbereiten(PLAN, SIG)));
+  var plan = null, aktuell = 1, ohneLeiste = false;
+  function ladePlan() {
+    if (!plan) {
+      const modell = aufbereiten(PLAN, SIG);
+      plan = { ...zeichnePlan(modell), modell };
+    }
+    return plan;
+  }
   var ziel = (seite, spalte) => `#/schaltplan/${seite}` + (spalte !== void 0 ? `/${spalte}` : "");
   var ROLLE = { haupt: "Spule oder Gerät", kontakt: "Kontakt", geraet: "Gerät", klemme: "Anschluss" };
   function inhaltsListe(seiten) {
     return seiten.map((s) => `<a href="${ziel(s.nr)}" data-nr="${s.nr}"${s.nr === aktuell ? ' aria-current="page"' : ""}><span class="nr">${s.nr}</span><span>${esc(s.titel)}</span></a>`).join("");
   }
+  var knopf = (aktion, text2, titel) => `<button class="btn small" type="button" data-sp="${aktion}" title="${titel}" aria-label="${titel}">${text2}</button>`;
   function leiste(n, gesamt, titel) {
-    const knopf = (nr, text2, aria) => nr >= 1 && nr <= gesamt ? `<a class="btn small" href="${ziel(nr)}" aria-label="${aria}">${text2}</a>` : `<span class="btn small" aria-disabled="true">${text2}</span>`;
-    return `<div class="sp-leiste">${knopf(n - 1, "‹", "Vorige Seite")}<span class="sp-pos"><b>Seite ${n}</b> von ${gesamt}<span class="muted"> · ${esc(titel)}</span></span>${knopf(n + 1, "›", "Nächste Seite")}<span class="grow"></span><button class="btn small" type="button" data-sp="drucken">Drucken</button></div>`;
+    const blaettern2 = (nr, text2, aria) => nr >= 1 && nr <= gesamt ? `<a class="btn small" href="${ziel(nr)}" aria-label="${aria}">${text2}</a>` : `<span class="btn small" aria-disabled="true">${text2}</span>`;
+    return `<div class="sp-leiste">${knopf("leiste", "☰", "Inhaltsverzeichnis ein- oder ausblenden")}${blaettern2(n - 1, "‹", "Vorige Seite")}<span class="sp-pos"><b>Seite ${n}</b> von ${gesamt}<span class="muted"> · ${esc(titel)}</span></span>${blaettern2(n + 1, "›", "Nächste Seite")}<span class="grow"></span><span class="sp-zoom">${knopf("raus", "−", "Verkleinern (Taste −)")}<span id="sp-zoom-wert">100 %</span>${knopf("rein", "+", "Vergrößern (Taste +)")}${knopf("einpassen", "Einpassen", "Ganzes Blatt zeigen (Taste 0)")}${knopf("vollbild", "Vollbild", "Vollbild ein oder aus (Taste F)")}</span>${knopf("drucken", "Drucken", "Seiten drucken")}</div>`;
+  }
+  function tastaturZiele() {
+    for (const el of $$("#sp-blatt [data-ref], #sp-blatt [data-bmk]")) {
+      el.setAttribute("tabindex", "0");
+      el.setAttribute("role", "link");
+    }
   }
   function viewSchaltplan(seite, spalte) {
     setNav("schaltplan");
     const { seiten } = ladePlan();
     aktuell = Math.min(Math.max(1, +seite || 1), seiten.length);
     const s = seiten[aktuell - 1];
-    app.innerHTML = `<section class="sp"><aside class="sp-seitenleiste">
+    app.innerHTML = `<section class="sp${ohneLeiste ? " sp-ohne-leiste" : ""}"><aside class="sp-seitenleiste">
       <h1>Schaltplan der Anlage</h1>
-      <input type="search" id="sp-suche" placeholder="Kennzeichen, Signal oder Adresse" aria-label="Im Schaltplan suchen">
+      <input type="search" id="sp-suche" placeholder="Kennzeichen, Signal, Adresse, Gerät" aria-label="Im Schaltplan suchen">
       <div id="sp-treffer" class="sp-treffer" aria-live="polite"></div>
-      <nav class="sp-inhalt" aria-label="Seiten des Schaltplans">${inhaltsListe(seiten)}</nav>
+      <nav class="sp-seiten" aria-label="Seiten des Schaltplans">${inhaltsListe(seiten)}</nav>
     </aside><div class="sp-haupt">${leiste(aktuell, seiten.length, s.titel)}
       <div class="sp-blatt" id="sp-blatt">${s.svg}</div>
-      <p class="sp-tipp muted">Pfeiltasten blättern. Ein Klick auf einen blauen Verweis wie /12.3 springt zu Seite 12, Spalte 3.
+      <p class="sp-tipp muted">Pfeiltasten blättern, Mausrad oder + und − zoomen, Ziehen verschiebt, F schaltet das Vollbild.
+      Ein Klick auf einen blauen Verweis wie /12.3 springt zu Seite 12, Spalte 3.
       Ein Klick auf ein Kennzeichen zeigt alle Stellen, an denen es vorkommt.</p></div></section>`;
-    const liste = $(".sp-inhalt"), eintrag = $(".sp-inhalt [aria-current]");
+    const liste = $(".sp-seiten"), eintrag = $(".sp-seiten [aria-current]");
     if (eintrag) liste.scrollTop = eintrag.offsetTop - liste.offsetTop - liste.clientHeight / 2;
+    tastaturZiele();
+    bindeZoom();
     if (spalte !== void 0 && spalte !== "") markiereSpalte(+spalte);
   }
   function markiereSpalte(spalte) {
     const svg = $("#sp-blatt svg"), rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    Object.entries({ x: X0 + spalte * SPALTE, y: 26, width: SPALTE, height: 744, class: "sp-markiert" }).forEach(([k, v]) => rect.setAttribute(k, v));
+    const lage = { x: X0 + spalte * SPALTE, y: KOPF, width: SPALTE, height: FUSS - KOPF, class: "sp-markiert" };
+    Object.entries(lage).forEach(([k, v]) => rect.setAttribute(k, v));
     svg.appendChild(rect);
   }
   var normal = (t) => String(t).toLowerCase().replace(/^[-–]/, "−").replace(/%/g, "");
   function treffer(frage) {
-    const { index } = ladePlan(), q = normal(frage);
+    const { index, modell } = ladePlan(), q = normal(frage);
     if (q.length < 2) return [];
-    const geraete = [...index.orte.keys()].filter((b) => b.startsWith("−") && normal(b).includes(q)).slice(0, 12).map((b) => ({ titel: b, ort: fundstellen(index, b)[0], art: "Kennzeichen" }));
+    const orte2 = [...index.orte.keys()].filter((b) => normal(b).includes(q)).slice(0, 12).map((b) => ({ titel: b, ort: fundstellen(index, b)[0], art: b.startsWith("−") ? "Kennzeichen" : "Potenzial" }));
+    const geraete = [...modell.geraete.values()].filter((g) => normal(g.text).includes(q) && !orte2.some((o) => o.titel === g.bmk)).slice(0, 8).map((g) => ({ titel: `${g.bmk}  ${g.text}`, ort: fundstellen(index, g.bmk)[0], art: "Gerät" }));
     const signale = Object.values(SIG).flat().filter((e) => normal(e.n).includes(q) || normal(e.a) === q).slice(0, 12).map((e) => ({ titel: `${e.a}  ${e.n}`, ort: index.signale.get(e.n), art: "Signal" }));
-    return [...geraete, ...signale];
+    return [...orte2, ...geraete, ...signale];
   }
   var trefferHTML = (liste) => liste.length ? liste.map((t) => t.ort ? `<a href="${ziel(t.ort.seite, t.ort.spalte)}"><b>${esc(t.titel)}</b><span>${t.art} ${verweisText(t.ort)}</span></a>` : "").join("") : `<p class="muted small">Nichts gefunden.</p>`;
   function zeigeFundstellen(bmk) {
@@ -5992,7 +6116,8 @@ END_CASE;`)}
   function druckDialog() {
     const gesamt = ladePlan().seiten.length;
     $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>Schaltplan drucken</h2>
-    <p class="muted">Jede Seite wird ein Blatt quer. A3 ist das Originalformat, A4 verkleinert auf etwa 70 %.</p>
+    <p class="muted">Jede Seite wird ein Blatt quer. A3 ist das Originalformat. A4 verkleinert auf etwa 70 %, die kleinste
+    Schrift ist dann nur noch etwa 1,6 mm hoch. Für die Werkstatt nimmst du besser A3.</p>
     <div class="opts"><label class="opt"><input type="radio" name="format" value="a3" checked>
       <span><b>A3 quer</b><span>Originalgröße</span></span></label>
     <label class="opt"><input type="radio" name="format" value="a4"><span><b>A4 quer</b><span>verkleinert</span></span></label></div>
@@ -6012,22 +6137,62 @@ END_CASE;`)}
     doPrint(ladePlan().seiten.slice(von - 1, bis).map((s) => `<section class="pp sp-druck ${klasse}">${s.svg}</section>`).join(""));
   }
   var imPlan = () => location.hash.startsWith("#/schaltplan");
-  function taste(e) {
-    if (!imPlan() || e.target.closest("input, textarea, dialog")) return;
-    const sprung = { ArrowLeft: -1, PageUp: -1, ArrowRight: 1, PageDown: 1 }[e.key];
+  function blaettern(schritt) {
     const gesamt = ladePlan().seiten.length;
-    if (sprung) location.hash = ziel(Math.min(gesamt, Math.max(1, aktuell + sprung)));
-    else if (e.key === "Home") location.hash = ziel(1);
-    else if (e.key === "End") location.hash = ziel(gesamt);
-    else return;
+    location.hash = ziel(Math.min(gesamt, Math.max(1, aktuell + schritt)));
+  }
+  var TASTEN = {
+    ArrowLeft: () => blaettern(-1),
+    PageUp: () => blaettern(-1),
+    ArrowRight: () => blaettern(1),
+    PageDown: () => blaettern(1),
+    Home: () => {
+      location.hash = ziel(1);
+    },
+    End: () => {
+      location.hash = ziel(ladePlan().seiten.length);
+    },
+    "+": zoomeRein,
+    "=": zoomeRein,
+    "-": zoomeRaus,
+    "0": einpassen,
+    f: vollbild,
+    F: vollbild
+  };
+  function taste(e) {
+    if (!imPlan() || e.target.closest("input, textarea, dialog") || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === "Enter" && e.target.closest("#sp-blatt [data-ref], #sp-blatt [data-bmk]")) {
+      folge(e.target);
+      e.preventDefault();
+      return;
+    }
+    const aktion = TASTEN[e.key];
+    if (!aktion) return;
+    aktion();
     e.preventDefault();
   }
-  function klick(e) {
-    if (!imPlan()) return;
-    const ref2 = e.target.closest("[data-ref]"), bmk = e.target.closest("[data-bmk]");
+  function folge(el) {
+    const ref2 = el.closest("[data-ref]"), bmk = el.closest("[data-bmk]");
     if (ref2) location.hash = ziel(...ref2.dataset.ref.split("."));
     else if (bmk && bmk.closest("#sp-blatt")) zeigeFundstellen(bmk.dataset.bmk);
-    else if (e.target.closest('[data-sp="drucken"]')) druckDialog();
+  }
+  var KNOEPFE = {
+    drucken: druckDialog,
+    rein: zoomeRein,
+    raus: zoomeRaus,
+    einpassen,
+    vollbild,
+    leiste: () => {
+      ohneLeiste = !ohneLeiste;
+      $(".sp").classList.toggle("sp-ohne-leiste", ohneLeiste);
+      einpassen();
+    }
+  };
+  function klick(e) {
+    if (!imPlan()) return;
+    const knopfEl = e.target.closest("[data-sp]");
+    if (knopfEl) return KNOEPFE[knopfEl.dataset.sp]();
+    if (!warGezogen()) folge(e.target);
   }
   function init() {
     document.addEventListener("keydown", taste);

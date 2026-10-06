@@ -28,7 +28,7 @@ for (const s of seiten) {
   for (const m of s.svg.matchAll(/data-ref="(\d+)\.(\d+)"/g)) {
     pruefe(+m[1] >= 1 && +m[1] <= seiten.length && +m[2] <= 9, `Seite ${s.nr}: Verweis /${m[1]}.${m[2]} zeigt ins Leere`);
   }
-  const inhalt = s.svg.slice(s.svg.indexOf('class="sp-inhalt"'), s.svg.lastIndexOf('</g>'));
+  const inhalt = s.svg.slice(s.svg.indexOf('class="sp-zeichnung"'), s.svg.lastIndexOf('</g>'));
   for (const m of inhalt.matchAll(/<text x="([\d.-]+)" y="([\d.-]+)"/g)) {
     pruefe(+m[2] < 768 && +m[2] > 26 && +m[1] > 30 && +m[1] < 1178, `Seite ${s.nr} (${s.titel}): Text bei ${m[1]}/${m[2]} außerhalb der Fläche`);
   }

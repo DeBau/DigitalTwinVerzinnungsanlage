@@ -44,9 +44,6 @@ function kanalObjekt(typ, zeile, signale, plan){
 // Glied einer Kette aus dem Datenformat [Zeichen, Kennzeichen, Anschlüsse, Text, angenommen]
 const glied = ([sym, bmk, an = "", text = "", annahme = 0]) => ({sym, bmk, an, text, annahme: !!annahme});
 
-// Letztes Glied eines Abgangs: der Verbraucher (Motor, Heizung)
-export const verbraucher = abgang => abgang.glieder[abgang.glieder.length - 1];
-
 // Betriebsmittel: Geräte aus dem Plan plus alle Kennzeichen der Kanäle
 function betriebsmittel(plan, kanaele){
   const liste = new Map(plan.geraete.map(([bmk, text, ort, annahme, typ = ""]) => [bmk, {bmk, text, ort, typ, annahme: !!annahme}]));
