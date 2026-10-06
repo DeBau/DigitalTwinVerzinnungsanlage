@@ -118,7 +118,9 @@ function verteiler(ctx, bmk, daten, x, y){
   ports.forEach((belegt, i) => {
     const py = y + 46 + i * 20, liste = belegt ? belegt.split(" / ") : [];
     s += text(x + 12, py, `X${i}`, {g: 9, w: 600}) + (liste.length ? "" : text(x + 60, py, "frei", {g: 8.5, f: GRAU}));
-    liste.forEach((b, j) => { s += kennzeichen(b, x + 60 + j * 130, py, {g: 9}) + verweis(x + 116 + j * 130, py, zielVon(ctx, b), "start"); });
+    liste.forEach((b, j) => {
+      s += kennzeichen(b, x + 60 + j * 130, py, {g: 9}) + verweis(x + 116 + j * 130, py, zielVon(ctx, b), "start");
+    });
   });
   return s + (daten.hinweis ? text(x + 12, y + hoehe - 10, daten.hinweis, {g: 8.5, f: GRAU}) : "");
 }
@@ -146,7 +148,8 @@ function insel(ctx, bmk, daten, x, y){
 }
 
 function ventilinseln(ctx){
-  let s = ueberschrift("Ventilinseln", "Spule 14 schaltet die Arbeitsstellung, Spule 12 die Grundstellung (Anschlüsse nach ISO 11727)"), y = 110;
+  const unter = "Spule 14 schaltet die Arbeitsstellung, Spule 12 die Grundstellung (Anschlüsse nach ISO 11727)";
+  let s = ueberschrift("Ventilinseln", unter), y = 110;
   for (const [bmk, daten] of Object.entries(ctx.modell.plan.ventilinseln)) {
     s += insel(ctx, bmk, daten, 60, y);
     y += 70 + daten.plaetze.length * 20;

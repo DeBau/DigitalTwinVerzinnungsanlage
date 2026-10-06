@@ -182,5 +182,7 @@ function klick(e){
 export function init(){
   document.addEventListener("keydown", taste);
   document.addEventListener("click", klick);
-  document.addEventListener("input", e => { if (e.target.id === "sp-suche") $("#sp-treffer").innerHTML = trefferHTML(treffer(e.target.value)); });
+  document.addEventListener("input", e => {
+    if (e.target.id === "sp-suche") $("#sp-treffer").innerHTML = trefferHTML(treffer(e.target.value));
+  });
 }

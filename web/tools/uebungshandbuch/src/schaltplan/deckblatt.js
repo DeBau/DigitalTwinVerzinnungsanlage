@@ -34,7 +34,8 @@ function portal(){   // Portal +F1 über Band 1 und Zinnbad
 }
 
 function steuerstellen(){
-  return STEUERSTELLEN.map(([ort, x, y]) => kreis(x, y, 4.5, "#fff", 1.1) + text(x + 8, y + 3, ort, {g: 7.5, f: GRAU, schrift: SCHMAL})).join("");
+  const stelle = ([ort, x, y]) => kreis(x, y, 4.5, "#fff", 1.1) + text(x + 8, y + 3, ort, {g: 7.5, f: GRAU, schrift: SCHMAL});
+  return STEUERSTELLEN.map(stelle).join("");
 }
 
 function skizze(){

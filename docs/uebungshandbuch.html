@@ -5744,7 +5744,8 @@ END_CASE;`)}
     return linie("M860 330H1010M870 330V462M1000 330V462", 2.2) + text(866, 322, "Portal +F1", { g: 8.5, w: 600, schrift: SCHMAL }) + linie("M936 330V350", 1) + kasten(926, 342, 20, 8, "#fff");
   }
   function steuerstellen() {
-    return STEUERSTELLEN.map(([ort, x, y]) => kreis(x, y, 4.5, "#fff", 1.1) + text(x + 8, y + 3, ort, { g: 7.5, f: GRAU, schrift: SCHMAL })).join("");
+    const stelle = ([ort, x, y]) => kreis(x, y, 4.5, "#fff", 1.1) + text(x + 8, y + 3, ort, { g: 7.5, f: GRAU, schrift: SCHMAL });
+    return STEUERSTELLEN.map(stelle).join("");
   }
   function skizze() {
     return text(660, 286, "Übersicht der Anlage", { g: 11, w: 600, schrift: SCHMAL }) + linie("M738 328H752", 1) + kaesten() + baender() + portal() + steuerstellen();
@@ -5925,7 +5926,8 @@ END_CASE;`)}
     return s;
   }
   function ventilinseln(ctx) {
-    let s = ueberschrift("Ventilinseln", "Spule 14 schaltet die Arbeitsstellung, Spule 12 die Grundstellung (Anschlüsse nach ISO 11727)"), y = 110;
+    const unter = "Spule 14 schaltet die Arbeitsstellung, Spule 12 die Grundstellung (Anschlüsse nach ISO 11727)";
+    let s = ueberschrift("Ventilinseln", unter), y = 110;
     for (const [bmk, daten] of Object.entries(ctx.modell.plan.ventilinseln)) {
       s += insel(ctx, bmk, daten, 60, y);
       y += 70 + daten.plaetze.length * 20;
