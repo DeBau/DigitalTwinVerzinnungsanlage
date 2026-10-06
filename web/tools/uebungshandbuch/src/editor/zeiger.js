@@ -4,16 +4,17 @@ import { $ } from '../app/basis.js';
 import { ED } from './status.js';
 import { shapeD, snap, wsAus } from './vorlagen-svg.js';
 import { nearestPort, portCap, vrails } from './bauteile.js';
+import { clearSel, objById } from './auswahl.js';
+import { ausrichten, kettenQuelle } from './kette.js';
 import { connGeom, drawObj, simClick } from './zeichnen.js';
 import { skMeta } from './blaetter.js';
-import { clearSel, objById } from './auswahl.js';
 import { updateProps } from './eigenschaften.js';
 import { checkPages, refreshTpl, renderInk } from './anzeige.js';
 import { saveSketch, snapshot } from './verlauf.js';
 import { editConnLabel, editLabel, editObjLabel, editTextItem } from './beschriften.js';
 import { setTool, snapW, svgPt, wsRows } from './werkzeuge.js';
 import { eraseAt } from './bearbeiten.js';
-import { align, avoidBreak, chainSource, connect, connectPorts, linked, makeObj, placeObj, smartPos } from './andocken.js';
+import { avoidBreak, connect, connectPorts, linked, makeObj, placeObj, smartPos } from './andocken.js';
 
 export function edDown(e){
   if (!e.target.closest("input")) { e.preventDefault(); const sl = getSelection(); if (sl && sl.rangeCount) sl.removeAllRanges(); }
@@ -110,8 +111,8 @@ export function edMove(e){
     renderInk(); $(".ghost", svg).innerHTML = r.marks; return;
   }
   if (ED.tool === "place" && ED.place) {
-    const o = makeObj(ED.place, pt), A = chainSource(ED.place); let marks = "";
-    if (A) { align(o, A, pt); const map = Object.fromEntries(ED.data.o.map(p => [p.id, p])); map[o.id] = o; const gm = connGeom({a: A.id, b: o.id}, map, []); if (gm) marks = `<path d="${gm.d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`; }
+    const o = makeObj(ED.place, pt), A = kettenQuelle(ED.place); let marks = "";
+    if (A) { ausrichten(o, A, pt); const map = Object.fromEntries(ED.data.o.map(p => [p.id, p])); map[o.id] = o; const gm = connGeom({a: A.id, b: o.id}, map, []); if (gm) marks = `<path d="${gm.d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`; }
     else marks = smartPos(o).marks;
     avoidBreak(o);
     $(".ghost", svg).innerHTML = marks + `<g opacity=".5">${drawObj(o, true)}</g>`; return;

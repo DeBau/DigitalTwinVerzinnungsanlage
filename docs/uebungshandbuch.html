@@ -1474,41 +1474,24 @@ pre.code code{font-size:inherit}
 
   // web/tools/uebungshandbuch/src/editor/bausteine.js
   var R = { state: 36, sinit: 36, start: 8, sum: 15 };
-  var isAct = (o) => !!o && (o.k === "action" || o.k === "actionq");
-  var atype = (o) => o.k === "actionq" ? "q" : o.t || "kont";
-  var hasMark = (o) => isAct(o) && (["akt", "deakt", "ereig"].includes(atype(o)) || atype(o) === "kont" && (o.b || o.hb));
-  var isActKey = (k) => BLK[k] && (k === "action" || k === "actionq" || BLK[k].mk && BLK[k].mk.k === "action");
-  var ACT_T = { kont: "kontinuierlich wirkend", akt: "speichernd bei Aktivierung ↑", deakt: "speichernd bei Deaktivierung ↓", ereig: "speichernd bei Ereignis", q: "mit Bestimmungszeichen (IEC 61131-3)" };
-  var aw = (o) => Math.max(90, Math.round((tw(o.v || "Aktion") + 26 + (isAct(o) && atype(o) === "q" ? 30 : 0)) / 10) * 10);
   var bw = (o) => Math.max(110, Math.round((tw(o.v || "Block") + 30) / 10) * 10);
+  var LINIE = `stroke="${INK}" stroke-width="1.6"`;
+  var platzhalter = (edit, t, x, y, a = "middle") => edit ? SVGT(x, y, t, a, 12, 400, MUTE) : "";
   var fam = (o) => o && BLK[o.k] ? BLK[o.k].g : null;
+  var gruppeVon = (o) => GRUPPE[fam(o)] || {};
   function bbox(o) {
-    if (typeof PC !== "undefined" && PC[o.k]) {
-      const pc = PC[o.k];
+    const pc = PC[o.k];
+    if (pc) {
+      if (pc.umriss) return pc.umriss(o);
       if (o.k === "rail") return { x: o.x, y: o.y - 6, w: o.w || 400, h: 12 };
       if (o.k === "insel") return { x: o.x, y: o.y, w: +o.fw || 360, h: +o.fh || 120 };
       const X = xform(o), b = { x: o.x + (pc.bx || 0), y: o.y, w: pc.w, h: pc.h };
       if (!X || X.c) return b;
       return { x: X.cx - pc.h / 2, y: X.cy - pc.w / 2, w: pc.h, h: pc.w };
     }
+    const a = BLK[o.k];
+    if (a && a.umriss) return a.umriss(o);
     switch (o.k) {
-      case "init":
-      case "step":
-      case "macro":
-        return { x: o.x, y: o.y, w: 40, h: 40 };
-      case "ref":
-        return { x: o.x - 10, y: o.y, w: 24 + tw(o.v || "Ziel"), h: 36 };
-      case "trans":
-        return { x: o.x - 16, y: o.y - 9, w: 32 + (o.v ? tw(o.v) + 12 : 70), h: 18 };
-      case "action":
-      case "actionq": {
-        const m = hasMark(o) ? 20 : 0;
-        return { x: o.x, y: o.y - m, w: aw(o), h: 30 + m };
-      }
-      case "alt":
-        return { x: o.x, y: o.y - 5, w: o.w || 200, h: 10 };
-      case "par":
-        return { x: o.x, y: o.y - 5, w: o.w || 200, h: 15 };
       case "state":
       case "sinit":
       case "start":
@@ -1526,11 +1509,111 @@ pre.code code{font-size:inherit}
     }
     return { x: o.x, y: o.y, w: 20, h: 20 };
   }
-  var ctr = (o) => {
-    if (o.k === "trans") return [o.x, o.y];
+  function ctr(o) {
+    const a = art(o.k);
+    if (a.mitte) return a.mitte(o);
     const b = bbox(o);
     return [b.x + b.w / 2, b.y + b.h / 2];
-  };
+  }
+  function outPt(o, tx) {
+    const a = art(o.k);
+    if (a.aus) return a.aus(o, tx);
+    if (PC[o.k] && PC[o.k].bx) {
+      const q = portsOf(o)[1];
+      return [q.x, q.y];
+    }
+    if (["no", "nc", "coil", "lamp"].includes(o.k)) return [o.x, o.y + 60];
+    const b = bbox(o);
+    return [b.x + b.w / 2, b.y + b.h];
+  }
+  function inPt(o, fx) {
+    const a = art(o.k);
+    if (a.ein) return a.ein(o, fx);
+    if (PC[o.k] && PC[o.k].bx) {
+      const q = portsOf(o)[0];
+      return [q.x, q.y];
+    }
+    if (["no", "nc", "coil", "lamp"].includes(o.k)) return [o.x, o.y];
+    const b = bbox(o);
+    return [b.x + b.w / 2, b.y];
+  }
+
+  // web/tools/uebungshandbuch/src/editor/auswahl.js
+  var objById = (id) => ED.data.o.find((o) => o.id === id) || (String(id).startsWith("_") ? vrails(ED.key, ED.pages || 1).find((r) => r.id === id) : void 0);
+  var uid = () => "o" + Math.random().toString(36).slice(2, 9);
+  var anySel = () => !!ED.sel || ED.selC !== null || ED.selS !== null || ED.selT !== null || !!ED.selF;
+  function clearSel() {
+    ED.sel = null;
+    ED.selC = null;
+    ED.selS = null;
+    ED.selT = null;
+    ED.selF = false;
+  }
+
+  // web/tools/uebungshandbuch/src/editor/kette.js
+  var seite = (o) => o && art(o.k).seite;
+  function seitenArt(k) {
+    if (!BLK[k]) return null;
+    const grund = BLK[k].mk && BLK[k].mk.k || k;
+    return art(grund).seite || null;
+  }
+  function routeV([x1, y1], [x2, y2]) {
+    const p = { p1: [x1, y1], p2: [x2, y2] };
+    if (y2 > y1 + 4) {
+      if (Math.abs(x1 - x2) < 1) return { ...p, d: `M${x1} ${y1}V${y2}` };
+      const m = Math.round((y1 + y2) / 20) * 10;
+      return { ...p, d: `M${x1} ${y1}V${m}H${x2}V${y2}` };
+    }
+    const lane = Math.min(x1, x2) - 50, ya = y1 + 20, yb = y2 - 20;
+    return { ...p, d: `M${x1} ${y1}V${ya}H${lane}V${yb}H${x2}V${y2}`, up: [lane, (ya + yb) / 2] };
+  }
+  function verbindeKette(A, B) {
+    const s = seite(B);
+    if (s) return s.verbinde(A, B);
+    const von = outPt(A, ctr(B)[0]);
+    return routeV(von, inPt(B, von[0]));
+  }
+  function kettenQuelle(k) {
+    const A = !ED.dnd && ED.sel && objById(ED.sel);
+    if (!A || !gruppeVon(A).kette || fam(A) !== BLK[k].g) return null;
+    const neuSeite = seitenArt(k);
+    if (seite(A)) return neuSeite ? A : null;
+    if (neuSeite) return neuSeite.quelle(A);
+    return A;
+  }
+  function ausrichten(o, A, pt) {
+    const s = seite(o);
+    if (s) return s.ausrichten(o, A, pt);
+    const ax = outPt(A, ctr(o)[0])[0];
+    o.x = ax - (art(o.k).einrueck || 0);
+  }
+  function andockStelle(o) {
+    const g = fam(o);
+    if (!ED.dock || !gruppeVon(o).kette) return null;
+    const others = ED.data.o.filter((p) => p.id !== o.id && fam(p) === g);
+    let best = null;
+    const take = (c) => {
+      if (!best || c.d < best.d) best = c;
+    };
+    const s = seite(o);
+    if (s) {
+      s.andocken(o, others, take);
+      return best;
+    }
+    for (const p of others) {
+      if (seite(p)) continue;
+      const po = outPt(p, ctr(o)[0]), oi = inPt(o, po[0]), dy1 = oi[1] - po[1], dx1 = po[0] - oi[0];
+      if (dy1 >= 10 && dy1 <= 140 && Math.abs(dx1) <= 30) take({ a: p.id, b: o.id, d: Math.abs(dx1) + dy1 / 4, sx: dx1, sy: 0 });
+      const oo = outPt(o, ctr(p)[0]), pi = inPt(p, oo[0]), dy2 = pi[1] - oo[1], dx2 = pi[0] - oo[0];
+      if (dy2 >= 10 && dy2 <= 140 && Math.abs(dx2) <= 30) take({ a: o.id, b: p.id, d: Math.abs(dx2) + dy2 / 4, sx: dx2, sy: 0 });
+    }
+    return best;
+  }
+  function andockPunkt(A, B) {
+    const s = seite(B);
+    if (s) return s.punkt(A, B);
+    return inPt(B, outPt(A, ctr(B)[0])[0]);
+  }
 
   // web/tools/uebungshandbuch/src/editor/zeichnen.js
   function simCompute() {
@@ -1617,37 +1700,13 @@ pre.code code{font-size:inherit}
       const svg = PC[o.k].draw(o, edit), X = xform(o);
       if (!X) return svg;
       const swap = X.f * X.c < 0;
-      const upright = svg.replace(/<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)"/g, (m, x2, y2, a) => `<text transform="translate(${x2} ${y2}) scale(${X.f} 1) rotate(${-X.r}) translate(${-x2} ${-y2})" x="${x2}" y="${y2}" text-anchor="${swap && a !== "middle" ? a === "end" ? "start" : "end" : a}"`);
+      const upright = svg.replace(/<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)"/g, (m, x2, y2, a2) => `<text transform="translate(${x2} ${y2}) scale(${X.f} 1) rotate(${-X.r}) translate(${-x2} ${-y2})" x="${x2}" y="${y2}" text-anchor="${swap && a2 !== "middle" ? a2 === "end" ? "start" : "end" : a2}"`);
       return `<g transform="translate(${X.cx} ${X.cy}) rotate(${X.r}) scale(${X.f} 1) translate(${-X.cx} ${-X.cy})">${upright}</g>`;
     }
-    const x = o.x, y = o.y, st = `stroke="${INK}" stroke-width="1.6"`, ph = (t, xx, yy, a = "middle") => edit ? SVGT(xx, yy, t, a, 12, 400, MUTE) : "";
+    const a = BLK[o.k];
+    if (a && a.zeichne) return a.zeichne(o, edit);
+    const x = o.x, y = o.y, st = `stroke="${INK}" stroke-width="1.6"`, ph = (t, xx, yy, a2 = "middle") => edit ? SVGT(xx, yy, t, a2, 12, 400, MUTE) : "";
     switch (o.k) {
-      case "init":
-        return `<rect x="${x}" y="${y}" width="40" height="40" fill="#fff" ${st}/><rect x="${x + 4}" y="${y + 4}" width="32" height="32" fill="none" ${st}/>` + SVGT(x + 20, y + 25, o.v);
-      case "step":
-        return `<rect x="${x}" y="${y}" width="40" height="40" fill="#fff" ${st}/>` + SVGT(x + 20, y + 25, o.v);
-      case "trans":
-        return `<path d="M${x - 14} ${y}H${x + 14}" stroke="${INK}" stroke-width="3.2"/>` + (o.v ? SVGT(x + 22, y + 5, o.v, "start", 13, 400) : ph("Bedingung", x + 22, y + 5, "start"));
-      case "action":
-      case "actionq": {
-        const t = atype(o), w = aw(o), qw = t === "q" ? 30 : 0, mx = x + 16, tc = x + qw + (w - qw) / 2;
-        let r = `<rect x="${x}" y="${y}" width="${w}" height="30" fill="#fff" ${st}/>`;
-        if (qw) r += `<path d="M${x + 30} ${y}V${y + 30}" ${st}/>` + SVGT(x + 15, y + 20, o.q || "S", "middle", 12, 600);
-        r += o.v ? SVGT(tc, y + 20, o.v, "middle", 13, 400) : ph("Aktion", tc, y + 20);
-        if (t === "kont" && (o.b || o.hb)) r += `<path d="M${mx} ${y}V${y - 16}" ${st}/>` + (o.b ? SVGT(mx + 6, y - 6, o.b, "start", 12, 400) : ph("Zuweisungsbedingung", mx + 6, y - 6, "start"));
-        if (t === "akt" || t === "ereig") r += `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 12}L${mx} ${y - 18}L${mx + 4.5} ${y - 12}" ${st} fill="none"/>`;
-        if (t === "deakt") r += `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 18}L${mx} ${y - 12}L${mx + 4.5} ${y - 18}" ${st} fill="none"/>`;
-        if (t === "ereig") r += o.b ? SVGT(mx + 8, y - 6, o.b, "start", 12, 400) : ph("Ereignis, z. B. ↑BG1", mx + 8, y - 6, "start");
-        return r;
-      }
-      case "macro":
-        return `<rect x="${x}" y="${y}" width="40" height="40" fill="#fff" ${st}/><path d="M${x} ${y + 5}H${x + 40}M${x} ${y + 35}H${x + 40}" ${st}/>` + SVGT(x + 20, y + 25, o.v, "middle", 12);
-      case "ref":
-        return `<path d="M${x} ${y}V${y + 30}M${x - 5} ${y + 23}L${x} ${y + 31}L${x + 5} ${y + 23}" ${st} fill="none"/>` + (o.v ? SVGT(x + 9, y + 29, o.v, "start", 12, 500) : ph("Ziel, z. B. 1", x + 9, y + 29, "start"));
-      case "alt":
-        return `<path d="M${x} ${y}H${x + (o.w || 200)}" stroke="${INK}" stroke-width="1.6"/>`;
-      case "par":
-        return `<path d="M${x} ${y}H${x + (o.w || 200)}M${x} ${y + 5}H${x + (o.w || 200)}" stroke="${INK}" stroke-width="1.6"/>`;
       case "state":
         return `<circle cx="${x}" cy="${y}" r="36" fill="#fff" ${st}/>` + SVGT(x, y + 5, o.v);
       case "sinit":
@@ -1671,77 +1730,9 @@ pre.code code{font-size:inherit}
     }
     return "";
   }
-  function outPt(o, tx) {
-    if (PC[o.k] && PC[o.k].bx) {
-      const q = portsOf(o)[1];
-      return [q.x, q.y];
-    }
-    switch (o.k) {
-      case "init":
-      case "step":
-      case "macro":
-        return [o.x + 20, o.y + 40];
-      case "ref":
-        return [o.x, o.y + 30];
-      case "trans":
-        return [o.x, o.y];
-      case "alt":
-        return [clamp(tx, o.x, o.x + (o.w || 200)), o.y];
-      case "par":
-        return [clamp(tx, o.x, o.x + (o.w || 200)), o.y + 5];
-      case "no":
-      case "nc":
-      case "coil":
-      case "lamp":
-        return [o.x, o.y + 60];
-    }
-    const b = bbox(o);
-    return [b.x + b.w / 2, b.y + b.h];
-  }
-  function inPt(o, fx) {
-    if (PC[o.k] && PC[o.k].bx) {
-      const q = portsOf(o)[0];
-      return [q.x, q.y];
-    }
-    switch (o.k) {
-      case "init":
-      case "step":
-      case "macro":
-        return [o.x + 20, o.y];
-      case "ref":
-        return [o.x, o.y];
-      case "trans":
-        return [o.x, o.y];
-      case "alt":
-      case "par":
-        return [clamp(fx, o.x, o.x + (o.w || 200)), o.y];
-      case "no":
-      case "nc":
-      case "coil":
-      case "lamp":
-        return [o.x, o.y];
-    }
-    const b = bbox(o);
-    return [b.x + b.w / 2, b.y];
-  }
-  function routeV([x1, y1], [x2, y2]) {
-    const p = { p1: [x1, y1], p2: [x2, y2] };
-    if (y2 > y1 + 4) {
-      if (Math.abs(x1 - x2) < 1) return { ...p, d: `M${x1} ${y1}V${y2}` };
-      const m = Math.round((y1 + y2) / 20) * 10;
-      return { ...p, d: `M${x1} ${y1}V${m}H${x2}V${y2}` };
-    }
-    const lane = Math.min(x1, x2) - 50, ya = y1 + 20, yb = y2 - 20;
-    return { ...p, d: `M${x1} ${y1}V${ya}H${lane}V${yb}H${x2}V${y2}`, up: [lane, (ya + yb) / 2] };
-  }
-  var isStep = (o) => o && (o.k === "step" || o.k === "init" || o.k === "macro");
   function refName(o, objs, cs, dir) {
-    if (isStep(o)) return `Schritt ${o.v}`;
-    if (o.k === "trans") {
-      const c = cs.find((c2) => dir === "von" ? c2.b === o.id && isStep(objs[c2.a]) : c2.a === o.id && isStep(objs[c2.b]));
-      if (c) return `Schritt ${(dir === "von" ? objs[c.a] : objs[c.b]).v}`;
-      return o.v ? `Transition ${o.v}` : "Transition";
-    }
+    const a = art(o.k);
+    if (a.verweisName) return a.verweisName(o, objs, cs, dir);
     return o.v || BLK[o.k].n;
   }
   function connGeom(c, objs, all) {
@@ -1752,23 +1743,8 @@ pre.code code{font-size:inherit}
       if (!e) return null;
       return { d: wireD(e[0], e[1]), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"] };
     }
-    const g = fam(A);
-    if (g === "grafcet" || g === "elektro") {
-      if (isAct(A) && isAct(B)) {
-        const ax2 = A.x + aw(A);
-        if (B.x >= ax2 - 1) {
-          const y12 = A.y + 15, y22 = B.y + 15, m3 = Math.round((ax2 + B.x) / 20) * 10;
-          return { d: Math.abs(y12 - y22) < 1 ? `M${ax2} ${y12}H${B.x}` : `M${ax2} ${y12}H${m3}V${y22}H${B.x}` };
-        }
-        const y1 = A.y + 30, y2 = B.y - (hasMark(B) ? 20 : 0), m2 = Math.round((y1 + y2) / 20) * 10;
-        return { d: Math.abs(A.x - B.x) < 1 ? `M${A.x + 8} ${y1}V${B.y}` : `M${A.x + 8} ${y1}V${m2}H${B.x + 8}V${B.y}` };
-      }
-      if (isAct(B)) {
-        const p12 = A.k === "trans" ? [A.x + 14, A.y] : [A.x + 40, A.y + 20], p22 = [B.x, B.y + 15], m2 = Math.round((p12[0] + p22[0]) / 20) * 10;
-        return { d: Math.abs(p12[1] - p22[1]) < 1 ? `M${p12[0]} ${p12[1]}H${p22[0]}` : `M${p12[0]} ${p12[1]}H${m2}V${p22[1]}H${p22[0]}` };
-      }
-      return routeV(outPt(A, ctr(B)[0]), inPt(B, outPt(A, ctr(B)[0])[0]));
-    }
+    const g = fam(A), G3 = GRUPPE[g] || {};
+    if (G3.kette) return verbindeKette(A, B);
     if (g === "zustand") {
       const ca2 = ctr(A), cb2 = ctr(B), ra = R[A.k] || 20, rb = R[B.k] || 20;
       if (c.a === c.b) {
@@ -2219,24 +2195,25 @@ pre.code code{font-size:inherit}
     }
   }
 
-  // web/tools/uebungshandbuch/src/editor/auswahl.js
-  var objById = (id) => ED.data.o.find((o) => o.id === id) || (String(id).startsWith("_") ? vrails(ED.key, ED.pages || 1).find((r) => r.id === id) : void 0);
-  var uid = () => "o" + Math.random().toString(36).slice(2, 9);
-  var anySel = () => !!ED.sel || ED.selC !== null || ED.selS !== null || ED.selT !== null || !!ED.selF;
-  function clearSel() {
-    ED.sel = null;
-    ED.selC = null;
-    ED.selS = null;
-    ED.selT = null;
-    ED.selF = false;
-  }
-
   // web/tools/uebungshandbuch/src/editor/eigenschaften.js
   var SYMS = `<div class="syms" aria-label="Zeichen einfügen">${[["·", "UND"], ["+", "ODER"], ["¬", "NICHT"], ["↑", "steigende Flanke"], ["↓", "fallende Flanke"], [":=", "Zuweisung"], ["≥", "größer gleich"]].map(([c, t]) => `<button type="button" class="sym" data-sym="${c}" title="${t}">${c}</button>`).join("")}</div>`;
   var propsKey = null, lastProp = null;
   var setLastProp = (el) => {
     lastProp = el;
   };
+  var MEHRZEILIG = ["v", "tv", "cv", "b"];
+  function textFeld(f, lbl, ph, val) {
+    const wert = esc(val ?? ""), platz = esc(ph || "");
+    if (!MEHRZEILIG.includes(f)) return `<label class="prop">${lbl}<input type="text" data-prop="${f}" value="${wert}" placeholder="${platz}" autocomplete="off"></label>`;
+    const zeilen = Math.max(1, String(val ?? "").split("\n").length);
+    return `<label class="prop">${lbl}<textarea data-prop="${f}" rows="${zeilen}" placeholder="${platz}" title="Alt+Enter: neue Zeile">${wert}</textarea></label>`;
+  }
+  function auswahlFeld(f, lbl, opts, cur) {
+    const optionen = opts.map(([v, n]) => `<option value="${v}" ${String(v) === String(cur) ? "selected" : ""}>${n}</option>`).join("");
+    return `<label class="prop">${lbl}<select data-prop="${f}">${optionen}</select></label>`;
+  }
+  var FARBEN = [["#17212B", "Schwarz"], ["#0E4C92", "Blau"], ["#C0392B", "Rot"]];
+  var loeschKnopf = () => `<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div>`;
   function propsHTML() {
     if (ED.key === "wegschritt" && !anySel() && ["sig", "line", "start", "eq", "vk"].includes(ED.tool)) {
       const step = (t) => `<li style="margin:0 0 6px">${t}</li>`;
@@ -2251,9 +2228,7 @@ pre.code code{font-size:inherit}
       return `<div class="props"><div class="palh">${titel}</div><ol style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.45">${how.map(step).join("")}</ol></div>`;
     }
     if (ED.tool === "sim") return `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren leuchten grün.</p><p class="small muted" style="margin:0">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;
-    const inp = (f, lbl, ph, val) => ["v", "tv", "cv", "b"].includes(f) ? `<label class="prop">${lbl}<textarea data-prop="${f}" rows="${Math.max(1, String(val ?? "").split("\n").length)}" placeholder="${esc(ph || "")}" title="Alt+Enter: neue Zeile">${esc(val ?? "")}</textarea></label>` : `<label class="prop">${lbl}<input type="text" data-prop="${f}" value="${esc(val ?? "")}" placeholder="${esc(ph || "")}" autocomplete="off"></label>`;
-    const sel = (f, lbl, opts, cur) => `<label class="prop">${lbl}<select data-prop="${f}">${opts.map(([v, n]) => `<option value="${v}" ${String(v) === String(cur) ? "selected" : ""}>${n}</option>`).join("")}</select></label>`;
-    const COL = [["#17212B", "Schwarz"], ["#0E4C92", "Blau"], ["#C0392B", "Rot"]], del = `<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div>`;
+    const inp = textFeld, sel = auswahlFeld, COL = FARBEN, del = loeschKnopf();
     if (ED.selT !== null && ED.data.t[ED.selT]) {
       const t = ED.data.t[ED.selT];
       return `<div class="props"><div class="palh">Text</div>${inp("tv", "Text", "", t.v)}${SYMS}${sel("ts", "Größe", [[12, "klein"], [16, "normal"], [20, "groß"], [26, "sehr groß"]], t.s || 16)}${sel("sc", "Farbe", COL, t.c)}${del}</div>`;
@@ -2267,25 +2242,7 @@ pre.code code{font-size:inherit}
       return `<div class="props"><div class="palh">${st.k === "l" ? "Linie" : st.k === "r" ? "Kasten" : "Freihandstrich"}</div>${sel("sc", "Farbe", COL, st.c)}${sel("sw", "Strichstärke", [[1.4, "dünn"], [2.2, "mittel"], [4, "dick"]], st.w)}${st.k ? `<p class="small muted" style="margin:0 0 8px">Die runden Griffe an den Enden ziehen.</p>` : ""}${del}</div>`;
     }
     const o = ED.sel && objById(ED.sel);
-    if (o) {
-      let h = "";
-      if (isAct(o)) {
-        const t = atype(o);
-        h += `<label class="prop">Art<select data-prop="t">${Object.entries(ACT_T).map(([k, n]) => `<option value="${k}" ${k === t ? "selected" : ""}>${n}</option>`).join("")}</select></label>`;
-        if (t === "q") h += `<label class="prop">Bestimmungszeichen<select data-prop="q">${["N", "S", "R", "D", "L", "P", "SD", "DS", "SL"].map((q) => `<option ${q === (o.q || "S") ? "selected" : ""}>${q}</option>`).join("")}</select></label>`;
-        h += inp("v", "Aktion", "z. B. MB1 oder Z := Z + 1", o.v);
-        if (t === "kont") h += inp("b", "Zuweisungsbedingung (optional)", "z. B. BG9 oder 3s/X2", o.b);
-        if (t === "ereig") h += inp("b", "Ereignis", "z. B. ↑BG1", o.b);
-      } else if (PC[o.k]) {
-        h += inp("v", o.k === "rail" ? "Potenzial, z. B. L+, M, L1, PE" : "Kennzeichen", PC[o.k].lbl, o.v);
-        (PC[o.k].props || []).forEach(([f, lbl, ty, opts]) => {
-          h += ty === "select" ? sel(f, lbl, opts, o[f] ?? (PC[o.k].def || {})[f]) : inp(f, lbl, "", f === "w" ? o.w || 400 : o[f]);
-        });
-        if (PC[o.k].info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${PC[o.k].info}</p>`;
-        if (o.k !== "rail") h += `<div class="propact" style="justify-content:flex-start;gap:6px;margin-bottom:8px"><button type="button" class="tool" data-ed="rot" title="Taste R">↻ Drehen 90°</button><button type="button" class="tool" data-ed="flip" title="Taste M">⇋ Spiegeln</button></div>`;
-      } else for (const [f, lbl, ph] of PROPS[o.k] || []) h += inp(f, lbl, ph, f === "w" ? o.w || 200 : o.v);
-      return `<div class="props"><div class="palh">${isAct(o) ? "Aktion" : BLK[o.k].n}</div>${h}${h ? SYMS : ""}<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div></div>`;
-    }
+    if (o) return objektFelder(o);
     const c = ED.selC !== null && ED.data.c[ED.selC];
     if (c && (c.pa !== void 0 || c.pb !== void 0)) return `<div class="props"><div class="palh">Leitung</div>${inp("cv", "Beschriftung (optional)", "z. B. Aderfarbe oder Querschnitt", c.v)}${sel("cst", "Leitungsart", [["", "Arbeits-/Hauptleitung"], ["st", "Steuerleitung (gestrichelt)"]], c.st || "")}${del}</div>`;
     if (c) {
@@ -2316,6 +2273,25 @@ pre.code code{font-size:inherit}
     propsKey = k;
     el.innerHTML = propsHTML();
   }
+  function objektFelder(o) {
+    const a = art(o.k), pc = PC[o.k];
+    let h = "";
+    if (a.felder) h += a.felder(o);
+    else if (pc) h += bauteilFelder(o, pc);
+    else for (const [f, lbl, ph] of PROPS[o.k] || []) h += textFeld(f, lbl, ph, o[f]);
+    if (pc && pc.info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${pc.info}</p>`;
+    if (pc && o.k !== "rail") h += DREHKNOEPFE;
+    return `<div class="props"><div class="palh">${a.titel || BLK[o.k].n}</div>${h}${h ? SYMS : ""}${loeschKnopf()}</div>`;
+  }
+  function bauteilFelder(o, pc) {
+    let h = textFeld("v", o.k === "rail" ? "Potenzial, z. B. L+, M, L1, PE" : "Kennzeichen", pc.lbl, o.v);
+    for (const [f, lbl, ty, opts] of pc.props || []) {
+      if (ty === "select") h += auswahlFeld(f, lbl, opts, o[f] ?? (pc.def || {})[f]);
+      else h += textFeld(f, lbl, "", f === "w" ? o.w || 400 : o[f]);
+    }
+    return h;
+  }
+  var DREHKNOEPFE = `<div class="propact" style="justify-content:flex-start;gap:6px;margin-bottom:8px"><button type="button" class="tool" data-ed="rot" title="Taste R">↻ Drehen 90°</button><button type="button" class="tool" data-ed="flip" title="Taste M">⇋ Spiegeln</button></div>`;
 
   // web/tools/uebungshandbuch/src/editor/anzeige.js
   function sizeSVG() {
@@ -2468,21 +2444,18 @@ pre.code code{font-size:inherit}
     inp.addEventListener("blur", (ev) => commit(true, ev.relatedTarget));
   }
   function editObjLabel(o) {
-    if (!o || o.k === "start" || o.k === "sum") return;
+    if (!o) return;
+    const B = art(o.k).beschriftung;
+    if (B === false || o.k === "start" || o.k === "sum") return;
     const b = bbox(o);
-    const q = isAct(o) && atype(o) === "q";
-    const init5 = q ? `${o.q || "S"} ${o.v || ""}`.trim() : o.k === "alt" || o.k === "par" ? String(o.w || 200) : o.v || "";
-    const at = o.k === "trans" ? [o.x + 20, o.y] : o.k === "no" || o.k === "nc" || o.k === "coil" || o.k === "lamp" ? [o.x - 120, o.y + 30] : [b.x, b.y + b.h / 2];
-    editLabel(at[0], at[1], init5, q ? LABEL_HINT.actionq : LABEL_HINT[o.k], (v) => {
+    const wert = B && B.wert ? B.wert(o) : o.v || "";
+    const elektro = o.k === "no" || o.k === "nc" || o.k === "coil" || o.k === "lamp";
+    const at = B && B.ort ? B.ort(o) : elektro ? [o.x - 120, o.y + 30] : [b.x, b.y + b.h / 2];
+    const hinweis = B && B.hinweis ? B.hinweis(o) : LABEL_HINT[o.k];
+    editLabel(at[0], at[1], wert, hinweis, (v) => {
       snapshot();
-      if (q) {
-        const m = v.match(/^(\S+)\s*(.*)$/);
-        o.q = m ? m[1] : "S";
-        o.v = m ? m[2] : "";
-      } else if (o.k === "alt" || o.k === "par") {
-        const w = parseInt(v, 10);
-        if (w >= 40) o.w = Math.round(w / 10) * 10;
-      } else o.v = v;
+      if (B && B.setze) B.setze(o, v);
+      else o.v = v;
       saveSketch();
       renderInk();
       updateProps(true);
@@ -2612,11 +2585,7 @@ pre.code code{font-size:inherit}
       if (f === "w") {
         const w = parseInt(v, 10);
         if (w >= 40) o.w = Math.round(w / 10) * 10;
-      } else if (f === "t") {
-        if (o.k === "actionq") o.k = "action";
-        o.t = v;
-        if (v === "q" && !o.q) o.q = "S";
-      } else o[f] = v;
+      } else if (!(art(o.k).setze && art(o.k).setze(o, f, v))) o[f] = v;
     }
     saveSketch();
     ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
@@ -2686,45 +2655,10 @@ pre.code code{font-size:inherit}
   function makeObj(k, [px, py]) {
     const mk = BLK[k] && BLK[k].mk;
     if (mk) k = mk.k || k;
-    if (PC[k]) {
-      const pc = PC[k], o2 = { id: uid(), ...pc.def || {}, ...mk || {} };
-      o2.k = k;
-      o2.v = nextLabel(pc.lbl || "");
-      if (k === "rail") {
-        o2.w = 400;
-        o2.x = px - 200;
-        o2.y = py;
-      } else {
-        o2.x = px - (pc.bx || 0) - pc.w / 2;
-        o2.y = py - pc.h / 2;
-      }
-      [o2.x, o2.y] = snap([o2.x, o2.y]);
-      return o2;
-    }
-    const o = { id: uid(), k }, nums = ED.data.o.filter((q) => q.k === "step" || q.k === "init").map((q) => parseInt(q.v, 10)).filter((v) => !isNaN(v));
-    if (k === "init" || k === "step") {
-      o.x = px - 20;
-      o.y = py - 20;
-      o.v = String(nums.length ? Math.max(...nums) + 1 : 1);
-    } else if (k === "action") {
-      Object.assign(o, mk || { t: "kont" });
-      o.k = "action";
-      o.x = px - 20;
-      o.y = py - 15;
-      o.v = "";
-    } else if (k === "macro") {
-      o.x = px - 20;
-      o.y = py - 20;
-      o.v = "M" + (ED.data.o.filter((q) => q.k === "macro").length + 1);
-    } else if (k === "ref") {
-      o.x = px;
-      o.y = py - 15;
-      o.v = "";
-    } else if (k === "alt" || k === "par") {
-      o.x = px - 100;
-      o.y = py;
-      o.w = 200;
-    } else if (k === "box") {
+    if (PC[k]) return neuesBauteil(k, mk, px, py);
+    const o = { id: uid(), k }, a = BLK[k];
+    if (a && a.neu) a.neu(o, [px, py], mk);
+    else if (k === "box") {
       o.x = px - 55;
       o.y = py - 25;
       o.v = "";
@@ -2743,72 +2677,25 @@ pre.code code{font-size:inherit}
     [o.x, o.y] = snap([o.x, o.y]);
     return o;
   }
-  function chainSource(k) {
-    const base = BLK[k] && BLK[k].mk && BLK[k].mk.k || k;
-    if (PC[base] && !PC[base].bx) return null;
-    const A = !ED.dnd && ED.sel && objById(ED.sel);
-    if (!A || !(fam(A) === "grafcet" || fam(A) === "elektro") || fam(A) !== BLK[k].g) return null;
-    if (isAct(A)) return isActKey(k) ? A : null;
-    if (isActKey(k) && A.k !== "trans") {
-      let cur = null, n = 0;
-      for (let c = ED.data.c.find((c2) => c2.a === A.id && isAct(objById(c2.b))); c && n++ < 50; c = ED.data.c.find((q) => q.a === cur.id && isAct(objById(q.b)))) cur = objById(c.b);
-      return cur || A;
+  function neuesBauteil(k, mk, px, py) {
+    const pc = PC[k], o = { id: uid(), ...pc.def || {}, ...mk || {} };
+    o.k = k;
+    o.v = nextLabel(pc.lbl || "");
+    if (pc.neu) pc.neu(o, [px, py]);
+    else if (k === "rail") {
+      o.w = 400;
+      o.x = px - 200;
+      o.y = py;
+    } else {
+      o.x = px - (pc.bx || 0) - pc.w / 2;
+      o.y = py - pc.h / 2;
     }
-    return A;
-  }
-  function align(o, A, pt) {
-    if (isAct(o) && isAct(A)) {
-      const right = pt && pt[0] - (A.x + aw(A)) > pt[1] - (A.y + 30);
-      if (right) {
-        o.x = A.x + aw(A);
-        o.y = A.y;
-      } else {
-        o.x = A.x;
-        o.y = A.y + 30 + (hasMark(o) ? 20 : 0);
-      }
-      return;
-    }
-    if (isAct(o)) {
-      o.x = A.k === "trans" ? A.x + 40 : A.x + 70;
-      o.y = A.k === "trans" ? A.y - 15 : A.y + 5;
-      return;
-    }
-    const ax = outPt(A, ctr(o)[0])[0];
-    o.x = o.k === "step" || o.k === "init" ? ax - 20 : o.k === "alt" || o.k === "par" ? ax - 100 : ax;
-  }
-  function dockFor(o) {
-    const g = fam(o);
-    if (!ED.dock || !(g === "grafcet" || g === "elektro") || PC[o.k] && !PC[o.k].bx) return null;
-    const others = ED.data.o.filter((p) => p.id !== o.id && fam(p) === g && (!PC[p.k] || PC[p.k].bx));
-    let best = null;
-    const take = (c) => {
-      if (!best || c.d < best.d) best = c;
-    };
-    if (isAct(o)) {
-      for (const p of others) {
-        if (["step", "init", "macro", "trans"].includes(p.k)) {
-          const px = p.k === "trans" ? p.x + 14 : p.x + 40, py = p.k === "trans" ? p.y : p.y + 20, dx = o.x - px, dy = o.y + 15 - py;
-          if (dx >= 0 && dx <= 110 && Math.abs(dy) <= 30) take({ a: p.id, b: o.id, d: Math.hypot(dx - 30, dy), sx: 0, sy: -dy });
-        } else if (isAct(p)) {
-          const rx = p.x + aw(p), by = p.y + 30 + (hasMark(o) ? 20 : 0);
-          if (Math.abs(o.x - rx) <= 25 && Math.abs(o.y - p.y) <= 20) take({ a: p.id, b: o.id, d: Math.abs(o.x - rx) + Math.abs(o.y - p.y), sx: rx - o.x, sy: p.y - o.y });
-          if (Math.abs(o.x - p.x) <= 25 && Math.abs(o.y - by) <= 20) take({ a: p.id, b: o.id, d: Math.abs(o.x - p.x) + Math.abs(o.y - by), sx: p.x - o.x, sy: by - o.y });
-        }
-      }
-      return best;
-    }
-    for (const p of others) {
-      if (isAct(p)) continue;
-      const po = outPt(p, ctr(o)[0]), oi = inPt(o, po[0]), dy1 = oi[1] - po[1], dx1 = po[0] - oi[0];
-      if (dy1 >= 10 && dy1 <= 140 && Math.abs(dx1) <= 30) take({ a: p.id, b: o.id, d: Math.abs(dx1) + dy1 / 4, sx: dx1, sy: 0 });
-      const oo = outPt(o, ctr(p)[0]), pi = inPt(p, oo[0]), dy2 = pi[1] - oo[1], dx2 = pi[0] - oo[0];
-      if (dy2 >= 10 && dy2 <= 140 && Math.abs(dx2) <= 30) take({ a: o.id, b: p.id, d: Math.abs(dx2) + dy2 / 4, sx: dx2, sy: 0 });
-    }
-    return best;
+    [o.x, o.y] = snap([o.x, o.y]);
+    return o;
   }
   function smartPos(o) {
     if (ED.key === "stromlauf" && fam(o) === "elektro") o.x = 40 + Math.max(1, Math.min(20, Math.round((o.x - 40) / 46))) * 46;
-    const dock = dockFor(o), marks = [];
+    const dock = andockStelle(o), marks = [];
     if (dock) {
       o.x += dock.sx;
       o.y += dock.sy;
@@ -2850,7 +2737,7 @@ pre.code code{font-size:inherit}
       map[o.id] = o;
       const gm = connGeom({ a: dock.a, b: dock.b }, map, []);
       if (gm) marks.push(`<path d="${gm.d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`);
-      const B = map[dock.b], A = map[dock.a], p = isAct(B) ? isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + 8, B.y] : [B.x, B.y + 15] : inPt(B, outPt(A, ctr(B)[0])[0]);
+      const p = andockPunkt(map[dock.a], map[dock.b]);
       marks.push(`<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`);
     }
     return { dock, marks: marks.join("") };
@@ -2865,9 +2752,9 @@ pre.code code{font-size:inherit}
   }
   var linked = (a, b) => ED.data.c.some((c) => c.a === a && c.b === b || c.a === b && c.b === a);
   function placeObj(k, pt) {
-    const A = chainSource(k), o = makeObj(k, pt);
+    const A = kettenQuelle(k), o = makeObj(k, pt);
     let dock = null;
-    if (A) align(o, A, pt);
+    if (A) ausrichten(o, A, pt);
     else dock = smartPos(o).dock;
     avoidBreak(o);
     snapshot();
@@ -2878,7 +2765,8 @@ pre.code code{font-size:inherit}
     ED.selC = null;
     saveSketch();
     setTool("sel");
-    if (o.k === "trans" || o.k === "box" || o.k === "ref" || isAct(o)) editObjLabel(o);
+    const b = art(o.k).beschriftung;
+    if (b && b.sofort || o.k === "box") editObjLabel(o);
   }
   function connectPorts(a, pa, b, pb) {
     if (a === b && pa === pb) return;
@@ -3214,10 +3102,10 @@ pre.code code{font-size:inherit}
       return;
     }
     if (ED.tool === "place" && ED.place) {
-      const o = makeObj(ED.place, pt), A = chainSource(ED.place);
+      const o = makeObj(ED.place, pt), A = kettenQuelle(ED.place);
       let marks = "";
       if (A) {
-        align(o, A, pt);
+        ausrichten(o, A, pt);
         const map = Object.fromEntries(ED.data.o.map((p) => [p.id, p]));
         map[o.id] = o;
         const gm = connGeom({ a: A.id, b: o.id }, map, []);
@@ -3691,8 +3579,301 @@ END_CASE;`)}
     el.textContent = any ? `${s} Punkte, ${gradeOf(s)}` : "noch keine Punkte";
   }
 
+  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet.js
+  var isAct = (o) => !!o && (o.k === "action" || o.k === "actionq");
+  var atype = (o) => o.k === "actionq" ? "q" : o.t || "kont";
+  var hasMark = (o) => isAct(o) && (["akt", "deakt", "ereig"].includes(atype(o)) || atype(o) === "kont" && (o.b || o.hb));
+  var ACT_T = { kont: "kontinuierlich wirkend", akt: "speichernd bei Aktivierung ↑", deakt: "speichernd bei Deaktivierung ↓", ereig: "speichernd bei Ereignis", q: "mit Bestimmungszeichen (IEC 61131-3)" };
+  var aw = (o) => Math.max(90, Math.round((tw(o.v || "Aktion") + 26 + (isAct(o) && atype(o) === "q" ? 30 : 0)) / 10) * 10);
+  var BESTIMMUNG = ["N", "S", "R", "D", "L", "P", "SD", "DS", "SL"];
+  var isStep = (o) => o && (o.k === "step" || o.k === "init" || o.k === "macro");
+  var knick = (x1, y1, x2, y2, m, waagrecht) => waagrecht ? `M${x1} ${y1}H${m}V${y2}H${x2}` : `M${x1} ${y1}V${m}H${x2}V${y2}`;
+  function zeichneAktion(o, edit) {
+    const x = o.x, y = o.y, t = atype(o), w = aw(o), qw = t === "q" ? 30 : 0, mx = x + 16, tc = x + qw + (w - qw) / 2;
+    let r = `<rect x="${x}" y="${y}" width="${w}" height="30" fill="#fff" ${LINIE}/>`;
+    if (qw) r += `<path d="M${x + 30} ${y}V${y + 30}" ${LINIE}/>` + SVGT(x + 15, y + 20, o.q || "S", "middle", 12, 600);
+    r += o.v ? SVGT(tc, y + 20, o.v, "middle", 13, 400) : platzhalter(edit, "Aktion", tc, y + 20);
+    if (t === "kont" && (o.b || o.hb)) {
+      r += `<path d="M${mx} ${y}V${y - 16}" ${LINIE}/>`;
+      r += o.b ? SVGT(mx + 6, y - 6, o.b, "start", 12, 400) : platzhalter(edit, "Zuweisungsbedingung", mx + 6, y - 6, "start");
+    }
+    if (t === "akt" || t === "ereig") r += `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 12}L${mx} ${y - 18}L${mx + 4.5} ${y - 12}" ${LINIE} fill="none"/>`;
+    if (t === "deakt") r += `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 18}L${mx} ${y - 12}L${mx + 4.5} ${y - 18}" ${LINIE} fill="none"/>`;
+    if (t === "ereig") r += o.b ? SVGT(mx + 8, y - 6, o.b, "start", 12, 400) : platzhalter(edit, "Ereignis, z. B. ↑BG1", mx + 8, y - 6, "start");
+    return r;
+  }
+  function aktionFelder(o) {
+    const t = atype(o);
+    const arten = Object.entries(ACT_T).map(([k, n]) => `<option value="${k}" ${k === t ? "selected" : ""}>${n}</option>`).join("");
+    let h = `<label class="prop">Art<select data-prop="t">${arten}</select></label>`;
+    if (t === "q") {
+      const zeichen = BESTIMMUNG.map((q) => `<option ${q === (o.q || "S") ? "selected" : ""}>${q}</option>`).join("");
+      h += `<label class="prop">Bestimmungszeichen<select data-prop="q">${zeichen}</select></label>`;
+    }
+    h += textFeld("v", "Aktion", "z. B. MB1 oder Z := Z + 1", o.v);
+    if (t === "kont") h += textFeld("b", "Zuweisungsbedingung (optional)", "z. B. BG9 oder 3s/X2", o.b);
+    if (t === "ereig") h += textFeld("b", "Ereignis", "z. B. ↑BG1", o.b);
+    return h;
+  }
+  function setzeAktion(o, f, v) {
+    if (f !== "t") return false;
+    if (o.k === "actionq") o.k = "action";
+    o.t = v;
+    if (v === "q" && !o.q) o.q = "S";
+    return true;
+  }
+  var AKTION_TEXT = {
+    sofort: true,
+    wert: (o) => atype(o) === "q" ? `${o.q || "S"} ${o.v || ""}`.trim() : o.v || "",
+    hinweis: (o) => atype(o) === "q" ? LABEL_HINT.actionq : LABEL_HINT[o.k],
+    setze(o, v) {
+      if (atype(o) !== "q") {
+        o.v = v;
+        return;
+      }
+      const m = v.match(/^(\S+)\s*(.*)$/);
+      o.q = m ? m[1] : "S";
+      o.v = m ? m[2] : "";
+    }
+  };
+  var AKTION_SEITE = {
+    verbinde(A, B) {
+      if (isAct(A)) {
+        const ax2 = A.x + aw(A);
+        if (B.x >= ax2 - 1) {
+          const y12 = A.y + 15, y22 = B.y + 15, m3 = Math.round((ax2 + B.x) / 20) * 10;
+          return { d: Math.abs(y12 - y22) < 1 ? `M${ax2} ${y12}H${B.x}` : knick(ax2, y12, B.x, y22, m3, true) };
+        }
+        const y1 = A.y + 30, y2 = B.y - (hasMark(B) ? 20 : 0), m2 = Math.round((y1 + y2) / 20) * 10;
+        return { d: Math.abs(A.x - B.x) < 1 ? `M${A.x + 8} ${y1}V${B.y}` : `M${A.x + 8} ${y1}V${m2}H${B.x + 8}V${B.y}` };
+      }
+      const p1 = A.k === "trans" ? [A.x + 14, A.y] : [A.x + 40, A.y + 20], p2 = [B.x, B.y + 15], m = Math.round((p1[0] + p2[0]) / 20) * 10;
+      return { d: Math.abs(p1[1] - p2[1]) < 1 ? `M${p1[0]} ${p1[1]}H${p2[0]}` : knick(p1[0], p1[1], p2[0], p2[1], m, true) };
+    },
+    // Hat der Schritt schon Aktionen, hängt die neue an die letzte
+    quelle(A) {
+      if (A.k === "trans") return A;
+      const naechste = (id) => ED.data.c.find((c) => c.a === id && isAct(objById(c.b)));
+      let cur = null, n = 0;
+      for (let c = naechste(A.id); c && n++ < 50; c = naechste(cur.id)) cur = objById(c.b);
+      return cur || A;
+    },
+    ausrichten(o, A, pt) {
+      if (isAct(A)) {
+        const right = pt && pt[0] - (A.x + aw(A)) > pt[1] - (A.y + 30);
+        if (right) {
+          o.x = A.x + aw(A);
+          o.y = A.y;
+        } else {
+          o.x = A.x;
+          o.y = A.y + 30 + (hasMark(o) ? 20 : 0);
+        }
+        return;
+      }
+      o.x = A.k === "trans" ? A.x + 40 : A.x + 70;
+      o.y = A.k === "trans" ? A.y - 15 : A.y + 5;
+    },
+    andocken(o, others, take) {
+      for (const p of others) {
+        if (["step", "init", "macro", "trans"].includes(p.k)) {
+          const px = p.k === "trans" ? p.x + 14 : p.x + 40, py = p.k === "trans" ? p.y : p.y + 20, dx = o.x - px, dy = o.y + 15 - py;
+          if (dx >= 0 && dx <= 110 && Math.abs(dy) <= 30) take({ a: p.id, b: o.id, d: Math.hypot(dx - 30, dy), sx: 0, sy: -dy });
+        } else if (isAct(p)) {
+          const rx = p.x + aw(p), by = p.y + 30 + (hasMark(o) ? 20 : 0);
+          if (Math.abs(o.x - rx) <= 25 && Math.abs(o.y - p.y) <= 20) take({ a: p.id, b: o.id, d: Math.abs(o.x - rx) + Math.abs(o.y - p.y), sx: rx - o.x, sy: p.y - o.y });
+          if (Math.abs(o.x - p.x) <= 25 && Math.abs(o.y - by) <= 20) take({ a: p.id, b: o.id, d: Math.abs(o.x - p.x) + Math.abs(o.y - by), sx: p.x - o.x, sy: by - o.y });
+        }
+      }
+    },
+    punkt: (A, B) => isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + 8, B.y] : [B.x, B.y + 15]
+  };
+  var QUADRAT = (o) => ({ x: o.x, y: o.y, w: 40, h: 40 });
+  var naechsteSchrittNummer = () => {
+    const nums = ED.data.o.filter((q) => q.k === "step" || q.k === "init").map((q) => parseInt(q.v, 10)).filter((v) => !isNaN(v));
+    return String(nums.length ? Math.max(...nums) + 1 : 1);
+  };
+  var SCHRITT = {
+    umriss: QUADRAT,
+    aus: (o) => [o.x + 20, o.y + 40],
+    ein: (o) => [o.x + 20, o.y],
+    einrueck: 20,
+    neu(o, [px, py]) {
+      o.x = px - 20;
+      o.y = py - 20;
+      o.v = naechsteSchrittNummer();
+    },
+    verweisName: (o) => `Schritt ${o.v}`
+  };
+  function transitionName(o, objs, cs, dir) {
+    const c = cs.find((c2) => dir === "von" ? c2.b === o.id && isStep(objs[c2.a]) : c2.a === o.id && isStep(objs[c2.b]));
+    if (c) return `Schritt ${(dir === "von" ? objs[c.a] : objs[c.b]).v}`;
+    return o.v ? `Transition ${o.v}` : "Transition";
+  }
+  var breite = (o) => o.w || 200;
+  var VERZWEIGUNG = {
+    aus: (o, tx) => [clamp(tx, o.x, o.x + breite(o)), o.y],
+    ein: (o, fx) => [clamp(fx, o.x, o.x + breite(o)), o.y],
+    einrueck: 100,
+    neu(o, [px, py]) {
+      o.x = px - 100;
+      o.y = py;
+      o.w = 200;
+    },
+    felder: (o) => textFeld("w", "Breite", void 0, breite(o)),
+    beschriftung: {
+      wert: (o) => String(breite(o)),
+      setze(o, v) {
+        const w = parseInt(v, 10);
+        if (w >= 40) o.w = Math.round(w / 10) * 10;
+      }
+    }
+  };
+  registriereVorlage("grafcet", {
+    n: "GRAFCET",
+    d: "Ablauf nach DIN EN 60848 mit Symbollegende",
+    gruppen: ["grafcet"],
+    body: (ex, page) => dots(20) + (page ? "" : GRAFCET_LEGENDE)
+  });
+  var GRAFCET_LEGENDE = `<g><rect x="790" y="25" width="185" height="196" fill="#fff" stroke="${G}"/>${TX(800, 43, 10, "Symbole", "start", "#666", 600)}
+        <rect x="800" y="54" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/><rect x="803" y="57" width="16" height="16" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832, 69, 10, "Anfangsschritt")}
+        <rect x="800" y="86" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832, 101, 10, "Schritt")}
+        <path d="M811 116V140M803 128H819" stroke="${G}" stroke-width="1.3"/>${TX(832, 132, 10, "Transition + Bedingung")}
+        <path d="M800 160H812" stroke="${G}" stroke-width="1.3"/><rect x="812" y="150" width="40" height="20" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(862, 164, 10, "Aktion")}
+        <path d="M811 180V206" stroke="${G}" stroke-width="1.3"/>${TX(832, 197, 10, "Wirkverbindung")}</g>`;
+  registriereGruppe("grafcet", {
+    name: "GRAFCET",
+    hinweis: "Anfangsschritt setzen, dann Transition, Schritt, Transition … anklicken: Jeder neue Baustein hängt sich unter den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken.",
+    kette: true
+  });
+  var AKTION = {
+    g: "grafcet",
+    titel: "Aktion",
+    zeichne: zeichneAktion,
+    umriss(o) {
+      const m = hasMark(o) ? 20 : 0;
+      return { x: o.x, y: o.y - m, w: aw(o), h: 30 + m };
+    },
+    neu(o, [px, py], mk) {
+      Object.assign(o, mk || { t: "kont" });
+      o.k = "action";
+      o.x = px - 20;
+      o.y = py - 15;
+      o.v = "";
+    },
+    felder: aktionFelder,
+    setze: setzeAktion,
+    umbau: ["t", "q"],
+    beschriftung: AKTION_TEXT,
+    seite: AKTION_SEITE
+  };
+  fuelle(BLK, {
+    init: {
+      g: "grafcet",
+      n: "Anfangsschritt",
+      ...SCHRITT,
+      zeichne: (o) => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/><rect x="${o.x + 4}" y="${o.y + 4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v)
+    },
+    step: {
+      g: "grafcet",
+      n: "Schritt",
+      ...SCHRITT,
+      zeichne: (o) => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v)
+    },
+    macro: {
+      g: "grafcet",
+      n: "Makroschritt",
+      ...SCHRITT,
+      einrueck: 0,
+      // Makroschritt richtet sich mit der linken Kante aus (wie bisher)
+      neu(o, [px, py]) {
+        o.x = px - 20;
+        o.y = py - 20;
+        o.v = "M" + (ED.data.o.filter((q) => q.k === "macro").length + 1);
+      },
+      zeichne: (o) => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/><path d="M${o.x} ${o.y + 5}H${o.x + 40}M${o.x} ${o.y + 35}H${o.x + 40}" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v, "middle", 12)
+    },
+    trans: {
+      g: "grafcet",
+      n: "Transition",
+      zeichne: (o, edit) => `<path d="M${o.x - 14} ${o.y}H${o.x + 14}" stroke="${INK}" stroke-width="3.2"/>` + (o.v ? SVGT(o.x + 22, o.y + 5, o.v, "start", 13, 400) : platzhalter(edit, "Bedingung", o.x + 22, o.y + 5, "start")),
+      umriss: (o) => ({ x: o.x - 16, y: o.y - 9, w: 32 + (o.v ? tw(o.v) + 12 : 70), h: 18 }),
+      mitte: (o) => [o.x, o.y],
+      aus: (o) => [o.x, o.y],
+      ein: (o) => [o.x, o.y],
+      verweisName: transitionName,
+      beschriftung: { sofort: true, ort: (o) => [o.x + 20, o.y] }
+    },
+    action: { ...AKTION, n: "Aktion kontinuierlich", mk: { t: "kont" } },
+    actc: { g: "grafcet", n: "Aktion mit Zuweisungsbedingung", mk: { k: "action", t: "kont", b: "", hb: true } },
+    acta: { g: "grafcet", n: "Aktion bei Aktivierung ↑", mk: { k: "action", t: "akt" } },
+    actd: { g: "grafcet", n: "Aktion bei Deaktivierung ↓", mk: { k: "action", t: "deakt" } },
+    acte: { g: "grafcet", n: "Aktion bei Ereignis", mk: { k: "action", t: "ereig", b: "" } },
+    actionq: { ...AKTION, n: "Aktion mit Bestimmungszeichen", mk: { k: "action", t: "q", q: "S" } },
+    alt: {
+      g: "grafcet",
+      n: "ODER-Verzweigung",
+      ...VERZWEIGUNG,
+      zeichne: (o) => `<path d="M${o.x} ${o.y}H${o.x + breite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
+      umriss: (o) => ({ x: o.x, y: o.y - 5, w: breite(o), h: 10 })
+    },
+    par: {
+      g: "grafcet",
+      n: "UND-Verzweigung",
+      ...VERZWEIGUNG,
+      zeichne: (o) => `<path d="M${o.x} ${o.y}H${o.x + breite(o)}M${o.x} ${o.y + 5}H${o.x + breite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
+      aus: (o, tx) => [clamp(tx, o.x, o.x + breite(o)), o.y + 5],
+      umriss: (o) => ({ x: o.x, y: o.y - 5, w: breite(o), h: 15 })
+    },
+    ref: {
+      g: "grafcet",
+      n: "Verweis / Sprung",
+      zeichne: (o, edit) => `<path d="M${o.x} ${o.y}V${o.y + 30}M${o.x - 5} ${o.y + 23}L${o.x} ${o.y + 31}L${o.x + 5} ${o.y + 23}" ${LINIE} fill="none"/>` + (o.v ? SVGT(o.x + 9, o.y + 29, o.v, "start", 12, 500) : platzhalter(edit, "Ziel, z. B. 1", o.x + 9, o.y + 29, "start")),
+      umriss: (o) => ({ x: o.x - 10, y: o.y, w: 24 + tw(o.v || "Ziel"), h: 36 }),
+      aus: (o) => [o.x, o.y + 30],
+      ein: (o) => [o.x, o.y],
+      neu(o, [px, py]) {
+        o.x = px;
+        o.y = py - 15;
+        o.v = "";
+      },
+      beschriftung: { sofort: true }
+    }
+  });
+  fuelle(SAMPLE, {
+    init: [{ k: "init", x: 4, y: 4, v: "1" }, "0 0 48 48"],
+    step: [{ k: "step", x: 4, y: 4, v: "2" }, "0 0 48 48"],
+    trans: [{ k: "trans", x: 24, y: 24 }, "0 0 48 48", `<path d="M24 4V44" stroke="${INK}" stroke-width="1.6"/>`],
+    macro: [{ k: "macro", x: 4, y: 4, v: "M1" }, "0 0 48 48"],
+    ref: [{ k: "ref", x: 16, y: 8, v: "1" }, "0 0 48 48"],
+    action: [{ k: "action", t: "kont", x: 4, y: 9, v: "MB1" }, "0 0 98 48"],
+    actionq: [{ k: "action", t: "q", x: 4, y: 9, q: "S", v: "MB9" }, "0 0 98 48"],
+    actc: [{ k: "action", t: "kont", x: 4, y: 22, v: "MB1", b: "BG9" }, "0 0 98 56"],
+    acta: [{ k: "action", t: "akt", x: 4, y: 22, v: "Z := 0" }, "0 0 98 56"],
+    actd: [{ k: "action", t: "deakt", x: 4, y: 22, v: "Z := 0" }, "0 0 98 56"],
+    acte: [{ k: "action", t: "ereig", x: 4, y: 22, v: "Z := Z+1", b: "↑BG1" }, "0 0 98 56"],
+    alt: [{ k: "alt", x: 8, y: 24, w: 72 }, "0 0 88 48", `<path d="M44 4V24M18 24V44M70 24V44" stroke="${INK}" stroke-width="1.6"/>`],
+    par: [{ k: "par", x: 8, y: 22, w: 72 }, "0 0 88 48", `<path d="M44 4V22M18 27V44M70 27V44" stroke="${INK}" stroke-width="1.6"/>`]
+  });
+  fuelle(PROPS, {
+    init: [["v", "Schrittnummer"]],
+    step: [["v", "Schrittnummer"]],
+    macro: [["v", "Bezeichnung", "z. B. M1"]],
+    ref: [["v", "Ziel", "z. B. 1 oder Schritt 5"]],
+    trans: [["v", "Übergangsbedingung", "z. B. BG1 · BG15, 5s/X3, ↑BG40"]]
+  });
+  fuelle(LABEL_HINT, {
+    trans: "Bedingung, z. B. BG1 · BG40",
+    action: "Aktion, z. B. MB1",
+    actionq: "Bestimmungszeichen und Aktion, z. B. S MB9",
+    macro: "Bezeichnung, z. B. M1",
+    ref: "Ziel, z. B. 1",
+    step: "Schrittnummer",
+    init: "Schrittnummer",
+    alt: "Breite (Standard 200)",
+    par: "Breite (Standard 200)"
+  });
+
   // web/tools/uebungshandbuch/src/editor/vorlagen/alt.js
-  registriereVorlage("grafcet", { n: "GRAFCET", d: "Ablauf nach DIN EN 60848 mit Symbollegende", gruppen: ["grafcet"], body: (ex, page, meta) => tplBody("grafcet", ex, page, meta) });
   registriereVorlage("zustand", { n: "Zustandsdiagramm", d: "Zustände und Übergänge, z. B. für Übergaben und Antriebe", gruppen: ["zustand"], body: (ex, page, meta) => tplBody("zustand", ex, page, meta) });
   registriereVorlage("wegschritt", { n: "Weg-Schritt-Diagramm", d: "Zylinderbewegungen über die Schritte", einblattig: true, body: (ex, page, meta) => tplBody("wegschritt", ex, page, meta) });
   registriereVorlage("stromlauf", { n: "Stromlaufplan", d: "Steuerstromkreis zwischen L+ und M – Taster, Not-Halt, SPS, Sicherheitsrelais", gruppen: ["elektro", "geraete", "leistung"], schienen: [["L+", 70, 40, 935], ["M", 590, 40, 935]], body: (ex, page, meta) => tplBody("stromlauf", ex, page, meta) });
@@ -3701,27 +3882,13 @@ END_CASE;`)}
   registriereVorlage("regelkreis", { n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: (ex, page, meta) => tplBody("regelkreis", ex, page, meta) });
   registriereVorlage("trend", { n: "Trendaufzeichnung", d: "Istwert, Sollwert und Stellgröße über der Zeit", einblattig: true, body: (ex, page, meta) => tplBody("trend", ex, page, meta) });
   registriereVorlage("raster", { n: "Kästchenraster", d: "5-mm-Raster für alles Weitere", gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel"], body: (ex, page, meta) => tplBody("raster", ex, page, meta) });
-  registriereGruppe("grafcet", { name: "GRAFCET", hinweis: "Anfangsschritt setzen, dann Transition, Schritt, Transition … anklicken: Jeder neue Baustein hängt sich unter den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken." });
   registriereGruppe("zustand", { name: "Zustandsdiagramm", hinweis: "Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. Die Bedingung schreiben Sie direkt an den Pfeil." });
-  registriereGruppe("elektro", { name: "Steuerstromkreis", hinweis: "Kontakte und Spule untereinander setzen – sie verbinden sich zum Strompfad und docken oben an L+ und unten an M an. Kennzeichen per Doppelklick ändern." });
+  registriereGruppe("elektro", { kette: true, name: "Steuerstromkreis", hinweis: "Kontakte und Spule untereinander setzen – sie verbinden sich zum Strompfad und docken oben an L+ und unten an M an. Kennzeichen per Doppelklick ändern." });
   registriereGruppe("geraete", { name: "Geräte und SPS", hinweis: "Geräte setzen und mit Verbinden verdrahten – z. B. den Sensorausgang BK auf einen Eingang der DI-Baugruppe." });
   registriereGruppe("leistung", { name: "Hauptstromkreis", hinweis: "Bauteile setzen und mit Verbinden Anschluss für Anschluss verdrahten: erst den Anschluss am einen, dann am anderen Bauteil anklicken – auch direkt auf die Schienen L1, L2, L3, N, PE. Wendeschützschaltung: zwei Schütze, beim zweiten L1 und L3 tauschen." });
   registriereGruppe("pneu", { name: "Pneumatik nach ISO 1219", hinweis: "Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken." });
   registriereGruppe("regel", { name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn." });
   fuelle(BLK, {
-    init: { g: "grafcet", n: "Anfangsschritt" },
-    step: { g: "grafcet", n: "Schritt" },
-    macro: { g: "grafcet", n: "Makroschritt" },
-    trans: { g: "grafcet", n: "Transition" },
-    action: { g: "grafcet", n: "Aktion kontinuierlich", mk: { t: "kont" } },
-    actc: { g: "grafcet", n: "Aktion mit Zuweisungsbedingung", mk: { k: "action", t: "kont", b: "", hb: true } },
-    acta: { g: "grafcet", n: "Aktion bei Aktivierung ↑", mk: { k: "action", t: "akt" } },
-    actd: { g: "grafcet", n: "Aktion bei Deaktivierung ↓", mk: { k: "action", t: "deakt" } },
-    acte: { g: "grafcet", n: "Aktion bei Ereignis", mk: { k: "action", t: "ereig", b: "" } },
-    actionq: { g: "grafcet", n: "Aktion mit Bestimmungszeichen", mk: { k: "action", t: "q", q: "S" } },
-    alt: { g: "grafcet", n: "ODER-Verzweigung" },
-    par: { g: "grafcet", n: "UND-Verzweigung" },
-    ref: { g: "grafcet", n: "Verweis / Sprung" },
     sinit: { g: "zustand", n: "Anfangszustand" },
     state: { g: "zustand", n: "Zustand" },
     start: { g: "zustand", n: "Startpunkt" },
@@ -4220,19 +4387,6 @@ END_CASE;`)}
   };
   fuelle(PORTS2, { no: [["13", 0, 0, "u"], ["14", 0, 60, "d"]], nc: [["11", 0, 0, "u"], ["12", 0, 60, "d"]], coil: [["A1", 0, 0, "u"], ["A2", 0, 60, "d"]], lamp: [["X1", 0, 0, "u"], ["X2", 0, 60, "d"]] });
   fuelle(SAMPLE, {
-    init: [{ k: "init", x: 4, y: 4, v: "1" }, "0 0 48 48"],
-    step: [{ k: "step", x: 4, y: 4, v: "2" }, "0 0 48 48"],
-    trans: [{ k: "trans", x: 24, y: 24 }, "0 0 48 48", `<path d="M24 4V44" stroke="${INK}" stroke-width="1.6"/>`],
-    macro: [{ k: "macro", x: 4, y: 4, v: "M1" }, "0 0 48 48"],
-    ref: [{ k: "ref", x: 16, y: 8, v: "1" }, "0 0 48 48"],
-    action: [{ k: "action", t: "kont", x: 4, y: 9, v: "MB1" }, "0 0 98 48"],
-    actionq: [{ k: "action", t: "q", x: 4, y: 9, q: "S", v: "MB9" }, "0 0 98 48"],
-    actc: [{ k: "action", t: "kont", x: 4, y: 22, v: "MB1", b: "BG9" }, "0 0 98 56"],
-    acta: [{ k: "action", t: "akt", x: 4, y: 22, v: "Z := 0" }, "0 0 98 56"],
-    actd: [{ k: "action", t: "deakt", x: 4, y: 22, v: "Z := 0" }, "0 0 98 56"],
-    acte: [{ k: "action", t: "ereig", x: 4, y: 22, v: "Z := Z+1", b: "↑BG1" }, "0 0 98 56"],
-    alt: [{ k: "alt", x: 8, y: 24, w: 72 }, "0 0 88 48", `<path d="M44 4V24M18 24V44M70 24V44" stroke="${INK}" stroke-width="1.6"/>`],
-    par: [{ k: "par", x: 8, y: 22, w: 72 }, "0 0 88 48", `<path d="M44 4V22M18 27V44M70 27V44" stroke="${INK}" stroke-width="1.6"/>`],
     sinit: [{ k: "sinit", x: 38, y: 38, v: "Z0" }, "0 0 76 76"],
     state: [{ k: "state", x: 38, y: 38, v: "Z1" }, "0 0 76 76"],
     start: [{ k: "start", x: 24, y: 24 }, "0 0 48 48"],
@@ -4243,40 +4397,8 @@ END_CASE;`)}
     box: [{ k: "box", x: 2, y: 2, v: "Regler" }, "0 0 114 54"],
     sum: [{ k: "sum", x: 24, y: 24 }, "0 0 48 48"]
   });
-  fuelle(PROPS, {
-    init: [["v", "Schrittnummer"]],
-    step: [["v", "Schrittnummer"]],
-    macro: [["v", "Bezeichnung", "z. B. M1"]],
-    ref: [["v", "Ziel", "z. B. 1 oder Schritt 5"]],
-    trans: [["v", "Übergangsbedingung", "z. B. BG1 · BG15, 5s/X3, ↑BG40"]],
-    alt: [["w", "Breite"]],
-    par: [["w", "Breite"]],
-    state: [["v", "Name"]],
-    sinit: [["v", "Name"]],
-    no: [["v", "Kennzeichen"]],
-    nc: [["v", "Kennzeichen"]],
-    coil: [["v", "Kennzeichen"]],
-    lamp: [["v", "Kennzeichen"]],
-    box: [["v", "Bezeichnung"]]
-  });
-  fuelle(LABEL_HINT, {
-    trans: "Bedingung, z. B. BG1 · BG40",
-    action: "Aktion, z. B. MB1",
-    actionq: "Bestimmungszeichen und Aktion, z. B. S MB9",
-    macro: "Bezeichnung, z. B. M1",
-    ref: "Ziel, z. B. 1",
-    step: "Schrittnummer",
-    init: "Schrittnummer",
-    state: "Name des Zustands",
-    sinit: "Name des Zustands",
-    box: "Bezeichnung, z. B. Regler",
-    alt: "Breite (Standard 200)",
-    par: "Breite (Standard 200)",
-    no: "Kennzeichen, z. B. -SF1",
-    nc: "Kennzeichen, z. B. -SF2",
-    coil: "Kennzeichen, z. B. -QA1",
-    lamp: "Kennzeichen, z. B. -PF1"
-  });
+  fuelle(PROPS, { state: [["v", "Name"]], sinit: [["v", "Name"]], no: [["v", "Kennzeichen"]], nc: [["v", "Kennzeichen"]], coil: [["v", "Kennzeichen"]], lamp: [["v", "Kennzeichen"]], box: [["v", "Bezeichnung"]] });
+  fuelle(LABEL_HINT, { state: "Name des Zustands", sinit: "Name des Zustands", box: "Bezeichnung, z. B. Regler", no: "Kennzeichen, z. B. -SF1", nc: "Kennzeichen, z. B. -SF2", coil: "Kennzeichen, z. B. -QA1", lamp: "Kennzeichen, z. B. -PF1" });
   Object.entries(PC).forEach(([k, pc]) => {
     if (k === "zyl2") Object.assign(BLK, PCPAL);
     if (!BLK[k]) BLK[k] = { g: pc.g, n: pc.n, hide: pc.hide };
@@ -4285,15 +4407,6 @@ END_CASE;`)}
     switch (key) {
       case "raster":
         return grid(10, G2);
-      case "grafcet": {
-        const lg = `<g><rect x="790" y="25" width="185" height="196" fill="#fff" stroke="${G}"/>${TX(800, 43, 10, "Symbole", "start", "#666", 600)}
-        <rect x="800" y="54" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/><rect x="803" y="57" width="16" height="16" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832, 69, 10, "Anfangsschritt")}
-        <rect x="800" y="86" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832, 101, 10, "Schritt")}
-        <path d="M811 116V140M803 128H819" stroke="${G}" stroke-width="1.3"/>${TX(832, 132, 10, "Transition + Bedingung")}
-        <path d="M800 160H812" stroke="${G}" stroke-width="1.3"/><rect x="812" y="150" width="40" height="20" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(862, 164, 10, "Aktion")}
-        <path d="M811 180V206" stroke="${G}" stroke-width="1.3"/>${TX(832, 197, 10, "Wirkverbindung")}</g>`;
-        return dots(20) + (page ? "" : lg);
-      }
       case "zustand": {
         const lg = `<g><rect x="790" y="25" width="185" height="120" fill="#fff" stroke="${G}"/>${TX(800, 43, 10, "Symbole", "start", "#666", 600)}
         <circle cx="815" cy="72" r="15" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(840, 76, 10, "Zustand (Name)")}
@@ -4737,8 +4850,8 @@ END_CASE;`)}
       if (f) applyProp(f, e.target.value);
     });
     $("#editor").addEventListener("change", (e) => {
-      const f = e.target.dataset && e.target.dataset.prop;
-      if (f !== "t" && f !== "q") return;
+      const f = e.target.dataset && e.target.dataset.prop, o = ED.sel && objById(ED.sel);
+      if (!f || !o || !(art(o.k).umbau || []).includes(f)) return;
       applyProp(f, e.target.value);
       updateProps("neu");
       const again = $(`#props [data-prop="${f}"]`);

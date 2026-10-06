@@ -3,8 +3,8 @@ import { SHEETS } from '../app/daten.js';
 import { $, BY, S, esc } from '../app/basis.js';
 import { ED } from './status.js';
 import { VORL } from './registry.js';
-import { deDate, skKey } from './blaetter.js';
 import { clearSel } from './auswahl.js';
+import { deDate, skKey } from './blaetter.js';
 import { updateProps } from './eigenschaften.js';
 import { refreshTpl, renderInk } from './anzeige.js';
 

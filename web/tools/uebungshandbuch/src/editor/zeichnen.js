@@ -1,10 +1,11 @@
 /* Pneumatik-Simulation */
-import { INK, MUTE, PH, SVGT, clamp } from './svg.js';
+import { INK, MUTE, PH, SVGT } from './svg.js';
 import { ED } from './status.js';
-import { BLK, FIXED, PC, PORTS2 } from './registry.js';
-import { strokesSVG } from './vorlagen-svg.js';
+import { BLK, FIXED, GRUPPE, PC, PORTS2, art } from './registry.js';
+import { G, strokesSVG } from './vorlagen-svg.js';
 import { BLUE, DIRV, SK, VALVE, portsOf, pressed, simOn, vrails, vstate, wireD, wireEnds, xform } from './bauteile.js';
-import { R, atype, aw, bbox, bw, ctr, fam, hasMark, isAct } from './bausteine.js';
+import { R, bbox, bw, ctr, fam } from './bausteine.js';
+import { verbindeKette } from './kette.js';
 
 export function simCompute(){
   const d = ED.data, adj = new Map(), add = (a, b) => { if (!adj.has(a)) adj.set(a, []); if (!adj.has(b)) adj.set(b, []); adj.get(a).push(b); adj.get(b).push(a); };
@@ -53,26 +54,10 @@ export function drawObj(o, edit){
       `<text transform="translate(${x} ${y}) scale(${X.f} 1) rotate(${-X.r}) translate(${-x} ${-y})" x="${x}" y="${y}" text-anchor="${swap && a !== "middle" ? (a === "end" ? "start" : "end") : a}"`);
     return `<g transform="translate(${X.cx} ${X.cy}) rotate(${X.r}) scale(${X.f} 1) translate(${-X.cx} ${-X.cy})">${upright}</g>`;
   }
+  const a = BLK[o.k];
+  if (a && a.zeichne) return a.zeichne(o, edit);
   const x = o.x, y = o.y, st = `stroke="${INK}" stroke-width="1.6"`, ph = (t, xx, yy, a="middle") => edit ? SVGT(xx, yy, t, a, 12, 400, MUTE) : "";
   switch (o.k) {
-    case "init": return `<rect x="${x}" y="${y}" width="40" height="40" fill="#fff" ${st}/><rect x="${x+4}" y="${y+4}" width="32" height="32" fill="none" ${st}/>` + SVGT(x+20, y+25, o.v);
-    case "step": return `<rect x="${x}" y="${y}" width="40" height="40" fill="#fff" ${st}/>` + SVGT(x+20, y+25, o.v);
-    case "trans": return `<path d="M${x-14} ${y}H${x+14}" stroke="${INK}" stroke-width="3.2"/>` + (o.v ? SVGT(x+22, y+5, o.v, "start", 13, 400) : ph("Bedingung", x+22, y+5, "start"));
-    case "action": case "actionq": {
-      const t = atype(o), w = aw(o), qw = t === "q" ? 30 : 0, mx = x + 16, tc = x + qw + (w - qw)/2;
-      let r = `<rect x="${x}" y="${y}" width="${w}" height="30" fill="#fff" ${st}/>`;
-      if (qw) r += `<path d="M${x+30} ${y}V${y+30}" ${st}/>` + SVGT(x+15, y+20, o.q || "S", "middle", 12, 600);
-      r += o.v ? SVGT(tc, y+20, o.v, "middle", 13, 400) : ph("Aktion", tc, y+20);
-      if (t === "kont" && (o.b || o.hb)) r += `<path d="M${mx} ${y}V${y-16}" ${st}/>` + (o.b ? SVGT(mx+6, y-6, o.b, "start", 12, 400) : ph("Zuweisungsbedingung", mx+6, y-6, "start"));
-      if (t === "akt" || t === "ereig") r += `<path d="M${mx} ${y}V${y-18}M${mx-4.5} ${y-12}L${mx} ${y-18}L${mx+4.5} ${y-12}" ${st} fill="none"/>`;
-      if (t === "deakt") r += `<path d="M${mx} ${y}V${y-18}M${mx-4.5} ${y-18}L${mx} ${y-12}L${mx+4.5} ${y-18}" ${st} fill="none"/>`;
-      if (t === "ereig") r += o.b ? SVGT(mx+8, y-6, o.b, "start", 12, 400) : ph("Ereignis, z. B. ↑BG1", mx+8, y-6, "start");
-      return r;
-    }
-    case "macro": return `<rect x="${x}" y="${y}" width="40" height="40" fill="#fff" ${st}/><path d="M${x} ${y+5}H${x+40}M${x} ${y+35}H${x+40}" ${st}/>` + SVGT(x+20, y+25, o.v, "middle", 12);
-    case "ref": return `<path d="M${x} ${y}V${y+30}M${x-5} ${y+23}L${x} ${y+31}L${x+5} ${y+23}" ${st} fill="none"/>` + (o.v ? SVGT(x+9, y+29, o.v, "start", 12, 500) : ph("Ziel, z. B. 1", x+9, y+29, "start"));
-    case "alt": return `<path d="M${x} ${y}H${x+(o.w||200)}" stroke="${INK}" stroke-width="1.6"/>`;
-    case "par": return `<path d="M${x} ${y}H${x+(o.w||200)}M${x} ${y+5}H${x+(o.w||200)}" stroke="${INK}" stroke-width="1.6"/>`;
     case "state": return `<circle cx="${x}" cy="${y}" r="36" fill="#fff" ${st}/>` + SVGT(x, y+5, o.v);
     case "sinit": return `<circle cx="${x}" cy="${y}" r="36" fill="#fff" ${st}/><circle cx="${x}" cy="${y}" r="31" fill="none" ${st}/>` + SVGT(x, y+5, o.v);
     case "start": return `<circle cx="${x}" cy="${y}" r="8" fill="${INK}"/>`;
@@ -85,65 +70,18 @@ export function drawObj(o, edit){
   }
   return "";
 }
-export function outPt(o, tx){
-  if (PC[o.k] && PC[o.k].bx) { const q = portsOf(o)[1]; return [q.x, q.y]; }
-  switch (o.k) {
-    case "init": case "step": case "macro": return [o.x+20, o.y+40];
-    case "ref": return [o.x, o.y+30];
-    case "trans": return [o.x, o.y];
-    case "alt": return [clamp(tx, o.x, o.x+(o.w||200)), o.y];
-    case "par": return [clamp(tx, o.x, o.x+(o.w||200)), o.y+5];
-    case "no": case "nc": case "coil": case "lamp": return [o.x, o.y+60];
-  }
-  const b = bbox(o); return [b.x+b.w/2, b.y+b.h];
-}
-export function inPt(o, fx){
-  if (PC[o.k] && PC[o.k].bx) { const q = portsOf(o)[0]; return [q.x, q.y]; }
-  switch (o.k) {
-    case "init": case "step": case "macro": return [o.x+20, o.y];
-    case "ref": return [o.x, o.y];
-    case "trans": return [o.x, o.y];
-    case "alt": case "par": return [clamp(fx, o.x, o.x+(o.w||200)), o.y];
-    case "no": case "nc": case "coil": case "lamp": return [o.x, o.y];
-  }
-  const b = bbox(o); return [b.x+b.w/2, b.y];
-}
-export function routeV([x1, y1], [x2, y2]){
-  const p = {p1: [x1, y1], p2: [x2, y2]};
-  if (y2 > y1 + 4) {
-    if (Math.abs(x1 - x2) < 1) return {...p, d:`M${x1} ${y1}V${y2}`};
-    const m = Math.round((y1 + y2) / 20) * 10;
-    return {...p, d:`M${x1} ${y1}V${m}H${x2}V${y2}`};
-  }
-  const lane = Math.min(x1, x2) - 50, ya = y1 + 20, yb = y2 - 20;
-  return {...p, d:`M${x1} ${y1}V${ya}H${lane}V${yb}H${x2}V${y2}`, up:[lane, (ya + yb) / 2]};
-}
-export const isStep = o => o && (o.k === "step" || o.k === "init" || o.k === "macro");
-export function refName(o, objs, cs, dir){   // „Schritt 7“; bei Transitionen der Schritt davor bzw. danach
-  if (isStep(o)) return `Schritt ${o.v}`;
-  if (o.k === "trans") { const c = cs.find(c => dir === "von" ? c.b === o.id && isStep(objs[c.a]) : c.a === o.id && isStep(objs[c.b]));
-    if (c) return `Schritt ${(dir === "von" ? objs[c.a] : objs[c.b]).v}`; return o.v ? `Transition ${o.v}` : "Transition"; }
+// Name eines Bausteins im Verweis an einer Abbruchstelle, z. B. „Schritt 7“ (Haken verweisName der Bausteinart)
+export function refName(o, objs, cs, dir){
+  const a = art(o.k);
+  if (a.verweisName) return a.verweisName(o, objs, cs, dir);
   return o.v || BLK[o.k].n;
 }
 export function connGeom(c, objs, all){
   const A = objs[c.a], B = objs[c.b]; if (!A || !B) return null;
   if (c.pa !== undefined || c.pb !== undefined) { const e = wireEnds(c, objs); if (!e) return null;
     return {d: wireD(e[0], e[1]), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"]}; }
-  const g = fam(A);
-  if (g === "grafcet" || g === "elektro") {
-    if (isAct(A) && isAct(B)) {
-      const ax2 = A.x + aw(A);
-      if (B.x >= ax2 - 1) { const y1 = A.y + 15, y2 = B.y + 15, m = Math.round((ax2 + B.x)/20)*10;
-        return {d: Math.abs(y1 - y2) < 1 ? `M${ax2} ${y1}H${B.x}` : `M${ax2} ${y1}H${m}V${y2}H${B.x}`}; }
-      const y1 = A.y + 30, y2 = B.y - (hasMark(B) ? 20 : 0), m = Math.round((y1 + y2)/20)*10;
-      return {d: Math.abs(A.x - B.x) < 1 ? `M${A.x+8} ${y1}V${B.y}` : `M${A.x+8} ${y1}V${m}H${B.x+8}V${B.y}`};
-    }
-    if (isAct(B)) {
-      const p1 = A.k === "trans" ? [A.x+14, A.y] : [A.x+40, A.y+20], p2 = [B.x, B.y+15], m = Math.round((p1[0]+p2[0])/20)*10;
-      return {d: Math.abs(p1[1]-p2[1]) < 1 ? `M${p1[0]} ${p1[1]}H${p2[0]}` : `M${p1[0]} ${p1[1]}H${m}V${p2[1]}H${p2[0]}`};
-    }
-    return routeV(outPt(A, ctr(B)[0]), inPt(B, outPt(A, ctr(B)[0])[0]));
-  }
+  const g = fam(A), G = GRUPPE[g] || {};
+  if (G.kette) return verbindeKette(A, B);
   if (g === "zustand") {
     const ca = ctr(A), cb = ctr(B), ra = R[A.k] || 20, rb = R[B.k] || 20;
     if (c.a === c.b) { const [x, y] = ca; return {d:`M${x+ra-3} ${y-14}C${x+ra+62} ${y-45} ${x+ra+62} ${y+45} ${x+ra-3} ${y+14}`, arrow:true, lbl:[x+ra+56, y+4, "start"]}; }

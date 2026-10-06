@@ -1,8 +1,8 @@
 // Editor-Kern: Eigenschaften übernehmen, Drehen, Löschen, Radieren.
 import { ED } from './status.js';
-import { PC } from './registry.js';
-import { inkSVG } from './zeichnen.js';
+import { PC, art } from './registry.js';
 import { objById } from './auswahl.js';
+import { inkSVG } from './zeichnen.js';
 import { refreshTpl, renderInk } from './anzeige.js';
 import { saveSketch, snapshot } from './verlauf.js';
 
@@ -15,8 +15,7 @@ export function applyProp(f, v){
   else if (ED.selS !== null && ED.data.s[ED.selS] && ["sc","sw","sl","sg","tz","vk","vt"].includes(f)) { const st = ED.data.s[ED.selS]; if (f === "vt") st.t = v; if (f === "sc") st.c = v; if (f === "sw") st.w = +v; if (f === "sl") st.lbl = v; if (f === "sg") st.sg = v; if (f === "tz") st.tz = v; if (f === "vk") st.vk = v; }
   else { const o = objById(ED.sel); if (!o) return;
     if (f === "w") { const w = parseInt(v, 10); if (w >= 40) o.w = Math.round(w/10)*10; }
-    else if (f === "t") { if (o.k === "actionq") o.k = "action"; o.t = v; if (v === "q" && !o.q) o.q = "S"; }
-    else o[f] = v; }
+    else if (!(art(o.k).setze && art(o.k).setze(o, f, v))) o[f] = v; }   // Haken setze: Feld mit eigener Wirkung
   saveSketch(); ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
 }
 export function removeObj(id){ ED.data.o = ED.data.o.filter(o => o.id !== id); ED.data.c = ED.data.c.filter(c => c.a !== id && c.b !== id); if (ED.sel === id) ED.sel = null; }

@@ -4,8 +4,8 @@ import { $, $$ } from '../app/basis.js';
 import { ED } from './status.js';
 import { snap } from './vorlagen-svg.js';
 import { simOn } from './bauteile.js';
-import { simCompute, simStep } from './zeichnen.js';
 import { clearSel } from './auswahl.js';
+import { simCompute, simStep } from './zeichnen.js';
 import { updateProps } from './eigenschaften.js';
 import { renderInk } from './anzeige.js';
 

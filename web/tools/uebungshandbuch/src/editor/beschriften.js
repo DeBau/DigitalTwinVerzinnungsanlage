@@ -1,8 +1,8 @@
 // Editor-Kern: Beschriftungsfeld direkt auf dem Blatt (Bausteine, Verbindungen, Texte).
 import { $ } from '../app/basis.js';
 import { ED } from './status.js';
-import { LABEL_HINT } from './registry.js';
-import { atype, bbox, isAct } from './bausteine.js';
+import { LABEL_HINT, art } from './registry.js';
+import { bbox } from './bausteine.js';
 import { updateProps } from './eigenschaften.js';
 import { renderInk } from './anzeige.js';
 import { saveSketch, snapshot } from './verlauf.js';
@@ -22,17 +22,20 @@ export function editLabel(x, y, init, ph, done){
     if (ev.key === "Escape") { ev.preventDefault(); commit(false); } });
   inp.addEventListener("blur", ev => commit(true, ev.relatedTarget));
 }
+// Baustein beschriften. Der Haken beschriftung der Bausteinart bestimmt Ort, Anfangswert, Hinweis und wie der
+// eingegebene Text übernommen wird; beschriftung: false heißt, der Baustein trägt keinen Text.
 export function editObjLabel(o){
-  if (!o || o.k === "start" || o.k === "sum") return;
+  if (!o) return;
+  const B = art(o.k).beschriftung;
+  if (B === false || o.k === "start" || o.k === "sum") return;
   const b = bbox(o);
-  const q = isAct(o) && atype(o) === "q";
-  const init = q ? `${o.q || "S"} ${o.v || ""}`.trim() : (o.k === "alt" || o.k === "par") ? String(o.w || 200) : (o.v || "");
-  const at = o.k === "trans" ? [o.x + 20, o.y] : (o.k === "no" || o.k === "nc" || o.k === "coil" || o.k === "lamp") ? [o.x - 120, o.y + 30] : [b.x, b.y + b.h/2];
-  editLabel(at[0], at[1], init, q ? LABEL_HINT.actionq : LABEL_HINT[o.k], v => {
+  const wert = B && B.wert ? B.wert(o) : (o.v || "");
+  const elektro = o.k === "no" || o.k === "nc" || o.k === "coil" || o.k === "lamp";
+  const at = B && B.ort ? B.ort(o) : elektro ? [o.x - 120, o.y + 30] : [b.x, b.y + b.h/2];
+  const hinweis = B && B.hinweis ? B.hinweis(o) : LABEL_HINT[o.k];
+  editLabel(at[0], at[1], wert, hinweis, v => {
     snapshot();
-    if (q) { const m = v.match(/^(\S+)\s*(.*)$/); o.q = m ? m[1] : "S"; o.v = m ? m[2] : ""; }
-    else if (o.k === "alt" || o.k === "par") { const w = parseInt(v, 10); if (w >= 40) o.w = Math.round(w/10)*10; }
-    else o.v = v;
+    if (B && B.setze) B.setze(o, v); else o.v = v;
     saveSketch(); renderInk(); updateProps(true);
   });
 }

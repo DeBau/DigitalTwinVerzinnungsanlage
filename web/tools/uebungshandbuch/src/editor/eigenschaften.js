@@ -1,14 +1,29 @@
 // Editor-Kern: Eigenschaftsfeld links im Editor (Felder des markierten Elements, Zeichenleiste).
 import { $, $$, IC, esc } from '../app/basis.js';
 import { ED } from './status.js';
-import { BLK, PC, PROPS } from './registry.js';
-import { ACT_T, atype, fam, isAct } from './bausteine.js';
-import { deDate, skMeta } from './blaetter.js';
+import { BLK, PC, PROPS, art } from './registry.js';
+import { fam } from './bausteine.js';
 import { anySel, objById } from './auswahl.js';
+import { deDate, skMeta } from './blaetter.js';
 
 export const SYMS = `<div class="syms" aria-label="Zeichen einfügen">${[["·","UND"],["+","ODER"],["¬","NICHT"],["↑","steigende Flanke"],["↓","fallende Flanke"],[":=","Zuweisung"],["≥","größer gleich"]].map(([c, t]) => `<button type="button" class="sym" data-sym="${c}" title="${t}">${c}</button>`).join("")}</div>`;
 export let propsKey = null, lastProp = null;
 export const setLastProp = (el) => { lastProp = el; };   // für den focusin-Listener in ereignisse.js
+// Bausteine für Eigenschaftsfelder, auch für die Haken felder(o) der Vorlagen.
+// Kennzeichen, Texte und Beschriftungen bekommen ein mehrzeiliges Feld, alles andere eine Zeile.
+export const MEHRZEILIG = ["v", "tv", "cv", "b"];
+export function textFeld(f, lbl, ph, val){
+  const wert = esc(val ?? ""), platz = esc(ph || "");
+  if (!MEHRZEILIG.includes(f)) return `<label class="prop">${lbl}<input type="text" data-prop="${f}" value="${wert}" placeholder="${platz}" autocomplete="off"></label>`;
+  const zeilen = Math.max(1, String(val ?? "").split("\n").length);
+  return `<label class="prop">${lbl}<textarea data-prop="${f}" rows="${zeilen}" placeholder="${platz}" title="Alt+Enter: neue Zeile">${wert}</textarea></label>`;
+}
+export function auswahlFeld(f, lbl, opts, cur){
+  const optionen = opts.map(([v, n]) => `<option value="${v}" ${String(v) === String(cur) ? "selected" : ""}>${n}</option>`).join("");
+  return `<label class="prop">${lbl}<select data-prop="${f}">${optionen}</select></label>`;
+}
+export const FARBEN = [["#17212B","Schwarz"],["#0E4C92","Blau"],["#C0392B","Rot"]];
+export const loeschKnopf = () => `<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div>`;
 export function propsHTML(){
   if (ED.key === "wegschritt" && !anySel() && ["sig", "line", "start", "eq", "vk"].includes(ED.tool)) {
     const step = t => `<li style="margin:0 0 6px">${t}</li>`;
@@ -25,11 +40,7 @@ export function propsHTML(){
     return `<div class="props"><div class="palh">${titel}</div><ol style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.45">${how.map(step).join("")}</ol></div>`;
   }
   if (ED.tool === "sim") return `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren leuchten grün.</p><p class="small muted" style="margin:0">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;
-  const inp = (f, lbl, ph, val) => ["v", "tv", "cv", "b"].includes(f)
-    ? `<label class="prop">${lbl}<textarea data-prop="${f}" rows="${Math.max(1, String(val ?? "").split("\n").length)}" placeholder="${esc(ph || "")}" title="Alt+Enter: neue Zeile">${esc(val ?? "")}</textarea></label>`
-    : `<label class="prop">${lbl}<input type="text" data-prop="${f}" value="${esc(val ?? "")}" placeholder="${esc(ph || "")}" autocomplete="off"></label>`;
-  const sel = (f, lbl, opts, cur) => `<label class="prop">${lbl}<select data-prop="${f}">${opts.map(([v, n]) => `<option value="${v}" ${String(v) === String(cur) ? "selected" : ""}>${n}</option>`).join("")}</select></label>`;
-  const COL = [["#17212B","Schwarz"],["#0E4C92","Blau"],["#C0392B","Rot"]], del = `<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div>`;
+  const inp = textFeld, sel = auswahlFeld, COL = FARBEN, del = loeschKnopf();
   if (ED.selT !== null && ED.data.t[ED.selT]) { const t = ED.data.t[ED.selT];
     return `<div class="props"><div class="palh">Text</div>${inp("tv", "Text", "", t.v)}${SYMS}${sel("ts", "Größe", [[12,"klein"],[16,"normal"],[20,"groß"],[26,"sehr groß"]], t.s || 16)}${sel("sc", "Farbe", COL, t.c)}${del}</div>`; }
   if (ED.selS !== null && ED.data.s[ED.selS]) { const st = ED.data.s[ED.selS];
@@ -39,23 +50,7 @@ export function propsHTML(){
     if (st.k === "sig") return `<div class="props"><div class="palh">Signallinie</div>${inp("sl", "Signalgeber (steht am Ausgangspunkt)", "z. B. −BG2", st.lbl)}${sel("sg", "Darstellung des Signalgebers", [["punkt","Grenztaster / Sensor – Punkt"],["kreis","Grenztaster – Kreis"],["balken","Betätigung über eine Strecke – Balken"],["extern","Signal von anderer Maschine"]], st.sg || "punkt")}${inp("tz", "Zeitglied (optional)", "z. B. t = 10 s", st.tz)}${sel("sc", "Farbe", COL, st.c)}<p class="small muted" style="margin:0 0 8px">Signallinien sind dünn, Funktionslinien dick. Die Linie beginnt am Signalgeber und endet mit dem Pfeil dort, wo die Zustandsänderung ausgelöst wird.</p>${del}</div>`;
     return `<div class="props"><div class="palh">${st.k === "l" ? "Linie" : st.k === "r" ? "Kasten" : "Freihandstrich"}</div>${sel("sc", "Farbe", COL, st.c)}${sel("sw", "Strichstärke", [[1.4,"dünn"],[2.2,"mittel"],[4,"dick"]], st.w)}${st.k ? `<p class="small muted" style="margin:0 0 8px">Die runden Griffe an den Enden ziehen.</p>` : ""}${del}</div>`; }
   const o = ED.sel && objById(ED.sel);
-  if (o) {
-    let h = "";
-    if (isAct(o)) {
-      const t = atype(o);
-      h += `<label class="prop">Art<select data-prop="t">${Object.entries(ACT_T).map(([k, n]) => `<option value="${k}" ${k === t ? "selected" : ""}>${n}</option>`).join("")}</select></label>`;
-      if (t === "q") h += `<label class="prop">Bestimmungszeichen<select data-prop="q">${["N","S","R","D","L","P","SD","DS","SL"].map(q => `<option ${q === (o.q || "S") ? "selected" : ""}>${q}</option>`).join("")}</select></label>`;
-      h += inp("v", "Aktion", "z. B. MB1 oder Z := Z + 1", o.v);
-      if (t === "kont") h += inp("b", "Zuweisungsbedingung (optional)", "z. B. BG9 oder 3s/X2", o.b);
-      if (t === "ereig") h += inp("b", "Ereignis", "z. B. ↑BG1", o.b);
-    } else if (PC[o.k]) {
-      h += inp("v", o.k === "rail" ? "Potenzial, z. B. L+, M, L1, PE" : "Kennzeichen", PC[o.k].lbl, o.v);
-      (PC[o.k].props || []).forEach(([f, lbl, ty, opts]) => { h += ty === "select" ? sel(f, lbl, opts, o[f] ?? (PC[o.k].def || {})[f]) : inp(f, lbl, "", f === "w" ? (o.w || 400) : o[f]); });
-      if (PC[o.k].info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${PC[o.k].info}</p>`;
-      if (o.k !== "rail") h += `<div class="propact" style="justify-content:flex-start;gap:6px;margin-bottom:8px"><button type="button" class="tool" data-ed="rot" title="Taste R">↻ Drehen 90°</button><button type="button" class="tool" data-ed="flip" title="Taste M">⇋ Spiegeln</button></div>`;
-    } else for (const [f, lbl, ph] of (PROPS[o.k] || [])) h += inp(f, lbl, ph, f === "w" ? (o.w || 200) : o.v);
-    return `<div class="props"><div class="palh">${isAct(o) ? "Aktion" : BLK[o.k].n}</div>${h}${h ? SYMS : ""}<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div></div>`;
-  }
+  if (o) return objektFelder(o);
   const c = ED.selC !== null && ED.data.c[ED.selC];
   if (c && (c.pa !== undefined || c.pb !== undefined)) return `<div class="props"><div class="palh">Leitung</div>${inp("cv", "Beschriftung (optional)", "z. B. Aderfarbe oder Querschnitt", c.v)}${sel("cst", "Leitungsart", [["", "Arbeits-/Hauptleitung"], ["st", "Steuerleitung (gestrichelt)"]], c.st || "")}${del}</div>`;
   if (c) { const g = fam(objById(c.a));
@@ -78,3 +73,24 @@ export function updateProps(force){
   }
   propsKey = k; el.innerHTML = propsHTML();
 }
+
+// Eigenschaftsfeld eines Bausteins: eigene Felder über den Haken felder(o), sonst aus PC.props bzw. PROPS
+export function objektFelder(o){
+  const a = art(o.k), pc = PC[o.k];
+  let h = "";
+  if (a.felder) h += a.felder(o);
+  else if (pc) h += bauteilFelder(o, pc);
+  else for (const [f, lbl, ph] of PROPS[o.k] || []) h += textFeld(f, lbl, ph, o[f]);
+  if (pc && pc.info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${pc.info}</p>`;
+  if (pc && o.k !== "rail") h += DREHKNOEPFE;
+  return `<div class="props"><div class="palh">${a.titel || BLK[o.k].n}</div>${h}${h ? SYMS : ""}${loeschKnopf()}</div>`;
+}
+export function bauteilFelder(o, pc){
+  let h = textFeld("v", o.k === "rail" ? "Potenzial, z. B. L+, M, L1, PE" : "Kennzeichen", pc.lbl, o.v);
+  for (const [f, lbl, ty, opts] of pc.props || []) {
+    if (ty === "select") h += auswahlFeld(f, lbl, opts, o[f] ?? (pc.def || {})[f]);
+    else h += textFeld(f, lbl, "", f === "w" ? (o.w || 400) : o[f]);
+  }
+  return h;
+}
+export const DREHKNOEPFE = `<div class="propact" style="justify-content:flex-start;gap:6px;margin-bottom:8px"><button type="button" class="tool" data-ed="rot" title="Taste R">↻ Drehen 90°</button><button type="button" class="tool" data-ed="flip" title="Taste M">⇋ Spiegeln</button></div>`;

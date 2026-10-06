@@ -1,8 +1,8 @@
 import { $, $$ } from '../app/basis.js';
 import { ED } from './status.js';
-import { PAL, PC } from './registry.js';
-import { deDate } from './blaetter.js';
+import { PAL, PC, art } from './registry.js';
 import { anySel, clearSel, objById } from './auswahl.js';
+import { deDate } from './blaetter.js';
 import { lastProp, setLastProp, updateProps } from './eigenschaften.js';
 import { renderInk, sizeSVG } from './anzeige.js';
 import { saveSketch, snapshot, takeMenu, takeSketch, undo } from './verlauf.js';
@@ -62,7 +62,8 @@ $("#editor").addEventListener("click", e => {
 $("#editor").addEventListener("focusin", e => { if (e.target.dataset && e.target.dataset.prop) { snapshot(); setLastProp(e.target); } });
 $("#editor").addEventListener("input", e => { const f = e.target.dataset && e.target.dataset.prop; if (f) applyProp(f, e.target.value); });
 $("#editor").addEventListener("change", e => {
-  const f = e.target.dataset && e.target.dataset.prop; if (f !== "t" && f !== "q") return;
+  const f = e.target.dataset && e.target.dataset.prop, o = ED.sel && objById(ED.sel);
+  if (!f || !o || !(art(o.k).umbau || []).includes(f)) return;   // Haken umbau: diese Felder ändern das Eigenschaftsfeld
   applyProp(f, e.target.value); updateProps("neu");
   const again = $(`#props [data-prop="${f}"]`); if (again) again.focus();
 });

@@ -8,7 +8,6 @@ import { G, G2, TX, dots, grid } from '../vorlagen-svg.js';
 import { BLUE, LB, PD, PN, PP, SK, VALVE, cNC, cNO, cylinder, drawValve, posOf, pressed, thin, vPairs, vstate } from '../bauteile.js';
 
 /* ---------- Vorlagen: Reihenfolge = Reihenfolge der Kacheln ---------- */
-registriereVorlage("grafcet", {n: "GRAFCET", d: "Ablauf nach DIN EN 60848 mit Symbollegende", gruppen: ["grafcet"], body: (ex, page, meta) => tplBody("grafcet", ex, page, meta)});
 registriereVorlage("zustand", {n: "Zustandsdiagramm", d: "Zustände und Übergänge, z. B. für Übergaben und Antriebe", gruppen: ["zustand"], body: (ex, page, meta) => tplBody("zustand", ex, page, meta)});
 registriereVorlage("wegschritt", {n: "Weg-Schritt-Diagramm", d: "Zylinderbewegungen über die Schritte", einblattig: true, body: (ex, page, meta) => tplBody("wegschritt", ex, page, meta)});
 registriereVorlage("stromlauf", {n: "Stromlaufplan", d: "Steuerstromkreis zwischen L+ und M – Taster, Not-Halt, SPS, Sicherheitsrelais", gruppen: ["elektro", "geraete", "leistung"], schienen: [["L+",70,40,935], ["M",590,40,935]], body: (ex, page, meta) => tplBody("stromlauf", ex, page, meta)});
@@ -19,9 +18,8 @@ registriereVorlage("trend", {n: "Trendaufzeichnung", d: "Istwert, Sollwert und S
 registriereVorlage("raster", {n: "Kästchenraster", d: "5-mm-Raster für alles Weitere", gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel"], body: (ex, page, meta) => tplBody("raster", ex, page, meta)});
 
 /* ---------- Bausteingruppen: Name in der Palette und Bedienhinweis ---------- */
-registriereGruppe("grafcet", {name: "GRAFCET", hinweis: "Anfangsschritt setzen, dann Transition, Schritt, Transition … anklicken: Jeder neue Baustein hängt sich unter den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken."});
 registriereGruppe("zustand", {name: "Zustandsdiagramm", hinweis: "Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. Die Bedingung schreiben Sie direkt an den Pfeil."});
-registriereGruppe("elektro", {name: "Steuerstromkreis", hinweis: "Kontakte und Spule untereinander setzen – sie verbinden sich zum Strompfad und docken oben an L+ und unten an M an. Kennzeichen per Doppelklick ändern."});
+registriereGruppe("elektro", {kette: true, name: "Steuerstromkreis", hinweis: "Kontakte und Spule untereinander setzen – sie verbinden sich zum Strompfad und docken oben an L+ und unten an M an. Kennzeichen per Doppelklick ändern."});
 registriereGruppe("geraete", {name: "Geräte und SPS", hinweis: "Geräte setzen und mit Verbinden verdrahten – z. B. den Sensorausgang BK auf einen Eingang der DI-Baugruppe."});
 registriereGruppe("leistung", {name: "Hauptstromkreis", hinweis: "Bauteile setzen und mit Verbinden Anschluss für Anschluss verdrahten: erst den Anschluss am einen, dann am anderen Bauteil anklicken – auch direkt auf die Schienen L1, L2, L3, N, PE. Wendeschützschaltung: zwei Schütze, beim zweiten L1 und L3 tauschen."});
 registriereGruppe("pneu", {name: "Pneumatik nach ISO 1219", hinweis: "Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken."});
@@ -29,11 +27,6 @@ registriereGruppe("regel", {name: "Regelkreis", hinweis: "Blöcke und Summierste
 
 /* ---------- Bausteintabellen ---------- */
 fuelle(BLK, {
-  init:{g:"grafcet", n:"Anfangsschritt"}, step:{g:"grafcet", n:"Schritt"}, macro:{g:"grafcet", n:"Makroschritt"}, trans:{g:"grafcet", n:"Transition"},
-  action:{g:"grafcet", n:"Aktion kontinuierlich", mk:{t:"kont"}}, actc:{g:"grafcet", n:"Aktion mit Zuweisungsbedingung", mk:{k:"action", t:"kont", b:"", hb:true}},
-  acta:{g:"grafcet", n:"Aktion bei Aktivierung ↑", mk:{k:"action", t:"akt"}}, actd:{g:"grafcet", n:"Aktion bei Deaktivierung ↓", mk:{k:"action", t:"deakt"}},
-  acte:{g:"grafcet", n:"Aktion bei Ereignis", mk:{k:"action", t:"ereig", b:""}}, actionq:{g:"grafcet", n:"Aktion mit Bestimmungszeichen", mk:{k:"action", t:"q", q:"S"}},
-  alt:{g:"grafcet", n:"ODER-Verzweigung"}, par:{g:"grafcet", n:"UND-Verzweigung"}, ref:{g:"grafcet", n:"Verweis / Sprung"},
   sinit:{g:"zustand", n:"Anfangszustand"}, state:{g:"zustand", n:"Zustand"}, start:{g:"zustand", n:"Startpunkt"},
   no:{g:"elektro", n:"Schließer"}, nc:{g:"elektro", n:"Öffner"}, coil:{g:"elektro", n:"Spule / Schütz"}, lamp:{g:"elektro", n:"Meldeleuchte"},
   box:{g:"regel", n:"Block"}, sum:{g:"regel", n:"Summierstelle"}
@@ -209,38 +202,18 @@ const PCPAL = {
 };
 fuelle(PORTS2, {no:[["13",0,0,"u"],["14",0,60,"d"]], nc:[["11",0,0,"u"],["12",0,60,"d"]], coil:[["A1",0,0,"u"],["A2",0,60,"d"]], lamp:[["X1",0,0,"u"],["X2",0,60,"d"]]});
 fuelle(SAMPLE, {
-  init:[{k:"init", x:4, y:4, v:"1"}, "0 0 48 48"], step:[{k:"step", x:4, y:4, v:"2"}, "0 0 48 48"],
-  trans:[{k:"trans", x:24, y:24}, "0 0 48 48", `<path d="M24 4V44" stroke="${INK}" stroke-width="1.6"/>`],
-  macro:[{k:"macro", x:4, y:4, v:"M1"}, "0 0 48 48"], ref:[{k:"ref", x:16, y:8, v:"1"}, "0 0 48 48"],
-  action:[{k:"action", t:"kont", x:4, y:9, v:"MB1"}, "0 0 98 48"], actionq:[{k:"action", t:"q", x:4, y:9, q:"S", v:"MB9"}, "0 0 98 48"],
-  actc:[{k:"action", t:"kont", x:4, y:22, v:"MB1", b:"BG9"}, "0 0 98 56"], acta:[{k:"action", t:"akt", x:4, y:22, v:"Z := 0"}, "0 0 98 56"],
-  actd:[{k:"action", t:"deakt", x:4, y:22, v:"Z := 0"}, "0 0 98 56"], acte:[{k:"action", t:"ereig", x:4, y:22, v:"Z := Z+1", b:"↑BG1"}, "0 0 98 56"],
-  alt:[{k:"alt", x:8, y:24, w:72}, "0 0 88 48", `<path d="M44 4V24M18 24V44M70 24V44" stroke="${INK}" stroke-width="1.6"/>`],
-  par:[{k:"par", x:8, y:22, w:72}, "0 0 88 48", `<path d="M44 4V22M18 27V44M70 27V44" stroke="${INK}" stroke-width="1.6"/>`],
   sinit:[{k:"sinit", x:38, y:38, v:"Z0"}, "0 0 76 76"], state:[{k:"state", x:38, y:38, v:"Z1"}, "0 0 76 76"], start:[{k:"start", x:24, y:24}, "0 0 48 48"],
   no:[{k:"no", x:34, y:2}, "0 0 56 64"], nc:[{k:"nc", x:30, y:2}, "0 0 56 64"], coil:[{k:"coil", x:28, y:2}, "0 0 56 64"], lamp:[{k:"lamp", x:28, y:2}, "0 0 56 64"],
   box:[{k:"box", x:2, y:2, v:"Regler"}, "0 0 114 54"], sum:[{k:"sum", x:24, y:24}, "0 0 48 48"]
 });
-fuelle(PROPS, {init:[["v","Schrittnummer"]], step:[["v","Schrittnummer"]], macro:[["v","Bezeichnung","z. B. M1"]], ref:[["v","Ziel","z. B. 1 oder Schritt 5"]],
-  trans:[["v","Übergangsbedingung","z. B. BG1 · BG15, 5s/X3, ↑BG40"]], alt:[["w","Breite"]], par:[["w","Breite"]],
-  state:[["v","Name"]], sinit:[["v","Name"]], no:[["v","Kennzeichen"]], nc:[["v","Kennzeichen"]], coil:[["v","Kennzeichen"]], lamp:[["v","Kennzeichen"]], box:[["v","Bezeichnung"]]});
-fuelle(LABEL_HINT, {trans:"Bedingung, z. B. BG1 · BG40", action:"Aktion, z. B. MB1", actionq:"Bestimmungszeichen und Aktion, z. B. S MB9", macro:"Bezeichnung, z. B. M1", ref:"Ziel, z. B. 1", step:"Schrittnummer", init:"Schrittnummer",
-  state:"Name des Zustands", sinit:"Name des Zustands", box:"Bezeichnung, z. B. Regler", alt:"Breite (Standard 200)", par:"Breite (Standard 200)", no:"Kennzeichen, z. B. -SF1", nc:"Kennzeichen, z. B. -SF2", coil:"Kennzeichen, z. B. -QA1", lamp:"Kennzeichen, z. B. -PF1"});
+fuelle(PROPS, {state:[["v","Name"]], sinit:[["v","Name"]], no:[["v","Kennzeichen"]], nc:[["v","Kennzeichen"]], coil:[["v","Kennzeichen"]], lamp:[["v","Kennzeichen"]], box:[["v","Bezeichnung"]]});
+fuelle(LABEL_HINT, {state:"Name des Zustands", sinit:"Name des Zustands", box:"Bezeichnung, z. B. Regler", no:"Kennzeichen, z. B. -SF1", nc:"Kennzeichen, z. B. -SF2", coil:"Kennzeichen, z. B. -QA1", lamp:"Kennzeichen, z. B. -PF1"});
 Object.entries(PC).forEach(([k, pc]) => { if (k === "zyl2") Object.assign(BLK, PCPAL); if (!BLK[k]) BLK[k] = {g: pc.g, n: pc.n, hide: pc.hide}; });
 
 /* ---------- Vorgedruckter Inhalt je Vorlage ---------- */
 function tplBody(key, ex, page=0, meta=null){
   switch (key) {
     case "raster": return grid(10, G2);
-    case "grafcet": {
-      const lg = `<g><rect x="790" y="25" width="185" height="196" fill="#fff" stroke="${G}"/>${TX(800,43,10,"Symbole","start","#666",600)}
-        <rect x="800" y="54" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/><rect x="803" y="57" width="16" height="16" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832,69,10,"Anfangsschritt")}
-        <rect x="800" y="86" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832,101,10,"Schritt")}
-        <path d="M811 116V140M803 128H819" stroke="${G}" stroke-width="1.3"/>${TX(832,132,10,"Transition + Bedingung")}
-        <path d="M800 160H812" stroke="${G}" stroke-width="1.3"/><rect x="812" y="150" width="40" height="20" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(862,164,10,"Aktion")}
-        <path d="M811 180V206" stroke="${G}" stroke-width="1.3"/>${TX(832,197,10,"Wirkverbindung")}</g>`;
-      return dots(20) + (page ? "" : lg);
-    }
     case "zustand": {
       const lg = `<g><rect x="790" y="25" width="185" height="120" fill="#fff" stroke="${G}"/>${TX(800,43,10,"Symbole","start","#666",600)}
         <circle cx="815" cy="72" r="15" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(840,76,10,"Zustand (Name)")}
