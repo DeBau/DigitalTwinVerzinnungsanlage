@@ -29,8 +29,9 @@ function zeichenReihe(y){   // Schmuckleiste aus echten Schaltzeichen
 
 function deckblatt(ctx){
   const m = ctx.modell, meta = m.plan.meta;
-  const zahlen = [[ctx.seiten.length, "Seiten"], [m.geraete.size, "Betriebsmittel"], [m.kanaele.filter(k => k.typ === "DI").length, "Digitaleingänge"],
-    [m.kanaele.filter(k => k.typ === "DQ").length, "Digitalausgänge"], [m.kanaele.filter(k => k.typ[0] === "A").length, "Analogwerte"],
+  const anzahl = test => m.kanaele.filter(test).length;
+  const zahlen = [[ctx.seiten.length, "Seiten"], [m.geraete.size, "Betriebsmittel"], [anzahl(k => k.typ === "DI"), "Digitaleingänge"],
+    [anzahl(k => k.typ === "DQ"), "Digitalausgänge"], [anzahl(k => k.typ[0] === "A"), "Analogwerte"],
     [m.profinet.length, "PROFINET-Worte"]];
   let s = linie(`M${X0} 250H${X1}`, .8) + text(110, 150, "Schaltplan der Anlage", {g: 54, w: 600, schrift: SCHMAL});
   s += text(112, 192, meta.anlage, {g: 20, f: GRAU}) + text(112, 222, meta.norm, {g: 10, f: GRAU});
@@ -93,7 +94,8 @@ function sps(ctx){
   let s = ueberschrift("SPS-Übersicht −KF1", "S7-1500, Baugruppenträger mit Systemstromversorgung, CPU und E/A-Baugruppen");
   s += ctx.modell.plan.sps.map((b, i) => baugruppe(ctx, b, i)).join("");
   s += kennzeichen("−KF1", 80, 470) + text(130, 470, "CPU 1516-3 PN/DP, PROFINET an X1", {g: 10});
-  s += verweis(390, 470, zielVon(ctx, "−TA2"), "start") + text(80, 492, "Freie Kanäle (Reserve): " + ctx.modell.plan.kanaele.reserve.join(", "), {g: 9, f: GRAU});
+  const reserve = "Freie Kanäle (Reserve): " + ctx.modell.plan.kanaele.reserve.join(", ");
+  s += verweis(390, 470, zielVon(ctx, "−TA2"), "start") + text(80, 492, reserve, {g: 9, f: GRAU});
   return s + annahme(80, 510, "start") + text(150, 510, "Frontstecker-Pins nach Formel, am Gerätehandbuch prüfen", {g: 8, f: GRAU});
 }
 
@@ -114,7 +116,8 @@ function profinet(ctx){
   ctx.modell.profinet.forEach((k, i) => {
     const x = 70 + Math.floor(i / 8) * 540, y = 344 + (i % 8) * 22;
     merkeSignal(ctx.schreiben, k.signal, {seite: ctx.seite.nr, spalte: spalteVon(x)});
-    s += text(x, y, `%${k.adr}`, {g: 9.5, w: 600, schrift: SCHMAL}) + text(x + 70, y, k.signal, {g: 9, k: "sig", attr: `data-tag="${k.signal.split("_")[0]}"`})
+    const signal = text(x + 70, y, k.signal, {g: 9, k: "sig", attr: `data-tag="${k.signal.split("_")[0]}"`});
+    s += text(x, y, `%${k.adr}`, {g: 9.5, w: 600, schrift: SCHMAL}) + signal
       + text(x + 200, y, kuerzen(k.info ? k.info.k : "", 72), {g: 8, f: GRAU});
   });
   return s + annahme(70, 540, "start") + text(140, 540, "IP-Adressen", {g: 8, f: GRAU});
@@ -144,7 +147,8 @@ function feldverteiler(ctx){
 function insel(ctx, bmk, plaetze, x, y){
   merkeHier(ctx, bmk, x, "haupt");
   const geraet = ctx.modell.geraete.get(bmk);
-  let s = kasten(x, y, 1060, 40 + plaetze.length * 20, "#fff") + kennzeichen(bmk, x + 12, y + 22) + text(x + 70, y + 22, geraet.text, {g: 9, f: GRAU});
+  let s = kasten(x, y, 1060, 40 + plaetze.length * 20, "#fff") + kennzeichen(bmk, x + 12, y + 22)
+    + text(x + 70, y + 22, geraet.text, {g: 9, f: GRAU});
   plaetze.forEach(([platz, s14, s12, antrieb], i) => {
     const py = y + 46 + i * 20;
     s += text(x + 12, py, `Platz ${platz}`, {g: 9, w: 600}) + text(x + 380, py, antrieb, {g: 9});

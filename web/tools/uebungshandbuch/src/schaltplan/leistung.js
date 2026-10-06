@@ -55,8 +55,10 @@ function abgangSetzen(ctx, abgang, x){
 // Kontakte eines Motorschutzschalters oder Umrichters als kurze Liste unter dem Kennzeichen
 function spiegelText(ctx, g, x, y, h){
   if (!["ms3", "umrichter"].includes(g.sym)) return "";
-  return kontakte(ctx.lesen, g.bmk).map((e, i) =>
-    text(x + 82, y + h / 2 + 26 + i * 10, `${e.an}`, {g: 7.5, f: GRAU}) + verweis(x + 120, y + h / 2 + 26 + i * 10, verweisText(e), "start")).join("");
+  return kontakte(ctx.lesen, g.bmk).map((e, i) => {
+    const zy = y + h / 2 + 26 + i * 10;
+    return text(x + 82, zy, e.an, {g: 7.5, f: GRAU}) + verweis(x + 120, zy, verweisText(e), "start");
+  }).join("");
 }
 
 export function leistungInhalt(ctx){

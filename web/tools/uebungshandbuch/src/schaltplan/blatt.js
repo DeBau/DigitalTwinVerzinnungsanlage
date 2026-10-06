@@ -22,13 +22,15 @@ function spaltenKopf(){
 // Schriftfeld: Firma | Anlage | Seitentitel | Ort und Stand | Seitennummer
 function schriftfeld(seite, gesamt, meta){
   const y = FUSS, h = 830 - FUSS, x = [X0, 290, 560, 930, 1060, X1];
+  // Schrift so groß, dass der Text ins Feld passt
+  const passend = (t, breite, max) => Math.min(max, Math.round(breite / (String(t).length * .52) * 10) / 10);
   const feld = (i, oben, unten, gross = false) => text(x[i] + 8, y + 18, oben, {g: 8, f: GRAU})
-    + text(x[i] + 8, y + (gross ? 46 : 42), unten, {g: gross ? 17 : 11, w: 600, schrift: SCHMAL});
+    + text(x[i] + 8, y + (gross ? 46 : 42), unten, {g: passend(unten, x[i + 1] - x[i] - 16, gross ? 17 : 11), w: 600, schrift: SCHMAL});
   let s = linie(`M${X0} ${y}H${X1}`, 1.2) + x.slice(1, -1).map(v => linie(`M${v} ${y}V${y + h}`, .8)).join("");
   s += feld(0, meta.firma, meta.ersteller) + feld(1, meta.anlage, "Schaltplan der Anlage");
   s += feld(2, seite.art || "", seite.titel, true) + feld(3, `Ort ${seite.ort || "+A1"}`, `Stand ${meta.stand}`);
   s += text(x[4] + 59, y + 38, String(seite.nr), {a: "middle", g: 22, w: 600, schrift: SCHMAL});
-  s += text(x[4] + 59, y + 53, `Seite von ${gesamt}`, {a: "middle", g: 8, f: GRAU});
+  s += text(x[4] + 59, y + 53, `von ${gesamt}`, {a: "middle", g: 8, f: GRAU});
   return s;
 }
 

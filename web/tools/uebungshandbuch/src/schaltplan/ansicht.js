@@ -82,7 +82,8 @@ function druckDialog(){
   const gesamt = ladePlan().seiten.length;
   $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>Schaltplan drucken</h2>
     <p class="muted">Jede Seite wird ein Blatt quer. A3 ist das Originalformat, A4 verkleinert auf etwa 70 %.</p>
-    <div class="opts"><label class="opt"><input type="radio" name="format" value="a3" checked><span><b>A3 quer</b><span>Originalgröße</span></span></label>
+    <div class="opts"><label class="opt"><input type="radio" name="format" value="a3" checked>
+      <span><b>A3 quer</b><span>Originalgröße</span></span></label>
     <label class="opt"><input type="radio" name="format" value="a4"><span><b>A4 quer</b><span>verkleinert</span></span></label></div>
     <p><label>Seiten von <input type="number" name="von" min="1" max="${gesamt}" value="1" style="width:5em"></label>
     <label>bis <input type="number" name="bis" min="1" max="${gesamt}" value="${gesamt}" style="width:5em"></label></p>

@@ -53,6 +53,10 @@ function sensorKasten(x, y, inhalt, unten = "BK"){   // Gerät mit drei Leitern:
 const strahlen = (x, y) => linie(`M${x - 9} ${y + 24}H${x + 9}M${x - 9} ${y + 30}H${x + 9}M${x - 9} ${y + 36}H${x + 9}`, 1)
   + linie(`M${x + 5} ${y + 21}l4 3l-4 3M${x + 5} ${y + 33}l4 3l-4 3`, 1);
 
+// Optokoppler im Halbleiterrelais: zwei Lichtpfeile
+const lichtpfeile = (x, y) => linie(`M${x - 6} ${y + 24}L${x + 2} ${y + 32}M${x - 1} ${y + 32}H${x + 2}V${y + 29}`
+  + `M${x - 2} ${y + 26}L${x + 6} ${y + 34}M${x + 3} ${y + 34}H${x + 6}V${y + 31}`, 1);
+
 const SENSORART = {mag: "Magnet", ind: "induktiv", opt: "optisch", us: "Ultraschall"};
 const raute = (x, y) => linie(`M${x} ${y + 22}L${x + 8} ${y + 30}L${x} ${y + 38}L${x - 8} ${y + 30}Z`);
 
@@ -146,8 +150,7 @@ export const SYM = {
   mbv: {name: "Ventilspule", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: (x, y, g) =>
     zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + linie(`M${x - 15} ${y + 42}L${x + 15} ${y + 18}`) + nummern(x, y, 60, g)},
   ssr: {name: "Halbleiterrelais, Steuerkreis", h: 60, pole: 1, rolle: "haupt", an: ["A1+", "A2−"], zeichne: (x, y, g) =>
-    zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + linie(`M${x - 6} ${y + 24}L${x + 2} ${y + 32}M${x - 1} ${y + 32}H${x + 2}V${y + 29}`
-    + `M${x - 2} ${y + 26}L${x + 6} ${y + 34}M${x + 3} ${y + 34}H${x + 6}V${y + 31}`, 1) + nummern(x, y, 60, g)},
+    zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + lichtpfeile(x, y) + nummern(x, y, 60, g)},
   sirelais: {name: "Sicherheitsrelais", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: (x, y, g) =>
     zuleitung(x, y, 60, 12, 12) + kasten(x - 27, y + 12, 54, 36) + text(x, y + 28, "Sicherheit", {a: "middle", g: 7.5, w: 600})
     + text(x, y + 40, g.text || "", {a: "middle", g: 7.5, f: GRAU}) + nummern(x, y, 60, g)},
@@ -161,15 +164,18 @@ export const SYM = {
     zuleitung(x, y, 60, 15, 15) + kasten(x - 5, y + 15, 10, 30) + linie(`M${x + 16} ${y + 20}L${x + 6} ${y + 30}`)
     + linie(`M${x + 6} ${y + 30}l6 -1.5M${x + 6} ${y + 30}l1.5 -6`, 1.2) + nummern(x, y, 60, g)},
   stell: {name: "Stellantrieb Regelventil", h: 60, pole: 1, rolle: "haupt", an: ["Y", "M"], zeichne: (x, y, g) =>
-    zuleitung(x, y, 60, 14, 14) + kasten(x - 17, y + 14, 34, 32) + linie(`M${x - 10} ${y + 22}L${x + 10} ${y + 38}V${y + 22}L${x - 10} ${y + 38}Z`, 1.2)
+    zuleitung(x, y, 60, 14, 14) + kasten(x - 17, y + 14, 34, 32)
+    + linie(`M${x - 10} ${y + 22}L${x + 10} ${y + 38}V${y + 22}L${x - 10} ${y + 38}Z`, 1.2)
     + nummern(x, y, 60, g)},
   klemme: {name: "Klemme", h: 24, pole: 1, rolle: "klemme", zeichne: (x, y) => zuleitung(x, y, 24, 8, 8) + kreis(x, y + 12, 4)},
   port: {name: "Steckverbinder M12", h: 24, pole: 1, rolle: "klemme", zeichne: (x, y, g) =>
     linie(`M${x} ${y}V${y + 13}M${x - 6} ${y + 9}A6 6 0 0 0 ${x + 6} ${y + 9}M${x} ${y + 15}V${y + 24}`) + nummer(x + 8, y + 18, g.an[0])},
-  ls1: {name: "Leitungsschutzschalter", h: 60, pole: 1, rolle: "geraet", an: ["1", "2"], zeichne: (x, y, g) => schutzpol(x, y) + nummern(x, y, 60, g)},
+  ls1: {name: "Leitungsschutzschalter", h: 60, pole: 1, rolle: "geraet", an: ["1", "2"],
+    zeichne: (x, y, g) => schutzpol(x, y) + nummern(x, y, 60, g)},
   sicherung: {name: "Sicherung", h: 60, pole: 1, rolle: "geraet", an: ["1", "2"], zeichne: (x, y, g) =>
     linie(`M${x} ${y}V${y + 60}`) + kasten(x - 5, y + 16, 10, 28, "none") + nummern(x, y, 60, g)},
-  k1: {name: "Hauptkontakt Schütz", h: 60, pole: 1, rolle: "kontakt", an: ["1", "2"], zeichne: (x, y, g) => hauptkontakt(x, y) + nummern(x, y, 60, g)},
+  k1: {name: "Hauptkontakt Schütz", h: 60, pole: 1, rolle: "kontakt", an: ["1", "2"],
+    zeichne: (x, y, g) => hauptkontakt(x, y) + nummern(x, y, 60, g)},
   netzteil: {name: "Netzteil 24 V DC", h: 60, pole: 1, rolle: "haupt", an: ["L", "N"], zeichne: (x, y, g) =>
     zuleitung(x, y, 60, 10, 10) + kasten(x - 22, y + 10, 44, 40) + linie(`M${x - 22} ${y + 50}L${x + 22} ${y + 10}`)
     + text(x - 11, y + 27, "~", {a: "middle", g: 12, w: 600}) + text(x + 11, y + 46, "=", {a: "middle", g: 12, w: 600})

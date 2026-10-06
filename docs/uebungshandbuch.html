@@ -4459,6 +4459,7 @@ END_CASE;`)}
     return zuleitung(x, y, 60, 15, 15) + kasten(x - 15, y + 15, 30, 30) + inhalt + linie(`M${x - 15} ${y + 40}H${x - 24}`) + nummer(x + 5, y + 11, "BN") + nummer(x + 5, y + 57, unten) + nummer(x - 23, y + 37, "BU", "start");
   }
   var strahlen = (x, y) => linie(`M${x - 9} ${y + 24}H${x + 9}M${x - 9} ${y + 30}H${x + 9}M${x - 9} ${y + 36}H${x + 9}`, 1) + linie(`M${x + 5} ${y + 21}l4 3l-4 3M${x + 5} ${y + 33}l4 3l-4 3`, 1);
+  var lichtpfeile = (x, y) => linie(`M${x - 6} ${y + 24}L${x + 2} ${y + 32}M${x - 1} ${y + 32}H${x + 2}V${y + 29}M${x - 2} ${y + 26}L${x + 6} ${y + 34}M${x + 3} ${y + 34}H${x + 6}V${y + 31}`, 1);
   var SENSORART = { mag: "Magnet", ind: "induktiv", opt: "optisch", us: "Ultraschall" };
   var raute = (x, y) => linie(`M${x} ${y + 22}L${x + 8} ${y + 30}L${x} ${y + 38}L${x - 8} ${y + 30}Z`);
   function geraetKasten(x, y, g, breite = 40) {
@@ -4514,7 +4515,7 @@ END_CASE;`)}
     geraet: { name: "Gerät", h: 60, pole: 1, rolle: "geraet", zeichne: (x, y, g) => geraetKasten(x, y, g) },
     spule: { name: "Spule (Schütz, Relais)", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: (x, y, g) => zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + nummern(x, y, 60, g) },
     mbv: { name: "Ventilspule", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: (x, y, g) => zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + linie(`M${x - 15} ${y + 42}L${x + 15} ${y + 18}`) + nummern(x, y, 60, g) },
-    ssr: { name: "Halbleiterrelais, Steuerkreis", h: 60, pole: 1, rolle: "haupt", an: ["A1+", "A2−"], zeichne: (x, y, g) => zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + linie(`M${x - 6} ${y + 24}L${x + 2} ${y + 32}M${x - 1} ${y + 32}H${x + 2}V${y + 29}M${x - 2} ${y + 26}L${x + 6} ${y + 34}M${x + 3} ${y + 34}H${x + 6}V${y + 31}`, 1) + nummern(x, y, 60, g) },
+    ssr: { name: "Halbleiterrelais, Steuerkreis", h: 60, pole: 1, rolle: "haupt", an: ["A1+", "A2−"], zeichne: (x, y, g) => zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + lichtpfeile(x, y) + nummern(x, y, 60, g) },
     sirelais: { name: "Sicherheitsrelais", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: (x, y, g) => zuleitung(x, y, 60, 12, 12) + kasten(x - 27, y + 12, 54, 36) + text(x, y + 28, "Sicherheit", { a: "middle", g: 7.5, w: 600 }) + text(x, y + 40, g.text || "", { a: "middle", g: 7.5, f: GRAU }) + nummern(x, y, 60, g) },
     lamp: { name: "Leuchtmelder", h: 60, pole: 1, rolle: "geraet", an: ["X1", "X2"], zeichne: (x, y, g) => zuleitung(x, y, 60, 18, 18) + kreis(x, y + 30, 12) + linie(`M${x - 8.5} ${y + 21.5}L${x + 8.5} ${y + 38.5}M${x + 8.5} ${y + 21.5}L${x - 8.5} ${y + 38.5}`) + nummern(x, y, 60, g) },
     mu: { name: "Messumformer", h: 60, pole: 1, rolle: "geraet", an: ["+", "−"], zeichne: (x, y, g) => zuleitung(x, y, 60, 16, 16) + kasten(x - 17, y + 16, 34, 28) + text(x - 6, y + 35, g.variante || "", { a: "middle", g: 12, w: 600 }) + linie(`M${x + 2} ${y + 30}H${x + 12}`) + linie(`M${x + 9} ${y + 27}L${x + 12} ${y + 30}L${x + 9} ${y + 33}`, 1) + nummern(x, y, 60, g) },
@@ -4522,9 +4523,23 @@ END_CASE;`)}
     stell: { name: "Stellantrieb Regelventil", h: 60, pole: 1, rolle: "haupt", an: ["Y", "M"], zeichne: (x, y, g) => zuleitung(x, y, 60, 14, 14) + kasten(x - 17, y + 14, 34, 32) + linie(`M${x - 10} ${y + 22}L${x + 10} ${y + 38}V${y + 22}L${x - 10} ${y + 38}Z`, 1.2) + nummern(x, y, 60, g) },
     klemme: { name: "Klemme", h: 24, pole: 1, rolle: "klemme", zeichne: (x, y) => zuleitung(x, y, 24, 8, 8) + kreis(x, y + 12, 4) },
     port: { name: "Steckverbinder M12", h: 24, pole: 1, rolle: "klemme", zeichne: (x, y, g) => linie(`M${x} ${y}V${y + 13}M${x - 6} ${y + 9}A6 6 0 0 0 ${x + 6} ${y + 9}M${x} ${y + 15}V${y + 24}`) + nummer(x + 8, y + 18, g.an[0]) },
-    ls1: { name: "Leitungsschutzschalter", h: 60, pole: 1, rolle: "geraet", an: ["1", "2"], zeichne: (x, y, g) => schutzpol(x, y) + nummern(x, y, 60, g) },
+    ls1: {
+      name: "Leitungsschutzschalter",
+      h: 60,
+      pole: 1,
+      rolle: "geraet",
+      an: ["1", "2"],
+      zeichne: (x, y, g) => schutzpol(x, y) + nummern(x, y, 60, g)
+    },
     sicherung: { name: "Sicherung", h: 60, pole: 1, rolle: "geraet", an: ["1", "2"], zeichne: (x, y, g) => linie(`M${x} ${y}V${y + 60}`) + kasten(x - 5, y + 16, 10, 28, "none") + nummern(x, y, 60, g) },
-    k1: { name: "Hauptkontakt Schütz", h: 60, pole: 1, rolle: "kontakt", an: ["1", "2"], zeichne: (x, y, g) => hauptkontakt(x, y) + nummern(x, y, 60, g) },
+    k1: {
+      name: "Hauptkontakt Schütz",
+      h: 60,
+      pole: 1,
+      rolle: "kontakt",
+      an: ["1", "2"],
+      zeichne: (x, y, g) => hauptkontakt(x, y) + nummern(x, y, 60, g)
+    },
     netzteil: { name: "Netzteil 24 V DC", h: 60, pole: 1, rolle: "haupt", an: ["L", "N"], zeichne: (x, y, g) => zuleitung(x, y, 60, 10, 10) + kasten(x - 22, y + 10, 44, 40) + linie(`M${x - 22} ${y + 50}L${x + 22} ${y + 10}`) + text(x - 11, y + 27, "~", { a: "middle", g: 12, w: 600 }) + text(x + 11, y + 46, "=", { a: "middle", g: 12, w: 600 }) + linie(`M${x + 22} ${y + 22}H${x + 34}M${x + 22} ${y + 38}H${x + 34}`) + nummer(x + 36, y + 25, "+ L+") + nummer(x + 36, y + 41, "− M") + nummern(x, y, 60, g) },
     dose: { name: "Steckdose", h: 60, pole: 1, rolle: "geraet", zeichne: (x, y) => linie(`M${x} ${y}V${y + 22}M${x - 12} ${y + 34}A12 12 0 0 1 ${x + 12} ${y + 34}M${x - 12} ${y + 34}H${x + 12}M${x} ${y + 34}V${y + 60}`) },
     leuchte: { name: "Leuchte", h: 60, pole: 1, rolle: "geraet", an: ["X1", "X2"], zeichne: (x, y, g) => SYM.lamp.zeichne(x, y, g) },
@@ -4994,12 +5009,13 @@ END_CASE;`)}
   }
   function schriftfeld(seite, gesamt, meta) {
     const y = FUSS, h = 830 - FUSS, x = [X0, 290, 560, 930, 1060, X1];
-    const feld = (i, oben, unten, gross = false) => text(x[i] + 8, y + 18, oben, { g: 8, f: GRAU }) + text(x[i] + 8, y + (gross ? 46 : 42), unten, { g: gross ? 17 : 11, w: 600, schrift: SCHMAL });
+    const passend = (t, breite, max) => Math.min(max, Math.round(breite / (String(t).length * 0.52) * 10) / 10);
+    const feld = (i, oben, unten, gross = false) => text(x[i] + 8, y + 18, oben, { g: 8, f: GRAU }) + text(x[i] + 8, y + (gross ? 46 : 42), unten, { g: passend(unten, x[i + 1] - x[i] - 16, gross ? 17 : 11), w: 600, schrift: SCHMAL });
     let s = linie(`M${X0} ${y}H${X1}`, 1.2) + x.slice(1, -1).map((v) => linie(`M${v} ${y}V${y + h}`, 0.8)).join("");
     s += feld(0, meta.firma, meta.ersteller) + feld(1, meta.anlage, "Schaltplan der Anlage");
     s += feld(2, seite.art || "", seite.titel, true) + feld(3, `Ort ${seite.ort || "+A1"}`, `Stand ${meta.stand}`);
     s += text(x[4] + 59, y + 38, String(seite.nr), { a: "middle", g: 22, w: 600, schrift: SCHMAL });
-    s += text(x[4] + 59, y + 53, `Seite von ${gesamt}`, { a: "middle", g: 8, f: GRAU });
+    s += text(x[4] + 59, y + 53, `von ${gesamt}`, { a: "middle", g: 8, f: GRAU });
     return s;
   }
   function blatt(seite, gesamt, meta, inhalt) {
@@ -5206,8 +5222,9 @@ END_CASE;`)}
     const { sym, schluessel, variante } = zeichen(g.sym);
     if (!sym) return { svg: text(x, y + 20, `? ${g.sym}`, { a: "middle", g: 9, f: "#B3261E" }), h: 30, sym: {} };
     const an = g.nummern || anschluesse(g, sym);
-    merke(ctx.schreiben, g.bmk.split(":")[0], { seite: ctx.seite.nr, spalte: spalteVon(x), rolle: sym.rolle, an: g.anText || g.an || an.join("/"), sym: schluessel });
-    if (sym.rolle === "klemme") merke(ctx.schreiben, g.bmk, { seite: ctx.seite.nr, spalte: spalteVon(x), rolle: "klemme" });
+    const hier = { seite: ctx.seite.nr, spalte: spalteVon(x) };
+    merke(ctx.schreiben, g.bmk.split(":")[0], { ...hier, rolle: sym.rolle, an: g.anText || g.an || an.join("/"), sym: schluessel });
+    if (sym.rolle === "klemme") merke(ctx.schreiben, g.bmk, { ...hier, rolle: "klemme" });
     const bild = sym.zeichne(x, y, { an, variante, text: g.text });
     const links = sym.pole === 3 ? x + 82 : x - (sym.rolle === "klemme" ? 10 : sym.links || 34);
     const marke2 = beschriftung(ctx, g.bmk, links, y + sym.h / 2 + 4, { a: sym.pole === 3 ? "start" : "end", annahme: g.annahme, zeichenX: x });
@@ -5374,7 +5391,10 @@ END_CASE;`)}
   }
   function spiegelText(ctx, g, x, y, h) {
     if (!["ms3", "umrichter"].includes(g.sym)) return "";
-    return kontakte(ctx.lesen, g.bmk).map((e, i) => text(x + 82, y + h / 2 + 26 + i * 10, `${e.an}`, { g: 7.5, f: GRAU }) + verweis(x + 120, y + h / 2 + 26 + i * 10, verweisText(e), "start")).join("");
+    return kontakte(ctx.lesen, g.bmk).map((e, i) => {
+      const zy = y + h / 2 + 26 + i * 10;
+      return text(x + 82, zy, e.an, { g: 7.5, f: GRAU }) + verweis(x + 120, zy, verweisText(e), "start");
+    }).join("");
   }
   function leistungInhalt(ctx) {
     const breite = (X1 - X0) / 3;
@@ -5468,12 +5488,13 @@ END_CASE;`)}
   }
   function deckblatt(ctx) {
     const m = ctx.modell, meta = m.plan.meta;
+    const anzahl = (test) => m.kanaele.filter(test).length;
     const zahlen = [
       [ctx.seiten.length, "Seiten"],
       [m.geraete.size, "Betriebsmittel"],
-      [m.kanaele.filter((k) => k.typ === "DI").length, "Digitaleingänge"],
-      [m.kanaele.filter((k) => k.typ === "DQ").length, "Digitalausgänge"],
-      [m.kanaele.filter((k) => k.typ[0] === "A").length, "Analogwerte"],
+      [anzahl((k) => k.typ === "DI"), "Digitaleingänge"],
+      [anzahl((k) => k.typ === "DQ"), "Digitalausgänge"],
+      [anzahl((k) => k.typ[0] === "A"), "Analogwerte"],
       [m.profinet.length, "PROFINET-Worte"]
     ];
     let s = linie(`M${X0} 250H${X1}`, 0.8) + text(110, 150, "Schaltplan der Anlage", { g: 54, w: 600, schrift: SCHMAL });
@@ -5560,7 +5581,8 @@ END_CASE;`)}
     let s = ueberschrift("SPS-Übersicht −KF1", "S7-1500, Baugruppenträger mit Systemstromversorgung, CPU und E/A-Baugruppen");
     s += ctx.modell.plan.sps.map((b, i) => baugruppe2(ctx, b, i)).join("");
     s += kennzeichen("−KF1", 80, 470) + text(130, 470, "CPU 1516-3 PN/DP, PROFINET an X1", { g: 10 });
-    s += verweis(390, 470, zielVon(ctx, "−TA2"), "start") + text(80, 492, "Freie Kanäle (Reserve): " + ctx.modell.plan.kanaele.reserve.join(", "), { g: 9, f: GRAU });
+    const reserve = "Freie Kanäle (Reserve): " + ctx.modell.plan.kanaele.reserve.join(", ");
+    s += verweis(390, 470, zielVon(ctx, "−TA2"), "start") + text(80, 492, reserve, { g: 9, f: GRAU });
     return s + annahme(80, 510, "start") + text(150, 510, "Frontstecker-Pins nach Formel, am Gerätehandbuch prüfen", { g: 8, f: GRAU });
   }
   function teilnehmer(ctx, bmk, x, y, ip) {
@@ -5579,7 +5601,8 @@ END_CASE;`)}
     ctx.modell.profinet.forEach((k, i) => {
       const x = 70 + Math.floor(i / 8) * 540, y = 344 + i % 8 * 22;
       merkeSignal(ctx.schreiben, k.signal, { seite: ctx.seite.nr, spalte: spalteVon(x) });
-      s += text(x, y, `%${k.adr}`, { g: 9.5, w: 600, schrift: SCHMAL }) + text(x + 70, y, k.signal, { g: 9, k: "sig", attr: `data-tag="${k.signal.split("_")[0]}"` }) + text(x + 200, y, kuerzen(k.info ? k.info.k : "", 72), { g: 8, f: GRAU });
+      const signal = text(x + 70, y, k.signal, { g: 9, k: "sig", attr: `data-tag="${k.signal.split("_")[0]}"` });
+      s += text(x, y, `%${k.adr}`, { g: 9.5, w: 600, schrift: SCHMAL }) + signal + text(x + 200, y, kuerzen(k.info ? k.info.k : "", 72), { g: 8, f: GRAU });
     });
     return s + annahme(70, 540, "start") + text(140, 540, "IP-Adressen", { g: 8, f: GRAU });
   }
@@ -5704,7 +5727,8 @@ END_CASE;`)}
     const gesamt = ladePlan().seiten.length;
     $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>Schaltplan drucken</h2>
     <p class="muted">Jede Seite wird ein Blatt quer. A3 ist das Originalformat, A4 verkleinert auf etwa 70 %.</p>
-    <div class="opts"><label class="opt"><input type="radio" name="format" value="a3" checked><span><b>A3 quer</b><span>Originalgröße</span></span></label>
+    <div class="opts"><label class="opt"><input type="radio" name="format" value="a3" checked>
+      <span><b>A3 quer</b><span>Originalgröße</span></span></label>
     <label class="opt"><input type="radio" name="format" value="a4"><span><b>A4 quer</b><span>verkleinert</span></span></label></div>
     <p><label>Seiten von <input type="number" name="von" min="1" max="${gesamt}" value="1" style="width:5em"></label>
     <label>bis <input type="number" name="bis" min="1" max="${gesamt}" value="${gesamt}" style="width:5em"></label></p>

@@ -82,8 +82,8 @@ const SEITENARTEN = [
 
 function tabellenSeiten(name, modell, anzahl){
   const t = TABELLEN[name], zeilen = anzahl ?? t.anzahl(modell), n = Math.max(1, Math.ceil(zeilen / t.jeSeite));
-  return Array.from({length: n}, (_, i) => ({typ: "tabelle", tabelle: name, art: "Liste", titel: t.titel + (i ? ` (Teil ${i + 1})` : ""), von: i * t.jeSeite,
-    bis: Math.min(zeilen, (i + 1) * t.jeSeite)}));
+  return Array.from({length: n}, (_, i) => ({typ: "tabelle", tabelle: name, art: "Liste",
+    titel: t.titel + (i ? ` (Teil ${i + 1})` : ""), von: i * t.jeSeite, bis: Math.min(zeilen, (i + 1) * t.jeSeite)}));
 }
 
 // Alle Seiten mit Nummer; das Inhaltsverzeichnis kommt als Seite 2 dazu, sobald die Seitenzahl feststeht
