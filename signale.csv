@@ -126,7 +126,7 @@ FA5_Motorschutz2;%I7.3;Motorschutzschalter Band 2 Hilfskontakt (1 = OK)
 BG30_MM8_unten;%I7.4;Kipper -MM8 unten (Grundstellung)
 BG31_MM8_gekippt;%I7.5;Kipper -MM8 gekippt
 BG33_Kipper_Korb;%I7.6;Korb am Endanschlag der Kippmulde
-BG34_KLT_voll;%I7.7;KLT i.O.-Teile voll (104 Teile)
+BG34_KLT_voll;%I7.7;KLT i.O.-Teile voll (144 Teile)
 # --- 3. DI-Baugruppe ab %I8.0 (%I8.1 Reserve): Korbabfrage am Anschlag -MM5 ---
 BG40_Korb_am_Anschlag;%I8.0;Korb liegt am Anschlag -MM5 an (induktiver Sensor M12 buendig in der Anschlagleiste)
 # --- Handbetrieb MM8 ---

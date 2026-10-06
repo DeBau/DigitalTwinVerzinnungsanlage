@@ -141,7 +141,7 @@ export default {
   '-MM8 Kipper unten (Grundstellung)': '-MM8 tipper down (home position)',
   '-MM8 Kipper gekippt': '-MM8 tipper tipped',
   'Korb am Endanschlag der Kippmulde': 'Basket at end stop of tipping trough',
-  'KLT i.O.-Teile voll (104 Teile)': 'KLT bin for OK parts full (104 parts)',
+  'KLT i.O.-Teile voll (144 Teile)': 'KLT bin for OK parts full (144 parts)',
   'Handtaster -MM8 Kipper kippen': 'Manual button -MM8 tip tipper',
   'Handtaster -MM8 Kipper zurueck': 'Manual button -MM8 tipper back',
   'Schluesselschalter Vor-Ort-Steuerstelle -S30 (1 = aktiv)': 'Key switch local control station -S30 (1 = active)',

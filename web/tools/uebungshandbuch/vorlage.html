@@ -159,6 +159,14 @@ main{max-width:1380px;margin:0 auto;padding:24px 20px 80px}
 
 .callout{border-left:4px solid var(--c);background:color-mix(in srgb,var(--c) 8%,transparent);padding:14px 18px;border-radius:0 8px 8px 0;margin:0 0 18px}
 .callout.warn{--c:var(--yellow)}
+.beschr{margin:0 0 18px}.beschr p{margin:0 0 10px}.beschr ul,.beschr ol{margin:0 0 10px;padding-left:22px}
+.fw{display:grid;gap:8px;margin:0 0 20px}
+.fw details{border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden}
+.fw summary{cursor:pointer;padding:10px 14px;font-weight:600;list-style:none;display:flex;gap:8px;align-items:center}
+.fw summary::-webkit-details-marker{display:none}
+.fw summary::before{content:"›";font-size:18px;line-height:1;transition:transform .15s;color:var(--blue)}
+.fw details[open] summary::before{transform:rotate(90deg)}
+.fw details>.prose{padding:0 16px 12px}.fw .prose p{margin:0 0 8px}.fw table{margin:6px 0 10px}
 .confirm{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border:1px solid var(--line);border-radius:9px;cursor:pointer;margin:10px 0}
 .confirm:has(input:checked){border-color:var(--ok);background:var(--ok-soft)}
 
@@ -399,17 +407,19 @@ const EXTRA = {
   QM2:"Ventilinsel Band", QM4:"Ventilinsel Prüfstation", A1:"Schaltschrank"
 };
 const STUFEN = [null,
-  {n:"Grundlagen", c:"var(--s1)", ue:30, sub:"Verknüpfungen, Zeiten, Zähler an Signalen der Anlage – dann führt Ihr Programm das Portal."},
-  {n:"Aufbau", c:"var(--s2)", ue:20, sub:"Dazu kommen Band 1 und der Übergabeplatz."},
+  {n:"Grundlagen", c:"var(--s1)", ue:27, sub:"Verknüpfungen, Zeiten, Zähler an Signalen der Anlage – dann fahren Sie das Portal von Hand, sicher verriegelt."},
+  {n:"Aufbau", c:"var(--s2)", ue:31, sub:"Betriebsarten, Befehlsausgabe, Automatik – dann Not-Halt, Band 1 und Übergabeplatz."},
   {n:"Vertiefung", c:"var(--s3)", ue:29, sub:"Förderstrecke, Prüfstation und erste Regelkreise."},
   {n:"Experte", c:"var(--s4)", ue:52, sub:"Stetige Regelung, Antriebe und die ganze Anlage."}];
 const T = (head, rows) => ({head, rows});
 const SHEETS = __SHEETS__;
+const TEXTE = __TEXTE__;   // ausführliche Aufgabenbeschreibung und Fachwissen je Übung (texte/Lxx.json)
+SHEETS.forEach(s => Object.assign(s, TEXTE[s.id] || {}));
 
 const QUIZ = {
 L02:[["−PF2 soll leuchten, wenn −BG9 UND −BG10 melden. Welche Verknüpfung in KOP?",["zwei Schließer in Reihe","zwei Schließer parallel","ein Öffner und ein Schließer parallel"],0,"Reihenschaltung = UND, Parallelschaltung = ODER."],
      ["−BG14 und −BG15 melden beide 1. Was zeigt XOR an?",["1 – alles in Ordnung","0 – unplausibel, ein Sensor stimmt nicht","1 – Zylinder fährt"],1,"Ein Zylinder kann nicht gleichzeitig in beiden Endlagen stehen."]],
-L03:[["START und STOP werden gleichzeitig gedrückt. Was muss die Anlage tun?",["einschalten","ausgeschaltet bleiben – rücksetzdominant","den letzten Zustand halten"],1,"Bei Maschinen hat Aus immer Vorrang: RS-Speicher bzw. STOP in Reihe vor der Selbsthaltung."],
+L03:[["START und STOP werden gleichzeitig gedrückt. Was muss die Anlage tun?",["einschalten","ausgeschaltet bleiben – rücksetzdominant","den letzten Zustand halten"],1,"Bei Maschinen hat Aus immer Vorrang: rücksetzdominanter Speicher (in TIA die Box SR mit R1) bzw. STOP in Reihe vor der Selbsthaltung."],
      ["Wo speichern Sie die Betriebsbereitschaft in einem modernen TIA-Programm?",["in einem globalen Merker","als statische Variable im FB (Instanz-DB)","in einer temporären Variable"],1,"Statische Variablen behalten ihren Wert über Zyklen und gehören zur Instanz – der FB bleibt wiederverwendbar. Temporäre Variablen verlieren ihren Wert nach jedem Aufruf."]],
 L04:[["Welche Zeit verzögert das Einschalten, z. B. die Tauchzeit?",["TON","TOF","TP"],0,"TON: Q wird erst nach PT 1, solange IN 1 bleibt."],
      ["−SF1 wird 5 s gehalten, TP hat PT = 2 s. Wie lange ist Q = 1?",["5 s","2 s","7 s"],1,"Der Impuls ist immer PT lang, unabhängig von der Dauer des Eingangs."]],
@@ -422,50 +432,56 @@ L01:[["STOP −SF2 ist als Öffner verdrahtet. Welchen Pegel sieht die SPS, sola
 L07:[["Wie benennen Sie nach Siemens-Styleguide die statische Variable für die aktuelle Schrittnummer?",["#statStep","#M_Schritt","#Schritt_Akt"],0,"Präfix stat für Static, englisch, camelCase, ohne Unterstrich."],
      ["−PF3 soll leuchten, wenn …",["die Füllhöhe ausreicht.","die Füllhöhe unterschritten ist.","die Temperatur erreicht ist."],1,"−BG10 meldet 1 = in Ordnung. Die Leuchte zeigt den Mangel, also die Negation."],
      ["Welche Endlagen bilden die Grundstellung des Portals?",["−BG1, −BG3, −BG5, −BG7","−BG2, −BG4, −BG5, −BG8","−BG2, −BG3, −BG6, −BG8"],1,"−MM1 gelöst, −MM2 unten, −MM3 über dem Band, −MM4 abgedeckt."]],
-L08:[["Was gehört laut Siemens-Styleguide in jede CASE-Anweisung?",["ein ELSE-Zweig, der unerwartete Werte meldet","ein EXIT","ein Kommentar in jeder Zeile"],0,"Nur so fällt ein ungültiger Schrittwert auf, statt dass die Kette stillschweigend hängt."],
+L12:[["Was gehört laut Siemens-Styleguide in jede CASE-Anweisung?",["ein ELSE-Zweig, der unerwartete Werte meldet","ein EXIT","ein Kommentar in jeder Zeile"],0,"Nur so fällt ein ungültiger Schrittwert auf, statt dass die Kette stillschweigend hängt."],
      ["Ab wann läuft die Tauchzeit in Schritt 6?",["mit dem Schrittwechsel","ab Erreichen von −BG4","ab dem Öffnen des Bades"],1,"Sonst frisst die Fahrzeit des Zylinders die Tauchzeit auf – der Zwilling meldet dann „Korb mangelhaft“."],
      ["Was ist in GRAFCET eine Transition?",["eine Aktion, die im Schritt ausgeführt wird","die Bedingung für den Übergang zum nächsten Schritt","ein Speicherbaustein"],1,"Schritt, Transition, Schritt – immer im Wechsel."]],
-L09:[["Warum wird START als Flanke ausgewertet?",["Damit ein gehaltenes START in EINZEL nicht mehrere Zyklen auslöst.","Weil START ein Öffner ist.","Damit der Not-Halt schneller wirkt."],0,"Die Flanke ist genau einen Zyklus lang 1 – egal, wie lange jemand drückt."],
-     ["STOP in AUTO während Schritt 6 – was soll passieren?",["sofortiger Halt aller Zylinder","Der laufende Korb wird fertig, dann Halt in Schritt 1.","Wechsel in den Handbetrieb"],1,"Ein halb verzinnter Korb wäre Ausschuss. Das sofortige Stillsetzen ist Aufgabe des Not-Halts."]],
-L10:[["Warum braucht der Handtaster für −MM5 eine Selbsthaltung?",["Das 5/2-Ventil ist monostabil und fällt ohne Signal zurück.","Der Zylinder ist doppeltwirkend.","Wegen des Not-Halts."],0,"Bistabile Ventile (−MM1 bis −MM4) halten ihre Stellung auch ohne Signal."],
-     ["Wann darf −MM3 verfahren werden?",["nur mit angehobenem Korb (−BG3)","nur bei offenem Bad","in HAND immer"],0,"Ein abgesenkter Korb würde gegen Band oder Badrand fahren."]],
-L11:[["Was schaltet die Anlage bei Not-Halt ab?",["das SPS-Programm über die Meldekontakte","das Sicherheitsrelais −KF2, unabhängig vom Programm","der Umrichter"],1,"Die Meldekontakte dienen nur der Diagnose. Abgeschaltet wird hart über −KF2."],
+L13:[["Warum wird START als Flanke ausgewertet?",["Damit ein gehaltenes START im Einzelzyklus nicht mehrere Zyklen auslöst.","Weil START ein Öffner ist.","Damit der Not-Halt schneller wirkt."],0,"Die Flanke ist genau einen Zyklus lang 1 – egal, wie lange jemand drückt."],
+     ["STOP im Dauerbetrieb während Schritt 6 – was soll passieren?",["sofortiger Halt aller Zylinder","Der laufende Korb wird fertig, dann Halt in Schritt 1.","Wechsel in den Handbetrieb"],1,"Ein halb verzinnter Korb wäre Ausschuss. Das sofortige Stillsetzen ist Aufgabe des Not-Halts."]],
+L08:[["Warum braucht der Handtaster für −MM5 eine Selbsthaltung?",["Das 5/2-Ventil ist monostabil und fällt ohne Signal zurück.","Der Zylinder ist doppeltwirkend.","Wegen des Not-Halts."],0,"Bistabile Ventile (−MM1 bis −MM4) halten ihre Stellung auch ohne Signal."],
+     ["−SF13 senken und −SF14 anheben werden gleichzeitig gedrückt. Was soll passieren?",["Keine Spule wird angesteuert.","Senken hat Vorrang.","Die zuletzt gedrückte Taste gewinnt."],0,"Gegenbefehle heben sich auf. Ein bistabiles Ventil bleibt dann einfach in seiner Stellung."]],
+L09:[["Wann darf −MM3 verfahren werden?",["nur mit angehobenem Korb (−BG3)","nur bei offenem Bad","in HAND immer"],0,"Ein abgesenkter Korb würde gegen Band oder Badrand fahren."],
+     ["Warum verriegeln Sie auf die Endlage −BG3 statt auf den letzten Befehl „anheben“?",["Der Befehl sagt nur, was gewollt war – die Endlage meldet, was wirklich ist.","Weil Befehle nur einen Zyklus lang anstehen.","Das ist gleichwertig."],0,"Klemmt der Zylinder oder fehlt Druck, steht der Befehl an, aber der Korb ist nicht oben."]],
+L10:[["−SA3 steht auf HAND. Wer darf Ventile bewegen?",["nur der Handbetrieb – über die Befehlsausgabe","Handbetrieb und Schrittkette","nur die Schrittkette"],0,"Betriebsarten schließen sich aus. In HAND ruht die Automatik."],
+     ["Sie schalten von HAND auf AUTO. Was darf dabei passieren?",["Die Anlage startet sofort den Zyklus.","Nichts bewegt sich – AUTO wartet auf Grundstellung und START.","Alle Zylinder fahren sofort in Grundstellung."],1,"Ein Betriebsartenwechsel ist kein Startbefehl."]],
+L11:[["Derselbe Ausgang wird im Handbetrieb und in der Schrittkette zugewiesen. Was passiert?",["Die SPS meldet einen Fehler.","Die letzte Zuweisung im Zyklus gewinnt – die andere ist wirkungslos.","Beide werden ODER-verknüpft."],1,"Die SPS arbeitet das Programm von oben nach unten ab. Erst am Zyklusende wird das Prozessabbild ausgegeben – mit dem zuletzt geschriebenen Wert."],
+     ["Wo gehört die Verriegelung „−MM3 nur mit angehobenem Korb“ hin?",["in die Befehlsausgabe – dann gilt sie für HAND und AUTO","nur in den Handbetrieb","in jeden Schritt der Kette"],0,"An einer Stelle gepflegt, wirkt sie für jede Betriebsart."]],
+L14:[["Was schaltet die Anlage bei Not-Halt ab?",["das SPS-Programm über die Meldekontakte","das Sicherheitsrelais −KF2, unabhängig vom Programm","der Umrichter"],1,"Die Meldekontakte dienen nur der Diagnose. Abgeschaltet wird hart über −KF2."],
      ["Was ist ein Erstwert?",["die zuerst aufgetretene von mehreren Störungen","der erste Wert einer Messreihe","der Startwert eines Zählers"],0,"Folgemeldungen verdecken sonst die eigentliche Ursache."]],
-L12:[["Warum eine programmierte Verriegelung, obwohl die Schütze mechanisch verriegelt sind?",["Die SPS soll nie beide Richtungen gleichzeitig ansteuern; die elektrische Verriegelung ergänzt die mechanische.","Die mechanische Verriegelung wirkt nur in HAND.","Sie ist überflüssig."],0,"Mehrere unabhängige Ebenen – ein Grundsatz jeder Wendeschaltung."],
+L15:[["Warum eine programmierte Verriegelung, obwohl die Schütze mechanisch verriegelt sind?",["Die SPS soll nie beide Richtungen gleichzeitig ansteuern; die elektrische Verriegelung ergänzt die mechanische.","Die mechanische Verriegelung wirkt nur in HAND.","Sie ist überflüssig."],0,"Mehrere unabhängige Ebenen – ein Grundsatz jeder Wendeschaltung."],
      ["Was meldet −FA1 = 0?",["Der Motorschutz hat ausgelöst – oder die Leitung ist unterbrochen.","Das Band läuft.","Die Vor-Ort-Steuerstelle ist aktiv."],0,"Hilfskontakte melden 1 = OK, also auch hier drahtbruchsicher."]],
-L13:[["Worauf schaltet die Kette am Übergabeplatz weiter?",["auf eine Wartezeit nach −BG11","auf −BG40 „Korb liegt an“","auf −BG12"],1,"Eine Wartezeit passt nur für genau eine Bandgeschwindigkeit."],
+L16:[["Worauf schaltet die Kette am Übergabeplatz weiter?",["auf eine Wartezeit nach −BG11","auf −BG40 „Korb liegt an“","auf −BG12"],1,"Eine Wartezeit passt nur für genau eine Bandgeschwindigkeit."],
      ["Wann darf der Vereinzeler den nächsten Korb freigeben?",["sobald −BG11 frei ist","erst wenn der Anschlag geschlossen ist (−BG14)","sofort nach dem Anheben"],1,"Sonst läuft der nächste Korb durch den offenen Anschlag."]],
-L14:[["Eine Drossel steht auf 0 %. Was passiert?",["Der Zylinder fährt doppelt so schnell.","Der Zylinder steht.","Nichts."],1,"Ideal, um Überwachungszeiten zu testen. 50 % ist die Nennzeit."],
+L17:[["Eine Drossel steht auf 0 %. Was passiert?",["Der Zylinder fährt doppelt so schnell.","Der Zylinder steht.","Nichts."],1,"Ideal, um Überwachungszeiten zu testen. 50 % ist die Nennzeit."],
      ["Eine zu knapp gewählte Überwachungszeit führt zu …",["Fehlalarmen bei normalen Schwankungen.","späterer Fehlererkennung.","höherer Taktzeit."],0,"Zu lang dagegen erkennt Fehler spät – deshalb Fahrzeit mal Sicherheitsfaktor."]],
-L15:[["Wann bewegt sich ein Korb an einer Übergabe?",["wenn der aufnehmende Förderer läuft","nur wenn beide Förderer in dieselbe Richtung laufen","wenn die Lichtschranke frei ist"],1,"Der Korb liegt an der Stoßstelle auf beiden Förderern."],
+L18:[["Wann bewegt sich ein Korb an einer Übergabe?",["wenn der aufnehmende Förderer läuft","nur wenn beide Förderer in dieselbe Richtung laufen","wenn die Lichtschranke frei ist"],1,"Der Korb liegt an der Stoßstelle auf beiden Förderern."],
      ["Wie überbrücken Sie die Lücke zwischen zwei Lichtschranken am robustesten?",["mit einem gespeicherten Übergabe-Zustand: gesetzt am abgebenden, zurückgesetzt am aufnehmenden Sensor","mit einer längeren Bandlaufzeit","gar nicht"],0,"Ein gespeicherter Zustand ist unabhängig von der Geschwindigkeit."]],
-L16:[["Wie viel Bandweg entspricht ein Impuls von −BG18?",["10 mm","24,5 mm","245 mm"],1,"10 Impulse je Umdrehung, 245 mm je Umdrehung."],
+L19:[["Wie viel Bandweg entspricht ein Impuls von −BG18?",["10 mm","24,5 mm","245 mm"],1,"10 Impulse je Umdrehung, 245 mm je Umdrehung."],
      ["Woran erkennen Sie die Drehrichtung?",["an der Pulsfrequenz","am Pegel von Spur B bei steigender Flanke von A","am Nullimpuls"],1,"Vorwärts: B = 1 bei steigender Flanke A."]],
-L17:[["Warum läuft die Pumpe vor dem Sprühventil an?",["Das Ventil wirkt nur bei laufender Pumpe – so steht Druck an, wenn es öffnet.","Um Strom zu sparen.","Wegen des Luftmessers."],0,"Reihenfolge der Aggregate: erst Versorgung, dann Verbraucher."],
+L20:[["Warum läuft die Pumpe vor dem Sprühventil an?",["Das Ventil wirkt nur bei laufender Pumpe – so steht Druck an, wenn es öffnet.","Um Strom zu sparen.","Wegen des Luftmessers."],0,"Reihenfolge der Aggregate: erst Versorgung, dann Verbraucher."],
      ["27648 am Analogeingang −BT2 entspricht …",["100 °C","400 °C","27,6 °C"],1,"0 bis 27648 = 0 bis 400 °C."]],
-L18:[["Wie lange ist das Prüfergebnis −BG28 / −BG29 gültig?",["0,3 s","3 s","bis zum nächsten Trigger"],0,"Wer zu spät liest, verliert das Ergebnis."],
+L21:[["Wie lange ist das Prüfergebnis −BG28 / −BG29 gültig?",["0,3 s","3 s","bis zum nächsten Trigger"],0,"Wer zu spät liest, verliert das Ergebnis."],
      ["Wozu ein FIFO für die Ausblaszeitpunkte?",["Mehrere Teile können gleichzeitig zwischen Kamera und Düse liegen.","Die Kamera ist langsam.","Die Düse ist monostabil."],0,"Jedes Teil braucht seinen eigenen Ausblaszeitpunkt."]],
-L19:[["−BG39 meldet 0. Was kann das bedeuten?",["Tank voll – oder Drahtbruch","Tank leer","Pumpe läuft"],0,"Ruhestromprinzip: Beides führt zur sicheren Seite – nicht nachspeisen."],
+L22:[["−BG39 meldet 0. Was kann das bedeuten?",["Tank voll – oder Drahtbruch","Tank leer","Pumpe läuft"],0,"Ruhestromprinzip: Beides führt zur sicheren Seite – nicht nachspeisen."],
      ["Wozu gibt −BG38 die Pumpe frei?",["Trockenlaufschutz","Überlaufschutz","Frostschutz"],0,"Unter 8 % zieht die Pumpe Luft."]],
-L20:[["Was verhindert die Hysterese beim Zweipunktregler?",["ständiges Ein- und Ausschalten um einen Schaltpunkt","eine bleibende Regelabweichung","einen Überlauf"],0,"Ohne Hysterese flattert das Ventil."],
+L23:[["Was verhindert die Hysterese beim Zweipunktregler?",["ständiges Ein- und Ausschalten um einen Schaltpunkt","eine bleibende Regelabweichung","einen Überlauf"],0,"Ohne Hysterese flattert das Ventil."],
      ["Welche Bausteine rechnen 0 bis 27648 in Prozent um?",["NORM_X und SCALE_X","TON und TOF","MOVE und CONV"],0,"NORM_X normiert auf 0,0 bis 1,0, SCALE_X skaliert auf den Bereich."]],
-L21:[["Wie viel Heizleistung braucht das Bad ungefähr für 280 °C?",["50 %","76 %","100 %"],1,"100 % ergeben 360 °C im Beharrungszustand."],
+L24:[["Wie viel Heizleistung braucht das Bad ungefähr für 280 °C?",["50 %","76 %","100 %"],1,"100 % ergeben 360 °C im Beharrungszustand."],
      ["Was beschreibt ein PT1-Glied?",["eine Strecke erster Ordnung mit Verzögerung","eine reine Totzeit","eine integrierende Strecke"],0,"Hier hintereinander: Heizelement 6 s, Bad 150 s."]],
-L22:[["Der Kühlwassertank ist eine … Strecke.",["integrierende (ohne Ausgleich)","PT1-","PT2-"],0,"Der Pegel ändert sich, solange Zu- und Abfluss ungleich sind."],
+L25:[["Der Kühlwassertank ist eine … Strecke.",["integrierende (ohne Ausgleich)","PT1-","PT2-"],0,"Der Pegel ändert sich, solange Zu- und Abfluss ungleich sind."],
      ["Warum bleibt beim P-Regler mit offenem Ablasshahn eine Abweichung?",["Er braucht eine Regelabweichung, um den Zulauf für den Abfluss zu liefern.","Der Sensor ist ungenau.","Die Stellzeit ist zu lang."],0,"Der I-Anteil liefert diesen Zulauf auch bei Abweichung null."]],
-L23:[["Wie lange braucht −MB18 für 0 bis 100 %?",["1 s","8 s","15 s"],1,"Daraus folgt eine Überwachungszeit deutlich über 8 s."],
+L26:[["Wie lange braucht −MB18 für 0 bis 100 %?",["1 s","8 s","15 s"],1,"Daraus folgt eine Überwachungszeit deutlich über 8 s."],
      ["Wozu dient die Stellungsrückmeldung %IW74?",["zum Vergleich mit dem Stellwert, um ein klemmendes Ventil zu erkennen","als Istwert der Regelung","zur Füllstandsmessung"],0,"Stellwert und Rückmeldung müssen nach der Stellzeit übereinstimmen."]],
-L24:[["Was darf im TO_SpeedAxis für den Zwilling nicht aktiviert sein?",["Simulation / virtuelle Achse","Rampen","MC_Reset"],0,"Sonst schreibt das Technologieobjekt kein Telegramm."],
+L27:[["Was darf im TO_SpeedAxis für den Zwilling nicht aktiviert sein?",["Simulation / virtuelle Achse","Rampen","MC_Reset"],0,"Sonst schreibt das Technologieobjekt kein Telegramm."],
      ["16#4000 im NSOLL_A von −TA2 entspricht …",["100 % = 1500 1/min = 100 mm/s","50 %","der Maximaldrehzahl 2250 1/min"],0,"Bezugsdrehzahl p2000 = 1500 1/min."]],
-L25:[["Welches Steuerwort holt den Antrieb aus der Einschaltsperre?",["16#047F","16#047E (AUS1 = 0)","16#0000"],1,"Erst danach führt 16#047F in den Betrieb."],
+L28:[["Welches Steuerwort holt den Antrieb aus der Einschaltsperre?",["16#047F","16#047E (AUS1 = 0)","16#0000"],1,"Erst danach führt 16#047F in den Betrieb."],
      ["Was bewirkt AUS2?",["Halt mit Rampe","Impulssperre, der Antrieb trudelt aus","Schnellhalt"],1,"AUS1 = Rampe, AUS3 = Schnellhalt."]],
-L26:[["Das Poti −SF47 steht auf 27648. Welcher NSOLL_A?",["16#2000","16#4000","27648"],1,"27648 = 100 %, und 100 % sind beim Telegramm 16#4000 = 16384."],
+L29:[["Das Poti −SF47 steht auf 27648. Welcher NSOLL_A?",["16#2000","16#4000","27648"],1,"27648 = 100 %, und 100 % sind beim Telegramm 16#4000 = 16384."],
      ["Warum NIST_A für die Ausblaszeit?",["Die tatsächliche Geschwindigkeit bestimmt die Laufzeit – auch während der Rampen.","NSOLL_A ist nicht lesbar.","NIST_A ist genauer skaliert."],0,"Sollwert und Istwert unterscheiden sich beim Hoch- und Rücklauf."]],
-L27:[["Welches ZSW1-Bit meldet eine Störung?",["Bit 3","Bit 6","Bit 9"],0,"Bit 6 = Einschaltsperre, Bit 9 = Führung gefordert."],
+L30:[["Welches ZSW1-Bit meldet eine Störung?",["Bit 3","Bit 6","Bit 9"],0,"Bit 6 = Einschaltsperre, Bit 9 = Führung gefordert."],
      ["Warum lässt sich F07011 nicht sofort quittieren?",["Der Motor muss erst abkühlen.","STO ist aktiv.","Das Telegramm fehlt."],0,"Eine thermische Störung bleibt, bis die Ursache weg ist."]],
-L28:[["Welche Reihenfolge entspricht systematischer Fehlersuche?",["Symptom → Hypothese → Test → Ursache","Ursache → Test → Symptom","Tauschen, bis es geht"],0,"Jeder Test soll eine Hypothese bestätigen oder ausschließen."],
+L31:[["Welche Reihenfolge entspricht systematischer Fehlersuche?",["Symptom → Hypothese → Test → Ursache","Ursache → Test → Symptom","Tauschen, bis es geht"],0,"Jeder Test soll eine Hypothese bestätigen oder ausschließen."],
      ["Womit belegen Sie eine kürzere Taktzeit?",["mit den Messlinien von Schrittwechsel 2 bis Schrittwechsel 1","mit dem Eindruck beim Zuschauen","mit der CPU-Zykluszeit"],0,"Messen statt schätzen."]],
-L29:[["Wohin gehören globale Daten im Abschlussprojekt?",["in einen Schnittstellen-DB","als globale Merker quer durchs Programm","in den OB1"],0,"So bleiben die Bausteine austauschbar und testbar."],
+L32:[["Wohin gehören globale Daten im Abschlussprojekt?",["in einen Schnittstellen-DB","als globale Merker quer durchs Programm","in den OB1"],0,"So bleiben die Bausteine austauschbar und testbar."],
      ["Wer macht die Anlage sicher?",["das SPS-Programm","die Sicherheitstechnik (−KF2, STO)","das HMI"],1,"Das Programm macht sie bedienbar und diagnostizierbar."]]
 };
 
@@ -480,10 +496,10 @@ const VORL = {
   trend:{n:"Trendaufzeichnung", d:"Istwert, Sollwert und Stellgröße über der Zeit"},
   raster:{n:"Kästchenraster", d:"5-mm-Raster für alles Weitere"}
 };
-const EXVORL = {L01:["raster"],L02:["raster"],L03:["raster"],L04:["trend","raster"],L05:["raster"],L06:["raster"],L07:["stromlauf","raster"],L08:["grafcet","wegschritt","pneumatik"],L09:["grafcet","zustand"],L10:["zustand","pneumatik"],L11:["zustand","stromlauf"],L12:["stromlauf","leistung"],
-  L13:["grafcet","wegschritt","pneumatik"],L14:["wegschritt","pneumatik"],L15:["zustand"],L16:["raster"],L17:["grafcet"],L18:["zustand","pneumatik"],L19:["regelkreis"],L20:["regelkreis","trend"],
-  L21:["regelkreis","trend"],L22:["regelkreis","trend"],L23:["zustand"],L24:["zustand","leistung"],L25:["zustand"],L26:["raster"],L27:["zustand","leistung"],L28:["raster"],L29:["grafcet","zustand","stromlauf","leistung","pneumatik"]};
-const CYL = {L13:["−MM5","−MM6","−MM1","−MM2"]};
+const EXVORL = {L01:["raster"],L02:["raster"],L03:["raster"],L04:["trend","raster"],L05:["raster"],L06:["raster"],L07:["stromlauf","raster"],L12:["grafcet","wegschritt","pneumatik"],L13:["grafcet","zustand"],L08:["pneumatik","raster"],L09:["zustand","raster"],L10:["zustand","raster"],L11:["stromlauf","raster"],L14:["zustand","stromlauf"],L15:["stromlauf","leistung"],
+  L16:["grafcet","wegschritt","pneumatik"],L17:["wegschritt","pneumatik"],L18:["zustand"],L19:["raster"],L20:["grafcet"],L21:["zustand","pneumatik"],L22:["regelkreis"],L23:["regelkreis","trend"],
+  L24:["regelkreis","trend"],L25:["regelkreis","trend"],L26:["zustand"],L27:["zustand","leistung"],L28:["zustand"],L29:["raster"],L30:["zustand","leistung"],L31:["raster"],L32:["grafcet","zustand","stromlauf","leistung","pneumatik"]};
+const CYL = {L16:["−MM5","−MM6","−MM1","−MM2"]};
 const PHASES = [null,
   {n:"Informieren", s:"Situation und Signale"},
   {n:"Planen", s:"Leitfragen, Skizzen, Variablen"},
@@ -1347,7 +1363,9 @@ function phaseHTML(s, p){
   if (p === 1) {
     let h = H("Informieren", "Verschaffen Sie sich ein Bild von der Aufgabe, stellen Sie den Zwilling ein und suchen Sie jedes beteiligte Signal in der Anlage.");
     h += `<div class="callout"><div class="prose">${chips(s.sit)}</div></div>`;
+    if (s.beschr) h += `<h3>Aufgabenbeschreibung</h3><div class="prose beschr">${chips(s.beschr)}</div>`;
     if (s.tab) h += `<h3>${s.tab.cap}</h3>` + tableHTML(s.tab.head, s.tab.rows);
+    if (s.wissen && s.wissen.length) h += `<h3>Fachwissen – warum, wieso, weshalb</h3><div class="fw">${s.wissen.map((w, i) => `<details${i ? "" : " open"}><summary>${w.t}</summary><div class="prose">${chips(w.h)}</div></details>`).join("")}</div>`;
     if (s.list) h += `<h3>${s.list.cap}</h3><ol class="prose">${s.list.items.map(x => `<li>${chips(x)}</li>`).join("")}</ol>`;
     h += `<h3>Zwilling einstellen</h3><label class="confirm"><input type="checkbox" data-k="${k}:einst"><span>${s.einst}<br><span class="muted small">Haken setzen, sobald der Übungsumfang in der Seitenleiste so eingestellt ist.</span></span></label>`;
     const se = sigEntries(s);
@@ -2063,7 +2081,7 @@ const ansOr = (v, n) => v && String(v).trim() ? `<div class="ans">${esc(v)}</div
 function sheetPage(ex, f){
   const k = ex.id, sig = sigEntries(ex);
   let h = `<section class="pp">${pageHead(ex, "Arbeitsblatt")}${whoRow(ex, f)}
-    <h2>Ausgangssituation</h2><p>${chips(ex.sit)}</p><p><b>Einstellung im Zwilling:</b> ${ex.einst}</p>
+    <h2>Ausgangssituation</h2><p>${chips(ex.sit)}</p><p><b>Einstellung im Zwilling:</b> ${ex.einst}</p>${ex.beschr ? `<h2>Aufgabenbeschreibung</h2>${chips(ex.beschr)}` : ""}
     <h2>Lernziele – Sie können …</h2><ol>${ex.ziele.map(z => `<li>${z}</li>`).join("")}</ol>`;
   if (ex.tab) h += `<h3>${ex.tab.cap}</h3>` + tableHTML(ex.tab.head, ex.tab.rows);
   if (ex.list) h += `<h3>${ex.list.cap}</h3><ol>${ex.list.items.map(x => `<li>${chips(x)}</li>`).join("")}</ol>`;
@@ -2123,7 +2141,7 @@ function openPrintDialog(id){
   const ex = BY[id], sk = EXVORL[id] || [];
   const opt = (v, t, d, on) => `<label class="opt"><input type="checkbox" name="pp" value="${v}" ${on?"checked":""}><span><b>${t}</b><span>${d}</span></span></label>`;
   $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>${ex.id} drucken</h2><p class="muted">Wählen Sie die Seiten. Jede Seite ist ein eigenes Blatt A4; Skizzen kommen quer.</p>
-    <div class="opts">${opt("sheet","Arbeitsblatt","Situation, Signale, Auftrag, Leitfragen mit Schreiblinien",true)}${opt("check","Prüfprotokoll","Prüffälle zum Ankreuzen mit Unterschriftsfeldern",true)}
+    <div class="opts">${opt("sheet","Arbeitsblatt","Situation, Signale, Auftrag, Leitfragen mit Schreiblinien",true)}${ex.wissen ? opt("wissen","Fachwissen","Hintergründe und Begründungen zur Übung",false) : ""}${opt("check","Prüfprotokoll","Prüffälle zum Ankreuzen mit Unterschriftsfeldern",true)}
     ${opt("vars","Variablenliste","Name, Datentyp, Adresse, Kommentar",false)}${opt("rate","Selbsteinschätzung und Reflexion","Lernziele 1 bis 4, Lösungsweg, Reflexion",false)}
     ${sk.map(key => opt("sk:"+key, "Skizze: "+VORL[key].n, VORL[key].d+", mit Schriftfeld", false)).join("")}
     ${opt("bew","Bewertungsbogen","für die Lehrkraft",false)}</div>
@@ -2131,7 +2149,7 @@ function openPrintDialog(id){
     <div class="row"><button class="btn" value="cancel">Abbrechen</button><button class="btn primary" type="button" id="pgo">${IC.print}Drucken</button></div></form>`;
   $("#pgo").onclick = () => {
     const f = $("#pfill").checked, sel = $$('#dlg input[name=pp]:checked').map(x => x.value);
-    const html = sel.map(v => v === "sheet" ? sheetPage(ex, f) : v === "check" ? checkPage(ex, f) : v === "vars" ? varsPage(ex, f) : v === "rate" ? ratePage(ex, f) : v === "bew" ? bewPage(ex) : sketchPage(id, v.slice(3), f)).join("");
+    const html = sel.map(v => v === "sheet" ? sheetPage(ex, f) : v === "check" ? checkPage(ex, f) : v === "wissen" ? `<section class="pp">${pageHead(ex, "Fachwissen")}${ex.wissen.map(w => `<h2>${w.t}</h2>${chips(w.h)}`).join("")}</section>` : v === "vars" ? varsPage(ex, f) : v === "rate" ? ratePage(ex, f) : v === "bew" ? bewPage(ex) : sketchPage(id, v.slice(3), f)).join("");
     $("#dlg").close(); if (html) doPrint(html);
   };
   $("#dlg").showModal();
@@ -2227,7 +2245,7 @@ function viewRichtlinien(){
       ["Einzelinstanz-DB","Präfix Inst","InstTinning"],
       ["Multiinstanz","Präfix inst","instTimerDip, instMsgLightCurtain"],
       ["Input, Output, InOut","kein Präfix, camelCase","start, stop, homePosition, readyToStart"],
-      ["Static-Variable","Präfix stat","statStep, statReady, statAutoActive"],
+      ["Static-Variable","Präfix stat","statStep, statReady, statModeAuto"],
       ["Temp-Variable","Präfix temp, vor dem Lesen beschreiben","tempTemperature, tempRawValue"],
       ["Konstante","GROSSSCHRIFT mit Unterstrich, lokal im Baustein","DIP_TIME, DRIP_TIME, TEMP_MIN, MAX_STEP"],
       ["PLC-Datentyp","Präfix type","typeCylinder, typeConveyor"],
@@ -2300,9 +2318,9 @@ function viewKonzept(){
   setNav("konzept");
   app.innerHTML = `<div class="page"><h1>Didaktisches Konzept</h1><p class="lead">${SHEETS.length} Übungen führen von der ersten Grundstellungsabfrage bis zur Anlage, die vollständig am Programm der Lernenden hängt. Der Zwilling übernimmt jeweils den Teil, der noch nicht selbst programmiert wird.</p>
   <section class="panel"><h2>Sechs Schritte in jeder Übung</h2><ol class="phases6">${[["Informieren","Situation lesen, Zwilling einstellen, Signal-Rallye und Kurz-Check"],["Planen","Leitfragen beantworten, Ablauf skizzieren, Variablen festlegen"],["Entscheiden","Lösungsweg im Fachgespräch abstimmen, Freigabe durch die Lehrkraft"],["Ausführen","in TIA programmieren, in PLCSIM Advanced laden, in Betrieb nehmen"],["Kontrollieren","Prüfprotokoll Fall für Fall, Fehler durch Forcen provozieren"],["Bewerten","Selbsteinschätzung je Lernziel, Reflexion, Plus-Aufgabe"]].map(([b, s]) => `<li><b>${b}</b><span>${s}</span></li>`).join("")}</ol></section>
-  <div class="cols2"><section class="panel"><h2>Vier Kompetenzstufen</h2>${tableHTML(["Stufe","Leitfrage der Lernenden"],[[`<span class="pill" style="--c:var(--s1)">1 Grundlagen</span>`,"Was meldet die Anlage, und wie setze ich einen Ablauf um?"],[`<span class="pill" style="--c:var(--s2)">2 Aufbau</span>`,"Wie mache ich den Ablauf sicher und bedienbar?"],[`<span class="pill" style="--c:var(--s3)">3 Vertiefung</span>`,"Wie koordiniere ich Teilprozesse und verarbeite Analogwerte?"],[`<span class="pill" style="--c:var(--s4)">4 Experte</span>`,"Wie entwerfe ich ein robustes Gesamtsystem?"]])}</section>
-  <section class="panel"><h2>Rahmen</h2>${tableHTML(["",""],[["Zielgruppe","Fachschule Technik, Umschulung, Meister- und Technikerkurse"],["Voraussetzung","Digitaltechnik, Zahlensysteme, Grundbegriffe Elektropneumatik"],["Werkzeuge","TIA Portal ab V17, S7-PLCSIM Advanced, Zwilling mit Bridge"],["Sprachen","KOP/FUP, SCL, S7-GRAPH optional"],["Umfang","ca. 131 UE à 45 min einschließlich Abschlussprojekt"]])}</section></div>
-  <section class="panel"><h2>Normen</h2>${tableHTML(["Norm","Inhalt","Übungen"],[["DIN EN 61131-3","SPS-Programmiersprachen","alle"],["DIN EN 60848","GRAFCET","L08, L10, L13, L29"],["DIN EN 60204-1","Elektrische Ausrüstung von Maschinen, Not-Halt","L11, L12"],["DIN EN ISO 13849-1","Sicherheitsbezogene Teile von Steuerungen","Sicherheitskonzept"],["DIN EN ISO 13850","Not-Halt","L11"],["DIN EN 81346-2","Referenzkennzeichen","alle"],["Siemens Programmierleitfaden und -styleguide S7-1200/1500 (ID 81318674)","Programmierstil, Bezeichner, Bausteine","alle"],["PROFIdrive-Profil","Zustandsmaschine, STW1/ZSW1, Telegramme","L24 bis L27"]])}</section>
+  <div class="cols2"><section class="panel"><h2>Vier Kompetenzstufen</h2>${tableHTML(["Stufe","Leitfrage der Lernenden"],[[`<span class="pill" style="--c:var(--s1)">1 Grundlagen</span>`,"Was meldet die Anlage, und wie bewege ich sie sicher von Hand?"],[`<span class="pill" style="--c:var(--s2)">2 Aufbau</span>`,"Wie baue ich Betriebsarten und Automatik sauber auf?"],[`<span class="pill" style="--c:var(--s3)">3 Vertiefung</span>`,"Wie koordiniere ich Teilprozesse und verarbeite Analogwerte?"],[`<span class="pill" style="--c:var(--s4)">4 Experte</span>`,"Wie entwerfe ich ein robustes Gesamtsystem?"]])}</section>
+  <section class="panel"><h2>Rahmen</h2>${tableHTML(["",""],[["Zielgruppe","Fachschule Technik, Umschulung, Meister- und Technikerkurse"],["Voraussetzung","Digitaltechnik, Zahlensysteme, Grundbegriffe Elektropneumatik"],["Werkzeuge","TIA Portal ab V17, S7-PLCSIM Advanced, Zwilling mit Bridge"],["Sprachen","KOP/FUP, SCL, S7-GRAPH optional"],["Umfang","ca. 139 UE à 45 min einschließlich Abschlussprojekt"]])}</section></div>
+  <section class="panel"><h2>Normen</h2>${tableHTML(["Norm","Inhalt","Übungen"],[["DIN EN 61131-3","SPS-Programmiersprachen","alle"],["DIN EN 60848","GRAFCET","L12, L13, L16, L32"],["DIN EN 60204-1","Elektrische Ausrüstung von Maschinen, Not-Halt, Betriebsarten","L09, L10, L14, L15"],["DIN EN ISO 13849-1","Sicherheitsbezogene Teile von Steuerungen","Sicherheitskonzept"],["DIN EN ISO 13850","Not-Halt","L14"],["DIN EN 81346-2","Referenzkennzeichen","alle"],["Siemens Programmierleitfaden und -styleguide S7-1200/1500 (ID 81318674)","Programmierstil, Bezeichner, Bausteine","alle"],["PROFIdrive-Profil","Zustandsmaschine, STW1/ZSW1, Telegramme","L27 bis L30"]])}</section>
   <section class="panel"><h2>Glossar</h2>${tableHTML(["Begriff","Bedeutung"],[["AUS1 / AUS2 / AUS3","Stopp mit Rampe / austrudeln (Impulssperre) / Schnellhalt"],["Erstwert","die zuerst aufgetretene von mehreren Störungen"],["Forcen","ein Signal unabhängig vom Prozess fest auf 0 oder 1 setzen"],["Handshake","gegenseitige Quittung zweier Teilsysteme vor einer Übergabe"],["Hysterese","Abstand zwischen Ein- und Ausschaltpunkt eines Zweipunktreglers"],["Integrierende Strecke","Istwert ändert sich, solange Zu- und Abfluss ungleich sind"],["Öffner","unbetätigt geschlossener Kontakt (1 = nicht betätigt)"],["PT1","Strecke erster Ordnung mit Zeitkonstante"],["Ruhestromprinzip","Gutzustand = Strom fließt, Drahtbruch wirkt wie Auslösung"],["Selbsthaltung","Ausgang hält sich über seinen eigenen Zustand"],["STO","Safe Torque Off, sichere Impulssperre im Umrichter"],["Transition","Übergangsbedingung zwischen zwei Schritten"]])}</section></div>`;
 }
 
@@ -2437,6 +2455,13 @@ function route(){
   Object.keys(alt).forEach(k => { if (rx.test(k)) S.set(k, null); });
   Object.entries(alt).forEach(([k, v]) => { const m = rx.exec(k); if (m) { const n = +m[1]; S.set((n >= 2 ? "L" + String(n + 5).padStart(2, "0") : "L" + m[1]) + k.slice(3), v); } });
   S.set("ver", 2);
+})();
+(function umziehen3(){   // Hand, Verriegelung, HAND/AUTO, Befehlsausgabe vor die Schrittkette
+  if (S.get("ver") >= 3) return;
+  const alt = S.all(), rx = /^L(\d\d)(?=:)/, neu = n => n <= 7 ? n : ({8: 12, 9: 13, 10: 9})[n] || n + 3;
+  Object.keys(alt).forEach(k => { if (rx.test(k)) S.set(k, null); });
+  Object.entries(alt).forEach(([k, v]) => { const m = rx.exec(k); if (m) S.set("L" + String(neu(+m[1])).padStart(2, "0") + k.slice(3), v); });
+  S.set("ver", 3);
 })();
 addEventListener("hashchange", route);
 addEventListener("beforeunload", () => { if (timerEx) S.set(timerEx+":zeit", curTime(timerEx)); });

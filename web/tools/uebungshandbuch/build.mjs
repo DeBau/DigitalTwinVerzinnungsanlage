@@ -1,6 +1,6 @@
 // Erzeugt docs/uebungshandbuch.html aus vorlage.html, uebungen.js und signale.csv.
 //   node web/tools/uebungshandbuch/build.mjs
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -20,8 +20,13 @@ for (const line of readFileSync(path.join(repo, 'signale.csv'), 'utf8').split(/\
 }
 
 const uebungen = readFileSync(path.join(hier, 'uebungen.js'), 'utf8').replace(/^\/\/.*\r?\n/, '').trim();
+// Ausführliche Aufgabenbeschreibung und Fachwissen: je Übung eine Datei texte/Lxx.json
+const tdir = path.join(hier, 'texte'), texte = {};
+if (existsSync(tdir)) for (const f of readdirSync(tdir)) if (/^L\d\d\.json$/.test(f)) texte[f.slice(0, 3)] = JSON.parse(readFileSync(path.join(tdir, f), 'utf8'));
+
 const html = readFileSync(path.join(hier, 'vorlage.html'), 'utf8')
   .replace('__SIG__', () => JSON.stringify(sig))
-  .replace('__SHEETS__', () => uebungen);
+  .replace('__SHEETS__', () => uebungen)
+  .replace('__TEXTE__', () => JSON.stringify(texte));
 writeFileSync(path.join(repo, 'docs', 'uebungshandbuch.html'), html);
 console.log('docs/uebungshandbuch.html erzeugt');
