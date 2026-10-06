@@ -1,34 +1,30 @@
 // Editor-Kern: Zeigerereignisse auf dem Blatt (drücken, ziehen, loslassen) für alle Werkzeuge.
-import { CYL } from '../app/daten.js';
 import { $ } from '../app/basis.js';
 import { ED } from './status.js';
-import { shapeD, snap, wsAus } from './vorlagen-svg.js';
+import { STRICH, VORL, art } from './registry.js';
+import { shapeD, snap } from './vorlagen-svg.js';
 import { nearestPort, portCap, vrails } from './bauteile.js';
 import { clearSel, objById } from './auswahl.js';
 import { ausrichten, kettenQuelle } from './kette.js';
 import { connGeom, drawObj, simClick } from './zeichnen.js';
-import { skMeta } from './blaetter.js';
 import { updateProps } from './eigenschaften.js';
-import { checkPages, refreshTpl, renderInk } from './anzeige.js';
+import { checkPages, renderInk } from './anzeige.js';
 import { saveSketch, snapshot } from './verlauf.js';
 import { editConnLabel, editLabel, editObjLabel, editTextItem } from './beschriften.js';
-import { setTool, snapW, svgPt, wsRows } from './werkzeuge.js';
+import { snapW, svgPt } from './werkzeuge.js';
 import { eraseAt } from './bearbeiten.js';
 import { avoidBreak, connect, connectPorts, linked, makeObj, placeObj, smartPos } from './andocken.js';
 
 export function edDown(e){
   if (!e.target.closest("input")) { e.preventDefault(); const sl = getSelection(); if (sl && sl.rangeCount) sl.removeAllRanges(); }
   const svg = ED.svg, pt = svgPt(svg, e), hitO = e.target.closest("[data-o]"), hitC = e.target.closest("[data-c]");
+  const zeiger = VORL[ED.key].zeiger || {};
+  if (zeiger.unten && zeiger.unten(e, pt)) return;   // Haken zeiger.unten: eigene Werkzeuge der Vorlage
   if (ED.tool === "sim") { const h = e.target.closest("[data-o]"); if (h) simClick(objById(h.dataset.o), pt); return; }
   if (ED.tool === "place" && ED.place) { e.preventDefault(); placeObj(ED.place, pt); return; }
   if (ED.tool === "sel") {
     e.preventDefault();
     const hitH = e.target.closest("[data-hi]"), hitS = e.target.closest("[data-i]"), hitT = e.target.closest("[data-ti]");
-    if (ED.key === "wegschritt" && !hitS && !hitT && pt[0] >= 30 && pt[0] < 140 && pt[1] >= 74 && pt[1] < 74 + wsRows() * 62) {   // Zeilenname ändern
-      const i = Math.floor((pt[1] - 74) / 62), cur = (skMeta(ED.scope, ED.key, ED.data).rows || [])[i];
-      const def = [...(CYL[ED.scope] || ["−MM1","−MM2","−MM3","−MM4"]), "", ""][i];
-      editLabel(40, 74 + i * 62 + 31, cur ?? def, "Bauglied, z. B. −MM1 Zylinder oder −MB1 Ventil", v => { snapshot(); const m = ED.data.meta = ED.data.meta || {}; m.rows = m.rows || []; m.rows[i] = v; saveSketch(); refreshTpl(); });
-      return; }
     if (e.target.closest("[data-sf]") && !hitO && !hitS && !hitT) { clearSel(); ED.selF = true; renderInk(); updateProps("neu"); const f = $('#props [data-prop="mn"]'); if (f) f.focus(); return; }
     if (hitH) { ED.drag = {kind: "h", i: +hitH.dataset.hi, h: +hitH.dataset.h, sx: pt[0], sy: pt[1], moved: false}; svg.setPointerCapture(e.pointerId); return; }
     const now = Date.now(), hitId = hitO ? hitO.dataset.o : hitC ? "c" + hitC.dataset.c : hitT ? "t" + hitT.dataset.ti : hitS ? "s" + hitS.dataset.i : null;
@@ -62,26 +58,17 @@ export function edDown(e){
   }
   if (ED.tool === "erase") { ED.erasing = true; svg.setPointerCapture(e.pointerId); eraseAt(e); return; }
   if (ED.tool === "text") { e.preventDefault(); editLabel(pt[0], pt[1], "", "Text, Enter übernimmt", v => { if (v) { snapshot(); ED.data.t.push({x: pt[0], y: pt[1] + 5, v, c: ED.color, s: 16}); saveSketch(); renderInk(); } }); return; }
-  if (ED.tool === "vk") { e.preventDefault(); const q = snapW(pt), J = [q[0], q[1] - wsAus(q[1]) * 18]; snapshot();
-    ED.data.s.push({k: "vk", t: (ED.wsPreset && ED.wsPreset.t) || "und", c: ED.color, w: 1.2, p: [J]}, {k: "sig", c: ED.color, w: 1.2, p: [J, q], lbl: ""});
-    saveSketch(); const keep = ED.wsPreset; setTool("sig"); ED.wsPreset = {}; clearSel(); renderInk(); updateProps(true); return; }
-  if (ED.tool === "eq") { e.preventDefault(); const cw = (975 - 150) / 12, j = Math.max(1, Math.min(11, Math.floor((pt[0] - 150) / cw))); snapshot();
-    ED.data.s = ED.data.s.filter(q => q.k !== "eq"); ED.data.s.push({k: "eq", c: ED.color, w: 2.6, p: [[+(150 + j * cw).toFixed(2), 57]], y2: 74 + wsRows() * 62}); clearSel(); saveSketch(); setTool("sel"); return; }
-  if (ED.tool === "start") { e.preventDefault(); snapshot(); ED.data.s.push({k: "st", c: ED.color, w: 1.2, p: [snapW(pt)], lbl: "−SF1"}); clearSel(); ED.selS = ED.data.s.length - 1; saveSketch(); setTool("sel"); return; }
-  if (ED.pend && (ED.tool === "sig" || ED.tool === "line")) {   // zweiter Klick: Linie vom gemerkten Punkt bis hier
-    e.preventDefault(); const q = snapW(pt), a = ED.pend, same = Math.abs(a[0] - q[0]) < .5 && Math.abs(a[1] - q[1]) < .5;
-    $(".ghost", svg).innerHTML = "";
-    if (ED.tool === "sig") { snapshot(); ED.data.s.push({k: "sig", c: ED.color, w: 1.2, p: [a, q], lbl: "", ...(ED.wsPreset || {})}); ED.pend = null; saveSketch();
-      clearSel(); ED.selS = ED.data.s.length - 1; renderInk(); updateProps("neu"); const f = $('#props [data-prop="sl"]'); if (f) f.focus(); return; }
-    if (same) { ED.pend = null; renderInk(); updateProps(true); return; }   // gleicher Punkt: Linienzug beenden
-    snapshot(); ED.data.s.push({k: "l", c: ED.color, w: Math.max(ED.w, 2.8), p: [a, q]}); ED.pend = q; saveSketch(); renderInk(); return;
-  }
-  svg.setPointerCapture(e.pointerId); snapshot();
   const q = ED.tool === "pen" ? pt : snapW(pt);
-  ED.cur = ED.tool === "pen" ? {c: ED.color, w: ED.w, p: [q]} : {k: {line: "l", rect: "r", sig: "sig"}[ED.tool] || "l", c: ED.color, w: ED.tool === "sig" ? 1.2 : (ED.key === "wegschritt" && ED.tool === "line" ? Math.max(ED.w, 2.8) : ED.w), p: [q, q], ...(ED.tool === "sig" ? {lbl: "", ...(ED.wsPreset || {})} : {})};
+  beginneStrich(e, ED.tool === "pen" ? {c: ED.color, w: ED.w, p: [q]} : {k: {line: "l", rect: "r"}[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q]});
+}
+// Strich cur aufziehen: Zeiger festhalten, Stand merken, Vorschaupfad anlegen
+export function beginneStrich(e, cur){
+  ED.svg.setPointerCapture(e.pointerId); snapshot();
+  ED.cur = cur;
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("stroke", ED.color); path.setAttribute("stroke-width", ED.w); path.setAttribute("fill", "none"); path.setAttribute("stroke-linecap", "round"); path.setAttribute("stroke-linejoin", "round");
-  svg.querySelector(".ink").appendChild(path); ED.curEl = path; edMove(e);
+  path.setAttribute("stroke", ED.color); path.setAttribute("stroke-width", ED.w); path.setAttribute("fill", "none");
+  path.setAttribute("stroke-linecap", "round"); path.setAttribute("stroke-linejoin", "round");
+  ED.svg.querySelector(".ink").appendChild(path); ED.curEl = path; edMove(e);
 }
 export function edMove(e){
   const svg = ED.svg; if (!svg) return;
@@ -99,9 +86,8 @@ export function edMove(e){
     if (ED.drag.kind === "t") { const t = ED.data.t[ED.drag.i]; [t.x, t.y] = snap([ED.drag.ox + dx, ED.drag.oy + dy]); renderInk(); return; }
     if (ED.drag.kind === "s") {
       const st = ED.data.s[ED.drag.i], o0 = ED.drag.orig[0]; let mx = dx, my = dy;
-      if (st.k === "vk") {   // Verknüpfungspunkt verschieben: angeschlossene Signallinien wandern mit
-        if (!ED.drag.att) ED.drag.att = []; if (!ED.drag.attDone) { ED.drag.attDone = true; ED.data.s.forEach((q, j) => q.k === "sig" && q.p.forEach((v, h) => Math.hypot(v[0] - o0[0], v[1] - o0[1]) < .6 && ED.drag.att.push([j, h]))); }
-        const cx = 150 + Math.round((o0[0] + dx - 150) / 68.75) * 68.75, q = [Math.abs(cx - o0[0] - dx) < 10 ? cx : Math.round((o0[0] + dx) / 4) * 4, Math.round((o0[1] + dy) / 4) * 4]; st.p = [q]; ED.drag.att.forEach(([j, h]) => ED.data.s[j].p[h] = [...q]); renderInk(); return; }
+      const art = STRICH[st.k];
+      if (art && art.ziehen) { art.ziehen(st, ED.drag, dx, dy); renderInk(); return; }   // Haken ziehen der Strichart
       if (st.k) { const q = snapW([o0[0] + dx, o0[1] + dy]); mx = q[0] - o0[0]; my = q[1] - o0[1]; }
       st.p = ED.drag.orig.map(([x, y]) => [+(x + mx).toFixed(1), +(y + my).toFixed(1)]); renderInk(); return;
     }
@@ -117,9 +103,8 @@ export function edMove(e){
     avoidBreak(o);
     $(".ghost", svg).innerHTML = marks + `<g opacity=".5">${drawObj(o, true)}</g>`; return;
   }
-  if (ED.pend && !ED.cur && (ED.tool === "sig" || ED.tool === "line")) { const q = snapW(pt), a = ED.pend;
-    const d = ED.tool === "sig" ? shapeD({k: "sig", p: [a, q]}) : `M${a[0]} ${a[1]}L${q[0]} ${q[1]}`;
-    $(".ghost", svg).innerHTML = `<path d="${d}" stroke="#2F80ED" stroke-width="${ED.tool === "sig" ? 1.4 : 2.8}" stroke-dasharray="5 4" fill="none"/><circle cx="${a[0]}" cy="${a[1]}" r="5" fill="#2F80ED" fill-opacity=".35" stroke="#2F80ED"/><circle cx="${q[0]}" cy="${q[1]}" r="4" fill="none" stroke="#2F80ED"/>`; return; }
+  const zeiger = VORL[ED.key].zeiger || {};
+  if (zeiger.bewegen && zeiger.bewegen(e, pt)) return;   // Haken zeiger.bewegen
   if (!ED.cur) return;
   if (ED.cur.k) { ED.cur.p[1] = snapW(pt); ED.curEl.setAttribute("d", shapeD(ED.cur)); return; }
   const l = ED.cur.p[ED.cur.p.length-1];
@@ -128,6 +113,7 @@ export function edMove(e){
 }
 export function edUp(){
   ED.erasing = false; ED.extraY = 0;
+  const zeiger = VORL[ED.key].zeiger || {};
   if (ED.drag) {
     const dk = ED.drag.dock;
     if (ED.drag.moved) { if (dk && !linked(dk.a, dk.b)) ED.data.c.push({a: dk.a, b: dk.b, v: ""}); saveSketch(); renderInk(); }
@@ -136,9 +122,9 @@ export function edUp(){
   if (!ED.cur) return;
   if (ED.cur.k && ED.cur.p[0][0] === ED.cur.p[1][0] && ED.cur.p[0][1] === ED.cur.p[1][1]) {   // nur geklickt, nicht gezogen
     const p0 = ED.cur.p[0], k = ED.cur.k; ED.cur = null; ED.hist.pop();
-    if (k === "sig" || (k === "l" && ED.key === "wegschritt")) { ED.pend = p0; renderInk(); updateProps(true); $(".ghost", ED.svg).innerHTML = `<circle cx="${p0[0]}" cy="${p0[1]}" r="5" fill="#2F80ED" fill-opacity=".35" stroke="#2F80ED"/>`; return; }
+    if (zeiger.angeklickt && zeiger.angeklickt(p0, k)) return;   // Haken zeiger.angeklickt
     renderInk(); return; }
   const neu = ED.cur; ED.data.s.push(neu); ED.cur = null; saveSketch();
-  if (neu.k === "sig") { clearSel(); ED.selS = ED.data.s.length - 1; renderInk(); updateProps("neu"); const f = $('#props [data-prop="sl"]'); if (f) f.focus(); return; }
+  if (zeiger.gezogen && zeiger.gezogen(neu)) return;   // Haken zeiger.gezogen
   renderInk();
 }

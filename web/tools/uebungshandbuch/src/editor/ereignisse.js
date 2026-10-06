@@ -1,6 +1,6 @@
 import { $, $$ } from '../app/basis.js';
 import { ED } from './status.js';
-import { PAL, PC, art } from './registry.js';
+import { PAL, PC, VORL, art } from './registry.js';
 import { anySel, clearSel, objById } from './auswahl.js';
 import { deDate } from './blaetter.js';
 import { lastProp, setLastProp, updateProps } from './eigenschaften.js';
@@ -11,7 +11,6 @@ import { setTool, svgPt } from './werkzeuge.js';
 import { applyProp, delSel, turnSel } from './bearbeiten.js';
 import { placeObj } from './andocken.js';
 import { edMove } from './zeiger.js';
-import { wsItem } from './oeffnen.js';
 import { doPrint, sketchPage } from '../app/druck.js';
 import { route } from '../app/router.js';
 
@@ -37,8 +36,8 @@ document.addEventListener("pointerup", e => {
 $("#editor").addEventListener("click", e => {
   if (ED.skipClick) { ED.skipClick = false; if (e.target.closest("[data-place]")) return; }
   const pb = e.target.closest("[data-place]"); if (pb) { ED.place = pb.dataset.place; setTool("place"); return; }
-  const wb = e.target.closest("[data-ws]");
-  if (wb) { const it = wsItem(+wb.dataset.ws); setTool(it[0]); ED.wsPreset = it[2]; clearSel(); $$("#editor [data-ws]").forEach(x => x.setAttribute("aria-pressed", x === wb)); renderInk(); updateProps(true); return; }
+  const v = VORL[ED.key];
+  if (v && v.klick && v.klick(e)) return;   // Haken klick: Bedienelemente der Vorlage, z. B. Werkzeuge der Seitenleiste
   const sy = e.target.closest("[data-sym]");
   if (sy) { const el = lastProp; if (el && el.isConnected && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) { const a = el.selectionStart ?? el.value.length, b = el.selectionEnd ?? a;
     el.value = el.value.slice(0, a) + sy.dataset.sym + el.value.slice(b); el.focus(); el.setSelectionRange(a + sy.dataset.sym.length, a + sy.dataset.sym.length); applyProp(el.dataset.prop, el.value); } return; }

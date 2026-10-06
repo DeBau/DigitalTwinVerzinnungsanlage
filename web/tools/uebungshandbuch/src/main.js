@@ -31,6 +31,7 @@ import './app/seiten.js';
 // Vorlagen zuletzt: Sie melden sich nur in der Registry an und dürfen dafür alles aus dem Kern benutzen.
 import './editor/vorlagen/grafcet.js';
 import './editor/vorlagen/zustand.js';
+import './editor/vorlagen/wegschritt.js';
 import './editor/vorlagen/alt.js';
 import { init as init_app_tooltip } from './app/tooltip.js';
 import { init as init_app_router } from './app/router.js';

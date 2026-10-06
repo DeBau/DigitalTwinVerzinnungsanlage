@@ -1,6 +1,6 @@
 // Editor-Kern: Eigenschaften übernehmen, Drehen, Löschen, Radieren.
 import { ED } from './status.js';
-import { PC, art } from './registry.js';
+import { PC, STRICHFELD, art } from './registry.js';
 import { objById } from './auswahl.js';
 import { inkSVG } from './zeichnen.js';
 import { refreshTpl, renderInk } from './anzeige.js';
@@ -12,7 +12,7 @@ export function applyProp(f, v){
     Object.keys(m).forEach(k => { if (!m[k]) delete m[k]; }); if (!Object.keys(m).length) delete ED.data.meta; saveSketch(); refreshTpl(); return; }
   if (f === "cv") { const c = ED.data.c[ED.selC]; if (c) c.v = v; }
   else if (ED.selT !== null && ED.data.t[ED.selT] && ["tv","ts","sc"].includes(f)) { const t = ED.data.t[ED.selT]; if (f === "tv") t.v = v; if (f === "ts") t.s = +v; if (f === "sc") t.c = v; }
-  else if (ED.selS !== null && ED.data.s[ED.selS] && ["sc","sw","sl","sg","tz","vk","vt"].includes(f)) { const st = ED.data.s[ED.selS]; if (f === "vt") st.t = v; if (f === "sc") st.c = v; if (f === "sw") st.w = +v; if (f === "sl") st.lbl = v; if (f === "sg") st.sg = v; if (f === "tz") st.tz = v; if (f === "vk") st.vk = v; }
+  else if (ED.selS !== null && ED.data.s[ED.selS] && STRICHFELD[f]) { const st = ED.data.s[ED.selS]; st[STRICHFELD[f]] = f === "sw" ? +v : v; }
   else { const o = objById(ED.sel); if (!o) return;
     if (f === "w") { const w = parseInt(v, 10); if (w >= 40) o.w = Math.round(w/10)*10; }
     else if (!(art(o.k).setze && art(o.k).setze(o, f, v))) o[f] = v; }   // Haken setze: Feld mit eigener Wirkung

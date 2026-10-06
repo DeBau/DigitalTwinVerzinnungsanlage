@@ -1,7 +1,6 @@
 // Alle Vorlagen, Bausteingruppen und Bausteine, wie sie vor der Aufteilung in vorlage.html standen.
 // Diese Datei meldet sie in der Registry an (editor/registry.js). Nach und nach zieht jede Vorlage in eine
 // eigene Datei vorlagen/<key>.js um; wie das geht, steht in vorlagen/README.md.
-import { CYL } from '../../app/daten.js';
 import { INK, SVGT, arrowHead } from '../svg.js';
 import { BLK, LABEL_HINT, PC, PORTS2, PROPS, SAMPLE, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, G2, TX, grid } from '../vorlagen-svg.js';
@@ -9,7 +8,6 @@ import { BLUE, LB, PD, PN, PP, SK, VALVE, cNC, cNO, cylinder, drawValve, posOf, 
 import { rund } from '../bausteine.js';
 
 /* ---------- Vorlagen: Reihenfolge = Reihenfolge der Kacheln ---------- */
-registriereVorlage("wegschritt", {n: "Weg-Schritt-Diagramm", d: "Zylinderbewegungen über die Schritte", einblattig: true, body: (ex, page, meta) => tplBody("wegschritt", ex, page, meta)});
 registriereVorlage("stromlauf", {n: "Stromlaufplan", d: "Steuerstromkreis zwischen L+ und M – Taster, Not-Halt, SPS, Sicherheitsrelais", gruppen: ["elektro", "geraete", "leistung"], schienen: [["L+",70,40,935], ["M",590,40,935]], body: (ex, page, meta) => tplBody("stromlauf", ex, page, meta)});
 registriereVorlage("leistung", {n: "Hauptstromkreis", d: "L1, L2, L3, N, PE – Schütze, Wendeschützschaltung, Motorschutz, Motoren, Umrichter", gruppen: ["leistung", "geraete", "elektro"], schienen: [["L1",50,60,915], ["L2",70,60,915], ["L3",90,60,915], ["N",110,60,915], ["PE",130,60,915]], body: (ex, page, meta) => tplBody("leistung", ex, page, meta)});
 registriereVorlage("pneumatik", {n: "Pneumatikschaltplan", d: "Zylinder, Wegeventile, Drosseln nach ISO 1219 – mit Simulation", gruppen: ["pneu"], body: (ex, page, meta) => tplBody("pneumatik", ex, page, meta)});
@@ -211,21 +209,6 @@ Object.entries(PC).forEach(([k, pc]) => { if (k === "zyl2") Object.assign(BLK, P
 function tplBody(key, ex, page=0, meta=null){
   switch (key) {
     case "raster": return grid(10, G2);
-    case "wegschritt": {
-      const rows = CYL[ex?.id] || ["−MM1","−MM2","−MM3","−MM4"];
-      const all = [...rows, "", ""].map((r, i) => meta && meta.rows && meta.rows[i] !== undefined && meta.rows[i] !== null ? meta.rows[i] : r);
-      const x0 = 30, xs = 150, cols = 12, cw = (975 - xs) / cols, y0 = 40, hh = 34, rh = 62;
-      let s = `<rect x="${x0}" y="${y0}" width="${975-x0}" height="${hh + all.length*rh + 3*40}" fill="none" stroke="${G}" stroke-width="1"/>`;
-      s += TX(x0+10, y0+22, 12, "Bauglied", "start", "#666", 600);
-      for (let c = 0; c <= cols; c++) { const x = xs + c*cw; s += `<path d="M${x} ${y0}V${y0 + hh + all.length*rh + 120}" stroke="${G}" stroke-width="${c===0?1:.5}"/>`; if (c < cols) s += TX(x + cw/2, y0+22, 12, String(c+1), "middle", "#666", 600); }
-      s += `<path d="M${x0} ${y0+hh}H975" stroke="${G}"/>`;
-      all.forEach((r, i) => { const y = y0 + hh + i*rh; s += `<path d="M${x0} ${y+rh}H975" stroke="${G}" stroke-width=".8"/><path d="M${xs} ${y+16}H975M${xs} ${y+rh-12}H975" stroke="${G2}" stroke-width=".6" stroke-dasharray="3 3"/>`
-        + TX(x0+10, y+rh/2+5, 13, r, "start", "#555", 600) + TX(xs-8, y+20, 9, "1", "end") + TX(xs-8, y+rh-8, 9, "0", "end"); });
-      const yb = y0 + hh + all.length*rh;
-      s += TX(x0+10, yb+25, 11, "Bedingungen", "start", "#666", 600);
-      for (let i = 1; i <= 3; i++) s += `<path d="M${x0} ${yb + i*40}H975" stroke="${G}" stroke-width=".6"/>`;
-      return s;
-    }
     case "stromlauf": {
       let s = `<path d="M40 70H975M40 590H975" stroke="${G}" stroke-width="2"/>` + TX(30,74,12,"L+","end","#555",600) + TX(30,594,12,"M","end","#555",600) + TX(975,62,9,"24 V DC","end");
       for (let i = 1; i <= 20; i++) { const x = 40 + i*46; s += TX(x, 52, 9, String(i), "middle") + `<path d="M${x} 74V586" stroke="${G2}" stroke-width=".6" stroke-dasharray="2 5"/>`; }

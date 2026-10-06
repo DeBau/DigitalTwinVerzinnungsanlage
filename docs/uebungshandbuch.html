@@ -1172,121 +1172,42 @@ pre.code code{font-size:inherit}
   }
   var TX = (x, y, s, txt, a = "start", f = G, w = 400) => `<text x="${x}" y="${y}" font-size="${s}" text-anchor="${a}" fill="${f}" font-weight="${w}" font-family="Plex Sans,Segoe UI,sans-serif">${esc(txt)}</text>`;
   var snap = ([x, y]) => ED.grid ? [Math.round(x / 10) * 10, Math.round(y / 10) * 10] : [Math.round(x), Math.round(y)];
-  var wsAus = (y) => ((y - 74) % 62 + 62) % 62 < 33 ? -1 : 1;
-  var halo = (t) => t.replace("<text ", '<text stroke="#fff" stroke-width="4" stroke-linejoin="round" paint-order="stroke" ');
-  var sigLoop = (st) => {
-    const [x, y] = st.p[0], [x2, y2] = st.p[1] || st.p[0];
-    return Math.abs(x - x2) < 0.5 && Math.abs(y - y2) < 0.5;
-  };
-  function startGeo(st) {
-    const [x, y] = st.p[0], e = -wsAus(y), cy = y + e * 23;
-    return { x, y, e, cy };
-  }
-  function sigMid(st) {
-    const [[, y1], [, y2]] = st.p;
-    return Math.abs(y1 - y2) < 0.5 ? y1 + wsAus(y1) * 20 : Math.round((y1 + y2) / 2);
-  }
   function shapeD(st) {
-    if (st.k === "st") {
-      const { x, cy } = startGeo(st);
-      return `M${x + 2} ${cy - 9}H${x + 56}V${cy + 9}H${x + 2}Z`;
-    }
-    if (st.k === "eq") {
-      const [x] = st.p[0];
-      return `M${x} 41H${x + 68}V73H${x}Z`;
-    }
-    if (st.k === "vk") {
-      const [x, y] = st.p[0];
-      return `M${x - 4} ${y - 4}H${x + 4}V${y + 4}H${x - 4}Z`;
-    }
-    if (st.k === "sig" && sigLoop(st)) {
-      const [x, y] = st.p[0], o = wsAus(y);
-      return `M${x} ${y}C${x - 16} ${y + o * 24} ${x + 16} ${y + o * 24} ${x + 1.5} ${y + o * 2}`;
-    }
+    const a = STRICH[st.k];
+    if (a && a.form) return a.form(st);
     const [[x1, y1], [x2, y2]] = st.p;
-    if (st.k === "sig") {
-      if (Math.abs(x1 - x2) < 0.5) return `M${x1} ${y1}V${y2}`;
-      const ym = sigMid(st);
-      return `M${x1} ${y1}V${ym}H${x2}V${y2}`;
-    }
     return st.k === "l" ? `M${x1} ${y1}L${x2} ${y2}` : `M${x1} ${y1}H${x2}V${y2}H${x1}Z`;
   }
-  function srcMark(st, x, y) {
-    const c = st.c || INK;
-    switch (st.sg || "punkt") {
-      case "kreis":
-        return `<circle cx="${x}" cy="${y}" r="4.5" fill="#fff" stroke="${c}" stroke-width="1.4"/>`;
-      case "balken":
-        return `<path d="M${x - 24} ${y}H${x}" stroke="${c}" stroke-width="6" stroke-linecap="round"/>`;
-      case "hand":
-        return `<path d="M${x} ${y}L${x - 10} ${y - 10}" stroke="${c}" stroke-width="1.2"/><rect x="${x - 24}" y="${y - 24}" width="14" height="14" rx="1.5" fill="#fff" stroke="${c}" stroke-width="1.3"/><path d="M${x - 21} ${y - 20}H${x - 13}M${x - 17} ${y - 20}V${y - 13}" stroke="${c}" stroke-width="1.3" fill="none"/>`;
-      case "extern":
-        return `<path d="M${x - 16} ${y - 7}H${x - 4}L${x} ${y}L${x - 4} ${y + 7}H${x - 16}Z" fill="#fff" stroke="${c}" stroke-width="1.3"/>`;
+  function glatterPfad(pts) {
+    if (!pts.length) return "";
+    let s = `M${pts[0][0]} ${pts[0][1]}`;
+    if (pts.length === 1) return s + "l.01 0";
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [x, y] = pts[i], [nx, ny] = pts[i + 1];
+      s += `Q${x} ${y} ${((x + nx) / 2).toFixed(1)} ${((y + ny) / 2).toFixed(1)}`;
     }
-    return `<circle cx="${x}" cy="${y}" r="3" fill="${c}"/>`;
+    const l = pts[pts.length - 1];
+    return s + `L${l[0]} ${l[1]}`;
   }
-  function sigSVG(st, grp) {
-    if (st.k === "vk") {
-      const [x, y] = st.p[0], c2 = st.c || INK;
-      return st.t === "oder" ? `<circle cx="${x}" cy="${y}" r="4" fill="${c2}"/>` : `<circle cx="${x}" cy="${y}" r="1.6" fill="${c2}"/><path d="M${x - 8} ${y + 6}L${x + 8} ${y - 6}" stroke="${c2}" stroke-width="2" stroke-linecap="round"/>`;
-    }
-    const c = st.c || INK, lab = (x, y, a = "start") => st.lbl ? halo(SVGT(x, y, st.lbl, a, 10.5, 600, c)) : "";
-    const timer = (x, y) => {
-      if (!st.tz) return "";
-      const w = tw(st.tz, 10) + 12;
-      return `<rect x="${(x - w / 2).toFixed(1)}" y="${y - 8}" width="${w.toFixed(1)}" height="16" rx="2" fill="#fff" stroke="${c}" stroke-width="1.2"/>` + SVGT(x, y + 3.5, st.tz, "middle", 10, 600, c);
-    };
-    if (st.k === "eq") {
-      const [x] = st.p[0], cw = (975 - 150) / 12, j = Math.round((x - 150) / cw);
-      return `<rect x="${(x + 1).toFixed(1)}" y="41" width="${(cw - 2).toFixed(1)}" height="32" fill="#fff"/>` + SVGT(x + cw / 2, 62, `${j + 1} = 1`, "middle", 12, 700, c) + `<path d="M${x} 40V${st.y2 || 446}" stroke="${c}" stroke-width="2.6"/>`;
-    }
-    if (st.k === "st") {
-      const { x, y, e, cy } = startGeo(st);
-      return `<rect x="${x + 4}" y="${cy - 7}" width="14" height="14" rx="1.5" fill="#fff" stroke="${c}" stroke-width="1.3"/><path d="M${x + 7} ${cy - 3}H${x + 15}M${x + 11} ${cy - 3}V${cy + 4}" stroke="${c}" stroke-width="1.3" fill="none"/><path d="M${x + 6} ${cy - e * 7}L${x + 1.5} ${y + e * 3}" stroke="${c}" stroke-width="1.2" fill="none"/>` + arrowHead(x + 6, cy - e * 7, x + 0.8, y + e * 1.2, 6) + lab(x + 22, cy + 4);
-    }
-    if (sigLoop(st)) {
-      const [x, y] = st.p[0], o2 = wsAus(y);
-      const tw2 = st.tz ? tw(st.tz, 10) + 12 : 0;
-      return `<path d="${shapeD(st)}" stroke="${c}" stroke-width="1.2" fill="none"/>` + srcMark(st, x, y) + arrowHead(x + 7, y + o2 * 12, x + 1.2, y + o2 * 2, 6) + timer(x + 16 + tw2 / 2, y + o2 * 12) + lab(x - 14, y + o2 * 12 + 4, "end");
-    }
-    const [[x1, y1], [x2, y2]] = st.p, straight = Math.abs(x1 - x2) < 0.5, ym = straight ? y1 : sigMid(st), down = y2 > ym, o = wsAus(y1);
-    const jS = grp && grp.jStart, jE = grp && grp.jEnd;
-    let r = `<path d="${shapeD(st)}" stroke="${c}" stroke-width="1.2" fill="none"/>` + (jS ? "" : srcMark(st, x1, y1));
-    if (!jE) r += arrowHead(x2, y2 + (down ? -11 : 11), x2, y2, 6.5);
-    r += straight ? timer(x1, Math.round((y1 + y2) / 2)) : timer(x1, Math.round((y1 + ym) / 2));
-    const links = st.sg === "balken" || grp && grp.ldy;
-    return r + lab(x1 + (st.sg === "balken" ? -26 : links ? -7 : 7), y1 + o * 13 + (o > 0 ? 4 : 0), links ? "end" : "start");
+  function strichSVG(d, st, i, edit) {
+    const a = STRICH[st.k], dd = st.k ? shapeD(st) : glatterPfad(st.p), sel = edit && ED.selS === i;
+    let s = sel ? `<path d="${dd}" stroke="#2F80ED" stroke-width="${+st.w + 7}" stroke-opacity=".28" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` : "";
+    s += a && a.zeichne ? a.zeichne(st, i, d) : `<path data-i="${i}" d="${dd}" stroke="${st.c}" stroke-width="${st.w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    if (edit) s += `<path data-i="${i}" d="${dd}" stroke="transparent" stroke-width="14" fill="none"/>`;
+    if (sel && st.k && !(a && a.griffe === false)) s += st.p.map((q, h) => `<circle data-hi="${i}" data-h="${h}" cx="${q[0]}" cy="${q[1]}" r="6.5" fill="#fff" stroke="#2F80ED" stroke-width="2"/>`).join("");
+    return s;
+  }
+  function textSVG(t, i, edit) {
+    const sz = t.s || 16, sel = edit && ED.selT === i, zeilen = String(t.v).split("\n");
+    const rahmen = edit ? `<rect data-ti="${i}" x="${t.x - 4}" y="${t.y - sz - 1}" width="${tw(t.v, sz) + 10}" height="${sz * 1.2 * zeilen.length + 6}" rx="3" fill="transparent" ${sel ? 'stroke="#2F80ED" stroke-width="1.3" stroke-dasharray="4 3"' : ""}/>` : "";
+    const inhalt = zeilen.map((l, j) => j ? `<tspan x="${t.x}" dy="${(1.2 * sz).toFixed(1)}">${esc(l)}</tspan>` : esc(l)).join("");
+    return rahmen + `<text data-ti="${i}" x="${t.x}" y="${t.y}" font-size="${sz}" fill="${t.c}" font-family="Plex Sans,Segoe UI,sans-serif" font-weight="500">${inhalt}</text>`;
   }
   function strokesSVG(d, edit = false) {
     if (!d) return "";
-    const path = (pts) => {
-      if (!pts.length) return "";
-      let s = `M${pts[0][0]} ${pts[0][1]}`;
-      if (pts.length === 1) return s + "l.01 0";
-      for (let i = 1; i < pts.length - 1; i++) {
-        const [x, y] = pts[i], [nx, ny] = pts[i + 1];
-        s += `Q${x} ${y} ${((x + nx) / 2).toFixed(1)} ${((y + ny) / 2).toFixed(1)}`;
-      }
-      const l = pts[pts.length - 1];
-      return s + `L${l[0]} ${l[1]}`;
-    };
-    const pk = (q) => q.map((v) => Math.round(v)).join(","), jset = new Set((d.s || []).filter((q) => q.k === "vk").map((q) => pk(q.p[0])));
-    const labs = [], ldy = {};
-    (d.s || []).forEach((st, i) => {
-      if (st.k !== "sig" || sigLoop(st) || !st.lbl || jset.has(pk(st.p[0]))) return;
-      const [x, y] = st.p[0], o = wsAus(y);
-      const ly = y + o * 13 + (o > 0 ? 4 : 0), hit = labs.some(([lx, yy, l]) => !l && Math.abs(lx - x) < 40 && Math.abs(yy - ly) < 12);
-      labs.push([x, ly, hit]);
-      ldy[i] = hit;
-    });
-    const grpOf = (st, i) => st.k === "sig" && !sigLoop(st) ? { jStart: jset.has(pk(st.p[0])), jEnd: jset.has(pk(st.p[1])), ldy: !!ldy[i] } : null;
-    return (d.s || []).map((st, i) => {
-      const dd = st.k ? shapeD(st) : path(st.p), sel = edit && ED.selS === i;
-      return (sel ? `<path d="${dd}" stroke="#2F80ED" stroke-width="${+st.w + 7}" stroke-opacity=".28" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` : "") + (st.k === "sig" || st.k === "st" || st.k === "eq" || st.k === "vk" ? sigSVG(st, grpOf(st, i)) : `<path data-i="${i}" d="${dd}" stroke="${st.c}" stroke-width="${st.w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`) + (edit ? `<path data-i="${i}" d="${dd}" stroke="transparent" stroke-width="14" fill="none"/>` : "") + (sel && st.k && st.k !== "eq" && st.k !== "vk" ? st.p.map((q, h) => `<circle data-hi="${i}" data-h="${h}" cx="${q[0]}" cy="${q[1]}" r="6.5" fill="#fff" stroke="#2F80ED" stroke-width="2"/>`).join("") : "");
-    }).map((h, i) => [d.s[i].k === "vk", h]).sort((a, b) => a[0] - b[0]).map((x) => x[1]).join("") + (d.t || []).map((t, i) => {
-      const sz = t.s || 16, sel = edit && ED.selT === i;
-      return (edit ? `<rect data-ti="${i}" x="${t.x - 4}" y="${t.y - sz - 1}" width="${tw(t.v, sz) + 10}" height="${sz * 1.2 * String(t.v).split("\n").length + 6}" rx="3" fill="transparent" ${sel ? 'stroke="#2F80ED" stroke-width="1.3" stroke-dasharray="4 3"' : ""}/>` : "") + `<text data-ti="${i}" x="${t.x}" y="${t.y}" font-size="${sz}" fill="${t.c}" font-family="Plex Sans,Segoe UI,sans-serif" font-weight="500">${String(t.v).split("\n").map((l, j) => j ? `<tspan x="${t.x}" dy="${(1.2 * sz).toFixed(1)}">${esc(l)}</tspan>` : esc(l)).join("")}</text>`;
-    }).join("");
+    const oben = (st) => !!(STRICH[st.k] && STRICH[st.k].oben);
+    const striche = (d.s || []).map((st, i) => [oben(st), strichSVG(d, st, i, edit)]).sort((a, b) => a[0] - b[0]).map((x) => x[1]).join("");
+    return striche + (d.t || []).map((t, i) => textSVG(t, i, edit)).join("");
   }
 
   // web/tools/uebungshandbuch/src/editor/bauteile.js
@@ -2194,18 +2115,8 @@ pre.code code{font-size:inherit}
   var FARBEN = [["#17212B", "Schwarz"], ["#0E4C92", "Blau"], ["#C0392B", "Rot"]];
   var loeschKnopf = () => `<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div>`;
   function propsHTML() {
-    if (ED.key === "wegschritt" && !anySel() && ["sig", "line", "start", "eq", "vk"].includes(ED.tool)) {
-      const step = (t) => `<li style="margin:0 0 6px">${t}</li>`;
-      const how = {
-        sig: ED.pend ? [`Jetzt den <b>Zielpunkt</b> anklicken: den Beginn der Bewegung, die ausgelöst wird.`, `Für eine <b>Schleife</b> denselben Punkt noch einmal anklicken.`, `Esc bricht ab.`] : [`Den <b>Auslösepunkt</b> anklicken – meist die Endlage, an der der Sensor schaltet.`, `Dann den <b>Zielpunkt</b> anklicken – den Beginn der ausgelösten Bewegung.`, `Danach den Sensor eintragen, z. B. −BG2.`, `Bei UND/ODER als Zielpunkt den Verknüpfungspunkt anklicken – er fängt die Linie.`],
-        line: ED.pend ? [`Nächsten <b>Eckpunkt</b> anklicken – die Funktionslinie läuft weiter.`, `Den letzten Punkt noch einmal anklicken oder Esc: Linie beenden.`] : [`<b>Eckpunkte nacheinander anklicken</b>: waagrecht = Stillstand, schräg = Bewegung, senkrecht = Ventil schaltet.`, `Oder von Ecke zu Ecke ziehen.`],
-        start: [`Den <b>Beginn der Bewegung</b> anklicken, die der Taster startet.`, `Taster und Pfeil werden ins Schrittfeld gesetzt; die Bezeichnung (z. B. −SF1) links ändern.`],
-        vk: [`Den <b>Zielpunkt</b> anklicken – den Beginn der Bewegung, die erst ausgelöst wird, wenn die Bedingung erfüllt ist.`, `Davor entsteht der Verknüpfungspunkt (UND = Schrägstrich, ODER = Punkt) mit Pfeil zum Ziel.`, `Danach mit <b>Signallinie</b> jeden Signalgeber anklicken und dann den Verknüpfungspunkt – die Linien laufen dort zusammen.`],
-        eq: [`Die <b>Spalte nach dem letzten Schritt</b> anklicken – sie wird zu „n = 1“, der Zyklus schließt sich.`]
-      }[ED.tool];
-      const titel = { sig: "Signallinie" + (ED.wsPreset && ED.wsPreset.tz ? " mit Zeitglied" : ""), line: "Funktionslinie", start: "Taster / Start", eq: "Zyklusende", vk: ED.wsPreset && ED.wsPreset.t === "oder" ? "ODER-Verknüpfung" : "UND-Verknüpfung" }[ED.tool];
-      return `<div class="props"><div class="palh">${titel}</div><ol style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.45">${how.map(step).join("")}</ol></div>`;
-    }
+    const v = VORL[ED.key], anleitung = v && v.anleitung && v.anleitung();
+    if (anleitung) return anleitung;
     if (ED.tool === "sim") return `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren leuchten grün.</p><p class="small muted" style="margin:0">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;
     const inp = textFeld, sel = auswahlFeld, COL = FARBEN, del = loeschKnopf();
     if (ED.selT !== null && ED.data.t[ED.selT]) {
@@ -2214,10 +2125,8 @@ pre.code code{font-size:inherit}
     }
     if (ED.selS !== null && ED.data.s[ED.selS]) {
       const st = ED.data.s[ED.selS];
-      if (st.k === "eq") return `<div class="props"><div class="palh">Zyklusende</div><p class="small muted" style="margin:0 0 8px">Der Schritt in dieser Spalte entspricht wieder Schritt 1 – der Ablauf beginnt von vorn.</p>${del}</div>`;
-      if (st.k === "st") return `<div class="props"><div class="palh">Startbedingung</div>${inp("sl", "Starttaster / Bedingung", "z. B. −SF1 START", st.lbl)}${sel("sc", "Farbe", COL, st.c)}<p class="small muted" style="margin:0 0 8px">Der Pfeil zeigt auf den Beginn der ersten Bewegung.</p>${del}</div>`;
-      if (st.k === "vk") return `<div class="props"><div class="palh">Verknüpfung</div>${sel("vt", "Art", [["und", "UND – Schrägstrich: alle Signale müssen anliegen"], ["oder", "ODER – Punkt: ein Signal genügt"]], st.t || "und")}<p class="small muted" style="margin:0 0 8px">Signallinien von den Signalgebern enden hier, die Linie mit Pfeil führt zum ausgelösten Bewegungsbeginn.</p>${del}</div>`;
-      if (st.k === "sig") return `<div class="props"><div class="palh">Signallinie</div>${inp("sl", "Signalgeber (steht am Ausgangspunkt)", "z. B. −BG2", st.lbl)}${sel("sg", "Darstellung des Signalgebers", [["punkt", "Grenztaster / Sensor – Punkt"], ["kreis", "Grenztaster – Kreis"], ["balken", "Betätigung über eine Strecke – Balken"], ["extern", "Signal von anderer Maschine"]], st.sg || "punkt")}${inp("tz", "Zeitglied (optional)", "z. B. t = 10 s", st.tz)}${sel("sc", "Farbe", COL, st.c)}<p class="small muted" style="margin:0 0 8px">Signallinien sind dünn, Funktionslinien dick. Die Linie beginnt am Signalgeber und endet mit dem Pfeil dort, wo die Zustandsänderung ausgelöst wird.</p>${del}</div>`;
+      const a = STRICH[st.k];
+      if (a && a.felder) return `<div class="props"><div class="palh">${a.titel}</div>${a.felder(st)}${del}</div>`;
       return `<div class="props"><div class="palh">${st.k === "l" ? "Linie" : st.k === "r" ? "Kasten" : "Freihandstrich"}</div>${sel("sc", "Farbe", COL, st.c)}${sel("sw", "Strichstärke", [[1.4, "dünn"], [2.2, "mittel"], [4, "dick"]], st.w)}${st.k ? `<p class="small muted" style="margin:0 0 8px">Die runden Griffe an den Enden ziehen.</p>` : ""}${del}</div>`;
     }
     const o = ED.sel && objById(ED.sel);
@@ -2471,8 +2380,8 @@ pre.code code{font-size:inherit}
   // web/tools/uebungshandbuch/src/editor/werkzeuge.js
   function setTool(t) {
     ED.pend = null;
-    ED.wsPreset = null;
-    $$("#editor [data-ws]").forEach((x) => x.setAttribute("aria-pressed", "false"));
+    const v = VORL[ED.key];
+    if (v && v.werkzeugWechsel) v.werkzeugWechsel(t);
     if (t === "sim" && !simOn()) {
       clearSel();
       ED.sim = { on: true, st: {}, pos: {}, t: 0 };
@@ -2498,24 +2407,10 @@ pre.code code{font-size:inherit}
     const q = p.matrixTransform(svg.getScreenCTM().inverse());
     return [Math.round(q.x * 10) / 10, Math.round(q.y * 10) / 10];
   }
-  var wsRows = () => (CYL[ED.scope] || ["", "", "", ""]).length + 2;
   function snapW(pt) {
     if (!ED.grid) return [Math.round(pt[0]), Math.round(pt[1])];
-    if (ED.key === "wegschritt") {
-      const j = ED.data.s.find((q) => q.k === "vk" && Math.hypot(q.p[0][0] - pt[0], q.p[0][1] - pt[1]) < 12);
-      if (j) return [...j.p[0]];
-    }
-    if (ED.key === "wegschritt") {
-      const rows = (CYL[ED.scope] || ["", "", "", ""]).length + 2, xs = 150, cw = (975 - 150) / 12, yTop = 74, yEnd = 74 + rows * 62;
-      if (pt[0] >= xs - 30 && pt[0] <= 990 && pt[1] >= yTop - 10 && pt[1] <= yEnd + 10) {
-        const c = Math.max(0, Math.min(12, Math.round((pt[0] - xs) / cw)));
-        const lv = [];
-        for (let i = 0; i < rows; i++) lv.push(yTop + i * 62 + 16, yTop + i * 62 + 50);
-        const ny = lv.reduce((a, v) => Math.abs(v - pt[1]) < Math.abs(a - pt[1]) ? v : a, lv[0]);
-        return [+(xs + c * cw).toFixed(2), ny];
-      }
-      return [Math.round(pt[0] / 10) * 10, Math.round(pt[1] / 10) * 10];
-    }
+    const v = VORL[ED.key];
+    if (v && v.fangPunkt) return v.fangPunkt(pt);
     return snap(pt);
   }
 
@@ -2549,15 +2444,9 @@ pre.code code{font-size:inherit}
       if (f === "tv") t.v = v;
       if (f === "ts") t.s = +v;
       if (f === "sc") t.c = v;
-    } else if (ED.selS !== null && ED.data.s[ED.selS] && ["sc", "sw", "sl", "sg", "tz", "vk", "vt"].includes(f)) {
+    } else if (ED.selS !== null && ED.data.s[ED.selS] && STRICHFELD[f]) {
       const st = ED.data.s[ED.selS];
-      if (f === "vt") st.t = v;
-      if (f === "sc") st.c = v;
-      if (f === "sw") st.w = +v;
-      if (f === "sl") st.lbl = v;
-      if (f === "sg") st.sg = v;
-      if (f === "tz") st.tz = v;
-      if (f === "vk") st.vk = v;
+      st[STRICHFELD[f]] = f === "sw" ? +v : v;
     } else {
       const o = objById(ED.sel);
       if (!o) return;
@@ -2775,6 +2664,8 @@ pre.code code{font-size:inherit}
       if (sl && sl.rangeCount) sl.removeAllRanges();
     }
     const svg = ED.svg, pt = svgPt(svg, e), hitO = e.target.closest("[data-o]"), hitC = e.target.closest("[data-c]");
+    const zeiger = VORL[ED.key].zeiger || {};
+    if (zeiger.unten && zeiger.unten(e, pt)) return;
     if (ED.tool === "sim") {
       const h = e.target.closest("[data-o]");
       if (h) simClick(objById(h.dataset.o), pt);
@@ -2788,19 +2679,6 @@ pre.code code{font-size:inherit}
     if (ED.tool === "sel") {
       e.preventDefault();
       const hitH = e.target.closest("[data-hi]"), hitS = e.target.closest("[data-i]"), hitT = e.target.closest("[data-ti]");
-      if (ED.key === "wegschritt" && !hitS && !hitT && pt[0] >= 30 && pt[0] < 140 && pt[1] >= 74 && pt[1] < 74 + wsRows() * 62) {
-        const i = Math.floor((pt[1] - 74) / 62), cur = (skMeta(ED.scope, ED.key, ED.data).rows || [])[i];
-        const def = [...CYL[ED.scope] || ["−MM1", "−MM2", "−MM3", "−MM4"], "", ""][i];
-        editLabel(40, 74 + i * 62 + 31, cur ?? def, "Bauglied, z. B. −MM1 Zylinder oder −MB1 Ventil", (v) => {
-          snapshot();
-          const m = ED.data.meta = ED.data.meta || {};
-          m.rows = m.rows || [];
-          m.rows[i] = v;
-          saveSketch();
-          refreshTpl();
-        });
-        return;
-      }
       if (e.target.closest("[data-sf]") && !hitO && !hitS && !hitT) {
         clearSel();
         ED.selF = true;
@@ -2930,82 +2808,20 @@ pre.code code{font-size:inherit}
       });
       return;
     }
-    if (ED.tool === "vk") {
-      e.preventDefault();
-      const q2 = snapW(pt), J = [q2[0], q2[1] - wsAus(q2[1]) * 18];
-      snapshot();
-      ED.data.s.push({ k: "vk", t: ED.wsPreset && ED.wsPreset.t || "und", c: ED.color, w: 1.2, p: [J] }, { k: "sig", c: ED.color, w: 1.2, p: [J, q2], lbl: "" });
-      saveSketch();
-      const keep = ED.wsPreset;
-      setTool("sig");
-      ED.wsPreset = {};
-      clearSel();
-      renderInk();
-      updateProps(true);
-      return;
-    }
-    if (ED.tool === "eq") {
-      e.preventDefault();
-      const cw = (975 - 150) / 12, j = Math.max(1, Math.min(11, Math.floor((pt[0] - 150) / cw)));
-      snapshot();
-      ED.data.s = ED.data.s.filter((q2) => q2.k !== "eq");
-      ED.data.s.push({ k: "eq", c: ED.color, w: 2.6, p: [[+(150 + j * cw).toFixed(2), 57]], y2: 74 + wsRows() * 62 });
-      clearSel();
-      saveSketch();
-      setTool("sel");
-      return;
-    }
-    if (ED.tool === "start") {
-      e.preventDefault();
-      snapshot();
-      ED.data.s.push({ k: "st", c: ED.color, w: 1.2, p: [snapW(pt)], lbl: "−SF1" });
-      clearSel();
-      ED.selS = ED.data.s.length - 1;
-      saveSketch();
-      setTool("sel");
-      return;
-    }
-    if (ED.pend && (ED.tool === "sig" || ED.tool === "line")) {
-      e.preventDefault();
-      const q2 = snapW(pt), a = ED.pend, same = Math.abs(a[0] - q2[0]) < 0.5 && Math.abs(a[1] - q2[1]) < 0.5;
-      $(".ghost", svg).innerHTML = "";
-      if (ED.tool === "sig") {
-        snapshot();
-        ED.data.s.push({ k: "sig", c: ED.color, w: 1.2, p: [a, q2], lbl: "", ...ED.wsPreset || {} });
-        ED.pend = null;
-        saveSketch();
-        clearSel();
-        ED.selS = ED.data.s.length - 1;
-        renderInk();
-        updateProps("neu");
-        const f = $('#props [data-prop="sl"]');
-        if (f) f.focus();
-        return;
-      }
-      if (same) {
-        ED.pend = null;
-        renderInk();
-        updateProps(true);
-        return;
-      }
-      snapshot();
-      ED.data.s.push({ k: "l", c: ED.color, w: Math.max(ED.w, 2.8), p: [a, q2] });
-      ED.pend = q2;
-      saveSketch();
-      renderInk();
-      return;
-    }
-    svg.setPointerCapture(e.pointerId);
-    snapshot();
     const q = ED.tool === "pen" ? pt : snapW(pt);
-    ED.cur = ED.tool === "pen" ? { c: ED.color, w: ED.w, p: [q] } : { k: { line: "l", rect: "r", sig: "sig" }[ED.tool] || "l", c: ED.color, w: ED.tool === "sig" ? 1.2 : ED.key === "wegschritt" && ED.tool === "line" ? Math.max(ED.w, 2.8) : ED.w, p: [q, q], ...ED.tool === "sig" ? { lbl: "", ...ED.wsPreset || {} } : {} };
+    beginneStrich(e, ED.tool === "pen" ? { c: ED.color, w: ED.w, p: [q] } : { k: { line: "l", rect: "r" }[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q] });
+  }
+  function beginneStrich(e, cur) {
+    ED.svg.setPointerCapture(e.pointerId);
+    snapshot();
+    ED.cur = cur;
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("stroke", ED.color);
     path.setAttribute("stroke-width", ED.w);
     path.setAttribute("fill", "none");
     path.setAttribute("stroke-linecap", "round");
     path.setAttribute("stroke-linejoin", "round");
-    svg.querySelector(".ink").appendChild(path);
+    ED.svg.querySelector(".ink").appendChild(path);
     ED.curEl = path;
     edMove(e);
   }
@@ -3046,15 +2862,9 @@ pre.code code{font-size:inherit}
       if (ED.drag.kind === "s") {
         const st = ED.data.s[ED.drag.i], o0 = ED.drag.orig[0];
         let mx = dx, my = dy;
-        if (st.k === "vk") {
-          if (!ED.drag.att) ED.drag.att = [];
-          if (!ED.drag.attDone) {
-            ED.drag.attDone = true;
-            ED.data.s.forEach((q2, j) => q2.k === "sig" && q2.p.forEach((v, h) => Math.hypot(v[0] - o0[0], v[1] - o0[1]) < 0.6 && ED.drag.att.push([j, h])));
-          }
-          const cx = 150 + Math.round((o0[0] + dx - 150) / 68.75) * 68.75, q = [Math.abs(cx - o0[0] - dx) < 10 ? cx : Math.round((o0[0] + dx) / 4) * 4, Math.round((o0[1] + dy) / 4) * 4];
-          st.p = [q];
-          ED.drag.att.forEach(([j, h]) => ED.data.s[j].p[h] = [...q]);
+        const art2 = STRICH[st.k];
+        if (art2 && art2.ziehen) {
+          art2.ziehen(st, ED.drag, dx, dy);
           renderInk();
           return;
         }
@@ -3090,12 +2900,8 @@ pre.code code{font-size:inherit}
       $(".ghost", svg).innerHTML = marks + `<g opacity=".5">${drawObj(o, true)}</g>`;
       return;
     }
-    if (ED.pend && !ED.cur && (ED.tool === "sig" || ED.tool === "line")) {
-      const q = snapW(pt), a = ED.pend;
-      const d = ED.tool === "sig" ? shapeD({ k: "sig", p: [a, q] }) : `M${a[0]} ${a[1]}L${q[0]} ${q[1]}`;
-      $(".ghost", svg).innerHTML = `<path d="${d}" stroke="#2F80ED" stroke-width="${ED.tool === "sig" ? 1.4 : 2.8}" stroke-dasharray="5 4" fill="none"/><circle cx="${a[0]}" cy="${a[1]}" r="5" fill="#2F80ED" fill-opacity=".35" stroke="#2F80ED"/><circle cx="${q[0]}" cy="${q[1]}" r="4" fill="none" stroke="#2F80ED"/>`;
-      return;
-    }
+    const zeiger = VORL[ED.key].zeiger || {};
+    if (zeiger.bewegen && zeiger.bewegen(e, pt)) return;
     if (!ED.cur) return;
     if (ED.cur.k) {
       ED.cur.p[1] = snapW(pt);
@@ -3109,6 +2915,7 @@ pre.code code{font-size:inherit}
   function edUp() {
     ED.erasing = false;
     ED.extraY = 0;
+    const zeiger = VORL[ED.key].zeiger || {};
     if (ED.drag) {
       const dk = ED.drag.dock;
       if (ED.drag.moved) {
@@ -3125,13 +2932,7 @@ pre.code code{font-size:inherit}
       const p0 = ED.cur.p[0], k = ED.cur.k;
       ED.cur = null;
       ED.hist.pop();
-      if (k === "sig" || k === "l" && ED.key === "wegschritt") {
-        ED.pend = p0;
-        renderInk();
-        updateProps(true);
-        $(".ghost", ED.svg).innerHTML = `<circle cx="${p0[0]}" cy="${p0[1]}" r="5" fill="#2F80ED" fill-opacity=".35" stroke="#2F80ED"/>`;
-        return;
-      }
+      if (zeiger.angeklickt && zeiger.angeklickt(p0, k)) return;
       renderInk();
       return;
     }
@@ -3139,28 +2940,21 @@ pre.code code{font-size:inherit}
     ED.data.s.push(neu);
     ED.cur = null;
     saveSketch();
-    if (neu.k === "sig") {
-      clearSel();
-      ED.selS = ED.data.s.length - 1;
-      renderInk();
-      updateProps("neu");
-      const f = $('#props [data-prop="sl"]');
-      if (f) f.focus();
-      return;
-    }
+    if (zeiger.gezogen && zeiger.gezogen(neu)) return;
     renderInk();
   }
 
   // web/tools/uebungshandbuch/src/editor/oeffnen.js
+  var LINIE_STANDARD = { titel: "Gerade Linie, rastet im 10er-Raster", name: "Linie" };
   function openEditor(scope, key) {
     const data = S.get(skKey(scope, key)) || {};
     data.s ||= [];
     data.t ||= [];
     data.o ||= [];
     data.c ||= [];
-    const pal = PAL[key] || [];
+    const pal = PAL[key] || [], v = VORL[key], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
     const keepTool = ["pen", "line", "rect", "text", "erase"].includes(ED.tool) ? ED.tool : "pen";
-    Object.assign(ED, { scope, key, data, hist: [], cur: null, sel: null, selC: null, selS: null, selT: null, from: null, place: null, drag: null, tool: pal.length ? "sel" : key === "wegschritt" ? "line" : keepTool });
+    Object.assign(ED, { scope, key, data, hist: [], cur: null, sel: null, selC: null, selS: null, selT: null, from: null, place: null, drag: null, tool: pal.length ? "sel" : v.startWerkzeug || keepTool });
     const ex = BY[scope], dlg = $("#editor");
     const colors = [["#17212B", "Schwarz"], ["#0E4C92", "Blau"], ["#C0392B", "Rot"]];
     dlg.innerHTML = `<div class="ed"><div class="edbar">
@@ -3168,8 +2962,8 @@ pre.code code{font-size:inherit}
     <button type="button" class="tool" data-tool="sel" title="Bausteine, Linien und Texte markieren, verschieben, ändern">${IC.cursor}Auswählen</button>
     ${pal.length ? `<button type="button" class="tool" data-tool="conn" title="Zwei Bausteine bzw. Anschlüsse nacheinander anklicken">${IC.link}Verbinden</button>` : ""}${key === "pneumatik" ? `<button type="button" class="tool" data-tool="sim" title="Ventile per Klick schalten, Druck und Zylinderbewegung ansehen">${IC.play}Simulation</button>` : ""}<span class="sep"></span>
     ${colors.map(([c, n]) => `<button type="button" class="tool" data-tool="pen" data-color="${c}"><span class="dot" style="background:${c}"></span>${n}</button>`).join("")}
-    <button type="button" class="tool" data-tool="line" title="${key === "wegschritt" ? "Funktionslinie: waagrecht = Stillstand, schräg = Bewegung, senkrecht = Ventil/Stellglied" : "Gerade Linie, rastet im 10er-Raster"}">${IC.line}${key === "wegschritt" ? "Funktionslinie" : "Linie"}</button>
-    ${key === "wegschritt" ? `<button type="button" class="tool" data-tool="sig" title="Vom Auslöser (Endlage) zum Beginn der nächsten Bewegung ziehen">↳ Signallinie</button><button type="button" class="tool" data-tool="start" title="Auf den Beginn der ersten Bewegung klicken">⊤ Start</button><button type="button" class="tool" data-tool="eq" title="In die Spalte nach dem letzten Schritt klicken">n = 1</button>` : ""}
+    <button type="button" class="tool" data-tool="line" title="${linie.titel}">${IC.line}${linie.name}</button>
+    ${leiste.nachLinie || ""}
     <button type="button" class="tool" data-tool="rect" title="Rechteck, rastet im 10er-Raster">${IC.rect}Kasten</button>
     <button type="button" class="tool" data-tool="text">${IC.text}Text</button>
     <button type="button" class="tool" data-tool="erase">${IC.eraser}Radierer</button>
@@ -3182,39 +2976,12 @@ pre.code code{font-size:inherit}
     <span class="takewrap"><button type="button" class="tool" data-ed="take" aria-haspopup="true" title="Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren">${IC.copy}Aus früherer Übung</button></span><button type="button" class="tool" data-ed="undo" title="Strg+Z">${IC.undo}Rückgängig</button><button type="button" class="tool" data-ed="del" title="Entf">${IC.trash}Markiertes löschen</button><button type="button" class="tool" data-ed="clear">Alles leeren</button>
     <span style="flex:1"></span>
     <button type="button" class="btn small" data-ed="print">${IC.print}Drucken</button><button type="button" class="btn primary small" data-ed="close">Fertig</button>
-  </div><div class="edbody"><aside class="pal" aria-label="Bausteine und Eigenschaften"><div id="props"></div>${pal.length ? paletteHTML(pal) : (key === "wegschritt" ? wsPaletteHTML() : "") + `<div class="palhelp">${key === "wegschritt" ? "<p><b>Funktionslinie</b> (dick): waagrecht = Stillstand, schräg = Bewegung (je steiler, desto schneller), senkrecht = Ventil bzw. Stellglied schaltet. Die Enden rasten auf die Eckpunkte.</p><p><b>Zeilenname</b>: links auf den Namen klicken, z. B. eine freie Zeile in „−MB1 Ventil“ umbenennen.</p><p><b>Start</b>: auf den Beginn der ersten Bewegung klicken – der Starttaster (z. B. −SF1) wird davor gesetzt.</p><p><b>Signallinie</b>: vom Auslöser, z. B. der erreichten Endlage, zum Beginn der nächsten Bewegung ziehen und den Auslöser eintragen (−BG2, eine Zeit wie t = 10 s oder eine Verknüpfung).</p><p><b>Schleife</b>: Löst ein Zylinder mit seiner eigenen Endlage die Gegenbewegung aus, mit Signallinie einfach auf diesen Punkt klicken.</p><p><b>UND / ODER</b>: „UND-Verknüpfung“ bzw. „ODER-Verknüpfung“ wählen und den Beginn der ausgelösten Bewegung anklicken – davor entsteht der Verknüpfungspunkt (Schrägstrich = UND, Punkt = ODER). Dann mit Signallinie jeden Signalgeber mit diesem Punkt verbinden. Signalgeber und Zeitglied stellen Sie links bei der markierten Signallinie ein.</p><p><b>n = 1</b>: Spalte nach dem letzten Schritt anklicken – der Zyklus schließt sich.</p>" : ""}<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p></div>`}</aside><div class="edstage" id="edstage" tabindex="-1"></div></div></div>`;
+  </div><div class="edbody"><aside class="pal" aria-label="Bausteine und Eigenschaften"><div id="props"></div>${pal.length ? paletteHTML(pal) : (v.seitenleiste ? v.seitenleiste() : "") + `<div class="palhelp">${v.hilfe || ""}<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p></div>`}</aside><div class="edstage" id="edstage" tabindex="-1"></div></div></div>`;
     dlg.showModal();
     paintEditor();
     setTool(ED.tool);
     $$("#editor [data-w]").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.w === ED.w));
   }
-  var WSI = (inner) => `<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M4 8H60M4 32H60" stroke="#C9D0D5" stroke-width="1" stroke-dasharray="2 2"/>${inner}</svg>`;
-  var WSP = (d, w = 1.2) => `<path d="${d}" stroke="${INK}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
-  var WSA = (x, y1, y2) => WSP(`M${x} ${y1}V${y2}`) + arrowHead(x, y2 + (y2 > y1 ? -7 : 7), x, y2, 5);
-  var WSPAL = [
-    ["Funktionslinien", [["line", "Funktionslinie", {}, WSI(WSP("M6 8H20L40 32H58", 3))], ["line", "Ventil schaltet (senkrecht)", {}, WSI(WSP("M6 32H30V8H58", 3))]]],
-    ["Signallinien und Signalgeber", [
-      ["sig", "Grenztaster – Punkt", { sg: "punkt" }, WSI(WSP("M6 8H24L44 32", 2.4) + `<circle cx="24" cy="8" r="3" fill="${INK}"/>` + WSA(24, 8, 34))],
-      ["sig", "Grenztaster – Kreis", { sg: "kreis" }, WSI(WSP("M6 8H24L44 32", 2.4) + WSA(24, 12, 34) + `<circle cx="24" cy="8" r="4.5" fill="#fff" stroke="${INK}" stroke-width="1.3"/>`)],
-      ["sig", "Betätigung über Strecke – Balken", { sg: "balken" }, WSI(WSP("M6 8H40", 2.4) + `<path d="M20 8H38" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>` + WSA(38, 8, 34))],
-      ["sig", "Signal von anderer Maschine", { sg: "extern" }, WSI(`<path d="M10 12H22L26 18L22 24H10Z" fill="#fff" stroke="${INK}" stroke-width="1.2"/>` + WSP("M26 18H34") + WSA(34, 18, 34))],
-      ["sig", "Schleife – eigene Endlage", {}, WSI(WSP("M6 8L26 32H58", 2.4) + `<path d="M26 32C18 18 34 18 27 30" stroke="${INK}" stroke-width="1.2" fill="none"/><circle cx="26" cy="32" r="2.6" fill="${INK}"/>`)]
-    ]],
-    ["Verknüpfungen und Zeit", [
-      ["vk", "UND-Verknüpfung", { t: "und" }, WSI(WSP("M14 4V14H32M50 4V14H32V36") + WSP("M26 18L38 10", 2) + arrowHead(32, 29, 32, 36, 5))],
-      ["vk", "ODER-Verknüpfung", { t: "oder" }, WSI(WSP("M14 4V14H32M50 4V14H32V36") + `<circle cx="32" cy="14" r="3.4" fill="${INK}"/>` + arrowHead(32, 29, 32, 36, 5))],
-      ["sig", "Zeitglied", { tz: "t = 1 s" }, WSI(WSA(32, 4, 36) + `<rect x="18" y="13" width="28" height="13" rx="2" fill="#fff" stroke="${INK}" stroke-width="1.2"/>` + SVGT(32, 23, "t = 1 s", "middle", 8, 600))]
-    ]],
-    ["Ablauf", [
-      ["start", "Taster / Start", {}, WSI(`<rect x="12" y="16" width="12" height="12" rx="1" fill="#fff" stroke="${INK}" stroke-width="1.2"/>` + WSP("M15 19H21M18 19V25M24 20L32 10") + WSP("M32 8L58 32", 2.4))],
-      ["eq", "Zyklusende n = 1", {}, WSI(WSP("M32 2V38", 2.6) + SVGT(46, 24, "n=1", "middle", 9, 700))]
-    ]]
-  ];
-  function wsPaletteHTML() {
-    let n = 0;
-    return WSPAL.map(([g, items]) => `<div class="palg"><div class="palh">${g}</div>${items.map(([tool, name, pre, icon]) => `<button type="button" class="palb" data-ws="${n++}" title="${name}">${icon}<span>${name}</span></button>`).join("")}</div>`).join("");
-  }
-  var wsItem = (i) => WSPAL.flatMap((g) => g[1])[i];
   function paletteHTML(groups) {
     return groups.map((g) => `<div class="palg"><div class="palh">${GN[g]}</div>${Object.entries(BLK).filter(([, b]) => b.g === g && !b.hide).map(([k, b]) => {
       const [o, vb, extra] = SAMPLE[k] || pcSample(k);
@@ -3925,8 +3692,373 @@ END_CASE;`)}
   fuelle(PROPS, { state: [["v", "Name"]], sinit: [["v", "Name"]] });
   fuelle(LABEL_HINT, { state: "Name des Zustands", sinit: "Name des Zustands" });
 
+  // web/tools/uebungshandbuch/src/editor/vorlagen/wegschritt.js
+  var WS_X0 = 150, WS_SPALTE = (975 - 150) / 12, WS_Y0 = 74, WS_ZEILE = 62;
+  var wsRows = () => (CYL[ED.scope] || ["", "", "", ""]).length + 2;
+  function wegschrittBlatt(ex, page = 0, meta = null) {
+    const rows = CYL[ex?.id] || ["−MM1", "−MM2", "−MM3", "−MM4"];
+    const all = [...rows, "", ""].map((r, i) => meta && meta.rows && meta.rows[i] !== void 0 && meta.rows[i] !== null ? meta.rows[i] : r);
+    const x0 = 30, xs = 150, cols = 12, cw = (975 - xs) / cols, y0 = 40, hh = 34, rh = 62;
+    let s = `<rect x="${x0}" y="${y0}" width="${975 - x0}" height="${hh + all.length * rh + 3 * 40}" fill="none" stroke="${G}" stroke-width="1"/>`;
+    s += TX(x0 + 10, y0 + 22, 12, "Bauglied", "start", "#666", 600);
+    for (let c = 0; c <= cols; c++) {
+      const x = xs + c * cw;
+      s += `<path d="M${x} ${y0}V${y0 + hh + all.length * rh + 120}" stroke="${G}" stroke-width="${c === 0 ? 1 : 0.5}"/>`;
+      if (c < cols) s += TX(x + cw / 2, y0 + 22, 12, String(c + 1), "middle", "#666", 600);
+    }
+    s += `<path d="M${x0} ${y0 + hh}H975" stroke="${G}"/>`;
+    all.forEach((r, i) => {
+      const y = y0 + hh + i * rh;
+      s += `<path d="M${x0} ${y + rh}H975" stroke="${G}" stroke-width=".8"/><path d="M${xs} ${y + 16}H975M${xs} ${y + rh - 12}H975" stroke="${G2}" stroke-width=".6" stroke-dasharray="3 3"/>` + TX(x0 + 10, y + rh / 2 + 5, 13, r, "start", "#555", 600) + TX(xs - 8, y + 20, 9, "1", "end") + TX(xs - 8, y + rh - 8, 9, "0", "end");
+    });
+    const yb = y0 + hh + all.length * rh;
+    s += TX(x0 + 10, yb + 25, 11, "Bedingungen", "start", "#666", 600);
+    for (let i = 1; i <= 3; i++) s += `<path d="M${x0} ${yb + i * 40}H975" stroke="${G}" stroke-width=".6"/>`;
+    return s;
+  }
+  var wsAus = (y) => ((y - 74) % 62 + 62) % 62 < 33 ? -1 : 1;
+  var halo = (t) => t.replace("<text ", '<text stroke="#fff" stroke-width="4" stroke-linejoin="round" paint-order="stroke" ');
+  var sigLoop = (st) => {
+    const [x, y] = st.p[0], [x2, y2] = st.p[1] || st.p[0];
+    return Math.abs(x - x2) < 0.5 && Math.abs(y - y2) < 0.5;
+  };
+  function startGeo(st) {
+    const [x, y] = st.p[0], e = -wsAus(y), cy = y + e * 23;
+    return { x, y, e, cy };
+  }
+  function sigMid(st) {
+    const [[, y1], [, y2]] = st.p;
+    return Math.abs(y1 - y2) < 0.5 ? y1 + wsAus(y1) * 20 : Math.round((y1 + y2) / 2);
+  }
+  function srcMark(st, x, y) {
+    const c = st.c || INK;
+    switch (st.sg || "punkt") {
+      case "kreis":
+        return `<circle cx="${x}" cy="${y}" r="4.5" fill="#fff" stroke="${c}" stroke-width="1.4"/>`;
+      case "balken":
+        return `<path d="M${x - 24} ${y}H${x}" stroke="${c}" stroke-width="6" stroke-linecap="round"/>`;
+      case "hand":
+        return `<path d="M${x} ${y}L${x - 10} ${y - 10}" stroke="${c}" stroke-width="1.2"/><rect x="${x - 24}" y="${y - 24}" width="14" height="14" rx="1.5" fill="#fff" stroke="${c}" stroke-width="1.3"/><path d="M${x - 21} ${y - 20}H${x - 13}M${x - 17} ${y - 20}V${y - 13}" stroke="${c}" stroke-width="1.3" fill="none"/>`;
+      case "extern":
+        return `<path d="M${x - 16} ${y - 7}H${x - 4}L${x} ${y}L${x - 4} ${y + 7}H${x - 16}Z" fill="#fff" stroke="${c}" stroke-width="1.3"/>`;
+    }
+    return `<circle cx="${x}" cy="${y}" r="3" fill="${c}"/>`;
+  }
+  function signalBeschriftung(st, x, y, a = "start") {
+    return st.lbl ? halo(SVGT(x, y, st.lbl, a, 10.5, 600, st.c || INK)) : "";
+  }
+  function zeitglied(st, x, y) {
+    if (!st.tz) return "";
+    const c = st.c || INK, w = tw(st.tz, 10) + 12;
+    return `<rect x="${(x - w / 2).toFixed(1)}" y="${y - 8}" width="${w.toFixed(1)}" height="16" rx="2" fill="#fff" stroke="${c}" stroke-width="1.2"/>` + SVGT(x, y + 3.5, st.tz, "middle", 10, 600, c);
+  }
+  function zeichneVerknuepfung(st) {
+    const [x, y] = st.p[0], c = st.c || INK;
+    if (st.t === "oder") return `<circle cx="${x}" cy="${y}" r="4" fill="${c}"/>`;
+    return `<circle cx="${x}" cy="${y}" r="1.6" fill="${c}"/><path d="M${x - 8} ${y + 6}L${x + 8} ${y - 6}" stroke="${c}" stroke-width="2" stroke-linecap="round"/>`;
+  }
+  function zeichneZyklusende(st) {
+    const [x] = st.p[0], c = st.c || INK, j = Math.round((x - WS_X0) / WS_SPALTE);
+    return `<rect x="${(x + 1).toFixed(1)}" y="41" width="${(WS_SPALTE - 2).toFixed(1)}" height="32" fill="#fff"/>` + SVGT(x + WS_SPALTE / 2, 62, `${j + 1} = 1`, "middle", 12, 700, c) + `<path d="M${x} 40V${st.y2 || 446}" stroke="${c}" stroke-width="2.6"/>`;
+  }
+  function zeichneStart(st) {
+    const { x, y, e, cy } = startGeo(st), c = st.c || INK;
+    return `<rect x="${x + 4}" y="${cy - 7}" width="14" height="14" rx="1.5" fill="#fff" stroke="${c}" stroke-width="1.3"/><path d="M${x + 7} ${cy - 3}H${x + 15}M${x + 11} ${cy - 3}V${cy + 4}" stroke="${c}" stroke-width="1.3" fill="none"/><path d="M${x + 6} ${cy - e * 7}L${x + 1.5} ${y + e * 3}" stroke="${c}" stroke-width="1.2" fill="none"/>` + arrowHead(x + 6, cy - e * 7, x + 0.8, y + e * 1.2, 6) + signalBeschriftung(st, x + 22, cy + 4);
+  }
+  function zeichneSignal(st, grp) {
+    const c = st.c || INK;
+    if (sigLoop(st)) {
+      const [x, y] = st.p[0], o2 = wsAus(y), tw2 = st.tz ? tw(st.tz, 10) + 12 : 0;
+      return `<path d="${shapeD(st)}" stroke="${c}" stroke-width="1.2" fill="none"/>` + srcMark(st, x, y) + arrowHead(x + 7, y + o2 * 12, x + 1.2, y + o2 * 2, 6) + zeitglied(st, x + 16 + tw2 / 2, y + o2 * 12) + signalBeschriftung(st, x - 14, y + o2 * 12 + 4, "end");
+    }
+    const [[x1, y1], [x2, y2]] = st.p, straight = Math.abs(x1 - x2) < 0.5, ym = straight ? y1 : sigMid(st), down = y2 > ym, o = wsAus(y1);
+    const jS = grp && grp.jStart, jE = grp && grp.jEnd;
+    let r = `<path d="${shapeD(st)}" stroke="${c}" stroke-width="1.2" fill="none"/>` + (jS ? "" : srcMark(st, x1, y1));
+    if (!jE) r += arrowHead(x2, y2 + (down ? -11 : 11), x2, y2, 6.5);
+    r += straight ? zeitglied(st, x1, Math.round((y1 + y2) / 2)) : zeitglied(st, x1, Math.round((y1 + ym) / 2));
+    const links = st.sg === "balken" || grp && grp.ldy;
+    return r + signalBeschriftung(st, x1 + (st.sg === "balken" ? -26 : links ? -7 : 7), y1 + o * 13 + (o > 0 ? 4 : 0), links ? "end" : "start");
+  }
+  function signalGruppe(d, i) {
+    const st = d.s[i];
+    if (sigLoop(st)) return null;
+    const pk = (q) => q.map((v) => Math.round(v)).join(","), jset = new Set(d.s.filter((q) => q.k === "vk").map((q) => pk(q.p[0])));
+    const labs = [], ldy = {};
+    d.s.forEach((q, j) => {
+      if (q.k !== "sig" || sigLoop(q) || !q.lbl || jset.has(pk(q.p[0]))) return;
+      const [x, y] = q.p[0], o = wsAus(y), ly = y + o * 13 + (o > 0 ? 4 : 0);
+      const hit = labs.some(([lx, yy, l]) => !l && Math.abs(lx - x) < 40 && Math.abs(yy - ly) < 12);
+      labs.push([x, ly, hit]);
+      ldy[j] = hit;
+    });
+    return { jStart: jset.has(pk(st.p[0])), jEnd: jset.has(pk(st.p[1])), ldy: !!ldy[i] };
+  }
+  function signalForm(st) {
+    if (sigLoop(st)) {
+      const [x, y] = st.p[0], o = wsAus(y);
+      return `M${x} ${y}C${x - 16} ${y + o * 24} ${x + 16} ${y + o * 24} ${x + 1.5} ${y + o * 2}`;
+    }
+    const [[x1, y1], [x2, y2]] = st.p;
+    if (Math.abs(x1 - x2) < 0.5) return `M${x1} ${y1}V${y2}`;
+    const ym = sigMid(st);
+    return `M${x1} ${y1}V${ym}H${x2}V${y2}`;
+  }
+  function zieheVerknuepfung(st, drag, dx, dy) {
+    const o0 = drag.orig[0];
+    if (!drag.att) drag.att = [];
+    if (!drag.attDone) {
+      drag.attDone = true;
+      ED.data.s.forEach((q2, j) => q2.k === "sig" && q2.p.forEach((v, h) => Math.hypot(v[0] - o0[0], v[1] - o0[1]) < 0.6 && drag.att.push([j, h])));
+    }
+    const cx = 150 + Math.round((o0[0] + dx - 150) / 68.75) * 68.75;
+    const q = [Math.abs(cx - o0[0] - dx) < 10 ? cx : Math.round((o0[0] + dx) / 4) * 4, Math.round((o0[1] + dy) / 4) * 4];
+    st.p = [q];
+    drag.att.forEach(([j, h]) => ED.data.s[j].p[h] = [...q]);
+  }
+  var HINWEIS = (t) => `<p class="small muted" style="margin:0 0 8px">${t}</p>`;
+  fuelle(STRICH, {
+    sig: {
+      titel: "Signallinie",
+      form: signalForm,
+      zeichne: (st, i, d) => zeichneSignal(st, signalGruppe(d, i)),
+      felder: (st) => textFeld("sl", "Signalgeber (steht am Ausgangspunkt)", "z. B. −BG2", st.lbl) + auswahlFeld("sg", "Darstellung des Signalgebers", [["punkt", "Grenztaster / Sensor – Punkt"], ["kreis", "Grenztaster – Kreis"], ["balken", "Betätigung über eine Strecke – Balken"], ["extern", "Signal von anderer Maschine"]], st.sg || "punkt") + textFeld("tz", "Zeitglied (optional)", "z. B. t = 10 s", st.tz) + auswahlFeld("sc", "Farbe", FARBEN, st.c) + HINWEIS("Signallinien sind dünn, Funktionslinien dick. Die Linie beginnt am Signalgeber und endet mit dem Pfeil dort, wo die Zustandsänderung ausgelöst wird.")
+    },
+    st: {
+      titel: "Startbedingung",
+      zeichne: zeichneStart,
+      form(st) {
+        const { x, cy } = startGeo(st);
+        return `M${x + 2} ${cy - 9}H${x + 56}V${cy + 9}H${x + 2}Z`;
+      },
+      felder: (st) => textFeld("sl", "Starttaster / Bedingung", "z. B. −SF1 START", st.lbl) + auswahlFeld("sc", "Farbe", FARBEN, st.c) + HINWEIS("Der Pfeil zeigt auf den Beginn der ersten Bewegung.")
+    },
+    eq: {
+      titel: "Zyklusende",
+      zeichne: zeichneZyklusende,
+      griffe: false,
+      form(st) {
+        const [x] = st.p[0];
+        return `M${x} 41H${x + 68}V73H${x}Z`;
+      },
+      felder: () => HINWEIS("Der Schritt in dieser Spalte entspricht wieder Schritt 1 – der Ablauf beginnt von vorn.")
+    },
+    vk: {
+      titel: "Verknüpfung",
+      zeichne: zeichneVerknuepfung,
+      griffe: false,
+      oben: true,
+      ziehen: zieheVerknuepfung,
+      form(st) {
+        const [x, y] = st.p[0];
+        return `M${x - 4} ${y - 4}H${x + 4}V${y + 4}H${x - 4}Z`;
+      },
+      felder: (st) => auswahlFeld("vt", "Art", [["und", "UND – Schrägstrich: alle Signale müssen anliegen"], ["oder", "ODER – Punkt: ein Signal genügt"]], st.t || "und") + HINWEIS("Signallinien von den Signalgebern enden hier, die Linie mit Pfeil führt zum ausgelösten Bewegungsbeginn.")
+    }
+  });
+  fuelle(STRICHFELD, { sl: "lbl", sg: "sg", tz: "tz", vt: "t" });
+  var WSI = (inner) => `<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M4 8H60M4 32H60" stroke="#C9D0D5" stroke-width="1" stroke-dasharray="2 2"/>${inner}</svg>`;
+  var WSP = (d, w = 1.2) => `<path d="${d}" stroke="${INK}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+  var WSA = (x, y1, y2) => WSP(`M${x} ${y1}V${y2}`) + arrowHead(x, y2 + (y2 > y1 ? -7 : 7), x, y2, 5);
+  var WSPAL = [
+    ["Funktionslinien", [["line", "Funktionslinie", {}, WSI(WSP("M6 8H20L40 32H58", 3))], ["line", "Ventil schaltet (senkrecht)", {}, WSI(WSP("M6 32H30V8H58", 3))]]],
+    ["Signallinien und Signalgeber", [
+      ["sig", "Grenztaster – Punkt", { sg: "punkt" }, WSI(WSP("M6 8H24L44 32", 2.4) + `<circle cx="24" cy="8" r="3" fill="${INK}"/>` + WSA(24, 8, 34))],
+      ["sig", "Grenztaster – Kreis", { sg: "kreis" }, WSI(WSP("M6 8H24L44 32", 2.4) + WSA(24, 12, 34) + `<circle cx="24" cy="8" r="4.5" fill="#fff" stroke="${INK}" stroke-width="1.3"/>`)],
+      ["sig", "Betätigung über Strecke – Balken", { sg: "balken" }, WSI(WSP("M6 8H40", 2.4) + `<path d="M20 8H38" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>` + WSA(38, 8, 34))],
+      ["sig", "Signal von anderer Maschine", { sg: "extern" }, WSI(`<path d="M10 12H22L26 18L22 24H10Z" fill="#fff" stroke="${INK}" stroke-width="1.2"/>` + WSP("M26 18H34") + WSA(34, 18, 34))],
+      ["sig", "Schleife – eigene Endlage", {}, WSI(WSP("M6 8L26 32H58", 2.4) + `<path d="M26 32C18 18 34 18 27 30" stroke="${INK}" stroke-width="1.2" fill="none"/><circle cx="26" cy="32" r="2.6" fill="${INK}"/>`)]
+    ]],
+    ["Verknüpfungen und Zeit", [
+      ["vk", "UND-Verknüpfung", { t: "und" }, WSI(WSP("M14 4V14H32M50 4V14H32V36") + WSP("M26 18L38 10", 2) + arrowHead(32, 29, 32, 36, 5))],
+      ["vk", "ODER-Verknüpfung", { t: "oder" }, WSI(WSP("M14 4V14H32M50 4V14H32V36") + `<circle cx="32" cy="14" r="3.4" fill="${INK}"/>` + arrowHead(32, 29, 32, 36, 5))],
+      ["sig", "Zeitglied", { tz: "t = 1 s" }, WSI(WSA(32, 4, 36) + `<rect x="18" y="13" width="28" height="13" rx="2" fill="#fff" stroke="${INK}" stroke-width="1.2"/>` + SVGT(32, 23, "t = 1 s", "middle", 8, 600))]
+    ]],
+    ["Ablauf", [
+      ["start", "Taster / Start", {}, WSI(`<rect x="12" y="16" width="12" height="12" rx="1" fill="#fff" stroke="${INK}" stroke-width="1.2"/>` + WSP("M15 19H21M18 19V25M24 20L32 10") + WSP("M32 8L58 32", 2.4))],
+      ["eq", "Zyklusende n = 1", {}, WSI(WSP("M32 2V38", 2.6) + SVGT(46, 24, "n=1", "middle", 9, 700))]
+    ]]
+  ];
+  function wsPaletteHTML() {
+    let n = 0;
+    return WSPAL.map(([g, items]) => `<div class="palg"><div class="palh">${g}</div>${items.map(([tool, name, pre, icon]) => `<button type="button" class="palb" data-ws="${n++}" title="${name}">${icon}<span>${name}</span></button>`).join("")}</div>`).join("");
+  }
+  var wsItem = (i) => WSPAL.flatMap((g) => g[1])[i];
+  var WS_HILFE = "<p><b>Funktionslinie</b> (dick): waagrecht = Stillstand, schräg = Bewegung (je steiler, desto schneller), senkrecht = Ventil bzw. Stellglied schaltet. Die Enden rasten auf die Eckpunkte.</p><p><b>Zeilenname</b>: links auf den Namen klicken, z. B. eine freie Zeile in „−MB1 Ventil“ umbenennen.</p><p><b>Start</b>: auf den Beginn der ersten Bewegung klicken – der Starttaster (z. B. −SF1) wird davor gesetzt.</p><p><b>Signallinie</b>: vom Auslöser, z. B. der erreichten Endlage, zum Beginn der nächsten Bewegung ziehen und den Auslöser eintragen (−BG2, eine Zeit wie t = 10 s oder eine Verknüpfung).</p><p><b>Schleife</b>: Löst ein Zylinder mit seiner eigenen Endlage die Gegenbewegung aus, mit Signallinie einfach auf diesen Punkt klicken.</p><p><b>UND / ODER</b>: „UND-Verknüpfung“ bzw. „ODER-Verknüpfung“ wählen und den Beginn der ausgelösten Bewegung anklicken – davor entsteht der Verknüpfungspunkt (Schrägstrich = UND, Punkt = ODER). Dann mit Signallinie jeden Signalgeber mit diesem Punkt verbinden. Signalgeber und Zeitglied stellen Sie links bei der markierten Signallinie ein.</p><p><b>n = 1</b>: Spalte nach dem letzten Schritt anklicken – der Zyklus schließt sich.</p>";
+  function wsAnleitung() {
+    if (anySel() || !["sig", "line", "start", "eq", "vk"].includes(ED.tool)) return null;
+    const step = (t) => `<li style="margin:0 0 6px">${t}</li>`;
+    const how = {
+      sig: ED.pend ? [`Jetzt den <b>Zielpunkt</b> anklicken: den Beginn der Bewegung, die ausgelöst wird.`, `Für eine <b>Schleife</b> denselben Punkt noch einmal anklicken.`, `Esc bricht ab.`] : [`Den <b>Auslösepunkt</b> anklicken – meist die Endlage, an der der Sensor schaltet.`, `Dann den <b>Zielpunkt</b> anklicken – den Beginn der ausgelösten Bewegung.`, `Danach den Sensor eintragen, z. B. −BG2.`, `Bei UND/ODER als Zielpunkt den Verknüpfungspunkt anklicken – er fängt die Linie.`],
+      line: ED.pend ? [`Nächsten <b>Eckpunkt</b> anklicken – die Funktionslinie läuft weiter.`, `Den letzten Punkt noch einmal anklicken oder Esc: Linie beenden.`] : [`<b>Eckpunkte nacheinander anklicken</b>: waagrecht = Stillstand, schräg = Bewegung, senkrecht = Ventil schaltet.`, `Oder von Ecke zu Ecke ziehen.`],
+      start: [`Den <b>Beginn der Bewegung</b> anklicken, die der Taster startet.`, `Taster und Pfeil werden ins Schrittfeld gesetzt; die Bezeichnung (z. B. −SF1) links ändern.`],
+      vk: [`Den <b>Zielpunkt</b> anklicken – den Beginn der Bewegung, die erst ausgelöst wird, wenn die Bedingung erfüllt ist.`, `Davor entsteht der Verknüpfungspunkt (UND = Schrägstrich, ODER = Punkt) mit Pfeil zum Ziel.`, `Danach mit <b>Signallinie</b> jeden Signalgeber anklicken und dann den Verknüpfungspunkt – die Linien laufen dort zusammen.`],
+      eq: [`Die <b>Spalte nach dem letzten Schritt</b> anklicken – sie wird zu „n = 1“, der Zyklus schließt sich.`]
+    }[ED.tool];
+    const titel = { sig: "Signallinie" + (ED.wsPreset && ED.wsPreset.tz ? " mit Zeitglied" : ""), line: "Funktionslinie", start: "Taster / Start", eq: "Zyklusende", vk: ED.wsPreset && ED.wsPreset.t === "oder" ? "ODER-Verknüpfung" : "UND-Verknüpfung" }[ED.tool];
+    return `<div class="props"><div class="palh">${titel}</div><ol style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.45">${how.map(step).join("")}</ol></div>`;
+  }
+  function wsFang(pt) {
+    const j = ED.data.s.find((q) => q.k === "vk" && Math.hypot(q.p[0][0] - pt[0], q.p[0][1] - pt[1]) < 12);
+    if (j) return [...j.p[0]];
+    const rows = wsRows(), yEnd = WS_Y0 + rows * WS_ZEILE;
+    const imDiagramm = pt[0] >= WS_X0 - 30 && pt[0] <= 990 && pt[1] >= WS_Y0 - 10 && pt[1] <= yEnd + 10;
+    if (!imDiagramm) return [Math.round(pt[0] / 10) * 10, Math.round(pt[1] / 10) * 10];
+    const c = Math.max(0, Math.min(12, Math.round((pt[0] - WS_X0) / WS_SPALTE)));
+    const lv = [];
+    for (let i = 0; i < rows; i++) lv.push(WS_Y0 + i * WS_ZEILE + 16, WS_Y0 + i * WS_ZEILE + 50);
+    const ny = lv.reduce((a, v) => Math.abs(v - pt[1]) < Math.abs(a - pt[1]) ? v : a, lv[0]);
+    return [+(WS_X0 + c * WS_SPALTE).toFixed(2), ny];
+  }
+  function signalMarkieren() {
+    clearSel();
+    ED.selS = ED.data.s.length - 1;
+    renderInk();
+    updateProps("neu");
+    const f = $('#props [data-prop="sl"]');
+    if (f) f.focus();
+  }
+  var punktMarke = (p) => `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="#2F80ED" fill-opacity=".35" stroke="#2F80ED"/>`;
+  function zeilennameKlick(e, pt) {
+    const hitS = e.target.closest("[data-i]"), hitT = e.target.closest("[data-ti]");
+    if (hitS || hitT || pt[0] < 30 || pt[0] >= 140 || pt[1] < WS_Y0 || pt[1] >= WS_Y0 + wsRows() * WS_ZEILE) return false;
+    e.preventDefault();
+    const i = Math.floor((pt[1] - WS_Y0) / WS_ZEILE), cur = (skMeta(ED.scope, ED.key, ED.data).rows || [])[i];
+    const def = [...CYL[ED.scope] || ["−MM1", "−MM2", "−MM3", "−MM4"], "", ""][i];
+    editLabel(40, WS_Y0 + i * WS_ZEILE + 31, cur ?? def, "Bauglied, z. B. −MM1 Zylinder oder −MB1 Ventil", (v) => {
+      snapshot();
+      const m = ED.data.meta = ED.data.meta || {};
+      m.rows = m.rows || [];
+      m.rows[i] = v;
+      saveSketch();
+      refreshTpl();
+    });
+    return true;
+  }
+  function setzeVerknuepfung(pt) {
+    const q = snapW(pt), J = [q[0], q[1] - wsAus(q[1]) * 18];
+    snapshot();
+    ED.data.s.push({ k: "vk", t: ED.wsPreset && ED.wsPreset.t || "und", c: ED.color, w: 1.2, p: [J] }, { k: "sig", c: ED.color, w: 1.2, p: [J, q], lbl: "" });
+    saveSketch();
+    setTool("sig");
+    ED.wsPreset = {};
+    clearSel();
+    renderInk();
+    updateProps(true);
+  }
+  function setzeZyklusende(pt) {
+    const j = Math.max(1, Math.min(11, Math.floor((pt[0] - WS_X0) / WS_SPALTE)));
+    snapshot();
+    ED.data.s = ED.data.s.filter((q) => q.k !== "eq");
+    ED.data.s.push({ k: "eq", c: ED.color, w: 2.6, p: [[+(WS_X0 + j * WS_SPALTE).toFixed(2), 57]], y2: WS_Y0 + wsRows() * WS_ZEILE });
+    clearSel();
+    saveSketch();
+    setTool("sel");
+  }
+  function setzeStart(pt) {
+    snapshot();
+    ED.data.s.push({ k: "st", c: ED.color, w: 1.2, p: [snapW(pt)], lbl: "−SF1" });
+    clearSel();
+    ED.selS = ED.data.s.length - 1;
+    saveSketch();
+    setTool("sel");
+  }
+  function zweiterKlick(pt) {
+    const q = snapW(pt), a = ED.pend, same = Math.abs(a[0] - q[0]) < 0.5 && Math.abs(a[1] - q[1]) < 0.5;
+    $(".ghost", ED.svg).innerHTML = "";
+    if (ED.tool === "sig") {
+      snapshot();
+      ED.data.s.push({ k: "sig", c: ED.color, w: 1.2, p: [a, q], lbl: "", ...ED.wsPreset || {} });
+      ED.pend = null;
+      saveSketch();
+      signalMarkieren();
+      return;
+    }
+    if (same) {
+      ED.pend = null;
+      renderInk();
+      updateProps(true);
+      return;
+    }
+    snapshot();
+    ED.data.s.push({ k: "l", c: ED.color, w: Math.max(ED.w, 2.8), p: [a, q] });
+    ED.pend = q;
+    saveSketch();
+    renderInk();
+  }
+  var WS_ZEIGER = {
+    unten(e, pt) {
+      const t = ED.tool, linie = t === "sig" || t === "line";
+      if (t === "sel") return zeilennameKlick(e, pt);
+      if (!["vk", "eq", "start"].includes(t) && !linie) return false;
+      e.preventDefault();
+      if (t === "vk") setzeVerknuepfung(pt);
+      else if (t === "eq") setzeZyklusende(pt);
+      else if (t === "start") setzeStart(pt);
+      else if (ED.pend) zweiterKlick(pt);
+      else {
+        const q = snapW(pt);
+        beginneStrich(e, t === "sig" ? { k: "sig", c: ED.color, w: 1.2, p: [q, q], lbl: "", ...ED.wsPreset || {} } : { k: "l", c: ED.color, w: Math.max(ED.w, 2.8), p: [q, q] });
+      }
+      return true;
+    },
+    // Vorschau der Linie vom gemerkten Punkt zum Mauszeiger
+    bewegen(e, pt) {
+      if (!ED.pend || ED.cur || ED.tool !== "sig" && ED.tool !== "line") return false;
+      const q = snapW(pt), a = ED.pend;
+      const d = ED.tool === "sig" ? shapeD({ k: "sig", p: [a, q] }) : `M${a[0]} ${a[1]}L${q[0]} ${q[1]}`;
+      $(".ghost", ED.svg).innerHTML = `<path d="${d}" stroke="#2F80ED" stroke-width="${ED.tool === "sig" ? 1.4 : 2.8}" stroke-dasharray="5 4" fill="none"/>${punktMarke(a)}<circle cx="${q[0]}" cy="${q[1]}" r="4" fill="none" stroke="#2F80ED"/>`;
+      return true;
+    },
+    // Nur geklickt statt gezogen: Punkt merken, der nächste Klick setzt das Ende
+    angeklickt(p0, k) {
+      if (k !== "sig" && k !== "l") return false;
+      ED.pend = p0;
+      renderInk();
+      updateProps(true);
+      $(".ghost", ED.svg).innerHTML = punktMarke(p0);
+      return true;
+    },
+    gezogen(st) {
+      if (st.k !== "sig") return false;
+      signalMarkieren();
+      return true;
+    }
+  };
+  registriereVorlage("wegschritt", {
+    n: "Weg-Schritt-Diagramm",
+    d: "Zylinderbewegungen über die Schritte",
+    einblattig: true,
+    body: wegschrittBlatt,
+    startWerkzeug: "line",
+    werkzeugleiste: {
+      linie: { titel: "Funktionslinie: waagrecht = Stillstand, schräg = Bewegung, senkrecht = Ventil/Stellglied", name: "Funktionslinie" },
+      nachLinie: `<button type="button" class="tool" data-tool="sig" title="Vom Auslöser (Endlage) zum Beginn der nächsten Bewegung ziehen">↳ Signallinie</button><button type="button" class="tool" data-tool="start" title="Auf den Beginn der ersten Bewegung klicken">⊤ Start</button><button type="button" class="tool" data-tool="eq" title="In die Spalte nach dem letzten Schritt klicken">n = 1</button>`
+    },
+    seitenleiste: wsPaletteHTML,
+    hilfe: WS_HILFE,
+    anleitung: wsAnleitung,
+    // Klick auf ein Werkzeug der Seitenleiste: Werkzeug mit Voreinstellung (z. B. Signalgeber Kreis)
+    klick(e) {
+      const wb = e.target.closest("[data-ws]");
+      if (!wb) return false;
+      const it = wsItem(+wb.dataset.ws);
+      setTool(it[0]);
+      ED.wsPreset = it[2];
+      clearSel();
+      $$("#editor [data-ws]").forEach((x) => x.setAttribute("aria-pressed", x === wb));
+      renderInk();
+      updateProps(true);
+      return true;
+    },
+    werkzeugWechsel() {
+      ED.wsPreset = null;
+      $$("#editor [data-ws]").forEach((x) => x.setAttribute("aria-pressed", "false"));
+    },
+    fangPunkt: wsFang,
+    zeiger: WS_ZEIGER
+  });
+
   // web/tools/uebungshandbuch/src/editor/vorlagen/alt.js
-  registriereVorlage("wegschritt", { n: "Weg-Schritt-Diagramm", d: "Zylinderbewegungen über die Schritte", einblattig: true, body: (ex, page, meta) => tplBody("wegschritt", ex, page, meta) });
   registriereVorlage("stromlauf", { n: "Stromlaufplan", d: "Steuerstromkreis zwischen L+ und M – Taster, Not-Halt, SPS, Sicherheitsrelais", gruppen: ["elektro", "geraete", "leistung"], schienen: [["L+", 70, 40, 935], ["M", 590, 40, 935]], body: (ex, page, meta) => tplBody("stromlauf", ex, page, meta) });
   registriereVorlage("leistung", { n: "Hauptstromkreis", d: "L1, L2, L3, N, PE – Schütze, Wendeschützschaltung, Motorschutz, Motoren, Umrichter", gruppen: ["leistung", "geraete", "elektro"], schienen: [["L1", 50, 60, 915], ["L2", 70, 60, 915], ["L3", 90, 60, 915], ["N", 110, 60, 915], ["PE", 130, 60, 915]], body: (ex, page, meta) => tplBody("leistung", ex, page, meta) });
   registriereVorlage("pneumatik", { n: "Pneumatikschaltplan", d: "Zylinder, Wegeventile, Drosseln nach ISO 1219 – mit Simulation", gruppen: ["pneu"], body: (ex, page, meta) => tplBody("pneumatik", ex, page, meta) });
@@ -4451,27 +4583,6 @@ END_CASE;`)}
     switch (key) {
       case "raster":
         return grid(10, G2);
-      case "wegschritt": {
-        const rows = CYL[ex?.id] || ["−MM1", "−MM2", "−MM3", "−MM4"];
-        const all = [...rows, "", ""].map((r, i) => meta && meta.rows && meta.rows[i] !== void 0 && meta.rows[i] !== null ? meta.rows[i] : r);
-        const x0 = 30, xs = 150, cols = 12, cw = (975 - xs) / cols, y0 = 40, hh = 34, rh = 62;
-        let s = `<rect x="${x0}" y="${y0}" width="${975 - x0}" height="${hh + all.length * rh + 3 * 40}" fill="none" stroke="${G}" stroke-width="1"/>`;
-        s += TX(x0 + 10, y0 + 22, 12, "Bauglied", "start", "#666", 600);
-        for (let c = 0; c <= cols; c++) {
-          const x = xs + c * cw;
-          s += `<path d="M${x} ${y0}V${y0 + hh + all.length * rh + 120}" stroke="${G}" stroke-width="${c === 0 ? 1 : 0.5}"/>`;
-          if (c < cols) s += TX(x + cw / 2, y0 + 22, 12, String(c + 1), "middle", "#666", 600);
-        }
-        s += `<path d="M${x0} ${y0 + hh}H975" stroke="${G}"/>`;
-        all.forEach((r, i) => {
-          const y = y0 + hh + i * rh;
-          s += `<path d="M${x0} ${y + rh}H975" stroke="${G}" stroke-width=".8"/><path d="M${xs} ${y + 16}H975M${xs} ${y + rh - 12}H975" stroke="${G2}" stroke-width=".6" stroke-dasharray="3 3"/>` + TX(x0 + 10, y + rh / 2 + 5, 13, r, "start", "#555", 600) + TX(xs - 8, y + 20, 9, "1", "end") + TX(xs - 8, y + rh - 8, 9, "0", "end");
-        });
-        const yb = y0 + hh + all.length * rh;
-        s += TX(x0 + 10, yb + 25, 11, "Bedingungen", "start", "#666", 600);
-        for (let i = 1; i <= 3; i++) s += `<path d="M${x0} ${yb + i * 40}H975" stroke="${G}" stroke-width=".6"/>`;
-        return s;
-      }
       case "stromlauf": {
         let s = `<path d="M40 70H975M40 590H975" stroke="${G}" stroke-width="2"/>` + TX(30, 74, 12, "L+", "end", "#555", 600) + TX(30, 594, 12, "M", "end", "#555", 600) + TX(975, 62, 9, "24 V DC", "end");
         for (let i = 1; i <= 20; i++) {
@@ -4808,17 +4919,8 @@ END_CASE;`)}
         setTool("place");
         return;
       }
-      const wb = e.target.closest("[data-ws]");
-      if (wb) {
-        const it = wsItem(+wb.dataset.ws);
-        setTool(it[0]);
-        ED.wsPreset = it[2];
-        clearSel();
-        $$("#editor [data-ws]").forEach((x) => x.setAttribute("aria-pressed", x === wb));
-        renderInk();
-        updateProps(true);
-        return;
-      }
+      const v = VORL[ED.key];
+      if (v && v.klick && v.klick(e)) return;
       const sy = e.target.closest("[data-sym]");
       if (sy) {
         const el = lastProp;
