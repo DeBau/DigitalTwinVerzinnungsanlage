@@ -27,7 +27,6 @@ export const loeschKnopf = () => `<div class="propact"><button type="button" cla
 export function propsHTML(){
   const v = VORL[ED.key], anleitung = v && v.anleitung && v.anleitung();   // Haken anleitung: Hilfe zum gewählten Werkzeug
   if (anleitung) return anleitung;
-  if (ED.tool === "sim") return `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren leuchten grün.</p><p class="small muted" style="margin:0">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;
   const inp = textFeld, sel = auswahlFeld, COL = FARBEN, del = loeschKnopf();
   if (ED.selT !== null && ED.data.t[ED.selT]) { const t = ED.data.t[ED.selT];
     return `<div class="props"><div class="palh">Text</div>${inp("tv", "Text", "", t.v)}${SYMS}${sel("ts", "Größe", [[12,"klein"],[16,"normal"],[20,"groß"],[26,"sehr groß"]], t.s || 16)}${sel("sc", "Farbe", COL, t.c)}${del}</div>`; }

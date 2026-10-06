@@ -1,50 +1,11 @@
-/* Pneumatik-Simulation */
+// Editor-Kern: Bausteine, Verbindungen und Leitungen als SVG zeichnen (drawObj, connGeom, inkSVG), Blattzahl.
 import { INK, MUTE, PH, SVGT } from './svg.js';
 import { ED } from './status.js';
 import { BLK, FIXED, GRUPPE, PC, VORL, art } from './registry.js';
 import { G, strokesSVG } from './vorlagen-svg.js';
-import { BLUE, DIRV, SK, VALVE, istSchiene, portsOf, pressed, simOn, vrails, vstate, wireD, wireEnds, xform } from './bauteile.js';
+import { BLUE, istSchiene, portsOf, simOn, vrails, wireD, wireEnds, xform } from './bauteile.js';
 import { bbox, bw, ctr, fam, gruppeVon } from './bausteine.js';
 import { verbindeKette } from './kette.js';
-
-export function simCompute(){
-  const d = ED.data, adj = new Map(), add = (a, b) => { if (!adj.has(a)) adj.set(a, []); if (!adj.has(b)) adj.set(b, []); adj.get(a).push(b); adj.get(b).push(a); };
-  d.c.forEach(c => { if (c.pa !== undefined && c.pb !== undefined) add(c.a + ":" + c.pa, c.b + ":" + c.pb); });
-  const roots = [];
-  d.o.forEach(o => { const pc = PC[o.k]; if (!pc || !pc.sim) return; const r = pc.sim(o, ED.sim.st[o.id], () => false);
-    (r.pairs || []).forEach(([p, q]) => add(o.id + ":" + p, o.id + ":" + q)); (r.src || []).forEach(p => roots.push(o.id + ":" + p)); });
-  let P = new Set();
-  for (let pass = 0; pass < 8; pass++) {   // gerichtete Wege hängen vom Druck ab: wiederholen, bis sich nichts mehr ändert
-    const dir = new Map();
-    d.o.forEach(o => { const pc = PC[o.k]; if (!pc || !pc.sim) return; const r = pc.sim(o, ED.sim.st[o.id], q => P.has(o.id + ":" + q));
-      (r.dir || []).forEach(([p, q]) => { const a = o.id + ":" + p; if (!dir.has(a)) dir.set(a, []); dir.get(a).push(o.id + ":" + q); }); });
-    const N = new Set(), st = [...roots];
-    while (st.length) { const n = st.pop(); if (N.has(n)) continue; N.add(n); (adj.get(n) || []).forEach(m => st.push(m)); (dir.get(n) || []).forEach(m => st.push(m)); }
-    const same = N.size === P.size && [...N].every(n => P.has(n)); P = N; if (same) break;
-  }
-  ED.sim.P = P;
-}
-export function simStep(t){
-  if (!simOn()) return;
-  const dt = Math.min(.05, (t - (ED.sim.t || t)) / 1000); ED.sim.t = t;
-  let moving = false;
-  ED.data.o.forEach(o => { if (!["zyl1","zyl2","rot"].includes(o.k)) return;
-    const A = pressed(o, "A"), B = o.k !== "zyl1" && pressed(o, "B"), p = ED.sim.pos[o.id] || 0;
-    const dir = o.k === "zyl1" ? (A ? 1 : -1) : (A && !B ? 1 : B && !A ? -1 : 0), np = Math.max(0, Math.min(1, p + dir * dt / 1.2));
-    if (np !== p) { ED.sim.pos[o.id] = np; moving = true; } });
-  if (moving && ED.svg) ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
-  requestAnimationFrame(simStep);
-}
-export function simClick(o, pt){
-  if (o.k === "kh") { ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf"; simCompute(); ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key); return; }
-  if (!["v22","v32","v52","v53"].includes(o.k)) return;
-  const b = bbox(o), left = pt[0] < b.x + b.w / 2, s = vstate(o), mono = (o.ar || "feder") === "feder";
-  let ns = s;
-  if (o.k === "v53") ns = left ? (s === "act" ? "center" : "act") : (s === "b" ? "center" : "b");
-  else if (mono) ns = left ? (s === "act" ? "rest" : "act") : s;
-  else ns = left ? "act" : "rest";
-  ED.sim.st[o.id] = ns; simCompute(); ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
-}
 
 export function drawObj(o, edit){
   if (PC[o.k]) {
@@ -92,6 +53,8 @@ export function connGeom(c, objs, all){
 }
 // Gruppen-Haken bedingung: Übergang von A braucht eine Bedingung (Platzhalter im Editor, Abfrage nach dem Verbinden)
 export const fragtBedingung = A => { const b = gruppeVon(A).bedingung; return !!b && b(A); };
+// Rahmen (Bauteil mit rahmen: true, z. B. Ventilinsel): liegt unter allen Bausteinen und ist nur am Rand greifbar
+export const istRahmen = o => !!(PC[o.k] && PC[o.k].rahmen);
 export function inkSVG(d, edit=false, key=null){
   if (!d) return "";
   const objs = Object.fromEntries((d.o || []).map(o => [o.id, o])), cs = d.c || [];
@@ -127,14 +90,14 @@ export function inkSVG(d, edit=false, key=null){
     const lbl = gm.lbl ? (c.v ? SVGT(gm.lbl[0], gm.lbl[1], c.v, gm.lbl[2], 12, 500) : (edit && fragtBedingung(objs[c.a]) ? SVGT(gm.lbl[0], gm.lbl[1], "Bedingung", gm.lbl[2], 11, 400, MUTE) : "")) : "";
     return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${col}" stroke-width="${sel ? 2.2 : 1.6}" ${gm.arrow ? 'marker-end="url(#arw)"' : ""}/>${up}${edit ? `<path d="${gm.d}" fill="none" stroke="transparent" stroke-width="12"/>` : ""}${lbl}</g>`;
   }).join("");
-  const os = [...(d.o || [])].sort((a, b) => (b.k === "insel") - (a.k === "insel")).map(o => { const b = bbox(o), hi = edit && (ED.sel === o.id || ED.from === o.id), fr = o.k === "insel";
+  const os = [...(d.o || [])].sort((a, b) => istRahmen(b) - istRahmen(a)).map(o => { const b = bbox(o), hi = edit && (ED.sel === o.id || ED.from === o.id), fr = istRahmen(o);
     return `<g data-o="${o.id}">${edit && fr ? `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? .25 : 0}" stroke-width="12"/>` : ""}${edit && !fr ? `<rect x="${b.x-5}" y="${b.y-5}" width="${b.w+10}" height="${b.h+10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${ED.from === o.id ? "2 3" : "5 3"}"` : ""}/>` : ""}${drawObj(o, edit)}</g>`; }).join("");
   let extra = "";
   const cnt = {}, dot = q => `<circle cx="${q.x}" cy="${q.y}" r="2.8" fill="${INK}"/>`;
   cs.forEach(c => { if (c.pa === undefined && c.pb === undefined) return; const e = wireEnds(c, objs); if (!e) return;
     [[c.a, c.pa, e[0]], [c.b, c.pb, e[1]]].forEach(([id, pn, q]) => { if (q.rail) extra += dot(q); else { const k = id + ":" + pn; (cnt[k] = cnt[k] || {n: 0, q}).n++; } }); });
   Object.values(cnt).forEach(v => { if (v.n >= 2) extra += dot(v.q); });
-  (d.o || []).forEach(o => { if (!VALVE[o.k]) return; portsOf(o).forEach(q => { if ((q.n === "3" || q.n === "5") && !cnt[o.id + ":" + q.n]) { const [dx, dy] = DIRV[q.d]; extra += `<path d="M${q.x} ${q.y}L${q.x + dx*9 - dy*5} ${q.y + dy*9 - dx*5}L${q.x + dx*9 + dy*5} ${q.y + dy*9 + dx*5}Z" ${SK}/>`; } }); });
+  (d.o || []).forEach(o => { const pc = PC[o.k]; if (pc && pc.zusatz) extra += pc.zusatz(o, n => !!cnt[o.id + ":" + n]); });   // Haken zusatz, z. B. Entlüftungen
   if (edit && ED.tool === "conn") (d.o || []).forEach(o => portsOf(o).forEach(q => { const f = ED.from === o.id && ED.fromP === q.n;
     extra += `<circle cx="${q.x}" cy="${q.y}" r="${f ? 5 : 3.6}" fill="${f ? BLUE : "#fff"}" stroke="${BLUE}" stroke-width="1.5" pointer-events="none"/>`; }));
   return rails + conns + os + extra + strokesSVG(d, edit);

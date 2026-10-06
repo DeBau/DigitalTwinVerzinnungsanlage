@@ -6,7 +6,7 @@ import { shapeD, snap } from './vorlagen-svg.js';
 import { nearestPort, portCap, vrails } from './bauteile.js';
 import { clearSel, objById } from './auswahl.js';
 import { ausrichten, kettenQuelle } from './kette.js';
-import { connGeom, drawObj, simClick } from './zeichnen.js';
+import { connGeom, drawObj } from './zeichnen.js';
 import { updateProps } from './eigenschaften.js';
 import { checkPages, renderInk } from './anzeige.js';
 import { saveSketch, snapshot } from './verlauf.js';
@@ -20,7 +20,6 @@ export function edDown(e){
   const svg = ED.svg, pt = svgPt(svg, e), hitO = e.target.closest("[data-o]"), hitC = e.target.closest("[data-c]");
   const zeiger = VORL[ED.key].zeiger || {};
   if (zeiger.unten && zeiger.unten(e, pt)) return;   // Haken zeiger.unten: eigene Werkzeuge der Vorlage
-  if (ED.tool === "sim") { const h = e.target.closest("[data-o]"); if (h) simClick(objById(h.dataset.o), pt); return; }
   if (ED.tool === "place" && ED.place) { e.preventDefault(); placeObj(ED.place, pt); return; }
   if (ED.tool === "sel") {
     e.preventDefault();

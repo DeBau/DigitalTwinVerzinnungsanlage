@@ -22,7 +22,7 @@ export function openEditor(scope, key){
   dlg.innerHTML = `<div class="ed"><div class="edbar">
     <span class="ttl">${VORL[key].n}${ex ? ` – ${ex.id}` : ""}</span>
     <button type="button" class="tool" data-tool="sel" title="Bausteine, Linien und Texte markieren, verschieben, ändern">${IC.cursor}Auswählen</button>
-    ${pal.length ? `<button type="button" class="tool" data-tool="conn" title="Zwei Bausteine bzw. Anschlüsse nacheinander anklicken">${IC.link}Verbinden</button>` : ""}${key === "pneumatik" ? `<button type="button" class="tool" data-tool="sim" title="Ventile per Klick schalten, Druck und Zylinderbewegung ansehen">${IC.play}Simulation</button>` : ""}<span class="sep"></span>
+    ${pal.length ? `<button type="button" class="tool" data-tool="conn" title="Zwei Bausteine bzw. Anschlüsse nacheinander anklicken">${IC.link}Verbinden</button>` : ""}${leiste.nachVerbinden || ""}<span class="sep"></span>
     ${colors.map(([c, n]) => `<button type="button" class="tool" data-tool="pen" data-color="${c}"><span class="dot" style="background:${c}"></span>${n}</button>`).join("")}
     <button type="button" class="tool" data-tool="line" title="${linie.titel}">${IC.line}${linie.name}</button>
     ${leiste.nachLinie || ""}

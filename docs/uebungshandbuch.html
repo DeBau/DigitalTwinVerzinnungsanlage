@@ -1219,109 +1219,6 @@ pre.code code{font-size:inherit}
   var BLUE = "#2F80ED";
   var simOn = () => typeof ED !== "undefined" && ED.sim && ED.sim.on;
   var pressed = (o, p) => simOn() && ED.sim.P && ED.sim.P.has(o.id + ":" + p);
-  var posOf = (o) => simOn() && ED.sim.pos[o.id] !== void 0 ? ED.sim.pos[o.id] : 0;
-  var vstate = (o) => simOn() && ED.sim.st[o.id] || (o.k === "v53" ? "center" : "rest");
-  var VB = 40;
-  var VALVE = {
-    v22: { n: 2, rest: 1, ports: [["2", 20, "u"], ["1", 20, "d"]] },
-    v32: { n: 2, rest: 1, ports: [["2", 20, "u"], ["1", 10, "d"], ["3", 30, "d"]] },
-    v52: { n: 2, rest: 1, ports: [["4", 10, "u"], ["2", 30, "u"], ["5", 10, "d"], ["1", 20, "d"], ["3", 30, "d"]] },
-    v53: { n: 3, rest: 1, ports: [["4", 10, "u"], ["2", 30, "u"], ["5", 10, "d"], ["1", 20, "d"], ["3", 30, "d"]] }
-  };
-  var vIdx = (o, s) => o.k === "v53" ? { act: 0, center: 1, b: 2 }[s] ?? 1 : s === "act" ? 0 : 1;
-  function vPairs(o, s) {
-    if (o.k === "v22") {
-      const nc = (o.gs || "nc") === "nc";
-      return s === "act" === nc ? [["1", "2"]] : [];
-    }
-    if (o.k === "v32") {
-      const nc = (o.gs || "nc") === "nc";
-      return s === "act" ? nc ? [["1", "2"]] : [["2", "3"]] : nc ? [["2", "3"]] : [["1", "2"]];
-    }
-    if (o.k === "v52") return s === "act" ? [["1", "4"], ["2", "3"]] : [["1", "2"], ["4", "5"]];
-    return s === "act" ? [["1", "4"], ["2", "3"]] : s === "b" ? [["1", "2"], ["4", "5"]] : [];
-  }
-  function vBox(o, i) {
-    const V = VALVE[o.k], at = (n) => V.ports.find((p) => p[0] === n);
-    let pairs;
-    if (o.k === "v53" && i === 1) pairs = [];
-    else pairs = vPairs(o, o.k === "v53" ? i === 0 ? "act" : "b" : i === 0 ? "act" : "rest");
-    const used = new Set(pairs.flat());
-    const dir = ([a, b]) => a === "1" ? [at(a), at(b)] : b === "1" ? [at(b), at(a)] : b === "3" || b === "5" ? [at(a), at(b)] : [at(b), at(a)];
-    return { flows: pairs.map(dir), blocked: V.ports.filter((p) => !used.has(p[0])) };
-  }
-  var thin = `stroke="${INK}" stroke-width="1.3" fill="none" stroke-linecap="round"`;
-  function actuator(kind, ex, cy, dir) {
-    const X = (d) => ex + dir * d;
-    if (kind === "feder") return `<path d="M${ex} ${cy}L${X(3)} ${cy - 7}L${X(7)} ${cy + 7}L${X(11)} ${cy - 7}L${X(15)} ${cy + 7}L${X(19)} ${cy - 7}L${X(22)} ${cy}" ${thin}/>`;
-    if (kind === "taster") return `<path d="M${ex} ${cy}H${X(14)}M${X(14)} ${cy - 8}V${cy + 8}" ${thin}/><path d="M${X(14)} ${cy - 8}A8 8 0 0 ${dir < 0 ? 0 : 1} ${X(14)} ${cy + 8}" ${thin}/>`;
-    if (kind === "hebel") return `<path d="M${ex} ${cy}H${X(6)}L${X(16)} ${cy - 12}" ${thin}/><circle cx="${X(17.5)}" cy="${cy - 14}" r="2.8" fill="${INK}"/>`;
-    const x0 = Math.min(ex, X(12));
-    let s = `<rect x="${x0}" y="${cy - 9}" width="12" height="18" fill="#fff" ${thin}/><path d="M${x0} ${cy + 9}L${x0 + 12} ${cy - 9}" ${thin}/>`;
-    if (kind === "magp") {
-      const x1 = Math.min(X(12), X(24));
-      s += `<rect x="${x1}" y="${cy - 9}" width="12" height="18" fill="#fff" ${thin}/><path d="M${X(14)} ${cy}L${X(22)} ${cy - 5}V${cy + 5}Z" fill="${INK}"/>`;
-    }
-    return s;
-  }
-  var actW = (k) => k === "magp" ? 24 : k === "feder" ? 22 : k === "mag" ? 12 : 18;
-  function drawValve(o) {
-    const V = VALVE[o.k], x = o.x, y = o.y, s = vstate(o), shift = (V.rest - vIdx(o, s)) * VB, by = y + 10;
-    let g = "";
-    for (let i = 0; i < V.n; i++) {
-      const bx = x + 30 + i * VB + shift, c = vBox(o, i);
-      g += `<rect x="${bx}" y="${by}" width="${VB}" height="${VB}" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`;
-      c.flows.forEach(([p, q]) => {
-        const x1 = bx + p[1], y1 = p[2] === "u" ? by + 2 : by + VB - 2, x2 = bx + q[1], y2 = q[2] === "u" ? by + 2 : by + VB - 2;
-        g += `<path d="M${x1} ${y1}L${x2} ${y2}" ${thin}/>` + arrowHead(x1, y1, x2, y2);
-      });
-      c.blocked.forEach((p) => {
-        const px = bx + p[1], top = p[2] === "u", y0 = top ? by : by + VB, y1 = top ? by + 9 : by + VB - 9;
-        g += `<path d="M${px} ${y0}V${y1}M${px - 5} ${y1}H${px + 5}" ${thin}/>`;
-      });
-    }
-    const el = x + 30 + shift, er = x + 30 + V.n * VB + shift, cy = y + 30, al = o.al || "mag", ar = o.ar || (o.k === "v53" ? "mag" : "feder");
-    g += actuator(al, el, cy, -1) + actuator(ar, er, cy, 1);
-    if (o.k === "v53") g += actuator("feder", el - actW(al), cy, -1) + actuator("feder", er + actW(ar), cy, 1);
-    if (al === "mag" || al === "magp") g += PN(el - actW(al) / 2, y + 17, "14", "middle");
-    if (ar === "mag" || ar === "magp") g += PN(er + actW(ar) / 2, y + 17, "12", "middle");
-    const rx = x + 30 + V.rest * VB;
-    V.ports.forEach(([n, dx, d]) => {
-      const px = rx + dx;
-      g += d === "u" ? PP(`M${px} ${y}V${y + 10}`) + PN(px + 3, y + 7, n) : PP(`M${px} ${y + 50}V${y + 60}`) + PN(px + 3, y + 59, n);
-    });
-    const lx = Math.min(el - actW(al) - (o.k === "v53" ? 22 : 0), x + 30) - 4;
-    return g + LB(lx, y + 34, o.v);
-  }
-  function cylinder(o, single) {
-    const x = o.x, y = o.y, p = posOf(o), px = x + 16 + p * 88, f = (n) => n.toFixed(1);
-    let s = "";
-    if (simOn()) {
-      if (pressed(o, "A")) s += `<rect x="${x + 3}" y="${y + 13}" width="${f(px - x - 3)}" height="24" fill="${BLUE}" fill-opacity=".2"/>`;
-      if (!single && pressed(o, "B")) s += `<rect x="${f(px)}" y="${y + 13}" width="${f(x + 117 - px)}" height="24" fill="${BLUE}" fill-opacity=".2"/>`;
-    }
-    s += `<rect x="${x}" y="${y + 10}" width="120" height="30" fill="none" stroke="${INK}" stroke-width="1.6"/>`;
-    s += `<rect x="${f(px - 2)}" y="${y + 11}" width="4" height="28" fill="${INK}"/>`;
-    if (o.mk === "ja") s += `<rect x="${f(px - 7)}" y="${y + 13}" width="3" height="24" fill="${INK}"/>`;
-    if (!single && o.dp) {
-      const cu = (cx, d) => `<rect x="${cx}" y="${y + 19}" width="7" height="12" fill="#fff" ${thin}/>` + (o.dp === "einst" ? `<path d="M${cx - 4} ${y + 34}L${cx + 11} ${y + 16}" ${thin}/>` + arrowHead(cx - 4, y + 34, cx + 11.5, y + 15.5, 4.5) : "");
-      s += cu(x + 3, 1) + cu(x + 108, -1);
-    }
-    s += `<path d="M${f(px)} ${y + 22}H${f(px + 112)}V${y + 28}H${f(px)}" fill="#fff" stroke="${INK}" stroke-width="1.4"/>`;
-    s += `<rect x="${x + 118}" y="${y + 20}" width="4" height="10" fill="${INK}"/>`;
-    if (single) {
-      const a = px + 5, b = x + 116, n = 7, st = (b - a) / n;
-      let z = `M${f(a)} ${y + 25}`;
-      for (let i = 1; i < n; i++) z += `L${f(a + st * i)} ${i % 2 ? y + 15 : y + 35}`;
-      s += `<path d="${z}L${f(b)} ${y + 25}" ${thin}/>`;
-      s += `<path d="M${x + 110} ${y + 40}V${y + 46}M${x + 106} ${y + 46}H${x + 114}" ${thin}/>`;
-    }
-    s += PP(`M${x + 10} ${y + 40}V${y + 60}`) + PN(x + 13, y + 57, "A");
-    if (!single) s += PP(`M${x + 110} ${y + 40}V${y + 60}`) + PN(x + 113, y + 57, "B");
-    const sens = (sx, t, on) => t ? `<path d="M${sx} ${y + 10}V${y + 4}" ${thin}/><rect x="${sx - 6}" y="${y - 4}" width="12" height="8" rx="1.5" fill="${on ? "#2E7D4F" : "#fff"}" ${thin}/>` + PN(sx, y - 7, t, "middle") : "";
-    s += sens(x + 16, o.s1, simOn() && p < 0.02) + sens(x + 104, o.s2, simOn() && p > 0.98);
-    return s + LB(x - 6, y + 30, o.v);
-  }
   var DIRV = { u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0] };
   function xform(o) {
     const pc = PC[o.k];
@@ -1404,7 +1301,6 @@ pre.code code{font-size:inherit}
     const pc = PC[o.k];
     if (pc) {
       if (pc.umriss) return pc.umriss(o);
-      if (o.k === "insel") return { x: o.x, y: o.y, w: +o.fw || 360, h: +o.fh || 120 };
       const X = xform(o), b = { x: o.x + (pc.bx || 0), y: o.y, w: pc.w, h: pc.h };
       if (!X || X.c) return b;
       return { x: X.cx - pc.h / 2, y: X.cy - pc.w / 2, w: pc.h, h: pc.w };
@@ -1514,85 +1410,6 @@ pre.code code{font-size:inherit}
   }
 
   // web/tools/uebungshandbuch/src/editor/zeichnen.js
-  function simCompute() {
-    const d = ED.data, adj = /* @__PURE__ */ new Map(), add = (a, b) => {
-      if (!adj.has(a)) adj.set(a, []);
-      if (!adj.has(b)) adj.set(b, []);
-      adj.get(a).push(b);
-      adj.get(b).push(a);
-    };
-    d.c.forEach((c) => {
-      if (c.pa !== void 0 && c.pb !== void 0) add(c.a + ":" + c.pa, c.b + ":" + c.pb);
-    });
-    const roots = [];
-    d.o.forEach((o) => {
-      const pc = PC[o.k];
-      if (!pc || !pc.sim) return;
-      const r = pc.sim(o, ED.sim.st[o.id], () => false);
-      (r.pairs || []).forEach(([p, q]) => add(o.id + ":" + p, o.id + ":" + q));
-      (r.src || []).forEach((p) => roots.push(o.id + ":" + p));
-    });
-    let P = /* @__PURE__ */ new Set();
-    for (let pass = 0; pass < 8; pass++) {
-      const dir = /* @__PURE__ */ new Map();
-      d.o.forEach((o) => {
-        const pc = PC[o.k];
-        if (!pc || !pc.sim) return;
-        const r = pc.sim(o, ED.sim.st[o.id], (q) => P.has(o.id + ":" + q));
-        (r.dir || []).forEach(([p, q]) => {
-          const a = o.id + ":" + p;
-          if (!dir.has(a)) dir.set(a, []);
-          dir.get(a).push(o.id + ":" + q);
-        });
-      });
-      const N = /* @__PURE__ */ new Set(), st = [...roots];
-      while (st.length) {
-        const n = st.pop();
-        if (N.has(n)) continue;
-        N.add(n);
-        (adj.get(n) || []).forEach((m) => st.push(m));
-        (dir.get(n) || []).forEach((m) => st.push(m));
-      }
-      const same = N.size === P.size && [...N].every((n) => P.has(n));
-      P = N;
-      if (same) break;
-    }
-    ED.sim.P = P;
-  }
-  function simStep(t) {
-    if (!simOn()) return;
-    const dt = Math.min(0.05, (t - (ED.sim.t || t)) / 1e3);
-    ED.sim.t = t;
-    let moving = false;
-    ED.data.o.forEach((o) => {
-      if (!["zyl1", "zyl2", "rot"].includes(o.k)) return;
-      const A = pressed(o, "A"), B = o.k !== "zyl1" && pressed(o, "B"), p = ED.sim.pos[o.id] || 0;
-      const dir = o.k === "zyl1" ? A ? 1 : -1 : A && !B ? 1 : B && !A ? -1 : 0, np = Math.max(0, Math.min(1, p + dir * dt / 1.2));
-      if (np !== p) {
-        ED.sim.pos[o.id] = np;
-        moving = true;
-      }
-    });
-    if (moving && ED.svg) ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
-    requestAnimationFrame(simStep);
-  }
-  function simClick(o, pt) {
-    if (o.k === "kh") {
-      ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf";
-      simCompute();
-      ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
-      return;
-    }
-    if (!["v22", "v32", "v52", "v53"].includes(o.k)) return;
-    const b = bbox(o), left = pt[0] < b.x + b.w / 2, s = vstate(o), mono = (o.ar || "feder") === "feder";
-    let ns = s;
-    if (o.k === "v53") ns = left ? s === "act" ? "center" : "act" : s === "b" ? "center" : "b";
-    else if (mono) ns = left ? s === "act" ? "rest" : "act" : s;
-    else ns = left ? "act" : "rest";
-    ED.sim.st[o.id] = ns;
-    simCompute();
-    ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
-  }
   function drawObj(o, edit) {
     if (PC[o.k]) {
       const svg = PC[o.k].draw(o, edit), X = xform(o);
@@ -1653,6 +1470,7 @@ pre.code code{font-size:inherit}
     const b = gruppeVon(A).bedingung;
     return !!b && b(A);
   };
+  var istRahmen = (o) => !!(PC[o.k] && PC[o.k].rahmen);
   function inkSVG(d, edit = false, key = null) {
     if (!d) return "";
     const objs = Object.fromEntries((d.o || []).map((o) => [o.id, o])), cs = d.c || [];
@@ -1691,8 +1509,8 @@ pre.code code{font-size:inherit}
       const lbl = gm.lbl ? c.v ? SVGT(gm.lbl[0], gm.lbl[1], c.v, gm.lbl[2], 12, 500) : edit && fragtBedingung(objs[c.a]) ? SVGT(gm.lbl[0], gm.lbl[1], "Bedingung", gm.lbl[2], 11, 400, MUTE) : "" : "";
       return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${col}" stroke-width="${sel ? 2.2 : 1.6}" ${gm.arrow ? 'marker-end="url(#arw)"' : ""}/>${up}${edit ? `<path d="${gm.d}" fill="none" stroke="transparent" stroke-width="12"/>` : ""}${lbl}</g>`;
     }).join("");
-    const os = [...d.o || []].sort((a, b) => (b.k === "insel") - (a.k === "insel")).map((o) => {
-      const b = bbox(o), hi = edit && (ED.sel === o.id || ED.from === o.id), fr = o.k === "insel";
+    const os = [...d.o || []].sort((a, b) => istRahmen(b) - istRahmen(a)).map((o) => {
+      const b = bbox(o), hi = edit && (ED.sel === o.id || ED.from === o.id), fr = istRahmen(o);
       return `<g data-o="${o.id}">${edit && fr ? `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? 0.25 : 0}" stroke-width="12"/>` : ""}${edit && !fr ? `<rect x="${b.x - 5}" y="${b.y - 5}" width="${b.w + 10}" height="${b.h + 10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${ED.from === o.id ? "2 3" : "5 3"}"` : ""}/>` : ""}${drawObj(o, edit)}</g>`;
     }).join("");
     let extra = "";
@@ -1713,13 +1531,8 @@ pre.code code{font-size:inherit}
       if (v2.n >= 2) extra += dot(v2.q);
     });
     (d.o || []).forEach((o) => {
-      if (!VALVE[o.k]) return;
-      portsOf(o).forEach((q) => {
-        if ((q.n === "3" || q.n === "5") && !cnt[o.id + ":" + q.n]) {
-          const [dx, dy] = DIRV[q.d];
-          extra += `<path d="M${q.x} ${q.y}L${q.x + dx * 9 - dy * 5} ${q.y + dy * 9 - dx * 5}L${q.x + dx * 9 + dy * 5} ${q.y + dy * 9 + dx * 5}Z" ${SK}/>`;
-        }
-      });
+      const pc = PC[o.k];
+      if (pc && pc.zusatz) extra += pc.zusatz(o, (n) => !!cnt[o.id + ":" + n]);
     });
     if (edit && ED.tool === "conn") (d.o || []).forEach((o) => portsOf(o).forEach((q) => {
       const f = ED.from === o.id && ED.fromP === q.n;
@@ -2087,7 +1900,6 @@ pre.code code{font-size:inherit}
   function propsHTML() {
     const v = VORL[ED.key], anleitung = v && v.anleitung && v.anleitung();
     if (anleitung) return anleitung;
-    if (ED.tool === "sim") return `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren leuchten grün.</p><p class="small muted" style="margin:0">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;
     const inp = textFeld, sel = auswahlFeld, COL = FARBEN, del = loeschKnopf();
     if (ED.selT !== null && ED.data.t[ED.selT]) {
       const t = ED.data.t[ED.selT];
@@ -2351,12 +2163,6 @@ pre.code code{font-size:inherit}
     ED.pend = null;
     const v = VORL[ED.key];
     if (v && v.werkzeugWechsel) v.werkzeugWechsel(t);
-    if (t === "sim" && !simOn()) {
-      clearSel();
-      ED.sim = { on: true, st: {}, pos: {}, t: 0 };
-      simCompute();
-      requestAnimationFrame(simStep);
-    } else if (t !== "sim" && simOn()) ED.sim = { on: false, st: {}, pos: {} };
     ED.tool = t;
     if (t !== "place") ED.place = null;
     if (t !== "conn") ED.from = null;
@@ -2628,11 +2434,6 @@ pre.code code{font-size:inherit}
     const svg = ED.svg, pt = svgPt(svg, e), hitO = e.target.closest("[data-o]"), hitC = e.target.closest("[data-c]");
     const zeiger = VORL[ED.key].zeiger || {};
     if (zeiger.unten && zeiger.unten(e, pt)) return;
-    if (ED.tool === "sim") {
-      const h = e.target.closest("[data-o]");
-      if (h) simClick(objById(h.dataset.o), pt);
-      return;
-    }
     if (ED.tool === "place" && ED.place) {
       e.preventDefault();
       placeObj(ED.place, pt);
@@ -2922,7 +2723,7 @@ pre.code code{font-size:inherit}
     dlg.innerHTML = `<div class="ed"><div class="edbar">
     <span class="ttl">${VORL[key].n}${ex ? ` – ${ex.id}` : ""}</span>
     <button type="button" class="tool" data-tool="sel" title="Bausteine, Linien und Texte markieren, verschieben, ändern">${IC.cursor}Auswählen</button>
-    ${pal.length ? `<button type="button" class="tool" data-tool="conn" title="Zwei Bausteine bzw. Anschlüsse nacheinander anklicken">${IC.link}Verbinden</button>` : ""}${key === "pneumatik" ? `<button type="button" class="tool" data-tool="sim" title="Ventile per Klick schalten, Druck und Zylinderbewegung ansehen">${IC.play}Simulation</button>` : ""}<span class="sep"></span>
+    ${pal.length ? `<button type="button" class="tool" data-tool="conn" title="Zwei Bausteine bzw. Anschlüsse nacheinander anklicken">${IC.link}Verbinden</button>` : ""}${leiste.nachVerbinden || ""}<span class="sep"></span>
     ${colors.map(([c, n]) => `<button type="button" class="tool" data-tool="pen" data-color="${c}"><span class="dot" style="background:${c}"></span>${n}</button>`).join("")}
     <button type="button" class="tool" data-tool="line" title="${linie.titel}">${IC.line}${linie.name}</button>
     ${leiste.nachLinie || ""}
@@ -4367,18 +4168,227 @@ END_CASE;`)}
   });
   fuelle(SAMPLE, { rail: [{ k: "rail", x: 4, y: 10, v: "", w: 70 }, "0 0 78 20", ""] });
 
-  // web/tools/uebungshandbuch/src/editor/vorlagen/alt.js
-  registriereVorlage("pneumatik", { n: "Pneumatikschaltplan", d: "Zylinder, Wegeventile, Drosseln nach ISO 1219 – mit Simulation", gruppen: ["pneu"], body: (ex, page, meta) => tplBody("pneumatik", ex, page, meta) });
-  registriereVorlage("regelkreis", { n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: (ex, page, meta) => tplBody("regelkreis", ex, page, meta) });
-  registriereVorlage("trend", { n: "Trendaufzeichnung", d: "Istwert, Sollwert und Stellgröße über der Zeit", einblattig: true, body: (ex, page, meta) => tplBody("trend", ex, page, meta) });
-  registriereVorlage("raster", { n: "Kästchenraster", d: "5-mm-Raster für alles Weitere", gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel"], body: (ex, page, meta) => tplBody("raster", ex, page, meta) });
-  registriereGruppe("pneu", { name: "Pneumatik nach ISO 1219", hinweis: "Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken." });
-  registriereGruppe("regel", { pfeiltext: true, name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn." });
-  fuelle(BLK, {
-    box: { g: "regel", n: "Block" },
-    sum: { g: "regel", n: "Summierstelle", ...rund(15), beschriftung: false }
+  // web/tools/uebungshandbuch/src/editor/vorlagen/pneumatik-symbole.js
+  var posOf = (o) => simOn() && ED.sim.pos[o.id] !== void 0 ? ED.sim.pos[o.id] : 0;
+  var vstate = (o) => simOn() && ED.sim.st[o.id] || (o.k === "v53" ? "center" : "rest");
+  var VB = 40;
+  var VALVE = {
+    v22: { n: 2, rest: 1, ports: [["2", 20, "u"], ["1", 20, "d"]] },
+    v32: { n: 2, rest: 1, ports: [["2", 20, "u"], ["1", 10, "d"], ["3", 30, "d"]] },
+    v52: { n: 2, rest: 1, ports: [["4", 10, "u"], ["2", 30, "u"], ["5", 10, "d"], ["1", 20, "d"], ["3", 30, "d"]] },
+    v53: { n: 3, rest: 1, ports: [["4", 10, "u"], ["2", 30, "u"], ["5", 10, "d"], ["1", 20, "d"], ["3", 30, "d"]] }
+  };
+  var vIdx = (o, s) => o.k === "v53" ? { act: 0, center: 1, b: 2 }[s] ?? 1 : s === "act" ? 0 : 1;
+  function vPairs(o, s) {
+    if (o.k === "v22") {
+      const nc = (o.gs || "nc") === "nc";
+      return s === "act" === nc ? [["1", "2"]] : [];
+    }
+    if (o.k === "v32") {
+      const nc = (o.gs || "nc") === "nc";
+      return s === "act" ? nc ? [["1", "2"]] : [["2", "3"]] : nc ? [["2", "3"]] : [["1", "2"]];
+    }
+    if (o.k === "v52") return s === "act" ? [["1", "4"], ["2", "3"]] : [["1", "2"], ["4", "5"]];
+    return s === "act" ? [["1", "4"], ["2", "3"]] : s === "b" ? [["1", "2"], ["4", "5"]] : [];
+  }
+  function vBox(o, i) {
+    const V = VALVE[o.k], at = (n) => V.ports.find((p) => p[0] === n);
+    let pairs;
+    if (o.k === "v53" && i === 1) pairs = [];
+    else pairs = vPairs(o, o.k === "v53" ? i === 0 ? "act" : "b" : i === 0 ? "act" : "rest");
+    const used = new Set(pairs.flat());
+    const dir = ([a, b]) => a === "1" ? [at(a), at(b)] : b === "1" ? [at(b), at(a)] : b === "3" || b === "5" ? [at(a), at(b)] : [at(b), at(a)];
+    return { flows: pairs.map(dir), blocked: V.ports.filter((p) => !used.has(p[0])) };
+  }
+  var thin = `stroke="${INK}" stroke-width="1.3" fill="none" stroke-linecap="round"`;
+  function actuator(kind, ex, cy, dir) {
+    const X = (d) => ex + dir * d;
+    if (kind === "feder") return `<path d="M${ex} ${cy}L${X(3)} ${cy - 7}L${X(7)} ${cy + 7}L${X(11)} ${cy - 7}L${X(15)} ${cy + 7}L${X(19)} ${cy - 7}L${X(22)} ${cy}" ${thin}/>`;
+    if (kind === "taster") return `<path d="M${ex} ${cy}H${X(14)}M${X(14)} ${cy - 8}V${cy + 8}" ${thin}/><path d="M${X(14)} ${cy - 8}A8 8 0 0 ${dir < 0 ? 0 : 1} ${X(14)} ${cy + 8}" ${thin}/>`;
+    if (kind === "hebel") return `<path d="M${ex} ${cy}H${X(6)}L${X(16)} ${cy - 12}" ${thin}/><circle cx="${X(17.5)}" cy="${cy - 14}" r="2.8" fill="${INK}"/>`;
+    const x0 = Math.min(ex, X(12));
+    let s = `<rect x="${x0}" y="${cy - 9}" width="12" height="18" fill="#fff" ${thin}/><path d="M${x0} ${cy + 9}L${x0 + 12} ${cy - 9}" ${thin}/>`;
+    if (kind === "magp") {
+      const x1 = Math.min(X(12), X(24));
+      s += `<rect x="${x1}" y="${cy - 9}" width="12" height="18" fill="#fff" ${thin}/><path d="M${X(14)} ${cy}L${X(22)} ${cy - 5}V${cy + 5}Z" fill="${INK}"/>`;
+    }
+    return s;
+  }
+  var actW = (k) => k === "magp" ? 24 : k === "feder" ? 22 : k === "mag" ? 12 : 18;
+  function drawValve(o) {
+    const V = VALVE[o.k], x = o.x, y = o.y, s = vstate(o), shift = (V.rest - vIdx(o, s)) * VB, by = y + 10;
+    let g = "";
+    for (let i = 0; i < V.n; i++) {
+      const bx = x + 30 + i * VB + shift, c = vBox(o, i);
+      g += `<rect x="${bx}" y="${by}" width="${VB}" height="${VB}" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`;
+      c.flows.forEach(([p, q]) => {
+        const x1 = bx + p[1], y1 = p[2] === "u" ? by + 2 : by + VB - 2, x2 = bx + q[1], y2 = q[2] === "u" ? by + 2 : by + VB - 2;
+        g += `<path d="M${x1} ${y1}L${x2} ${y2}" ${thin}/>` + arrowHead(x1, y1, x2, y2);
+      });
+      c.blocked.forEach((p) => {
+        const px = bx + p[1], top = p[2] === "u", y0 = top ? by : by + VB, y1 = top ? by + 9 : by + VB - 9;
+        g += `<path d="M${px} ${y0}V${y1}M${px - 5} ${y1}H${px + 5}" ${thin}/>`;
+      });
+    }
+    const el = x + 30 + shift, er = x + 30 + V.n * VB + shift, cy = y + 30, al = o.al || "mag", ar = o.ar || (o.k === "v53" ? "mag" : "feder");
+    g += actuator(al, el, cy, -1) + actuator(ar, er, cy, 1);
+    if (o.k === "v53") g += actuator("feder", el - actW(al), cy, -1) + actuator("feder", er + actW(ar), cy, 1);
+    if (al === "mag" || al === "magp") g += PN(el - actW(al) / 2, y + 17, "14", "middle");
+    if (ar === "mag" || ar === "magp") g += PN(er + actW(ar) / 2, y + 17, "12", "middle");
+    const rx = x + 30 + V.rest * VB;
+    V.ports.forEach(([n, dx, d]) => {
+      const px = rx + dx;
+      g += d === "u" ? PP(`M${px} ${y}V${y + 10}`) + PN(px + 3, y + 7, n) : PP(`M${px} ${y + 50}V${y + 60}`) + PN(px + 3, y + 59, n);
+    });
+    const lx = Math.min(el - actW(al) - (o.k === "v53" ? 22 : 0), x + 30) - 4;
+    return g + LB(lx, y + 34, o.v);
+  }
+  function cylinder(o, single) {
+    const x = o.x, y = o.y, p = posOf(o), px = x + 16 + p * 88, f = (n) => n.toFixed(1);
+    let s = "";
+    if (simOn()) {
+      if (pressed(o, "A")) s += `<rect x="${x + 3}" y="${y + 13}" width="${f(px - x - 3)}" height="24" fill="${BLUE}" fill-opacity=".2"/>`;
+      if (!single && pressed(o, "B")) s += `<rect x="${f(px)}" y="${y + 13}" width="${f(x + 117 - px)}" height="24" fill="${BLUE}" fill-opacity=".2"/>`;
+    }
+    s += `<rect x="${x}" y="${y + 10}" width="120" height="30" fill="none" stroke="${INK}" stroke-width="1.6"/>`;
+    s += `<rect x="${f(px - 2)}" y="${y + 11}" width="4" height="28" fill="${INK}"/>`;
+    if (o.mk === "ja") s += `<rect x="${f(px - 7)}" y="${y + 13}" width="3" height="24" fill="${INK}"/>`;
+    if (!single && o.dp) {
+      const cu = (cx, d) => `<rect x="${cx}" y="${y + 19}" width="7" height="12" fill="#fff" ${thin}/>` + (o.dp === "einst" ? `<path d="M${cx - 4} ${y + 34}L${cx + 11} ${y + 16}" ${thin}/>` + arrowHead(cx - 4, y + 34, cx + 11.5, y + 15.5, 4.5) : "");
+      s += cu(x + 3, 1) + cu(x + 108, -1);
+    }
+    s += `<path d="M${f(px)} ${y + 22}H${f(px + 112)}V${y + 28}H${f(px)}" fill="#fff" stroke="${INK}" stroke-width="1.4"/>`;
+    s += `<rect x="${x + 118}" y="${y + 20}" width="4" height="10" fill="${INK}"/>`;
+    if (single) {
+      const a = px + 5, b = x + 116, n = 7, st = (b - a) / n;
+      let z = `M${f(a)} ${y + 25}`;
+      for (let i = 1; i < n; i++) z += `L${f(a + st * i)} ${i % 2 ? y + 15 : y + 35}`;
+      s += `<path d="${z}L${f(b)} ${y + 25}" ${thin}/>`;
+      s += `<path d="M${x + 110} ${y + 40}V${y + 46}M${x + 106} ${y + 46}H${x + 114}" ${thin}/>`;
+    }
+    s += PP(`M${x + 10} ${y + 40}V${y + 60}`) + PN(x + 13, y + 57, "A");
+    if (!single) s += PP(`M${x + 110} ${y + 40}V${y + 60}`) + PN(x + 113, y + 57, "B");
+    const sens = (sx, t, on) => t ? `<path d="M${sx} ${y + 10}V${y + 4}" ${thin}/><rect x="${sx - 6}" y="${y - 4}" width="12" height="8" rx="1.5" fill="${on ? "#2E7D4F" : "#fff"}" ${thin}/>` + PN(sx, y - 7, t, "middle") : "";
+    s += sens(x + 16, o.s1, simOn() && p < 0.02) + sens(x + 104, o.s2, simOn() && p > 0.98);
+    return s + LB(x - 6, y + 30, o.v);
+  }
+  function entlueftung(o, belegt) {
+    return portsOf(o).map((q) => {
+      if (q.n !== "3" && q.n !== "5" || belegt(q.n)) return "";
+      const [dx, dy] = DIRV[q.d];
+      return `<path d="M${q.x} ${q.y}L${q.x + dx * 9 - dy * 5} ${q.y + dy * 9 - dx * 5}L${q.x + dx * 9 + dy * 5} ${q.y + dy * 9 + dx * 5}Z" ${SK}/>`;
+    }).join("");
+  }
+
+  // web/tools/uebungshandbuch/src/editor/vorlagen/pneumatik-simulation.js
+  function simCompute() {
+    const d = ED.data, adj = /* @__PURE__ */ new Map(), add = (a, b) => {
+      if (!adj.has(a)) adj.set(a, []);
+      if (!adj.has(b)) adj.set(b, []);
+      adj.get(a).push(b);
+      adj.get(b).push(a);
+    };
+    d.c.forEach((c) => {
+      if (c.pa !== void 0 && c.pb !== void 0) add(c.a + ":" + c.pa, c.b + ":" + c.pb);
+    });
+    const roots = [];
+    d.o.forEach((o) => {
+      const pc = PC[o.k];
+      if (!pc || !pc.sim) return;
+      const r = pc.sim(o, ED.sim.st[o.id], () => false);
+      (r.pairs || []).forEach(([p, q]) => add(o.id + ":" + p, o.id + ":" + q));
+      (r.src || []).forEach((p) => roots.push(o.id + ":" + p));
+    });
+    let P = /* @__PURE__ */ new Set();
+    for (let pass = 0; pass < 8; pass++) {
+      const dir = /* @__PURE__ */ new Map();
+      d.o.forEach((o) => {
+        const pc = PC[o.k];
+        if (!pc || !pc.sim) return;
+        const r = pc.sim(o, ED.sim.st[o.id], (q) => P.has(o.id + ":" + q));
+        (r.dir || []).forEach(([p, q]) => {
+          const a = o.id + ":" + p;
+          if (!dir.has(a)) dir.set(a, []);
+          dir.get(a).push(o.id + ":" + q);
+        });
+      });
+      const N = /* @__PURE__ */ new Set(), st = [...roots];
+      while (st.length) {
+        const n = st.pop();
+        if (N.has(n)) continue;
+        N.add(n);
+        (adj.get(n) || []).forEach((m) => st.push(m));
+        (dir.get(n) || []).forEach((m) => st.push(m));
+      }
+      const same = N.size === P.size && [...N].every((n) => P.has(n));
+      P = N;
+      if (same) break;
+    }
+    ED.sim.P = P;
+  }
+  function simStep(t) {
+    if (!simOn()) return;
+    const dt = Math.min(0.05, (t - (ED.sim.t || t)) / 1e3);
+    ED.sim.t = t;
+    let moving = false;
+    ED.data.o.forEach((o) => {
+      if (!["zyl1", "zyl2", "rot"].includes(o.k)) return;
+      const A = pressed(o, "A"), B = o.k !== "zyl1" && pressed(o, "B"), p = ED.sim.pos[o.id] || 0;
+      const dir = o.k === "zyl1" ? A ? 1 : -1 : A && !B ? 1 : B && !A ? -1 : 0, np = Math.max(0, Math.min(1, p + dir * dt / 1.2));
+      if (np !== p) {
+        ED.sim.pos[o.id] = np;
+        moving = true;
+      }
+    });
+    if (moving && ED.svg) ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+    requestAnimationFrame(simStep);
+  }
+  function simClick(o, pt) {
+    if (o.k === "kh") {
+      ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf";
+      simCompute();
+      ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+      return;
+    }
+    if (!["v22", "v32", "v52", "v53"].includes(o.k)) return;
+    const b = bbox(o), left = pt[0] < b.x + b.w / 2, s = vstate(o), mono = (o.ar || "feder") === "feder";
+    let ns = s;
+    if (o.k === "v53") ns = left ? s === "act" ? "center" : "act" : s === "b" ? "center" : "b";
+    else if (mono) ns = left ? s === "act" ? "rest" : "act" : s;
+    else ns = left ? "act" : "rest";
+    ED.sim.st[o.id] = ns;
+    simCompute();
+    ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+  }
+  var SIM_ANLEITUNG = `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren leuchten grün.</p><p class="small muted" style="margin:0">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;
+  function simulationWechsel(t) {
+    if (t === "sim" && !simOn()) {
+      clearSel();
+      ED.sim = { on: true, st: {}, pos: {}, t: 0 };
+      simCompute();
+      requestAnimationFrame(simStep);
+    } else if (t !== "sim" && simOn()) ED.sim = { on: false, st: {}, pos: {} };
+  }
+  function simulationKlick(e, pt) {
+    if (ED.tool !== "sim") return false;
+    const h = e.target.closest("[data-o]");
+    if (h) simClick(objById(h.dataset.o), pt);
+    return true;
+  }
+
+  // web/tools/uebungshandbuch/src/editor/vorlagen/pneumatik.js
+  registriereVorlage("pneumatik", {
+    n: "Pneumatikschaltplan",
+    d: "Zylinder, Wegeventile, Drosseln nach ISO 1219 – mit Simulation",
+    gruppen: ["pneu"],
+    body: () => grid(10, "#EEF1F3", 15, 15, 985, 630) + TX(25, 33, 10, "Energiefluss von unten nach oben: Versorgung unten, Ventile in der Mitte, Antriebe oben", "start"),
+    werkzeugleiste: { nachVerbinden: `<button type="button" class="tool" data-tool="sim" title="Ventile per Klick schalten, Druck und Zylinderbewegung ansehen">${IC.play}Simulation</button>` },
+    anleitung: () => ED.tool === "sim" ? SIM_ANLEITUNG : null,
+    werkzeugWechsel: simulationWechsel,
+    zeiger: { unten: simulationKlick }
   });
-  fuelle(PC, {
+  registriereGruppe("pneu", { name: "Pneumatik nach ISO 1219", hinweis: "Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken." });
+  registriereBauteile({
     /* Pneumatik nach ISO 1219 – Energiefluss von unten nach oben */
     src: {
       g: "pneu",
@@ -4412,7 +4422,8 @@ END_CASE;`)}
       info: "Zwei Anschlüsse, zwei Stellungen: Durchgang von 1 nach 2 oder gesperrt. Kein Entlüftungsanschluss – die Leitung hinter dem Ventil bleibt beim Sperren unter Druck. An der Anlage: Luftmesser −MB14, Ausblasdüse −MB16, Frischwasser −MB17 (stromlos geschlossen).",
       props: [["gs", "Grundstellung", "select", [["nc", "gesperrt (NC, stromlos geschlossen)"], ["no", "offen (NO, stromlos offen)"]]], ["al", "Betätigung links", "select", [["mag", "Magnet"], ["magp", "Magnet vorgesteuert"], ["taster", "Taster"], ["hebel", "Hebel"]]], ["ar", "Rückstellung rechts", "select", [["feder", "Feder"], ["mag", "Magnet"], ["magp", "Magnet vorgesteuert"]]]],
       sim: (o, s) => ({ pairs: vPairs(o, s || "rest") }),
-      draw: (o) => drawValve(o)
+      draw: (o) => drawValve(o),
+      zusatz: entlueftung
     },
     v32: {
       g: "pneu",
@@ -4425,7 +4436,8 @@ END_CASE;`)}
       ports: (o) => VALVE.v32.ports.map(([n, dx, d]) => [n, 70 + dx, d === "u" ? 0 : 60, d]),
       props: [["gs", "Grundstellung", "select", [["nc", "gesperrt (NC)"], ["no", "offen (NO)"]]], ["al", "Betätigung links", "select", [["mag", "Magnet"], ["magp", "Magnet vorgesteuert"], ["taster", "Taster"], ["hebel", "Hebel"]]], ["ar", "Rückstellung rechts", "select", [["feder", "Feder"], ["mag", "Magnet"], ["magp", "Magnet vorgesteuert"]]]],
       sim: (o, s) => ({ pairs: vPairs(o, s || "rest") }),
-      draw: (o) => drawValve(o)
+      draw: (o) => drawValve(o),
+      zusatz: entlueftung
     },
     v52: {
       g: "pneu",
@@ -4438,7 +4450,8 @@ END_CASE;`)}
       ports: (o) => VALVE.v52.ports.map(([n, dx, d]) => [n, 70 + dx, d === "u" ? 0 : 60, d]),
       props: [["al", "Betätigung links (14)", "select", [["mag", "Magnet"], ["magp", "Magnet vorgesteuert"], ["taster", "Taster"], ["hebel", "Hebel"]]], ["ar", "Betätigung rechts (12)", "select", [["feder", "Feder – monostabil"], ["mag", "Magnet – bistabil"], ["magp", "Magnet vorgesteuert – bistabil"]]]],
       sim: (o, s) => ({ pairs: vPairs(o, s || "rest") }),
-      draw: (o) => drawValve(o)
+      draw: (o) => drawValve(o),
+      zusatz: entlueftung
     },
     v53: {
       g: "pneu",
@@ -4451,8 +4464,24 @@ END_CASE;`)}
       ports: (o) => VALVE.v53.ports.map(([n, dx, d]) => [n, 70 + dx, d === "u" ? 0 : 60, d]),
       props: [["al", "Betätigung links (14)", "select", [["mag", "Magnet"], ["magp", "Magnet vorgesteuert"]]], ["ar", "Betätigung rechts (12)", "select", [["mag", "Magnet"], ["magp", "Magnet vorgesteuert"]]]],
       sim: (o, s) => ({ pairs: vPairs(o, s || "center") }),
-      draw: (o) => drawValve(o)
-    },
+      draw: (o) => drawValve(o),
+      zusatz: entlueftung
+    }
+  });
+  var PCPAL = {
+    v22nc: { g: "pneu", n: "2/2-Wegeventil gesperrt, Magnet/Feder", mk: { k: "v22", gs: "nc", al: "mag", ar: "feder" } },
+    v22no: { g: "pneu", n: "2/2-Wegeventil offen, Magnet/Feder", mk: { k: "v22", gs: "no", al: "mag", ar: "feder" } },
+    v32nc: { g: "pneu", n: "3/2-Wegeventil gesperrt, Magnet/Feder", mk: { k: "v32", gs: "nc", al: "mag", ar: "feder" } },
+    v32no: { g: "pneu", n: "3/2-Wegeventil offen, Magnet/Feder", mk: { k: "v32", gs: "no", al: "mag", ar: "feder" } },
+    v32h: { g: "pneu", n: "3/2-Wegeventil Taster/Feder", mk: { k: "v32", gs: "nc", al: "taster", ar: "feder" } },
+    v52m: { g: "pneu", n: "5/2-Wegeventil monostabil", mk: { k: "v52", al: "mag", ar: "feder" } },
+    v52b: { g: "pneu", n: "5/2-Wegeventil bistabil (Impuls)", mk: { k: "v52", al: "mag", ar: "mag" } },
+    v52p: { g: "pneu", n: "5/2 vorgesteuert, monostabil", mk: { k: "v52", al: "magp", ar: "feder" } },
+    v52pb: { g: "pneu", n: "5/2 vorgesteuert, bistabil", mk: { k: "v52", al: "magp", ar: "magp" } },
+    v53c: { g: "pneu", n: "5/3-Wegeventil Mitte gesperrt", mk: { k: "v53", al: "mag", ar: "mag" } }
+  };
+  fuelle(BLK, PCPAL);
+  registriereBauteile({
     zyl2: {
       g: "pneu",
       n: "Zylinder doppeltwirkend",
@@ -4627,6 +4656,8 @@ END_CASE;`)}
       lbl: "-QM1",
       w: 360,
       h: 120,
+      rahmen: true,
+      umriss: (o) => ({ x: o.x, y: o.y, w: +o.fw || 360, h: +o.fh || 120 }),
       def: { fw: "360", fh: "120" },
       info: "Strichpunktierter Rahmen um die Ventile einer Ventilinsel, z. B. −QM1 Portal und −QM2 Band. Breite und Höhe links einstellen; die Ventile darin bleiben anklickbar.",
       props: [["fw", "Breite", "text"], ["fh", "Höhe", "text"]],
@@ -4642,34 +4673,26 @@ END_CASE;`)}
       draw: (o) => PP(`M${o.x + 12} ${o.y}V${o.y + 10}`) + `<path d="M${o.x + 12} ${o.y + 10}L${o.x + 22} ${o.y + 20}L${o.x + 12} ${o.y + 30}L${o.x + 2} ${o.y + 20}Z" fill="#fff" stroke="${INK}" stroke-width="1.5"/><path d="M${o.x + 6} ${o.y + 17}H${o.x + 18}M${o.x + 5} ${o.y + 20}H${o.x + 19}M${o.x + 6} ${o.y + 23}H${o.x + 18}" ${thin}/>`
     }
   });
-  var PCPAL = {
-    v22nc: { g: "pneu", n: "2/2-Wegeventil gesperrt, Magnet/Feder", mk: { k: "v22", gs: "nc", al: "mag", ar: "feder" } },
-    v22no: { g: "pneu", n: "2/2-Wegeventil offen, Magnet/Feder", mk: { k: "v22", gs: "no", al: "mag", ar: "feder" } },
-    v32nc: { g: "pneu", n: "3/2-Wegeventil gesperrt, Magnet/Feder", mk: { k: "v32", gs: "nc", al: "mag", ar: "feder" } },
-    v32no: { g: "pneu", n: "3/2-Wegeventil offen, Magnet/Feder", mk: { k: "v32", gs: "no", al: "mag", ar: "feder" } },
-    v32h: { g: "pneu", n: "3/2-Wegeventil Taster/Feder", mk: { k: "v32", gs: "nc", al: "taster", ar: "feder" } },
-    v52m: { g: "pneu", n: "5/2-Wegeventil monostabil", mk: { k: "v52", al: "mag", ar: "feder" } },
-    v52b: { g: "pneu", n: "5/2-Wegeventil bistabil (Impuls)", mk: { k: "v52", al: "mag", ar: "mag" } },
-    v52p: { g: "pneu", n: "5/2 vorgesteuert, monostabil", mk: { k: "v52", al: "magp", ar: "feder" } },
-    v52pb: { g: "pneu", n: "5/2 vorgesteuert, bistabil", mk: { k: "v52", al: "magp", ar: "magp" } },
-    v53c: { g: "pneu", n: "5/3-Wegeventil Mitte gesperrt", mk: { k: "v53", al: "mag", ar: "mag" } }
-  };
+
+  // web/tools/uebungshandbuch/src/editor/vorlagen/alt.js
+  registriereVorlage("regelkreis", { n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: (ex, page, meta) => tplBody("regelkreis", ex, page, meta) });
+  registriereVorlage("trend", { n: "Trendaufzeichnung", d: "Istwert, Sollwert und Stellgröße über der Zeit", einblattig: true, body: (ex, page, meta) => tplBody("trend", ex, page, meta) });
+  registriereVorlage("raster", { n: "Kästchenraster", d: "5-mm-Raster für alles Weitere", gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel"], body: (ex, page, meta) => tplBody("raster", ex, page, meta) });
+  registriereGruppe("regel", { pfeiltext: true, name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn." });
+  fuelle(BLK, {
+    box: { g: "regel", n: "Block" },
+    sum: { g: "regel", n: "Summierstelle", ...rund(15), beschriftung: false }
+  });
   fuelle(SAMPLE, {
     box: [{ k: "box", x: 2, y: 2, v: "Regler" }, "0 0 114 54"],
     sum: [{ k: "sum", x: 24, y: 24 }, "0 0 48 48"]
   });
   fuelle(PROPS, { box: [["v", "Bezeichnung"]] });
   fuelle(LABEL_HINT, { box: "Bezeichnung, z. B. Regler" });
-  Object.entries(PC).forEach(([k, pc]) => {
-    if (k === "zyl2") Object.assign(BLK, PCPAL);
-    if (!BLK[k]) BLK[k] = { g: pc.g, n: pc.n, hide: pc.hide };
-  });
   function tplBody(key, ex, page = 0, meta = null) {
     switch (key) {
       case "raster":
         return grid(10, G2);
-      case "pneumatik":
-        return grid(10, "#EEF1F3", 15, 15, 985, 630) + TX(25, 33, 10, "Energiefluss von unten nach oben: Versorgung unten, Ventile in der Mitte, Antriebe oben", "start");
       case "regelkreis": {
         const box = (x, y, w, h, lbl) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="#fff" stroke="${G}" stroke-width="1.3"/>` + TX(x + w / 2, y - 7, 10, lbl, "middle", "#666", 600);
         const ar = (d) => `<path d="${d}" fill="none" stroke="${G}" stroke-width="1.3" marker-end="url(#ah)"/>`;
