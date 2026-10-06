@@ -1,7 +1,7 @@
 import { $, $$, BY, S, chips, hilfeLevel, quizKey, quizSet, sigEntries } from './basis.js';
 import { paintVars, typeOf } from './variablen.js';
 import { hilfeInner, quizHTML, refreshStatus, restoreInputs, toggleTimer } from './uebung.js';
-import { openEditor } from '../editor/editor.js';
+import { openEditor } from '../editor/oeffnen.js';
 import { bewPage, doPrint, openPrintDialog, sketchPage } from './druck.js';
 import { formPage, paintGrade } from './seiten.js';
 import { route } from './router.js';

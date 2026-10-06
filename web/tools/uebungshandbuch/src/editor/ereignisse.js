@@ -2,7 +2,16 @@ import { $, $$ } from '../app/basis.js';
 import { ED } from './status.js';
 import { PAL, PC } from './registry.js';
 import { deDate } from './blaetter.js';
-import { anySel, applyProp, clearSel, delSel, edMove, editConnLabel, editObjLabel, editTextItem, lastProp, newline, objById, placeObj, renderInk, saveSketch, setLastProp, setTool, sizeSVG, snapshot, svgPt, takeMenu, takeSketch, turnSel, undo, updateProps, wsItem } from './editor.js';
+import { anySel, clearSel, objById } from './auswahl.js';
+import { lastProp, setLastProp, updateProps } from './eigenschaften.js';
+import { renderInk, sizeSVG } from './anzeige.js';
+import { saveSketch, snapshot, takeMenu, takeSketch, undo } from './verlauf.js';
+import { editConnLabel, editObjLabel, editTextItem, newline } from './beschriften.js';
+import { setTool, svgPt } from './werkzeuge.js';
+import { applyProp, delSel, turnSel } from './bearbeiten.js';
+import { placeObj } from './andocken.js';
+import { edMove } from './zeiger.js';
+import { wsItem } from './oeffnen.js';
 import { doPrint, sketchPage } from '../app/druck.js';
 import { route } from '../app/router.js';
 
