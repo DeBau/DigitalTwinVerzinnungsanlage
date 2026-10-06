@@ -4,6 +4,7 @@ import { viewHome } from './start.js';
 import { curTime, timerEx, viewExercise } from './uebung.js';
 import { viewAnlage, viewBewertung, viewKonzept, viewRichtlinien, viewSignale, viewVorlagen } from './seiten.js';
 import { hideTip } from './tooltip.js';
+import { viewSchaltplan } from '../schaltplan/ansicht.js';
 
 export function route(){
   hideTip();
@@ -15,6 +16,7 @@ export function route(){
   if (h[0] === "richtlinien") return viewRichtlinien();
   if (h[0] === "konzept") return viewKonzept();
   if (h[0] === "bewertung") return viewBewertung(h[1]);
+  if (h[0] === "schaltplan") return viewSchaltplan(h[1], h[2]);
   viewHome();
 }
 // Seiteneffekte: Listener, Migrationen, Start. main.js ruft init() in der ursprünglichen Reihenfolge auf.

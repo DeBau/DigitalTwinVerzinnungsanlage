@@ -14,12 +14,12 @@ export const GLOBALS = new Set(`
 window document navigator location history localStorage sessionStorage console alert confirm prompt print
 setTimeout clearTimeout setInterval clearInterval requestAnimationFrame cancelAnimationFrame queueMicrotask
 addEventListener removeEventListener getSelection innerWidth innerHeight scrollTo scrollX scrollY getComputedStyle matchMedia
-Blob URL File FileReader Image ImageData DOMParser XMLSerializer MutationObserver ResizeObserver IntersectionObserver
+Blob URL File FileReader FormData Image ImageData DOMParser XMLSerializer MutationObserver ResizeObserver IntersectionObserver
 Event CustomEvent KeyboardEvent PointerEvent MouseEvent HTMLElement Element Node SVGElement DOMMatrix DOMPoint
 Math JSON Object Array String Number Boolean Symbol Date RegExp Error TypeError RangeError Map Set WeakMap WeakSet
 Promise Proxy Reflect Intl BigInt Infinity NaN undefined isNaN isFinite parseInt parseFloat encodeURIComponent
 decodeURIComponent encodeURI decodeURI structuredClone globalThis arguments fetch performance crypto atob btoa
-__SIG__ __SHEETS__ __TEXTE__ __QUIZ__ __STIL__
+__SIG__ __SHEETS__ __TEXTE__ __QUIZ__ __STIL__ __PLAN__
 `.trim().split(/\s+/));
 
 // Kleine Gültigkeitsbereichs-Analyse: Funktions- und Blockbereiche, Parameter, catch, Klassen
