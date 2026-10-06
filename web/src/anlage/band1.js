@@ -116,8 +116,9 @@ function bandAnschlag(za, name, sigZu, sigOffen, txtZu, txtOffen, ventil, abfrag
     zyl(4.2, 8, M.kunststoff, xs, ys, 45, 'z', hebel, 12);                                        // Endkappe mit Kabelabgang
     const mat = sensorLed(hebel, xs, ys + 4.4, 45, abfrage.sig, 2.4, 1, 3);
     SENSOREN.push({ signal: abfrage.sig, mat, div: label(abfrage.txt, hebel, xs, 60, 30, 'klein') });
-    // PUR-Leitung auf dem Arm zur Drehachse; dort geht sie in die feste Verlegung über (Achse bewegt sich nicht)
-    schlauch([[xs, ys, 49], [xs, ys, 56], [-110, 20, 62], [-40, 10, 56], [0, 0, 50]], M.kabelGrau, 1.6, hebel, 24);
+    // PUR-Leitung auf dem Arm zur Drehachse, im Bogen (R ≈ 16) senkrecht nach unten; auf der Achse geht sie in die feste
+    // Verlegung über (die Achse bewegt sich nicht)
+    schlauch([[xs, ys, 49], [xs, ys, 56], [-110, 20, 62], [-48, 20, 55], [-20, 20, 51], [-4, 13, 50], [0, 4, 50], [0, 0, 50]], M.kabelGrau, 2.4, hebel, 32);
     BAND.abfrageAus = V(H.x, H.y, za + 50);
   }
   hebel.userData.stellen = (pos) => {
