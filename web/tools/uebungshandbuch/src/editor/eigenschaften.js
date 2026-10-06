@@ -2,7 +2,7 @@
 import { $, $$, IC, esc } from '../app/basis.js';
 import { ED } from './status.js';
 import { BLK, PC, PROPS, art } from './registry.js';
-import { fam } from './bausteine.js';
+import { gruppeVon } from './bausteine.js';
 import { anySel, objById } from './auswahl.js';
 import { deDate, skMeta } from './blaetter.js';
 
@@ -53,8 +53,8 @@ export function propsHTML(){
   if (o) return objektFelder(o);
   const c = ED.selC !== null && ED.data.c[ED.selC];
   if (c && (c.pa !== undefined || c.pb !== undefined)) return `<div class="props"><div class="palh">Leitung</div>${inp("cv", "Beschriftung (optional)", "z. B. Aderfarbe oder Querschnitt", c.v)}${sel("cst", "Leitungsart", [["", "Arbeits-/Hauptleitung"], ["st", "Steuerleitung (gestrichelt)"]], c.st || "")}${del}</div>`;
-  if (c) { const g = fam(objById(c.a));
-    return `<div class="props"><div class="palh">Verbindung</div>${g === "zustand" || g === "regel" ? inp("cv", "Beschriftung", "z. B. BG13 / QA1", c.v) + SYMS : `<p class="small muted" style="margin:0 0 8px">GRAFCET-Verbindungen tragen keine Beschriftung – die Bedingung steht an der Transition.</p>`}<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div></div>`; }
+  if (c) { const beschriftbar = gruppeVon(objById(c.a)).pfeiltext;
+    return `<div class="props"><div class="palh">Verbindung</div>${beschriftbar ? inp("cv", "Beschriftung", "z. B. BG13 / QA1", c.v) + SYMS : `<p class="small muted" style="margin:0 0 8px">GRAFCET-Verbindungen tragen keine Beschriftung – die Bedingung steht an der Transition.</p>`}<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div></div>`; }
   if (!ED.selF) return `<div class="props quiet"><p>Element anklicken zum Ändern, Doppelklick beschriftet. Name und Datum: aufs Schriftfeld klicken.</p></div>`;
   const m = ED.data.meta || {}, auto = skMeta(ED.scope, ED.key, {...ED.data, meta: {}});
   return `<div class="props"><div class="palh">Schriftfeld</div>${inp("mt", "Titel", auto.title, m.title)}${inp("mn", "Name", auto.name || "Name eintragen", m.name)}

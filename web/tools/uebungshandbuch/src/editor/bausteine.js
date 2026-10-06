@@ -4,13 +4,14 @@ import { INK, MUTE, SVGT, tw } from './svg.js';
 import { BLK, GRUPPE, PC, art } from './registry.js';
 import { portsOf, xform } from './bauteile.js';
 
-export const R = {state:36, sinit:36, start:8, sum:15};
 export const bw = o => Math.max(110, Math.round((tw(o.v || "Block") + 30) / 10) * 10);
 
 // Strichart einfacher Bausteine und Platzhaltertext, der nur im Editor erscheint
 export const LINIE = `stroke="${INK}" stroke-width="1.6"`;
 export const platzhalter = (edit, t, x, y, a = "middle") => edit ? SVGT(x, y, t, a, 12, 400, MUTE) : "";
 
+// Runder Baustein mit Radius r (Zustand, Summierstelle): Umriss und Radius für Pfeile an den Rand
+export const rund = r => ({radius: r, umriss: o => ({x: o.x - r, y: o.y - r, w: 2*r, h: 2*r})});
 export const fam = o => o && BLK[o.k] ? BLK[o.k].g : null;
 export const gruppeVon = o => GRUPPE[fam(o)] || {};
 
@@ -28,7 +29,6 @@ export function bbox(o){
   const a = BLK[o.k];
   if (a && a.umriss) return a.umriss(o);
   switch (o.k) {
-    case "state": case "sinit": case "start": case "sum": { const r = R[o.k]; return {x:o.x-r, y:o.y-r, w:2*r, h:2*r}; }
     case "no": case "nc": case "coil": case "lamp": return {x:o.x-22, y:o.y, w:44, h:60};
     case "box": return {x:o.x, y:o.y, w:bw(o), h:50};
   }

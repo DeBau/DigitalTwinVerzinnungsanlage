@@ -27,7 +27,7 @@ export function editLabel(x, y, init, ph, done){
 export function editObjLabel(o){
   if (!o) return;
   const B = art(o.k).beschriftung;
-  if (B === false || o.k === "start" || o.k === "sum") return;
+  if (B === false) return;
   const b = bbox(o);
   const wert = B && B.wert ? B.wert(o) : (o.v || "");
   const elektro = o.k === "no" || o.k === "nc" || o.k === "coil" || o.k === "lamp";

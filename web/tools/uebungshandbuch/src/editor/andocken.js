@@ -3,10 +3,10 @@ import { PH } from './svg.js';
 import { ED } from './status.js';
 import { BLK, FIXED, PC, art } from './registry.js';
 import { snap } from './vorlagen-svg.js';
-import { bbox, ctr, fam } from './bausteine.js';
+import { bbox, ctr, fam, gruppeVon } from './bausteine.js';
 import { clearSel, objById, uid } from './auswahl.js';
 import { andockPunkt, andockStelle, ausrichten, kettenQuelle } from './kette.js';
-import { connGeom } from './zeichnen.js';
+import { connGeom, fragtBedingung } from './zeichnen.js';
 import { renderInk } from './anzeige.js';
 import { saveSketch, snapshot } from './verlauf.js';
 import { editConnLabel, editObjLabel } from './beschriften.js';
@@ -26,7 +26,6 @@ export function makeObj(k, [px, py]){
   if (a && a.neu) a.neu(o, [px, py], mk);
   else if (k === "box") { o.x = px - 55; o.y = py - 25; o.v = ""; }
   else if (k === "no" || k === "nc" || k === "coil" || k === "lamp") { o.x = px; o.y = py - 30; o.v = {no:"-SF1", nc:"-SF2", coil:"-QA1", lamp:"-PF1"}[k]; }
-  else if (k === "state" || k === "sinit") { o.x = px; o.y = py; o.v = "Z" + ED.data.o.filter(q => q.k === "state" || q.k === "sinit").length; }
   else { o.x = px; o.y = py; }
   [o.x, o.y] = snap([o.x, o.y]);
   return o;
@@ -87,8 +86,8 @@ export function connectPorts(a, pa, b, pb){
   snapshot(); ED.data.c.push({a, pa, b, pb, v: ""}); clearSel(); ED.selC = ED.data.c.length - 1; saveSketch(); renderInk();
 }
 export function connect(a, b){
-  const A = objById(a); if (!A || (a === b && fam(A) !== "zustand")) return;
+  const A = objById(a); if (!A || (a === b && !gruppeVon(A).schleife)) return;
   if (ED.data.c.some(c => c.a === a && c.b === b)) return;
   snapshot(); ED.data.c.push({a, b, v: ""}); ED.selC = ED.data.c.length - 1; ED.sel = null; saveSketch(); renderInk();
-  if (fam(A) === "zustand" && A.k !== "start") editConnLabel(ED.data.c.length - 1);
+  if (fragtBedingung(A)) editConnLabel(ED.data.c.length - 1);
 }

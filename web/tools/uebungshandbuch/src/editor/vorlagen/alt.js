@@ -4,11 +4,11 @@
 import { CYL } from '../../app/daten.js';
 import { INK, SVGT, arrowHead } from '../svg.js';
 import { BLK, LABEL_HINT, PC, PORTS2, PROPS, SAMPLE, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
-import { G, G2, TX, dots, grid } from '../vorlagen-svg.js';
+import { G, G2, TX, grid } from '../vorlagen-svg.js';
 import { BLUE, LB, PD, PN, PP, SK, VALVE, cNC, cNO, cylinder, drawValve, posOf, pressed, thin, vPairs, vstate } from '../bauteile.js';
+import { rund } from '../bausteine.js';
 
 /* ---------- Vorlagen: Reihenfolge = Reihenfolge der Kacheln ---------- */
-registriereVorlage("zustand", {n: "Zustandsdiagramm", d: "Zustände und Übergänge, z. B. für Übergaben und Antriebe", gruppen: ["zustand"], body: (ex, page, meta) => tplBody("zustand", ex, page, meta)});
 registriereVorlage("wegschritt", {n: "Weg-Schritt-Diagramm", d: "Zylinderbewegungen über die Schritte", einblattig: true, body: (ex, page, meta) => tplBody("wegschritt", ex, page, meta)});
 registriereVorlage("stromlauf", {n: "Stromlaufplan", d: "Steuerstromkreis zwischen L+ und M – Taster, Not-Halt, SPS, Sicherheitsrelais", gruppen: ["elektro", "geraete", "leistung"], schienen: [["L+",70,40,935], ["M",590,40,935]], body: (ex, page, meta) => tplBody("stromlauf", ex, page, meta)});
 registriereVorlage("leistung", {n: "Hauptstromkreis", d: "L1, L2, L3, N, PE – Schütze, Wendeschützschaltung, Motorschutz, Motoren, Umrichter", gruppen: ["leistung", "geraete", "elektro"], schienen: [["L1",50,60,915], ["L2",70,60,915], ["L3",90,60,915], ["N",110,60,915], ["PE",130,60,915]], body: (ex, page, meta) => tplBody("leistung", ex, page, meta)});
@@ -18,18 +18,16 @@ registriereVorlage("trend", {n: "Trendaufzeichnung", d: "Istwert, Sollwert und S
 registriereVorlage("raster", {n: "Kästchenraster", d: "5-mm-Raster für alles Weitere", gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel"], body: (ex, page, meta) => tplBody("raster", ex, page, meta)});
 
 /* ---------- Bausteingruppen: Name in der Palette und Bedienhinweis ---------- */
-registriereGruppe("zustand", {name: "Zustandsdiagramm", hinweis: "Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. Die Bedingung schreiben Sie direkt an den Pfeil."});
 registriereGruppe("elektro", {kette: true, name: "Steuerstromkreis", hinweis: "Kontakte und Spule untereinander setzen – sie verbinden sich zum Strompfad und docken oben an L+ und unten an M an. Kennzeichen per Doppelklick ändern."});
 registriereGruppe("geraete", {name: "Geräte und SPS", hinweis: "Geräte setzen und mit Verbinden verdrahten – z. B. den Sensorausgang BK auf einen Eingang der DI-Baugruppe."});
 registriereGruppe("leistung", {name: "Hauptstromkreis", hinweis: "Bauteile setzen und mit Verbinden Anschluss für Anschluss verdrahten: erst den Anschluss am einen, dann am anderen Bauteil anklicken – auch direkt auf die Schienen L1, L2, L3, N, PE. Wendeschützschaltung: zwei Schütze, beim zweiten L1 und L3 tauschen."});
 registriereGruppe("pneu", {name: "Pneumatik nach ISO 1219", hinweis: "Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken."});
-registriereGruppe("regel", {name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn."});
+registriereGruppe("regel", {pfeiltext: true, name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn."});
 
 /* ---------- Bausteintabellen ---------- */
 fuelle(BLK, {
-  sinit:{g:"zustand", n:"Anfangszustand"}, state:{g:"zustand", n:"Zustand"}, start:{g:"zustand", n:"Startpunkt"},
   no:{g:"elektro", n:"Schließer"}, nc:{g:"elektro", n:"Öffner"}, coil:{g:"elektro", n:"Spule / Schütz"}, lamp:{g:"elektro", n:"Meldeleuchte"},
-  box:{g:"regel", n:"Block"}, sum:{g:"regel", n:"Summierstelle"}
+  box:{g:"regel", n:"Block"}, sum:{g:"regel", n:"Summierstelle", ...rund(15), beschriftung: false}
 });
 fuelle(PC, {
   /* Steuerstromkreis – Mittellinie bei o.x, Höhe 60 */
@@ -202,24 +200,17 @@ const PCPAL = {
 };
 fuelle(PORTS2, {no:[["13",0,0,"u"],["14",0,60,"d"]], nc:[["11",0,0,"u"],["12",0,60,"d"]], coil:[["A1",0,0,"u"],["A2",0,60,"d"]], lamp:[["X1",0,0,"u"],["X2",0,60,"d"]]});
 fuelle(SAMPLE, {
-  sinit:[{k:"sinit", x:38, y:38, v:"Z0"}, "0 0 76 76"], state:[{k:"state", x:38, y:38, v:"Z1"}, "0 0 76 76"], start:[{k:"start", x:24, y:24}, "0 0 48 48"],
   no:[{k:"no", x:34, y:2}, "0 0 56 64"], nc:[{k:"nc", x:30, y:2}, "0 0 56 64"], coil:[{k:"coil", x:28, y:2}, "0 0 56 64"], lamp:[{k:"lamp", x:28, y:2}, "0 0 56 64"],
   box:[{k:"box", x:2, y:2, v:"Regler"}, "0 0 114 54"], sum:[{k:"sum", x:24, y:24}, "0 0 48 48"]
 });
-fuelle(PROPS, {state:[["v","Name"]], sinit:[["v","Name"]], no:[["v","Kennzeichen"]], nc:[["v","Kennzeichen"]], coil:[["v","Kennzeichen"]], lamp:[["v","Kennzeichen"]], box:[["v","Bezeichnung"]]});
-fuelle(LABEL_HINT, {state:"Name des Zustands", sinit:"Name des Zustands", box:"Bezeichnung, z. B. Regler", no:"Kennzeichen, z. B. -SF1", nc:"Kennzeichen, z. B. -SF2", coil:"Kennzeichen, z. B. -QA1", lamp:"Kennzeichen, z. B. -PF1"});
+fuelle(PROPS, {no:[["v","Kennzeichen"]], nc:[["v","Kennzeichen"]], coil:[["v","Kennzeichen"]], lamp:[["v","Kennzeichen"]], box:[["v","Bezeichnung"]]});
+fuelle(LABEL_HINT, {box:"Bezeichnung, z. B. Regler", no:"Kennzeichen, z. B. -SF1", nc:"Kennzeichen, z. B. -SF2", coil:"Kennzeichen, z. B. -QA1", lamp:"Kennzeichen, z. B. -PF1"});
 Object.entries(PC).forEach(([k, pc]) => { if (k === "zyl2") Object.assign(BLK, PCPAL); if (!BLK[k]) BLK[k] = {g: pc.g, n: pc.n, hide: pc.hide}; });
 
 /* ---------- Vorgedruckter Inhalt je Vorlage ---------- */
 function tplBody(key, ex, page=0, meta=null){
   switch (key) {
     case "raster": return grid(10, G2);
-    case "zustand": {
-      const lg = `<g><rect x="790" y="25" width="185" height="120" fill="#fff" stroke="${G}"/>${TX(800,43,10,"Symbole","start","#666",600)}
-        <circle cx="815" cy="72" r="15" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(840,76,10,"Zustand (Name)")}
-        <path d="M802 112H840" stroke="${G}" stroke-width="1.3"/><path d="M834 107L842 112L834 117" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(850,108,10,"Übergang")}${TX(850,122,9,"Bedingung / Aktion")}</g>`;
-      return dots(20) + (page ? "" : lg);
-    }
     case "wegschritt": {
       const rows = CYL[ex?.id] || ["−MM1","−MM2","−MM3","−MM4"];
       const all = [...rows, "", ""].map((r, i) => meta && meta.rows && meta.rows[i] !== undefined && meta.rows[i] !== null ? meta.rows[i] : r);

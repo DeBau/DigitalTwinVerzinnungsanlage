@@ -4,7 +4,7 @@ import { ED } from './status.js';
 import { BLK, FIXED, GRUPPE, PC, PORTS2, art } from './registry.js';
 import { G, strokesSVG } from './vorlagen-svg.js';
 import { BLUE, DIRV, SK, VALVE, portsOf, pressed, simOn, vrails, vstate, wireD, wireEnds, xform } from './bauteile.js';
-import { R, bbox, bw, ctr, fam } from './bausteine.js';
+import { bbox, bw, ctr, fam, gruppeVon } from './bausteine.js';
 import { verbindeKette } from './kette.js';
 
 export function simCompute(){
@@ -82,21 +82,9 @@ export function connGeom(c, objs, all){
     return {d: wireD(e[0], e[1]), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"]}; }
   const g = fam(A), G = GRUPPE[g] || {};
   if (G.kette) return verbindeKette(A, B);
-  if (g === "zustand") {
-    const ca = ctr(A), cb = ctr(B), ra = R[A.k] || 20, rb = R[B.k] || 20;
-    if (c.a === c.b) { const [x, y] = ca; return {d:`M${x+ra-3} ${y-14}C${x+ra+62} ${y-45} ${x+ra+62} ${y+45} ${x+ra-3} ${y+14}`, arrow:true, lbl:[x+ra+56, y+4, "start"]}; }
-    const rev = all.some(o => o.a === c.b && o.b === c.a);
-    const dx = cb[0]-ca[0], dy = cb[1]-ca[1], L = Math.hypot(dx, dy) || 1, nx = -dy/L, ny = dx/L, off = rev ? 28 : 0;
-    const mx = (ca[0]+cb[0])/2 + nx*off, my = (ca[1]+cb[1])/2 + ny*off;
-    const toward = (p, q, r) => { const vx = q[0]-p[0], vy = q[1]-p[1], l = Math.hypot(vx, vy) || 1; return [p[0]+vx/l*r, p[1]+vy/l*r]; };
-    const s = toward(ca, [mx, my], ra), e = toward(cb, [mx, my], rb + 1);
-    const lx = .25*s[0] + .5*mx + .25*e[0], ly = .25*s[1] + .5*my + .25*e[1];
-    const f = n => n.toFixed(1);
-    const side = Math.abs(nx) > .5, an = side ? (nx < 0 ? "end" : "start") : "middle", k = side ? 10 : 16;
-    return {d:`M${f(s[0])} ${f(s[1])}Q${f(mx)} ${f(my)} ${f(e[0])} ${f(e[1])}`, arrow:true, lbl:[f(lx + nx*k), f(ly + ny*k + 4), an]};
-  }
+  if (G.verbinde) return G.verbinde(c, A, B, objs, all);
   const ba = bbox(A), bb = bbox(B), ca = ctr(A), cb = ctr(B), dx = cb[0]-ca[0], dy = cb[1]-ca[1];
-  const edge = (o, b, dir) => { const c = ctr(o), r = R[o.k];
+  const edge = (o, b, dir) => { const c = ctr(o), r = art(o.k).radius;
     if (r) return dir === "r" ? [c[0]+r, c[1]] : dir === "l" ? [c[0]-r, c[1]] : dir === "d" ? [c[0], c[1]+r] : [c[0], c[1]-r];
     return dir === "r" ? [b.x+b.w, c[1]] : dir === "l" ? [b.x, c[1]] : dir === "d" ? [c[0], b.y+b.h] : [c[0], b.y]; };
   if (Math.abs(dx) >= Math.abs(dy)) {
@@ -106,6 +94,8 @@ export function connGeom(c, objs, all){
   const p1 = edge(A, ba, dy >= 0 ? "d" : "u"), p2 = edge(B, bb, dy >= 0 ? "u" : "d"), m = Math.round((p1[1]+p2[1])/2);
   return {d: Math.abs(p1[0]-p2[0]) < 1 ? `M${p1[0]} ${p1[1]}V${p2[1]}` : `M${p1[0]} ${p1[1]}V${m}H${p2[0]}V${p2[1]}`, arrow:true, lbl:[Math.max(p1[0], p2[0]) + 8, m + 4, "start"]};
 }
+// Gruppen-Haken bedingung: Übergang von A braucht eine Bedingung (Platzhalter im Editor, Abfrage nach dem Verbinden)
+export const fragtBedingung = A => { const b = gruppeVon(A).bedingung; return !!b && b(A); };
 export function inkSVG(d, edit=false, key=null){
   if (!d) return "";
   const objs = Object.fromEntries((d.o || []).map(o => [o.id, o])), cs = d.c || [];
@@ -143,7 +133,7 @@ export function inkSVG(d, edit=false, key=null){
         + (edit ? `<path d="${d}" fill="none" stroke="transparent" stroke-width="12"/>` : "") + `</g>`;
     }
     const up = gm.up ? `<path d="M${gm.up[0]-6} ${gm.up[1]+5}L${gm.up[0]} ${gm.up[1]-6}L${gm.up[0]+6} ${gm.up[1]+5}" fill="none" stroke="${col}" stroke-width="1.6"/>` : "";
-    const lbl = gm.lbl ? (c.v ? SVGT(gm.lbl[0], gm.lbl[1], c.v, gm.lbl[2], 12, 500) : (edit && g === "zustand" && objs[c.a].k !== "start" ? SVGT(gm.lbl[0], gm.lbl[1], "Bedingung", gm.lbl[2], 11, 400, MUTE) : "")) : "";
+    const lbl = gm.lbl ? (c.v ? SVGT(gm.lbl[0], gm.lbl[1], c.v, gm.lbl[2], 12, 500) : (edit && fragtBedingung(objs[c.a]) ? SVGT(gm.lbl[0], gm.lbl[1], "Bedingung", gm.lbl[2], 11, 400, MUTE) : "")) : "";
     return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${col}" stroke-width="${sel ? 2.2 : 1.6}" ${gm.arrow ? 'marker-end="url(#arw)"' : ""}/>${up}${edit ? `<path d="${gm.d}" fill="none" stroke="transparent" stroke-width="12"/>` : ""}${lbl}</g>`;
   }).join("");
   const os = [...(d.o || [])].sort((a, b) => (b.k === "insel") - (a.k === "insel")).map(o => { const b = bbox(o), hi = edit && (ED.sel === o.id || ED.from === o.id), fr = o.k === "insel";
