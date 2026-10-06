@@ -2167,7 +2167,7 @@ pre.code code{font-size:inherit}
   }
   function befundSVG(b, i) {
     const o = b.o && objById(b.o), weg = b.c !== void 0 && ED.svg.querySelector(`.ink [data-c="${b.c}"] path`);
-    const nr = (x, y) => SVGT(x, y, String(i + 1), "middle", 11, 700, ROT);
+    const nr = (x2, y2) => SVGT(x2, y2, String(i + 1), "middle", 11, 700, ROT);
     if (o) {
       const r = bbox(o);
       return `<rect x="${r.x - 7}" y="${r.y - 7}" width="${r.w + 14}" height="${r.h + 14}" rx="5" fill="none" stroke="${ROT}" stroke-width="2"/>` + nr(r.x - 12, r.y - 10);
@@ -2176,8 +2176,9 @@ pre.code code{font-size:inherit}
       const p = weg.getPointAtLength(weg.getTotalLength() / 2);
       return `<path d="${weg.getAttribute("d")}" fill="none" stroke="${ROT}" stroke-width="3" stroke-opacity=".6"/>` + nr(p.x + 10, p.y - 6);
     }
-    if (b.pt) return `<circle cx="${b.pt[0]}" cy="${b.pt[1]}" r="10" fill="none" stroke="${ROT}" stroke-width="2"/>` + nr(b.pt[0] + 16, b.pt[1] - 10);
-    return "";
+    if (!b.pt) return "";
+    const [x, y] = b.pt;
+    return `<circle cx="${x}" cy="${y}" r="10" fill="none" stroke="${ROT}" stroke-width="2"/>` + nr(x + 16, y - 10);
   }
   function befundEbene() {
     let g = ED.svg.querySelector(".befund");

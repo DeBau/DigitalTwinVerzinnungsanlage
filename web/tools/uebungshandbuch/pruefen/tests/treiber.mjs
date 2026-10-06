@@ -46,7 +46,10 @@ export class Treiber {
   async ziehe(von, nach, schritte = 8) {
     const [a, b] = [await this.ort(von), await this.ort(nach)];
     await this.page.mouse.move(...a); await this.page.mouse.down();
-    for (let i = 1; i <= schritte; i++) { await this.page.mouse.move(a[0] + (b[0] - a[0]) * i / schritte, a[1] + (b[1] - a[1]) * i / schritte); await this.ruhe(5); }
+    for (let i = 1; i <= schritte; i++) {
+      const f = i / schritte;
+      await this.page.mouse.move(a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f); await this.ruhe(5);
+    }
     await this.page.mouse.up(); await this.ruhe();
   }
   // Baustein k aus der Palette an Blattpunkt (x, y) setzen

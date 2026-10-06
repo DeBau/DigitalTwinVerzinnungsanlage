@@ -33,8 +33,9 @@ export function befundSVG(b, i){
     const p = weg.getPointAtLength(weg.getTotalLength() / 2);
     return `<path d="${weg.getAttribute("d")}" fill="none" stroke="${ROT}" stroke-width="3" stroke-opacity=".6"/>` + nr(p.x + 10, p.y - 6);
   }
-  if (b.pt) return `<circle cx="${b.pt[0]}" cy="${b.pt[1]}" r="10" fill="none" stroke="${ROT}" stroke-width="2"/>` + nr(b.pt[0] + 16, b.pt[1] - 10);
-  return "";
+  if (!b.pt) return "";
+  const [x, y] = b.pt;
+  return `<circle cx="${x}" cy="${y}" r="10" fill="none" stroke="${ROT}" stroke-width="2"/>` + nr(x + 16, y - 10);
 }
 // Ebene für die Markierungen; sie entsteht erst beim ersten Prüfen
 export function befundEbene(){
