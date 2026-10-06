@@ -1,6 +1,7 @@
 // Editor-Kern: Eigenschaften übernehmen, Drehen, Löschen, Radieren.
 import { ED } from './status.js';
 import { PC, STRICHFELD, art } from './registry.js';
+import { gruppeVon } from './bausteine.js';
 import { objById } from './auswahl.js';
 import { inkSVG } from './zeichnen.js';
 import { refreshTpl, renderInk } from './anzeige.js';
@@ -39,7 +40,15 @@ export function setzeFeld(f, v){
   else if (!(art(o.k).setze && art(o.k).setze(o, f, v))) o[f] = v;   // Haken setze: Feld mit eigener Wirkung
   return true;
 }
-export function removeObj(id){ ED.data.o = ED.data.o.filter(o => o.id !== id); ED.data.c = ED.data.c.filter(c => c.a !== id && c.b !== id); if (ED.sel === id) ED.sel = null; }
+// Baustein id samt Verbindungen entfernen. Der Haken loeschen(o, d) der Gruppe nennt IDs, die mitgehen (z. B. Aktionen),
+// und darf vorher Verbindungen in d ergänzen (z. B. Kette schließen).
+export function removeObj(id){
+  const o = objById(id), loeschen = o && gruppeVon(o).loeschen;
+  const weg = new Set([id, ...(loeschen ? loeschen(o, ED.data) : [])]);
+  ED.data.o = ED.data.o.filter(p => !weg.has(p.id));
+  ED.data.c = ED.data.c.filter(c => !weg.has(c.a) && !weg.has(c.b));
+  if (weg.has(ED.sel)) ED.sel = null;
+}
 export function delSel(){
   if (ED.sel) aendere(() => removeObj(ED.sel));
   else if (ED.selC !== null && ED.data.c[ED.selC]) aendere(d => { d.c.splice(ED.selC, 1); ED.selC = null; });

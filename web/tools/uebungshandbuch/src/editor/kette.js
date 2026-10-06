@@ -53,11 +53,19 @@ export function ausrichten(o, A, pt){
   o.x = ax - (art(o.k).einrueck || 0);
 }
 
-/* Andocken: Anschluss in der Nähe eines passenden Anschlusses → ausrichten und beim Loslassen verbinden */
+/* Andocken: Anschluss in der Nähe eines passenden Anschlusses → ausrichten und beim Loslassen verbinden.
+   Ergebnis {a, b, d, sx, sy, pa?, pb?}: Verbindung a → b (mit pa, pb zwischen Anschlüssen), Abstand d, Verschiebung von o.
+   Der Haken andocke(o, andere) der Gruppe ersetzt die Suche, sonst docken nur Ketten an (andockKette). */
 export function andockStelle(o){
-  const g = fam(o);
-  if (!ED.dock || !gruppeVon(o).kette) return null;
+  const g = fam(o), gruppe = gruppeVon(o);
+  if (!ED.dock) return null;
   const others = ED.data.o.filter(p => p.id !== o.id && fam(p) === g);
+  if (gruppe.andocke) return gruppe.andocke(o, others);
+  if (!gruppe.kette) return null;
+  return andockKette(o, others);
+}
+// Andocken in einer Kette: oben bzw. unten an einen Nachbarn in höchstens weite Abstand, Seitenbausteine über seite.andocken
+export function andockKette(o, others, weite = 140){
   let best = null;
   const take = c => { if (!best || c.d < best.d) best = c; };
   const s = seite(o);
@@ -65,9 +73,9 @@ export function andockStelle(o){
   for (const p of others) {
     if (seite(p)) continue;
     const po = outPt(p, ctr(o)[0]), oi = inPt(o, po[0]), dy1 = oi[1] - po[1], dx1 = po[0] - oi[0];
-    if (dy1 >= 10 && dy1 <= 140 && Math.abs(dx1) <= 30) take({a: p.id, b: o.id, d: Math.abs(dx1) + dy1/4, sx: dx1, sy: 0});
+    if (dy1 >= 10 && dy1 <= weite && Math.abs(dx1) <= 30) take({a: p.id, b: o.id, d: Math.abs(dx1) + dy1/4, sx: dx1, sy: 0});
     const oo = outPt(o, ctr(p)[0]), pi = inPt(p, oo[0]), dy2 = pi[1] - oo[1], dx2 = pi[0] - oo[0];
-    if (dy2 >= 10 && dy2 <= 140 && Math.abs(dx2) <= 30) take({a: o.id, b: p.id, d: Math.abs(dx2) + dy2/4, sx: dx2, sy: 0});
+    if (dy2 >= 10 && dy2 <= weite && Math.abs(dx2) <= 30) take({a: o.id, b: p.id, d: Math.abs(dx2) + dy2/4, sx: dx2, sy: 0});
   }
   return best;
 }

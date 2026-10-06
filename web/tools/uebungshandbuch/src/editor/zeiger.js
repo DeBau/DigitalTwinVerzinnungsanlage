@@ -6,6 +6,7 @@ import { ED } from './status.js';
 import { STRICH, VORL } from './registry.js';
 import { shapeD, snap } from './vorlagen-svg.js';
 import { nearestPort, portCap, vrails } from './bauteile.js';
+import { gruppeVon } from './bausteine.js';
 import { clearSel, objById } from './auswahl.js';
 import { ausrichten, kettenQuelle } from './kette.js';
 import { connGeom, drawObj } from './zeichnen.js';
@@ -15,7 +16,7 @@ import { aendere, saveSketch, snapshot } from './verlauf.js';
 import { editConnLabel, editLabel, editObjLabel, editTextItem } from './beschriften.js';
 import { snapW, svgPt } from './werkzeuge.js';
 import { eraseAt } from './bearbeiten.js';
-import { VORSCHAU, avoidBreak, connect, connectPorts, linked, makeObj, placeObj, smartPos } from './andocken.js';
+import { VORSCHAU, avoidBreak, connect, connectPorts, dockLeitung, linked, makeObj, placeObj, smartPos } from './andocken.js';
 
 export const zeigerHaken = () => (VORL[ED.key] && VORL[ED.key].zeiger) || {};
 export const festhalten = e => ED.svg.setPointerCapture(e.pointerId);
@@ -56,7 +57,7 @@ export function auswahlUnten(e, pt){
   if (hitO) {
     const o = objById(hitO.dataset.o);
     ED.sel = o.id;
-    ED.drag = {id: o.id, sx: pt[0], sy: pt[1], ox: o.x, oy: o.y, moved: false};
+    ED.drag = {id: o.id, sx: pt[0], sy: pt[1], ox: o.x, oy: o.y, moved: false, mit: mitnehmen(o, e)};
     festhalten(e);
   } else if (hitC) {
     ED.selC = +hitC.dataset.c;
@@ -72,6 +73,12 @@ export function auswahlUnten(e, pt){
     festhalten(e);
   }
   renderInk();
+}
+// Bausteine, die beim Ziehen von o mitgehen: Haken mitziehen(o, {umschalt}, d) der Gruppe, z. B. Aktionen eines Schritts
+export function mitnehmen(o, e){
+  const mitziehen = gruppeVon(o).mitziehen;
+  const ids = mitziehen ? mitziehen(o, {umschalt: e.shiftKey}, ED.data) : [];
+  return ids.map(objById).filter(Boolean).map(p => ({p, x: p.x, y: p.y}));
 }
 // Zweiter Klick auf dasselbe Element innerhalb von 450 ms (der Browser-Doppelklick kommt nach pointerdown zu spät)
 export function doppelklick(id){
@@ -151,6 +158,7 @@ export function ziehen(pt){
   [o.x, o.y] = snap([dr.ox + dx, dr.oy + dy]);
   const r = smartPos(o);
   avoidBreak(o);
+  for (const m of dr.mit) { m.p.x = m.x + o.x - dr.ox; m.p.y = m.y + o.y - dr.oy; }
   dr.dock = r.dock && !linked(r.dock.a, r.dock.b) ? r.dock : null;
   renderInk(); $(".ghost", ED.svg).innerHTML = r.marks;
 }
@@ -196,7 +204,7 @@ export function edUp(){
 export function ziehenEnde(){
   const dk = ED.drag.dock;
   if (ED.drag.moved) {
-    if (dk && !linked(dk.a, dk.b)) ED.data.c.push({a: dk.a, b: dk.b, v: ""});   // angedockt: verbinden
+    if (dk && !linked(dk.a, dk.b)) ED.data.c.push(dockLeitung(dk));   // angedockt: verbinden
     saveSketch(); renderInk();
   }
   ED.drag = null;

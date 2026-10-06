@@ -12,7 +12,8 @@ export const VRAIL = {};      // Vorlage → virtuelle Schienen [[Name, y, x, Br
 export const FIXED = {};      // Vorlage → true: Formular mit genau einem Blatt (wächst nicht nach unten)
 
 /* ---------- Bausteingruppen ---------- */
-export const GRUPPE = {};     // Gruppe → ganze Anmeldung {name, hinweis, kette, verbinde, …}
+export const GRUPPE = {};     // Gruppe → ganze Anmeldung {name, hinweis, kette, verbinde, andocke, mitziehen, loeschen,
+                              //   kennzeichen, nachSetzen, vorVerbinden, …}; Signaturen in vorlagen/README.md
 export const GN = {};         // Gruppe → Überschrift in der Palette
 export const HINT = {};       // Gruppe → Bedienhinweis unter der Palette
 

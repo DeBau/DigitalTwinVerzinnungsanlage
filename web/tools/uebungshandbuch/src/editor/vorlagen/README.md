@@ -162,6 +162,16 @@ Funktionen zum Anmelden: `registriereVorlage(key, v)`, `registriereGruppe(id, g)
 | `schleife` | `true` | `connect` (andocken.js) | keine Verbindung auf sich selbst |
 | `pfeiltext` | `true` | `verbindungFelder` (eigenschaften.js) | Verbindung ohne Beschriftung |
 | `bedingung` | `(A) → true/false` | Platzhalter in `verbindungSVG`, Abfrage in `connect` | |
+| `andocke` | `(o, andere) → {a, b, d, sx, sy, pa?, pb?} oder null` | `andockStelle` (kette.js) beim Setzen und Ziehen; `andere` = Bausteine derselben Gruppe | Ketten: `andockKette(o, andere, weite = 140)`, sonst kein Andocken |
+| `mitziehen` | `(o, {umschalt}, d) → [id, …]` | `mitnehmen` (zeiger.js) beim Greifen von o | nur o bewegt sich |
+| `loeschen` | `(o, d) → [id, …]` | `removeObj` (bearbeiten.js), also Löschen und Radierer; darf vorher Verbindungen in d ergänzen | nur o und seine Verbindungen |
+| `kennzeichen` | `(k, d, vorschlag) → Text` | `makeObj` (andocken.js), auch für die Vorschau; `vorschlag` = `o.v` nach `neu` bzw. `nextLabel` | `vorschlag` |
+| `nachSetzen` | `(o, d, {A, dock})`, ändert d | `placeObj` im selben Verlaufsschritt; A = Kettenvorgänger, dock = Andockstelle | |
+| `vorVerbinden` | `(A, B, d) → null`, `{ok: false, text}` oder `{ersetze(d)}` | `connect` (andocken.js), nur Verbindungen ohne Anschlüsse | verbinden |
+
+Ergibt `andocke` ein `pa` und `pb`, entsteht beim Loslassen eine Leitung zwischen diesen Anschlüssen (`dockLeitung`).
+`{ok: false, text}` zeigt den Text im Eigenschaftsfeld (`zeigeHinweis`), `{ersetze}` ändert die Zeichnung statt der
+einfachen Verbindung (ein Verlaufsschritt).
 
 ### Haken einer Bausteinart (`BLK` für einfache Bausteine, `PC` für Bauteile)
 

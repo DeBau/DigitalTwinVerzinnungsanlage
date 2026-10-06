@@ -69,6 +69,12 @@ export function schriftfeldFelder(){
     <p class="small muted" style="margin:0 0 8px">Leer gelassen gelten der Name aus „Meine Daten“ und das Datum der letzten Änderung.</p>
     <div class="propact"><button type="button" class="tool" data-ed="sfzu">Fertig</button></div></div>`;
 }
+// Hinweis im Eigenschaftsfeld, z. B. wenn der Haken vorVerbinden eine Verbindung ablehnt. Er bleibt stehen, bis sich
+// die Markierung ändert.
+export function zeigeHinweis(text){
+  const el = $("#props");
+  if (el) el.innerHTML = `<div class="props quiet"><p>${esc(text)}</p></div>`;
+}
 export function updateProps(force){
   const el = $("#props"); if (!el) return;
   const k = [ED.sel, ED.selC, ED.selS, ED.selT, ED.selF].join("|");

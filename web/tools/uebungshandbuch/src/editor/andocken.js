@@ -7,6 +7,7 @@ import { bbox, ctr, gruppeVon } from './bausteine.js';
 import { clearSel, objById, uid } from './auswahl.js';
 import { andockPunkt, andockStelle, ausrichten, kettenQuelle } from './kette.js';
 import { connGeom, fragtBedingung } from './zeichnen.js';
+import { zeigeHinweis } from './eigenschaften.js';
 import { aendere } from './verlauf.js';
 import { editConnLabel, editObjLabel } from './beschriften.js';
 import { setTool } from './werkzeuge.js';
@@ -16,11 +17,17 @@ export function nextLabel(l){   // -QA1 → nächste freie Nummer
   const used = ED.data.o.map(o => o.v || "").filter(v => v.startsWith(m[1])).map(v => parseInt(v.slice(m[1].length), 10)).filter(n => !isNaN(n));
   return used.length ? m[1] + (Math.max(...used) + 1) : l;
 }
-// Neues Objekt der Palettenart k mit der Mitte bei [px, py]. Lage und Vorgaben setzt der Haken neu der Bausteinart.
+// Neues Objekt der Palettenart k mit der Mitte bei [px, py]. Lage und Vorgaben setzt der Haken neu der Bausteinart,
+// das Kennzeichen kann der Haken kennzeichen(k, d, vorschlag) der Gruppe ändern (vorschlag: o.v nach neu).
 export function makeObj(k, [px, py]){
   const mk = BLK[k] && BLK[k].mk;
   if (mk) k = mk.k || k;
-  if (PC[k]) return neuesBauteil(k, mk, px, py);
+  const o = PC[k] ? neuesBauteil(k, mk, px, py) : neuerBaustein(k, mk, px, py);
+  const kennzeichen = gruppeVon(o).kennzeichen;
+  if (kennzeichen) o.v = kennzeichen(o.k, ED.data, o.v);
+  return o;
+}
+export function neuerBaustein(k, mk, px, py){
   const o = {id: uid(), k}, a = BLK[k];
   if (a && a.neu) a.neu(o, [px, py], mk);
   else { o.x = px; o.y = py; }
@@ -82,6 +89,12 @@ export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blatt
   for (let i = 0; i < 4; i++) { const b = bbox(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
     if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) o.y += B + 70 - b.y; else break; }
 }
+// Verbindung, die beim Andocken entsteht; zwischen Anschlüssen, wenn der Haken andocke pa und pb nennt
+export function dockLeitung(dock){
+  const c = {a: dock.a, b: dock.b, v: ""};
+  if (dock.pa !== undefined) Object.assign(c, {pa: dock.pa, pb: dock.pb});
+  return c;
+}
 export const linked = (a, b) => ED.data.c.some(c => (c.a === a && c.b === b) || (c.a === b && c.b === a));
 export function placeObj(k, pt){
   const A = kettenQuelle(k), o = makeObj(k, pt);
@@ -91,7 +104,9 @@ export function placeObj(k, pt){
   aendere(d => {
     d.o.push(o);
     if (A) d.c.push({a: A.id, b: o.id, v: ""});
-    else if (dock && !linked(dock.a, dock.b)) d.c.push({a: dock.a, b: dock.b, v: ""});
+    else if (dock && !linked(dock.a, dock.b)) d.c.push(dockLeitung(dock));
+    const nachSetzen = gruppeVon(o).nachSetzen;   // Haken nachSetzen(o, d, {A, dock}), z. B. Transition ergänzen
+    if (nachSetzen) nachSetzen(o, d, {A, dock});
   }, {ohneRender: true});
   ED.sel = o.id; ED.selC = null; setTool("sel");
   const b = art(o.k).beschriftung;
@@ -106,6 +121,9 @@ export function connectPorts(a, pa, b, pb){
 export function connect(a, b){
   const A = objById(a); if (!A || (a === b && !gruppeVon(A).schleife)) return;
   if (ED.data.c.some(c => c.a === a && c.b === b)) return;
+  const vor = gruppeVon(A).vorVerbinden, r = vor ? vor(A, objById(b), ED.data) : null;   // Haken vorVerbinden
+  if (r && r.ok === false) { zeigeHinweis(r.text); return; }
+  if (r && r.ersetze) { aendere(d => { r.ersetze(d); }); return; }
   aendere(d => { d.c.push({a, b, v: ""}); ED.selC = d.c.length - 1; ED.sel = null; });
   if (fragtBedingung(A)) editConnLabel(ED.data.c.length - 1);
 }

@@ -1378,9 +1378,14 @@ pre.code code{font-size:inherit}
     o.x = ax - (art(o.k).einrueck || 0);
   }
   function andockStelle(o) {
-    const g = fam(o);
-    if (!ED.dock || !gruppeVon(o).kette) return null;
+    const g = fam(o), gruppe = gruppeVon(o);
+    if (!ED.dock) return null;
     const others = ED.data.o.filter((p) => p.id !== o.id && fam(p) === g);
+    if (gruppe.andocke) return gruppe.andocke(o, others);
+    if (!gruppe.kette) return null;
+    return andockKette(o, others);
+  }
+  function andockKette(o, others, weite = 140) {
     let best = null;
     const take = (c) => {
       if (!best || c.d < best.d) best = c;
@@ -1393,9 +1398,9 @@ pre.code code{font-size:inherit}
     for (const p of others) {
       if (seite(p)) continue;
       const po = outPt(p, ctr(o)[0]), oi = inPt(o, po[0]), dy1 = oi[1] - po[1], dx1 = po[0] - oi[0];
-      if (dy1 >= 10 && dy1 <= 140 && Math.abs(dx1) <= 30) take({ a: p.id, b: o.id, d: Math.abs(dx1) + dy1 / 4, sx: dx1, sy: 0 });
+      if (dy1 >= 10 && dy1 <= weite && Math.abs(dx1) <= 30) take({ a: p.id, b: o.id, d: Math.abs(dx1) + dy1 / 4, sx: dx1, sy: 0 });
       const oo = outPt(o, ctr(p)[0]), pi = inPt(p, oo[0]), dy2 = pi[1] - oo[1], dx2 = pi[0] - oo[0];
-      if (dy2 >= 10 && dy2 <= 140 && Math.abs(dx2) <= 30) take({ a: o.id, b: p.id, d: Math.abs(dx2) + dy2 / 4, sx: dx2, sy: 0 });
+      if (dy2 >= 10 && dy2 <= weite && Math.abs(dx2) <= 30) take({ a: o.id, b: p.id, d: Math.abs(dx2) + dy2 / 4, sx: dx2, sy: 0 });
     }
     return best;
   }
@@ -1432,9 +1437,9 @@ pre.code code{font-size:inherit}
       if (!e) return null;
       return { d: wireD(e[0], e[1]), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"] };
     }
-    const G3 = GRUPPE[fam(A)] || {};
-    if (G3.kette) return verbindeKette(A, B);
-    if (G3.verbinde) return G3.verbinde(c, A, B, objs, all);
+    const gruppe = GRUPPE[fam(A)] || {};
+    if (gruppe.kette) return verbindeKette(A, B);
+    if (gruppe.verbinde) return gruppe.verbinde(c, A, B, objs, all);
     return verbindeRechtwinklig(A, B);
   }
   function randPunkt(o, b, dir) {
@@ -1499,7 +1504,7 @@ pre.code code{font-size:inherit}
     if (edit && !fr) h = `<rect x="${b.x - 5}" y="${b.y - 5}" width="${b.w + 10}" height="${b.h + 10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${ED.from === o.id ? "2 3" : "5 3"}"` : ""}/>`;
     return `<g data-o="${o.id}">${h}${drawObj(o, edit)}</g>`;
   }
-  function punkteSVG(d, cs, objs, edit) {
+  function abzweigpunkte(cs, objs) {
     let s = "";
     const cnt = {}, dot = (q) => `<circle cx="${q.x}" cy="${q.y}" r="2.8" fill="${INK}"/>`;
     cs.forEach((c) => {
@@ -1517,6 +1522,10 @@ pre.code code{font-size:inherit}
     Object.values(cnt).forEach((v) => {
       if (v.n >= 2) s += dot(v.q);
     });
+    return { svg: s, cnt };
+  }
+  function punkteSVG(d, cs, objs, edit) {
+    let { svg: s, cnt } = abzweigpunkte(cs, objs);
     (d.o || []).forEach((o) => {
       const pc = PC[o.k];
       if (pc && pc.zusatz) s += pc.zusatz(o, (n) => !!cnt[o.id + ":" + n]);
@@ -1939,6 +1948,10 @@ pre.code code{font-size:inherit}
     <p class="small muted" style="margin:0 0 8px">Leer gelassen gelten der Name aus „Meine Daten“ und das Datum der letzten Änderung.</p>
     <div class="propact"><button type="button" class="tool" data-ed="sfzu">Fertig</button></div></div>`;
   }
+  function zeigeHinweis(text) {
+    const el = $("#props");
+    if (el) el.innerHTML = `<div class="props quiet"><p>${esc(text)}</p></div>`;
+  }
   function updateProps(force) {
     const el = $("#props");
     if (!el) return;
@@ -2291,9 +2304,11 @@ pre.code code{font-size:inherit}
     return true;
   }
   function removeObj(id) {
-    ED.data.o = ED.data.o.filter((o) => o.id !== id);
-    ED.data.c = ED.data.c.filter((c) => c.a !== id && c.b !== id);
-    if (ED.sel === id) ED.sel = null;
+    const o = objById(id), loeschen = o && gruppeVon(o).loeschen;
+    const weg = /* @__PURE__ */ new Set([id, ...loeschen ? loeschen(o, ED.data) : []]);
+    ED.data.o = ED.data.o.filter((p) => !weg.has(p.id));
+    ED.data.c = ED.data.c.filter((c) => !weg.has(c.a) && !weg.has(c.b));
+    if (weg.has(ED.sel)) ED.sel = null;
   }
   function delSel() {
     if (ED.sel) aendere(() => removeObj(ED.sel));
@@ -2344,7 +2359,12 @@ pre.code code{font-size:inherit}
   function makeObj(k, [px, py]) {
     const mk = BLK[k] && BLK[k].mk;
     if (mk) k = mk.k || k;
-    if (PC[k]) return neuesBauteil(k, mk, px, py);
+    const o = PC[k] ? neuesBauteil(k, mk, px, py) : neuerBaustein(k, mk, px, py);
+    const kennzeichen = gruppeVon(o).kennzeichen;
+    if (kennzeichen) o.v = kennzeichen(o.k, ED.data, o.v);
+    return o;
+  }
+  function neuerBaustein(k, mk, px, py) {
     const o = { id: uid(), k }, a = BLK[k];
     if (a && a.neu) a.neu(o, [px, py], mk);
     else {
@@ -2427,6 +2447,11 @@ pre.code code{font-size:inherit}
       else break;
     }
   }
+  function dockLeitung(dock) {
+    const c = { a: dock.a, b: dock.b, v: "" };
+    if (dock.pa !== void 0) Object.assign(c, { pa: dock.pa, pb: dock.pb });
+    return c;
+  }
   var linked = (a, b) => ED.data.c.some((c) => c.a === a && c.b === b || c.a === b && c.b === a);
   function placeObj(k, pt) {
     const A = kettenQuelle(k), o = makeObj(k, pt);
@@ -2437,7 +2462,9 @@ pre.code code{font-size:inherit}
     aendere((d) => {
       d.o.push(o);
       if (A) d.c.push({ a: A.id, b: o.id, v: "" });
-      else if (dock && !linked(dock.a, dock.b)) d.c.push({ a: dock.a, b: dock.b, v: "" });
+      else if (dock && !linked(dock.a, dock.b)) d.c.push(dockLeitung(dock));
+      const nachSetzen = gruppeVon(o).nachSetzen;
+      if (nachSetzen) nachSetzen(o, d, { A, dock });
     }, { ohneRender: true });
     ED.sel = o.id;
     ED.selC = null;
@@ -2459,6 +2486,17 @@ pre.code code{font-size:inherit}
     const A = objById(a);
     if (!A || a === b && !gruppeVon(A).schleife) return;
     if (ED.data.c.some((c) => c.a === a && c.b === b)) return;
+    const vor = gruppeVon(A).vorVerbinden, r = vor ? vor(A, objById(b), ED.data) : null;
+    if (r && r.ok === false) {
+      zeigeHinweis(r.text);
+      return;
+    }
+    if (r && r.ersetze) {
+      aendere((d) => {
+        r.ersetze(d);
+      });
+      return;
+    }
     aendere((d) => {
       d.c.push({ a, b, v: "" });
       ED.selC = d.c.length - 1;
@@ -2544,7 +2582,7 @@ pre.code code{font-size:inherit}
     if (hitO) {
       const o = objById(hitO.dataset.o);
       ED.sel = o.id;
-      ED.drag = { id: o.id, sx: pt[0], sy: pt[1], ox: o.x, oy: o.y, moved: false };
+      ED.drag = { id: o.id, sx: pt[0], sy: pt[1], ox: o.x, oy: o.y, moved: false, mit: mitnehmen(o, e) };
       festhalten(e);
     } else if (hitC) {
       ED.selC = +hitC.dataset.c;
@@ -2560,6 +2598,11 @@ pre.code code{font-size:inherit}
       festhalten(e);
     }
     renderInk();
+  }
+  function mitnehmen(o, e) {
+    const mitziehen = gruppeVon(o).mitziehen;
+    const ids = mitziehen ? mitziehen(o, { umschalt: e.shiftKey }, ED.data) : [];
+    return ids.map(objById).filter(Boolean).map((p) => ({ p, x: p.x, y: p.y }));
   }
   function doppelklick(id) {
     const now = Date.now();
@@ -2687,6 +2730,10 @@ pre.code code{font-size:inherit}
     [o.x, o.y] = snap([dr.ox + dx, dr.oy + dy]);
     const r = smartPos(o);
     avoidBreak(o);
+    for (const m of dr.mit) {
+      m.p.x = m.x + o.x - dr.ox;
+      m.p.y = m.y + o.y - dr.oy;
+    }
     dr.dock = r.dock && !linked(r.dock.a, r.dock.b) ? r.dock : null;
     renderInk();
     $(".ghost", ED.svg).innerHTML = r.marks;
@@ -2745,7 +2792,7 @@ pre.code code{font-size:inherit}
   function ziehenEnde() {
     const dk = ED.drag.dock;
     if (ED.drag.moved) {
-      if (dk && !linked(dk.a, dk.b)) ED.data.c.push({ a: dk.a, b: dk.b, v: "" });
+      if (dk && !linked(dk.a, dk.b)) ED.data.c.push(dockLeitung(dk));
       saveSketch();
       renderInk();
     }

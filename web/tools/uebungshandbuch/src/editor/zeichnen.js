@@ -3,7 +3,7 @@
 import { INK, MUTE, PH, SVGT } from './svg.js';
 import { ED } from './status.js';
 import { BLK, FIXED, GRUPPE, PC, VORL, art } from './registry.js';
-import { G, strokesSVG } from './vorlagen-svg.js';
+import { strokesSVG } from './vorlagen-svg.js';
 import { BLUE, istSchiene, portsOf, simOn, vrails, wireD, wireEnds, xform } from './bauteile.js';
 import { bbox, ctr, fam, gruppeVon } from './bausteine.js';
 import { verbindeKette } from './kette.js';
@@ -43,9 +43,9 @@ export function connGeom(c, objs, all){
     if (!e) return null;
     return {d: wireD(e[0], e[1]), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"]};
   }
-  const G = GRUPPE[fam(A)] || {};
-  if (G.kette) return verbindeKette(A, B);
-  if (G.verbinde) return G.verbinde(c, A, B, objs, all);
+  const gruppe = GRUPPE[fam(A)] || {};
+  if (gruppe.kette) return verbindeKette(A, B);
+  if (gruppe.verbinde) return gruppe.verbinde(c, A, B, objs, all);
   return verbindeRechtwinklig(A, B);
 }
 // Randpunkt in Richtung dir (r, l, d, u); runde Bausteine (Haken radius) auf dem Kreis
@@ -117,9 +117,9 @@ export function bausteinSVG(o, edit){
   if (edit && !fr) h = `<rect x="${b.x-5}" y="${b.y-5}" width="${b.w+10}" height="${b.h+10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${ED.from === o.id ? "2 3" : "5 3"}"` : ""}/>`;
   return `<g data-o="${o.id}">${h}${drawObj(o, edit)}</g>`;
 }
-// Verbindungspunkte (zwei Leitungen an einem Anschluss, Leitung auf Schiene), Zusätze der Bauteile (Haken zusatz)
-// und beim Verbinden die Anschlusskreise
-export function punkteSVG(d, cs, objs, edit){
+// Abzweigpunkte der Leitungen: auf einer Schiene immer, an einem Anschluss ab zwei Leitungen.
+// Rückgabe: SVG und die Zählung cnt["id:Anschluss"] = {n, q} der verdrahteten Anschlüsse
+export function abzweigpunkte(cs, objs){
   let s = "";
   const cnt = {}, dot = q => `<circle cx="${q.x}" cy="${q.y}" r="2.8" fill="${INK}"/>`;
   cs.forEach(c => {
@@ -131,6 +131,12 @@ export function punkteSVG(d, cs, objs, edit){
     });
   });
   Object.values(cnt).forEach(v => { if (v.n >= 2) s += dot(v.q); });
+  return {svg: s, cnt};
+}
+// Verbindungspunkte (zwei Leitungen an einem Anschluss, Leitung auf Schiene), Zusätze der Bauteile (Haken zusatz)
+// und beim Verbinden die Anschlusskreise
+export function punkteSVG(d, cs, objs, edit){
+  let {svg: s, cnt} = abzweigpunkte(cs, objs);
   (d.o || []).forEach(o => { const pc = PC[o.k]; if (pc && pc.zusatz) s += pc.zusatz(o, n => !!cnt[o.id + ":" + n]); });
   if (edit && ED.tool === "conn") (d.o || []).forEach(o => portsOf(o).forEach(q => {
     const f = ED.from === o.id && ED.fromP === q.n;
