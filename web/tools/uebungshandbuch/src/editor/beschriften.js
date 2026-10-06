@@ -30,8 +30,7 @@ export function editObjLabel(o){
   if (B === false) return;
   const b = bbox(o);
   const wert = B && B.wert ? B.wert(o) : (o.v || "");
-  const elektro = o.k === "no" || o.k === "nc" || o.k === "coil" || o.k === "lamp";
-  const at = B && B.ort ? B.ort(o) : elektro ? [o.x - 120, o.y + 30] : [b.x, b.y + b.h/2];
+  const at = B && B.ort ? B.ort(o) : [b.x, b.y + b.h/2];
   const hinweis = B && B.hinweis ? B.hinweis(o) : LABEL_HINT[o.k];
   editLabel(at[0], at[1], wert, hinweis, v => {
     snapshot();

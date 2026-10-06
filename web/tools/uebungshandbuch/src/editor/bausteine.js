@@ -2,7 +2,7 @@
 // Die Einzelheiten je Bausteinart kommen über die Haken umriss, mitte, aus, ein aus den Vorlagen (registry.js).
 import { INK, MUTE, SVGT, tw } from './svg.js';
 import { BLK, GRUPPE, PC, art } from './registry.js';
-import { portsOf, xform } from './bauteile.js';
+import { xform } from './bauteile.js';
 
 export const bw = o => Math.max(110, Math.round((tw(o.v || "Block") + 30) / 10) * 10);
 
@@ -29,7 +29,6 @@ export function bbox(o){
   const a = BLK[o.k];
   if (a && a.umriss) return a.umriss(o);
   switch (o.k) {
-    case "no": case "nc": case "coil": case "lamp": return {x:o.x-22, y:o.y, w:44, h:60};
     case "box": return {x:o.x, y:o.y, w:bw(o), h:50};
   }
   return {x:o.x, y:o.y, w:20, h:20};
@@ -46,16 +45,12 @@ export function ctr(o){
 export function outPt(o, tx){
   const a = art(o.k);
   if (a.aus) return a.aus(o, tx);
-  if (PC[o.k] && PC[o.k].bx) { const q = portsOf(o)[1]; return [q.x, q.y]; }
-  if (["no", "nc", "coil", "lamp"].includes(o.k)) return [o.x, o.y+60];
   const b = bbox(o);
   return [b.x+b.w/2, b.y+b.h];
 }
 export function inPt(o, fx){
   const a = art(o.k);
   if (a.ein) return a.ein(o, fx);
-  if (PC[o.k] && PC[o.k].bx) { const q = portsOf(o)[0]; return [q.x, q.y]; }
-  if (["no", "nc", "coil", "lamp"].includes(o.k)) return [o.x, o.y];
   const b = bbox(o);
   return [b.x+b.w/2, b.y];
 }

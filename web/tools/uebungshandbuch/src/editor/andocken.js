@@ -1,9 +1,9 @@
 // Editor-Kern: Bausteine erzeugen und setzen, Ketten fortsetzen, Andocken, Hilfslinien, Verbinden.
 import { PH } from './svg.js';
 import { ED } from './status.js';
-import { BLK, FIXED, PC, art } from './registry.js';
+import { BLK, FIXED, PC, VORL, art } from './registry.js';
 import { snap } from './vorlagen-svg.js';
-import { bbox, ctr, fam, gruppeVon } from './bausteine.js';
+import { bbox, ctr, gruppeVon } from './bausteine.js';
 import { clearSel, objById, uid } from './auswahl.js';
 import { andockPunkt, andockStelle, ausrichten, kettenQuelle } from './kette.js';
 import { connGeom, fragtBedingung } from './zeichnen.js';
@@ -25,7 +25,6 @@ export function makeObj(k, [px, py]){
   const o = {id: uid(), k}, a = BLK[k];
   if (a && a.neu) a.neu(o, [px, py], mk);
   else if (k === "box") { o.x = px - 55; o.y = py - 25; o.v = ""; }
-  else if (k === "no" || k === "nc" || k === "coil" || k === "lamp") { o.x = px; o.y = py - 30; o.v = {no:"-SF1", nc:"-SF2", coil:"-QA1", lamp:"-PF1"}[k]; }
   else { o.x = px; o.y = py; }
   [o.x, o.y] = snap([o.x, o.y]);
   return o;
@@ -41,7 +40,8 @@ export function neuesBauteil(k, mk, px, py){
   return o;
 }
 export function smartPos(o){
-  if (ED.key === "stromlauf" && fam(o) === "elektro") o.x = 40 + Math.max(1, Math.min(20, Math.round((o.x - 40) / 46))) * 46;
+  const v = VORL[ED.key];
+  if (v.fangBaustein) v.fangBaustein(o);   // Haken fangBaustein, z. B. Strompfad-Spalten
   const dock = andockStelle(o), marks = [];
   if (dock) { o.x += dock.sx; o.y += dock.sy; }
   if (ED.dock && !dock) {

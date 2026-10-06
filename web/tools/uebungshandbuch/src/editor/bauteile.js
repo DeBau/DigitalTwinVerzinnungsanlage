@@ -8,8 +8,6 @@ export const PP = d => `<path d="${d}" ${SK}/>`;
 export const PD = d => `<path d="${d}" ${SK} stroke-dasharray="3 2.5"/>`;
 export const LB = (x, y, t, a="end") => t ? SVGT(x, y, t, a, 12, 600) : "";
 export const PN = (x, y, t, a="start") => SVGT(x, y, t, a, 8.5, 500, "#5A6672");
-export const cNO = (x, y) => `M${x} ${y}V${y+20}M${x} ${y+60}V${y+42}L${x-13} ${y+19}`;
-export const cNC = (x, y) => `M${x} ${y}V${y+20}H${x+9}M${x} ${y+60}V${y+42}L${x+12} ${y+16}`;
 export const BLUE = "#2F80ED";
 export const simOn = () => typeof ED !== "undefined" && ED.sim && ED.sim.on;
 export const pressed = (o, p) => simOn() && ED.sim.P && ED.sim.P.has(o.id + ":" + p);

@@ -1,7 +1,7 @@
 /* Pneumatik-Simulation */
 import { INK, MUTE, PH, SVGT } from './svg.js';
 import { ED } from './status.js';
-import { BLK, FIXED, GRUPPE, PC, PORTS2, art } from './registry.js';
+import { BLK, FIXED, GRUPPE, PC, VORL, art } from './registry.js';
 import { G, strokesSVG } from './vorlagen-svg.js';
 import { BLUE, DIRV, SK, VALVE, portsOf, pressed, simOn, vrails, vstate, wireD, wireEnds, xform } from './bauteile.js';
 import { bbox, bw, ctr, fam, gruppeVon } from './bausteine.js';
@@ -61,10 +61,6 @@ export function drawObj(o, edit){
     case "state": return `<circle cx="${x}" cy="${y}" r="36" fill="#fff" ${st}/>` + SVGT(x, y+5, o.v);
     case "sinit": return `<circle cx="${x}" cy="${y}" r="36" fill="#fff" ${st}/><circle cx="${x}" cy="${y}" r="31" fill="none" ${st}/>` + SVGT(x, y+5, o.v);
     case "start": return `<circle cx="${x}" cy="${y}" r="8" fill="${INK}"/>`;
-    case "no": return `<path d="M${x} ${y}V${y+20}M${x} ${y+60}V${y+42}L${x-13} ${y+19}" ${st} fill="none" stroke-linecap="round"/>` + SVGT(x-20, y+35, o.v, "end", 12);
-    case "nc": return `<path d="M${x} ${y}V${y+20}H${x+9}M${x} ${y+60}V${y+42}L${x+12} ${y+16}" ${st} fill="none" stroke-linecap="round"/>` + SVGT(x-20, y+35, o.v, "end", 12);
-    case "coil": return `<path d="M${x} ${y}V${y+18}M${x} ${y+42}V${y+60}" ${st}/><rect x="${x-15}" y="${y+18}" width="30" height="24" fill="#fff" ${st}/>` + SVGT(x-22, y+35, o.v, "end", 12);
-    case "lamp": return `<path d="M${x} ${y}V${y+18}M${x} ${y+42}V${y+60}" ${st}/><circle cx="${x}" cy="${y+30}" r="12" fill="#fff" ${st}/><path d="M${x-8.5} ${y+21.5}L${x+8.5} ${y+38.5}M${x+8.5} ${y+21.5}L${x-8.5} ${y+38.5}" ${st}/>` + SVGT(x-20, y+35, o.v, "end", 12);
     case "box": { const w = bw(o); return `<rect x="${x}" y="${y}" width="${w}" height="50" rx="3" fill="#fff" ${st}/>` + (o.v ? SVGT(x+w/2, y+30, o.v) : ph("Block", x+w/2, y+30)); }
     case "sum": return `<circle cx="${x}" cy="${y}" r="15" fill="#fff" ${st}/><path d="M${x-10.6} ${y-10.6}L${x+10.6} ${y+10.6}M${x+10.6} ${y-10.6}L${x-10.6} ${y+10.6}" stroke="${INK}" stroke-width="1"/>`;
   }
@@ -100,13 +96,8 @@ export function inkSVG(d, edit=false, key=null){
   if (!d) return "";
   const objs = Object.fromEntries((d.o || []).map(o => [o.id, o])), cs = d.c || [];
   vrails(key, pageCount(key, d)).forEach(r => { objs[r.id] = r; });
-  let rails = "";
-  if (key === "stromlauf") (d.o || []).filter(o => fam(o) === "elektro" && (PORTS2[o.k] || (PC[o.k] && PC[o.k].bx))).forEach(o => {   // Steuerstrompfad an L+ und M des eigenen Blatts andocken
-    const ps = portsOf(o), top = ps[0], bot = ps[1], base = Math.floor(o.y / PH) * PH, yT = base + 70, yB = base + 590;
-    const wired = p => cs.some(c => (c.a === o.id && c.pa === p.n) || (c.b === o.id && c.pb === p.n));
-    if (!cs.some(c => c.b === o.id && c.pa === undefined) && !wired(top) && o.y > yT) rails += `<path d="M${o.x} ${yT}V${o.y}" stroke="${INK}" stroke-width="1.6"/><circle cx="${o.x}" cy="${yT}" r="2.6" fill="${INK}"/>`;
-    if (!cs.some(c => c.a === o.id && c.pa === undefined) && !wired(bot) && o.y + 60 < yB) rails += `<path d="M${o.x} ${o.y+60}V${yB}" stroke="${INK}" stroke-width="1.6"/><circle cx="${o.x}" cy="${yB}" r="2.6" fill="${INK}"/>`;
-  });
+  const v = VORL[key];
+  const rails = v && v.hintergrund ? v.hintergrund(d, cs) : "";   // Haken hintergrund, z. B. Strompfade zu L+ und M
   const conns = cs.map((c, i) => {
     const gm = connGeom(c, objs, cs); if (!gm) return "";
     const sel = edit && ED.selC === i, col = sel ? "#0E4C92" : INK, g = fam(objs[c.a]);
@@ -158,7 +149,7 @@ export function pageCount(key, d, extraY=0){
 }
 export function wireRef(o, port, key, y, x){   // Verweistext: Kennzeichen:Anschluss, Blatt, Strompfad
   const b = Math.floor(y / PH) + 1, name = o.k === "rail" ? o.v : `${o.v || BLK[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
-  const pfad = key === "stromlauf" ? `, Pfad ${Math.max(1, Math.min(20, Math.round((x - 40) / 46)))}` : "";
+  const v = VORL[key], pfad = v && v.verweis ? v.verweis(x, y) : "";   // Haken verweis, z. B. Strompfad
   return `${name}, Blatt ${b}${pfad}`;
 }
 export function pcSample(k){

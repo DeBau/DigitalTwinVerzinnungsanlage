@@ -1216,8 +1216,6 @@ pre.code code{font-size:inherit}
   var PD = (d) => `<path d="${d}" ${SK} stroke-dasharray="3 2.5"/>`;
   var LB = (x, y, t, a = "end") => t ? SVGT(x, y, t, a, 12, 600) : "";
   var PN = (x, y, t, a = "start") => SVGT(x, y, t, a, 8.5, 500, "#5A6672");
-  var cNO = (x, y) => `M${x} ${y}V${y + 20}M${x} ${y + 60}V${y + 42}L${x - 13} ${y + 19}`;
-  var cNC = (x, y) => `M${x} ${y}V${y + 20}H${x + 9}M${x} ${y + 60}V${y + 42}L${x + 12} ${y + 16}`;
   var BLUE = "#2F80ED";
   var simOn = () => typeof ED !== "undefined" && ED.sim && ED.sim.on;
   var pressed = (o, p) => simOn() && ED.sim.P && ED.sim.P.has(o.id + ":" + p);
@@ -1413,11 +1411,6 @@ pre.code code{font-size:inherit}
     const a = BLK[o.k];
     if (a && a.umriss) return a.umriss(o);
     switch (o.k) {
-      case "no":
-      case "nc":
-      case "coil":
-      case "lamp":
-        return { x: o.x - 22, y: o.y, w: 44, h: 60 };
       case "box":
         return { x: o.x, y: o.y, w: bw(o), h: 50 };
     }
@@ -1432,22 +1425,12 @@ pre.code code{font-size:inherit}
   function outPt(o, tx) {
     const a = art(o.k);
     if (a.aus) return a.aus(o, tx);
-    if (PC[o.k] && PC[o.k].bx) {
-      const q = portsOf(o)[1];
-      return [q.x, q.y];
-    }
-    if (["no", "nc", "coil", "lamp"].includes(o.k)) return [o.x, o.y + 60];
     const b = bbox(o);
     return [b.x + b.w / 2, b.y + b.h];
   }
   function inPt(o, fx) {
     const a = art(o.k);
     if (a.ein) return a.ein(o, fx);
-    if (PC[o.k] && PC[o.k].bx) {
-      const q = portsOf(o)[0];
-      return [q.x, q.y];
-    }
-    if (["no", "nc", "coil", "lamp"].includes(o.k)) return [o.x, o.y];
     const b = bbox(o);
     return [b.x + b.w / 2, b.y];
   }
@@ -1627,14 +1610,6 @@ pre.code code{font-size:inherit}
         return `<circle cx="${x}" cy="${y}" r="36" fill="#fff" ${st}/><circle cx="${x}" cy="${y}" r="31" fill="none" ${st}/>` + SVGT(x, y + 5, o.v);
       case "start":
         return `<circle cx="${x}" cy="${y}" r="8" fill="${INK}"/>`;
-      case "no":
-        return `<path d="M${x} ${y}V${y + 20}M${x} ${y + 60}V${y + 42}L${x - 13} ${y + 19}" ${st} fill="none" stroke-linecap="round"/>` + SVGT(x - 20, y + 35, o.v, "end", 12);
-      case "nc":
-        return `<path d="M${x} ${y}V${y + 20}H${x + 9}M${x} ${y + 60}V${y + 42}L${x + 12} ${y + 16}" ${st} fill="none" stroke-linecap="round"/>` + SVGT(x - 20, y + 35, o.v, "end", 12);
-      case "coil":
-        return `<path d="M${x} ${y}V${y + 18}M${x} ${y + 42}V${y + 60}" ${st}/><rect x="${x - 15}" y="${y + 18}" width="30" height="24" fill="#fff" ${st}/>` + SVGT(x - 22, y + 35, o.v, "end", 12);
-      case "lamp":
-        return `<path d="M${x} ${y}V${y + 18}M${x} ${y + 42}V${y + 60}" ${st}/><circle cx="${x}" cy="${y + 30}" r="12" fill="#fff" ${st}/><path d="M${x - 8.5} ${y + 21.5}L${x + 8.5} ${y + 38.5}M${x + 8.5} ${y + 21.5}L${x - 8.5} ${y + 38.5}" ${st}/>` + SVGT(x - 20, y + 35, o.v, "end", 12);
       case "box": {
         const w = bw(o);
         return `<rect x="${x}" y="${y}" width="${w}" height="50" rx="3" fill="#fff" ${st}/>` + (o.v ? SVGT(x + w / 2, y + 30, o.v) : ph("Block", x + w / 2, y + 30));
@@ -1683,13 +1658,8 @@ pre.code code{font-size:inherit}
     vrails(key, pageCount(key, d)).forEach((r) => {
       objs[r.id] = r;
     });
-    let rails = "";
-    if (key === "stromlauf") (d.o || []).filter((o) => fam(o) === "elektro" && (PORTS2[o.k] || PC[o.k] && PC[o.k].bx)).forEach((o) => {
-      const ps = portsOf(o), top = ps[0], bot = ps[1], base = Math.floor(o.y / PH) * PH, yT = base + 70, yB = base + 590;
-      const wired = (p) => cs.some((c) => c.a === o.id && c.pa === p.n || c.b === o.id && c.pb === p.n);
-      if (!cs.some((c) => c.b === o.id && c.pa === void 0) && !wired(top) && o.y > yT) rails += `<path d="M${o.x} ${yT}V${o.y}" stroke="${INK}" stroke-width="1.6"/><circle cx="${o.x}" cy="${yT}" r="2.6" fill="${INK}"/>`;
-      if (!cs.some((c) => c.a === o.id && c.pa === void 0) && !wired(bot) && o.y + 60 < yB) rails += `<path d="M${o.x} ${o.y + 60}V${yB}" stroke="${INK}" stroke-width="1.6"/><circle cx="${o.x}" cy="${yB}" r="2.6" fill="${INK}"/>`;
-    });
+    const v = VORL[key];
+    const rails = v && v.hintergrund ? v.hintergrund(d, cs) : "";
     const conns = cs.map((c, i) => {
       const gm = connGeom(c, objs, cs);
       if (!gm) return "";
@@ -1702,8 +1672,8 @@ pre.code code{font-size:inherit}
           const e1 = stub(a, 30), e2 = stub(b, 30);
           const t1 = `→ ${wireRef(objs[c.b], c.pb, key, b.y, b.x)}`, t2 = `von ${wireRef(objs[c.a], c.pa, key, a.y, a.x)}`;
           const lab = (q, e, t) => {
-            const v = q.d === "u" || q.d === "d";
-            return SVGT(e[0] + (v ? 5 : 0), e[1] + (v ? q.d === "d" ? 4 : 2 : -5), t, "start", 10.5, 600);
+            const v2 = q.d === "u" || q.d === "d";
+            return SVGT(e[0] + (v2 ? 5 : 0), e[1] + (v2 ? q.d === "d" ? 4 : 2 : -5), t, "start", 10.5, 600);
           };
           const d1 = `M${a.x} ${a.y}L${e1[0]} ${e1[1]}`, d2 = `M${e2[0]} ${e2[1]}L${b.x} ${b.y}`;
           return `<g data-c="${i}"><path d="${d1}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash} marker-end="url(#arw)"/><path d="${d2}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash} marker-end="url(#arw)"/>${lab(a, e1, t1)}${lab(b, e2, t2)}` + (edit ? `<path d="${d1}${d2}" fill="none" stroke="transparent" stroke-width="12"/>` : "") + `</g>`;
@@ -1738,8 +1708,8 @@ pre.code code{font-size:inherit}
         }
       });
     });
-    Object.values(cnt).forEach((v) => {
-      if (v.n >= 2) extra += dot(v.q);
+    Object.values(cnt).forEach((v2) => {
+      if (v2.n >= 2) extra += dot(v2.q);
     });
     (d.o || []).forEach((o) => {
       if (!VALVE[o.k]) return;
@@ -1773,7 +1743,7 @@ pre.code code{font-size:inherit}
   }
   function wireRef(o, port, key, y, x) {
     const b = Math.floor(y / PH) + 1, name = o.k === "rail" ? o.v : `${o.v || BLK[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
-    const pfad = key === "stromlauf" ? `, Pfad ${Math.max(1, Math.min(20, Math.round((x - 40) / 46)))}` : "";
+    const v = VORL[key], pfad = v && v.verweis ? v.verweis(x, y) : "";
     return `${name}, Blatt ${b}${pfad}`;
   }
   function pcSample(k) {
@@ -2337,8 +2307,7 @@ pre.code code{font-size:inherit}
     if (B === false) return;
     const b = bbox(o);
     const wert = B && B.wert ? B.wert(o) : o.v || "";
-    const elektro = o.k === "no" || o.k === "nc" || o.k === "coil" || o.k === "lamp";
-    const at = B && B.ort ? B.ort(o) : elektro ? [o.x - 120, o.y + 30] : [b.x, b.y + b.h / 2];
+    const at = B && B.ort ? B.ort(o) : [b.x, b.y + b.h / 2];
     const hinweis = B && B.hinweis ? B.hinweis(o) : LABEL_HINT[o.k];
     editLabel(at[0], at[1], wert, hinweis, (v) => {
       snapshot();
@@ -2530,10 +2499,6 @@ pre.code code{font-size:inherit}
       o.x = px - 55;
       o.y = py - 25;
       o.v = "";
-    } else if (k === "no" || k === "nc" || k === "coil" || k === "lamp") {
-      o.x = px;
-      o.y = py - 30;
-      o.v = { no: "-SF1", nc: "-SF2", coil: "-QA1", lamp: "-PF1" }[k];
     } else {
       o.x = px;
       o.y = py;
@@ -2558,7 +2523,8 @@ pre.code code{font-size:inherit}
     return o;
   }
   function smartPos(o) {
-    if (ED.key === "stromlauf" && fam(o) === "elektro") o.x = 40 + Math.max(1, Math.min(20, Math.round((o.x - 40) / 46))) * 46;
+    const v = VORL[ED.key];
+    if (v.fangBaustein) v.fangBaustein(o);
     const dock = andockStelle(o), marks = [];
     if (dock) {
       o.x += dock.sx;
@@ -4058,33 +4024,104 @@ END_CASE;`)}
     zeiger: WS_ZEIGER
   });
 
-  // web/tools/uebungshandbuch/src/editor/vorlagen/alt.js
-  registriereVorlage("stromlauf", { n: "Stromlaufplan", d: "Steuerstromkreis zwischen L+ und M – Taster, Not-Halt, SPS, Sicherheitsrelais", gruppen: ["elektro", "geraete", "leistung"], schienen: [["L+", 70, 40, 935], ["M", 590, 40, 935]], body: (ex, page, meta) => tplBody("stromlauf", ex, page, meta) });
-  registriereVorlage("leistung", { n: "Hauptstromkreis", d: "L1, L2, L3, N, PE – Schütze, Wendeschützschaltung, Motorschutz, Motoren, Umrichter", gruppen: ["leistung", "geraete", "elektro"], schienen: [["L1", 50, 60, 915], ["L2", 70, 60, 915], ["L3", 90, 60, 915], ["N", 110, 60, 915], ["PE", 130, 60, 915]], body: (ex, page, meta) => tplBody("leistung", ex, page, meta) });
-  registriereVorlage("pneumatik", { n: "Pneumatikschaltplan", d: "Zylinder, Wegeventile, Drosseln nach ISO 1219 – mit Simulation", gruppen: ["pneu"], body: (ex, page, meta) => tplBody("pneumatik", ex, page, meta) });
-  registriereVorlage("regelkreis", { n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: (ex, page, meta) => tplBody("regelkreis", ex, page, meta) });
-  registriereVorlage("trend", { n: "Trendaufzeichnung", d: "Istwert, Sollwert und Stellgröße über der Zeit", einblattig: true, body: (ex, page, meta) => tplBody("trend", ex, page, meta) });
-  registriereVorlage("raster", { n: "Kästchenraster", d: "5-mm-Raster für alles Weitere", gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel"], body: (ex, page, meta) => tplBody("raster", ex, page, meta) });
-  registriereGruppe("elektro", { kette: true, name: "Steuerstromkreis", hinweis: "Kontakte und Spule untereinander setzen – sie verbinden sich zum Strompfad und docken oben an L+ und unten an M an. Kennzeichen per Doppelklick ändern." });
-  registriereGruppe("geraete", { name: "Geräte und SPS", hinweis: "Geräte setzen und mit Verbinden verdrahten – z. B. den Sensorausgang BK auf einen Eingang der DI-Baugruppe." });
-  registriereGruppe("leistung", { name: "Hauptstromkreis", hinweis: "Bauteile setzen und mit Verbinden Anschluss für Anschluss verdrahten: erst den Anschluss am einen, dann am anderen Bauteil anklicken – auch direkt auf die Schienen L1, L2, L3, N, PE. Wendeschützschaltung: zwei Schütze, beim zweiten L1 und L3 tauschen." });
-  registriereGruppe("pneu", { name: "Pneumatik nach ISO 1219", hinweis: "Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken." });
-  registriereGruppe("regel", { pfeiltext: true, name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn." });
-  fuelle(BLK, {
-    no: { g: "elektro", n: "Schließer" },
-    nc: { g: "elektro", n: "Öffner" },
-    coil: { g: "elektro", n: "Spule / Schütz" },
-    lamp: { g: "elektro", n: "Meldeleuchte" },
-    box: { g: "regel", n: "Block" },
-    sum: { g: "regel", n: "Summierstelle", ...rund(15), beschriftung: false }
+  // web/tools/uebungshandbuch/src/editor/vorlagen/elektro.js
+  var cNO = (x, y) => `M${x} ${y}V${y + 20}M${x} ${y + 60}V${y + 42}L${x - 13} ${y + 19}`;
+  var cNC = (x, y) => `M${x} ${y}V${y + 20}H${x + 9}M${x} ${y + 60}V${y + 42}L${x + 12} ${y + 16}`;
+  var pfadNummer = (x) => Math.max(1, Math.min(20, Math.round((x - 40) / 46)));
+  function stromlaufBlatt() {
+    let s = `<path d="M40 70H975M40 590H975" stroke="${G}" stroke-width="2"/>` + TX(30, 74, 12, "L+", "end", "#555", 600) + TX(30, 594, 12, "M", "end", "#555", 600) + TX(975, 62, 9, "24 V DC", "end");
+    for (let i = 1; i <= 20; i++) {
+      const x = 40 + i * 46;
+      s += TX(x, 52, 9, String(i), "middle") + `<path d="M${x} 74V586" stroke="${G2}" stroke-width=".6" stroke-dasharray="2 5"/>`;
+    }
+    return grid(10, "#EEF1F3", 40, 80, 975, 580) + s + TX(40, 615, 9, "Strompfad-Nr. oben, Kontaktspiegel unter den Spulen eintragen");
+  }
+  function strompfadAnschluesse(d, cs) {
+    let s = "";
+    const imPfad = (o) => fam(o) === "elektro" && (PORTS2[o.k] || PC[o.k] && PC[o.k].bx);
+    (d.o || []).filter(imPfad).forEach((o) => {
+      const ps = portsOf(o), top = ps[0], bot = ps[1], base = Math.floor(o.y / PH) * PH, yT = base + 70, yB = base + 590;
+      const wired = (p) => cs.some((c) => c.a === o.id && c.pa === p.n || c.b === o.id && c.pb === p.n);
+      if (!cs.some((c) => c.b === o.id && c.pa === void 0) && !wired(top) && o.y > yT) s += `<path d="M${o.x} ${yT}V${o.y}" stroke="${INK}" stroke-width="1.6"/><circle cx="${o.x}" cy="${yT}" r="2.6" fill="${INK}"/>`;
+      if (!cs.some((c) => c.a === o.id && c.pa === void 0) && !wired(bot) && o.y + 60 < yB) s += `<path d="M${o.x} ${o.y + 60}V${yB}" stroke="${INK}" stroke-width="1.6"/><circle cx="${o.x}" cy="${yB}" r="2.6" fill="${INK}"/>`;
+    });
+    return s;
+  }
+  registriereVorlage("stromlauf", {
+    n: "Stromlaufplan",
+    d: "Steuerstromkreis zwischen L+ und M – Taster, Not-Halt, SPS, Sicherheitsrelais",
+    gruppen: ["elektro", "geraete", "leistung"],
+    schienen: [["L+", 70, 40, 935], ["M", 590, 40, 935]],
+    body: stromlaufBlatt,
+    hintergrund: strompfadAnschluesse,
+    // Glieder des Steuerstromkreises rasten auf die Strompfad-Spalten
+    fangBaustein(o) {
+      if (fam(o) === "elektro") o.x = 40 + pfadNummer(o.x) * 46;
+    },
+    // Abbruchstellen nennen zusätzlich den Strompfad
+    verweis: (x) => `, Pfad ${pfadNummer(x)}`
   });
-  fuelle(PC, {
+  registriereGruppe("elektro", {
+    name: "Steuerstromkreis",
+    hinweis: "Kontakte und Spule untereinander setzen – sie verbinden sich zum Strompfad und docken oben an L+ und unten an M an. Kennzeichen per Doppelklick ändern.",
+    kette: true
+  });
+  registriereGruppe("geraete", {
+    name: "Geräte und SPS",
+    hinweis: "Geräte setzen und mit Verbinden verdrahten – z. B. den Sensorausgang BK auf einen Eingang der DI-Baugruppe."
+  });
+  var KONTAKT = {
+    g: "elektro",
+    umriss: (o) => ({ x: o.x - 22, y: o.y, w: 44, h: 60 }),
+    aus: (o) => [o.x, o.y + 60],
+    ein: (o) => [o.x, o.y],
+    beschriftung: { ort: (o) => [o.x - 120, o.y + 30] }
+  };
+  var kontaktNeu = (v) => (o, [px, py]) => {
+    o.x = px;
+    o.y = py - 30;
+    o.v = v;
+  };
+  fuelle(BLK, {
+    no: {
+      ...KONTAKT,
+      n: "Schließer",
+      neu: kontaktNeu("-SF1"),
+      zeichne: (o) => `<path d="M${o.x} ${o.y}V${o.y + 20}M${o.x} ${o.y + 60}V${o.y + 42}L${o.x - 13} ${o.y + 19}" ${LINIE} fill="none" stroke-linecap="round"/>` + SVGT(o.x - 20, o.y + 35, o.v, "end", 12)
+    },
+    nc: {
+      ...KONTAKT,
+      n: "Öffner",
+      neu: kontaktNeu("-SF2"),
+      zeichne: (o) => `<path d="M${o.x} ${o.y}V${o.y + 20}H${o.x + 9}M${o.x} ${o.y + 60}V${o.y + 42}L${o.x + 12} ${o.y + 16}" ${LINIE} fill="none" stroke-linecap="round"/>` + SVGT(o.x - 20, o.y + 35, o.v, "end", 12)
+    },
+    coil: {
+      ...KONTAKT,
+      n: "Spule / Schütz",
+      neu: kontaktNeu("-QA1"),
+      zeichne: (o) => `<path d="M${o.x} ${o.y}V${o.y + 18}M${o.x} ${o.y + 42}V${o.y + 60}" ${LINIE}/><rect x="${o.x - 15}" y="${o.y + 18}" width="30" height="24" fill="#fff" ${LINIE}/>` + SVGT(o.x - 22, o.y + 35, o.v, "end", 12)
+    },
+    lamp: {
+      ...KONTAKT,
+      n: "Meldeleuchte",
+      neu: kontaktNeu("-PF1"),
+      zeichne: (o) => `<path d="M${o.x} ${o.y}V${o.y + 18}M${o.x} ${o.y + 42}V${o.y + 60}" ${LINIE}/><circle cx="${o.x}" cy="${o.y + 30}" r="12" fill="#fff" ${LINIE}/><path d="M${o.x - 8.5} ${o.y + 21.5}L${o.x + 8.5} ${o.y + 38.5}M${o.x + 8.5} ${o.y + 21.5}L${o.x - 8.5} ${o.y + 38.5}" ${LINIE}/>` + SVGT(o.x - 20, o.y + 35, o.v, "end", 12)
+    }
+  });
+  fuelle(PORTS2, { no: [["13", 0, 0, "u"], ["14", 0, 60, "d"]], nc: [["11", 0, 0, "u"], ["12", 0, 60, "d"]], coil: [["A1", 0, 0, "u"], ["A2", 0, 60, "d"]], lamp: [["X1", 0, 0, "u"], ["X2", 0, 60, "d"]] });
+  fuelle(SAMPLE, { no: [{ k: "no", x: 34, y: 2 }, "0 0 56 64"], nc: [{ k: "nc", x: 30, y: 2 }, "0 0 56 64"], coil: [{ k: "coil", x: 28, y: 2 }, "0 0 56 64"], lamp: [{ k: "lamp", x: 28, y: 2 }, "0 0 56 64"] });
+  fuelle(PROPS, { no: [["v", "Kennzeichen"]], nc: [["v", "Kennzeichen"]], coil: [["v", "Kennzeichen"]], lamp: [["v", "Kennzeichen"]] });
+  fuelle(LABEL_HINT, { no: "Kennzeichen, z. B. -SF1", nc: "Kennzeichen, z. B. -SF2", coil: "Kennzeichen, z. B. -QA1", lamp: "Kennzeichen, z. B. -PF1" });
+  var xy = (q) => [q.x, q.y];
+  var STROMPFAD = { aus: (o) => xy(portsOf(o)[1]), ein: (o) => xy(portsOf(o)[0]) };
+  registriereBauteile({
     /* Steuerstromkreis – Mittellinie bei o.x, Höhe 60 */
     tno: {
       g: "elektro",
       n: "Taster Schließer",
       lbl: "-SF1",
       bx: -22,
+      ...STROMPFAD,
       w: 44,
       h: 60,
       ports: [["13", 0, 0, "u"], ["14", 0, 60, "d"]],
@@ -4095,6 +4132,7 @@ END_CASE;`)}
       n: "Taster Öffner",
       lbl: "-SF2",
       bx: -22,
+      ...STROMPFAD,
       w: 44,
       h: 60,
       ports: [["11", 0, 0, "u"], ["12", 0, 60, "d"]],
@@ -4105,6 +4143,7 @@ END_CASE;`)}
       n: "Not-Halt (Pilztaster)",
       lbl: "-SF0",
       bx: -22,
+      ...STROMPFAD,
       w: 44,
       h: 60,
       ports: [["11", 0, 0, "u"], ["12", 0, 60, "d"]],
@@ -4115,6 +4154,7 @@ END_CASE;`)}
       n: "Schlüsselschalter",
       lbl: "-SA2",
       bx: -22,
+      ...STROMPFAD,
       w: 44,
       h: 60,
       ports: [["13", 0, 0, "u"], ["14", 0, 60, "d"]],
@@ -4125,6 +4165,7 @@ END_CASE;`)}
       n: "Positionsschalter",
       lbl: "-BG1",
       bx: -22,
+      ...STROMPFAD,
       w: 44,
       h: 60,
       ports: [["13", 0, 0, "u"], ["14", 0, 60, "d"]],
@@ -4135,6 +4176,7 @@ END_CASE;`)}
       n: "Näherungsschalter PNP",
       lbl: "-BG2",
       bx: -22,
+      ...STROMPFAD,
       w: 56,
       h: 60,
       ports: [["BN", 0, 0, "u"], ["BU", 0, 60, "d"], ["BK", 30, 30, "r"]],
@@ -4145,6 +4187,7 @@ END_CASE;`)}
       n: "Ventilspule",
       lbl: "-MB1",
       bx: -22,
+      ...STROMPFAD,
       w: 44,
       h: 60,
       ports: [["A1", 0, 0, "u"], ["A2", 0, 60, "d"]],
@@ -4155,6 +4198,7 @@ END_CASE;`)}
       n: "Klemme",
       lbl: "-X1:1",
       bx: -22,
+      ...STROMPFAD,
       w: 44,
       h: 60,
       ports: [["1", 0, 0, "u"], ["2", 0, 60, "d"]],
@@ -4165,6 +4209,7 @@ END_CASE;`)}
       n: "Sicherung",
       lbl: "-FA2",
       bx: -22,
+      ...STROMPFAD,
       w: 44,
       h: 60,
       ports: [["1", 0, 0, "u"], ["2", 0, 60, "d"]],
@@ -4224,7 +4269,23 @@ END_CASE;`)}
         });
         return s;
       }
-    },
+    }
+  });
+
+  // web/tools/uebungshandbuch/src/editor/vorlagen/alt.js
+  registriereVorlage("leistung", { n: "Hauptstromkreis", d: "L1, L2, L3, N, PE – Schütze, Wendeschützschaltung, Motorschutz, Motoren, Umrichter", gruppen: ["leistung", "geraete", "elektro"], schienen: [["L1", 50, 60, 915], ["L2", 70, 60, 915], ["L3", 90, 60, 915], ["N", 110, 60, 915], ["PE", 130, 60, 915]], body: (ex, page, meta) => tplBody("leistung", ex, page, meta) });
+  registriereVorlage("pneumatik", { n: "Pneumatikschaltplan", d: "Zylinder, Wegeventile, Drosseln nach ISO 1219 – mit Simulation", gruppen: ["pneu"], body: (ex, page, meta) => tplBody("pneumatik", ex, page, meta) });
+  registriereVorlage("regelkreis", { n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: (ex, page, meta) => tplBody("regelkreis", ex, page, meta) });
+  registriereVorlage("trend", { n: "Trendaufzeichnung", d: "Istwert, Sollwert und Stellgröße über der Zeit", einblattig: true, body: (ex, page, meta) => tplBody("trend", ex, page, meta) });
+  registriereVorlage("raster", { n: "Kästchenraster", d: "5-mm-Raster für alles Weitere", gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel"], body: (ex, page, meta) => tplBody("raster", ex, page, meta) });
+  registriereGruppe("leistung", { name: "Hauptstromkreis", hinweis: "Bauteile setzen und mit Verbinden Anschluss für Anschluss verdrahten: erst den Anschluss am einen, dann am anderen Bauteil anklicken – auch direkt auf die Schienen L1, L2, L3, N, PE. Wendeschützschaltung: zwei Schütze, beim zweiten L1 und L3 tauschen." });
+  registriereGruppe("pneu", { name: "Pneumatik nach ISO 1219", hinweis: "Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken." });
+  registriereGruppe("regel", { pfeiltext: true, name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn." });
+  fuelle(BLK, {
+    box: { g: "regel", n: "Block" },
+    sum: { g: "regel", n: "Summierstelle", ...rund(15), beschriftung: false }
+  });
+  fuelle(PC, {
     /* Hauptstromkreis – drei Pole bei 10/30/50 */
     ls3: {
       g: "leistung",
@@ -4564,17 +4625,12 @@ END_CASE;`)}
     v52pb: { g: "pneu", n: "5/2 vorgesteuert, bistabil", mk: { k: "v52", al: "magp", ar: "magp" } },
     v53c: { g: "pneu", n: "5/3-Wegeventil Mitte gesperrt", mk: { k: "v53", al: "mag", ar: "mag" } }
   };
-  fuelle(PORTS2, { no: [["13", 0, 0, "u"], ["14", 0, 60, "d"]], nc: [["11", 0, 0, "u"], ["12", 0, 60, "d"]], coil: [["A1", 0, 0, "u"], ["A2", 0, 60, "d"]], lamp: [["X1", 0, 0, "u"], ["X2", 0, 60, "d"]] });
   fuelle(SAMPLE, {
-    no: [{ k: "no", x: 34, y: 2 }, "0 0 56 64"],
-    nc: [{ k: "nc", x: 30, y: 2 }, "0 0 56 64"],
-    coil: [{ k: "coil", x: 28, y: 2 }, "0 0 56 64"],
-    lamp: [{ k: "lamp", x: 28, y: 2 }, "0 0 56 64"],
     box: [{ k: "box", x: 2, y: 2, v: "Regler" }, "0 0 114 54"],
     sum: [{ k: "sum", x: 24, y: 24 }, "0 0 48 48"]
   });
-  fuelle(PROPS, { no: [["v", "Kennzeichen"]], nc: [["v", "Kennzeichen"]], coil: [["v", "Kennzeichen"]], lamp: [["v", "Kennzeichen"]], box: [["v", "Bezeichnung"]] });
-  fuelle(LABEL_HINT, { box: "Bezeichnung, z. B. Regler", no: "Kennzeichen, z. B. -SF1", nc: "Kennzeichen, z. B. -SF2", coil: "Kennzeichen, z. B. -QA1", lamp: "Kennzeichen, z. B. -PF1" });
+  fuelle(PROPS, { box: [["v", "Bezeichnung"]] });
+  fuelle(LABEL_HINT, { box: "Bezeichnung, z. B. Regler" });
   Object.entries(PC).forEach(([k, pc]) => {
     if (k === "zyl2") Object.assign(BLK, PCPAL);
     if (!BLK[k]) BLK[k] = { g: pc.g, n: pc.n, hide: pc.hide };
@@ -4583,14 +4639,6 @@ END_CASE;`)}
     switch (key) {
       case "raster":
         return grid(10, G2);
-      case "stromlauf": {
-        let s = `<path d="M40 70H975M40 590H975" stroke="${G}" stroke-width="2"/>` + TX(30, 74, 12, "L+", "end", "#555", 600) + TX(30, 594, 12, "M", "end", "#555", 600) + TX(975, 62, 9, "24 V DC", "end");
-        for (let i = 1; i <= 20; i++) {
-          const x = 40 + i * 46;
-          s += TX(x, 52, 9, String(i), "middle") + `<path d="M${x} 74V586" stroke="${G2}" stroke-width=".6" stroke-dasharray="2 5"/>`;
-        }
-        return grid(10, "#EEF1F3", 40, 80, 975, 580) + s + TX(40, 615, 9, "Strompfad-Nr. oben, Kontaktspiegel unter den Spulen eintragen");
-      }
       case "leistung": {
         let r = "";
         [["L1", 50], ["L2", 70], ["L3", 90], ["N", 110], ["PE", 130]].forEach(([n, y]) => {
