@@ -1,7 +1,7 @@
 // Editor-Kern: Eigenschaftsfeld links im Editor (Felder des markierten Elements, Zeichenleiste).
 import { $, $$, IC, esc } from '../app/basis.js';
 import { ED } from './status.js';
-import { BLK, PC, PROPS, STRICH, VORL, art } from './registry.js';
+import { BLK, PC, PROPS, STRICH, art, vorlage } from './registry.js';
 import { gruppeVon } from './bausteine.js';
 import { objById } from './auswahl.js';
 import { deDate, skMeta } from './blaetter.js';
@@ -27,7 +27,7 @@ export const FARBEN = [["#17212B","Schwarz"],["#0E4C92","Blau"],["#C0392B","Rot"
 export const loeschKnopf = () => `<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div>`;
 // Inhalt des Eigenschaftsfelds für die aktuelle Markierung (oder die Anleitung der Vorlage zum gewählten Werkzeug)
 export function propsHTML(){
-  const v = VORL[ED.key], anleitung = v && v.anleitung && v.anleitung();   // Haken anleitung: Hilfe zum gewählten Werkzeug
+  const v = vorlage(ED.key), anleitung = v.anleitung && v.anleitung();   // Haken anleitung: Hilfe zum gewählten Werkzeug
   if (anleitung) return anleitung;
   if (ED.selT !== null && ED.data.t[ED.selT]) return textFelder(ED.data.t[ED.selT]);
   if (ED.selS !== null && ED.data.s[ED.selS]) return strichFelder(ED.data.s[ED.selS]);

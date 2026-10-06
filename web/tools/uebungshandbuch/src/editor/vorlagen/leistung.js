@@ -1,5 +1,5 @@
 // Vorlage Hauptstromkreis (L1, L2, L3, N, PE): Schutzschalter, Schütze, Motoren, Umrichter und die Potenzialschiene.
-// Die Schienen der Vorlage sind virtuelle Potenzialschienen (registry VRAIL), Leitungen docken an beliebiger Stelle an.
+// Die Schienen der Vorlage sind virtuelle Potenzialschienen (Haken schienen), Leitungen docken an beliebiger Stelle an.
 import { INK, SVGT } from '../svg.js';
 import { PC, SAMPLE, fuelle, registriereBauteile, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, TX, grid } from '../vorlagen-svg.js';

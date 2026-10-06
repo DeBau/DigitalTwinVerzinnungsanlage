@@ -5,7 +5,7 @@
 import { $, esc } from '../app/basis.js';
 import { SVGT } from './svg.js';
 import { ED } from './status.js';
-import { VORL } from './registry.js';
+import { vorlage } from './registry.js';
 import { bbox } from './bausteine.js';
 import { clearSel, objById } from './auswahl.js';
 import { updateProps } from './eigenschaften.js';
@@ -14,10 +14,10 @@ import { renderInk } from './anzeige.js';
 export const ROT = "#C0392B";
 export let befunde = [];
 
-export const hatPruefung = key => !!(VORL[key] && VORL[key].pruefe);
+export const hatPruefung = key => !!vorlage(key).pruefe;
 export function pruefeSkizze(){
-  const v = VORL[ED.key];
-  return v && v.pruefe ? v.pruefe(ED.data, {scope: ED.scope, key: ED.key}) : [];
+  const v = vorlage(ED.key);
+  return v.pruefe ? v.pruefe(ED.data, {scope: ED.scope, key: ED.key}) : [];
 }
 
 // Rote Markierung eines Befunds mit seiner Nummer

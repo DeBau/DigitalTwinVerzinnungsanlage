@@ -2,11 +2,11 @@
 // Benutzt vom Editor (anzeige.js, zeiger.js), von den Skizzen-Kacheln und vom Druck (über blaetter.js).
 import { INK, MUTE, PH, SVGT } from './svg.js';
 import { ED } from './status.js';
-import { BLK, FIXED, GRUPPE, PC, VORL, art } from './registry.js';
+import { BLK, PC, art, vorlage } from './registry.js';
 import { neueSpuren } from './spuren.js';
 import { strokesSVG } from './vorlagen-svg.js';
 import { BLUE, istSchiene, portsOf, simOn, vrails, wireD, wireEnds, xform } from './bauteile.js';
-import { bbox, ctr, fam, gruppeVon } from './bausteine.js';
+import { bbox, ctr, gruppeVon } from './bausteine.js';
 import { verbindeKette } from './kette.js';
 
 /* ---------- Bausteine ---------- */
@@ -45,7 +45,7 @@ export function connGeom(c, objs, all, spuren = neueSpuren()){
     if (!e) return null;
     return {d: wireD(e[0], e[1], spuren), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"]};
   }
-  const gruppe = GRUPPE[fam(A)] || {};
+  const gruppe = gruppeVon(A);
   if (gruppe.kette) return verbindeKette(A, B, spuren);
   if (gruppe.verbinde) return gruppe.verbinde(c, A, B, objs, all, spuren);
   return verbindeRechtwinklig(A, B);
@@ -72,7 +72,7 @@ export function verbindeRechtwinklig(A, B){
 export const fragtBedingung = A => { const b = gruppeVon(A).bedingung; return !!b && b(A); };
 export const treffer = (d, edit) => edit ? `<path d="${d}" fill="none" stroke="transparent" stroke-width="12"/>` : "";
 // Endet eine Linie auf einem anderen Blatt, zeichnet der Editor zwei Stummel mit Verweis statt einer Linie quer über den Rand
-export const blattwechsel = (y1, y2, key) => !FIXED[key] && Math.floor(y1 / PH) !== Math.floor(y2 / PH);
+export const blattwechsel = (y1, y2, key) => !vorlage(key).einblattig && Math.floor(y1 / PH) !== Math.floor(y2 / PH);
 
 // Leitung zwischen Anschlüssen; während der Simulation blau, wenn sie Druck führt
 export function leitungSVG(c, i, gm, objs, key, edit){
@@ -151,8 +151,8 @@ export function inkSVG(d, edit=false, key=null){
   if (!d) return "";
   const objs = Object.fromEntries((d.o || []).map(o => [o.id, o])), cs = d.c || [];
   vrails(key, pageCount(key, d)).forEach(r => { objs[r.id] = r; });
-  const v = VORL[key];
-  const rails = v && v.hintergrund ? v.hintergrund(d, cs) : "";   // Haken hintergrund, z. B. Strompfade zu L+ und M
+  const v = vorlage(key);
+  const rails = v.hintergrund ? v.hintergrund(d, cs) : "";   // Haken hintergrund, z. B. Strompfade zu L+ und M
   const spuren = neueSpuren();   // eine Belegung für alle Verbindungen der Zeichnung
   const conns = cs.map((c, i) => {
     const gm = connGeom(c, objs, cs, spuren);
@@ -163,7 +163,7 @@ export function inkSVG(d, edit=false, key=null){
   return rails + conns + os + punkteSVG(d, cs, objs, edit) + strokesSVG(d, edit);
 }
 export function pageCount(key, d, extraY=0){
-  if (FIXED[key]) return 1;
+  if (vorlage(key).einblattig) return 1;
   let m = extraY;
   (d && d.o || []).forEach(o => { const b = bbox(o); m = Math.max(m, b.y + b.h); });
   (d && d.s || []).forEach(st => st.p.forEach(q => { m = Math.max(m, q[1]); }));
@@ -173,7 +173,7 @@ export function pageCount(key, d, extraY=0){
 // Verweistext an einer Leitung über den Blattrand: Kennzeichen:Anschluss, Blatt und was die Vorlage ergänzt (Haken verweis)
 export function wireRef(o, port, key, y, x){
   const b = Math.floor(y / PH) + 1, name = istSchiene(o) ? o.v : `${o.v || BLK[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
-  const v = VORL[key], pfad = v && v.verweis ? v.verweis(x, y) : "";
+  const v = vorlage(key), pfad = v.verweis ? v.verweis(x, y) : "";
   return `${name}, Blatt ${b}${pfad}`;
 }
 // Palettenbild eines Bauteils ohne eigenes SAMPLE: Bauteil mit Vorgaben links oben, viewBox passend

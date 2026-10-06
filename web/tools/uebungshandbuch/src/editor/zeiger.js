@@ -3,7 +3,7 @@
 // Angemeldet in oeffnen.js (paintEditor), edMove auch beim Ziehen aus der Palette (ereignisse.js).
 import { $ } from '../app/basis.js';
 import { ED } from './status.js';
-import { STRICH, VORL } from './registry.js';
+import { STRICH, vorlage } from './registry.js';
 import { shapeD, snap } from './vorlagen-svg.js';
 import { nearestPort, portCap, vrails } from './bauteile.js';
 import { gruppeVon } from './bausteine.js';
@@ -18,7 +18,7 @@ import { snapW, svgPt } from './werkzeuge.js';
 import { eraseAt } from './bearbeiten.js';
 import { VORSCHAU, avoidBreak, connect, connectPorts, dockLeitung, linked, makeObj, placeObj, smartPos } from './andocken.js';
 
-export const zeigerHaken = () => (VORL[ED.key] && VORL[ED.key].zeiger) || {};
+export const zeigerHaken = () => vorlage(ED.key).zeiger || {};
 export const festhalten = e => ED.svg.setPointerCapture(e.pointerId);
 
 /* ---------- Drücken ---------- */

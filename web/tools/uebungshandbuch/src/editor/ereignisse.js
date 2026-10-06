@@ -1,7 +1,7 @@
 // Editor-Kern: Listener des Editor-Dialogs (Palette ziehen, Klicks, Eigenschaftsfeld, Tastatur, Schließen).
 import { $, $$ } from '../app/basis.js';
 import { ED } from './status.js';
-import { PAL, PC, VORL, art } from './registry.js';
+import { PC, art, vorlage } from './registry.js';
 import { anySel, clearSel, objById } from './auswahl.js';
 import { deDate } from './blaetter.js';
 import { istSignalFeld, schliesseListe, signalEingabe, signalTaste, signalWahl } from './signalfeld.js';
@@ -23,7 +23,7 @@ export const overSheet = e => {
   return r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
 };
 // Nach Abbruch zurück zum Auswählen, in Vorlagen ohne Palette beim bisherigen Werkzeug bleiben
-export const werkzeugNachAbbruch = () => setTool(PAL[ED.key] ? "sel" : ED.tool);
+export const werkzeugNachAbbruch = () => setTool(vorlage(ED.key).gruppen ? "sel" : ED.tool);
 
 /* ---------- Ziehen aus der Palette ---------- */
 export function paletteDruecken(e){
@@ -74,8 +74,8 @@ export function klick(e){
   if (ED.skipClick) { ED.skipClick = false; if (e.target.closest("[data-place]")) return; }   // Klick nach Ziehen aus der Palette
   const pb = e.target.closest("[data-place]");
   if (pb) { ED.place = pb.dataset.place; setTool("place"); return; }
-  const v = VORL[ED.key];
-  if (v && v.klick && v.klick(e)) return;   // Haken klick: Bedienelemente der Vorlage, z. B. Werkzeuge der Seitenleiste
+  const v = vorlage(ED.key);
+  if (v.klick && v.klick(e)) return;   // Haken klick: Bedienelemente der Vorlage, z. B. Werkzeuge der Seitenleiste
   const sy = e.target.closest("[data-sym]");
   if (sy) { zeichenEinfuegen(sy.dataset.sym); return; }
   const t = e.target.closest("[data-tool],[data-w],[data-ed]");

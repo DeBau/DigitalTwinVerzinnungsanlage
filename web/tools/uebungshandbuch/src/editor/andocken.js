@@ -1,7 +1,7 @@
 // Editor-Kern: Bausteine erzeugen und setzen, Ketten fortsetzen, Andocken, Hilfslinien, Verbinden.
 import { PH } from './svg.js';
 import { ED } from './status.js';
-import { BLK, FIXED, PC, VORL, art } from './registry.js';
+import { BLK, PC, art, vorlage } from './registry.js';
 import { snap } from './vorlagen-svg.js';
 import { bbox, ctr, gruppeVon } from './bausteine.js';
 import { clearSel, objById, uid } from './auswahl.js';
@@ -47,7 +47,7 @@ export function neuesBauteil(k, mk, px, py){
 export const VORSCHAU = d => `<path d="${d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`;
 /* Hilfslinien und Andocken beim Setzen und Ziehen: o wird verschoben, marks ist die blaue Vorschau */
 export function smartPos(o){
-  const v = VORL[ED.key];
+  const v = vorlage(ED.key);
   if (v.fangBaustein) v.fangBaustein(o);   // Haken fangBaustein, z. B. Strompfad-Spalten
   const dock = andockStelle(o), marks = [];
   if (dock) { o.x += dock.sx; o.y += dock.sy; }
@@ -85,7 +85,7 @@ export function andockVorschau(o, dock){
   return (gm ? VORSCHAU(gm.d) : "") + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
 }
 export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blattende legen – sonst auf das nächste Blatt
-  if (FIXED[ED.key]) return;
+  if (vorlage(ED.key).einblattig) return;
   for (let i = 0; i < 4; i++) { const b = bbox(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
     if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) o.y += B + 70 - b.y; else break; }
 }

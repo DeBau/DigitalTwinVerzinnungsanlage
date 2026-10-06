@@ -1,7 +1,7 @@
 // Editor-Kern: Editor öffnen mit Werkzeugleiste und Palette, Blatt aufbauen.
 import { $, $$, BY, IC, S } from '../app/basis.js';
 import { ED } from './status.js';
-import { BLK, GN, HINT, PAL, SAMPLE, VORL } from './registry.js';
+import { BLK, GRUPPE, SAMPLE, VORL, vorlage } from './registry.js';
 import { drawObj, pageCount, pcSample } from './zeichnen.js';
 import { skKey, skMeta, sketchSVG } from './blaetter.js';
 import { sizeSVG } from './anzeige.js';
@@ -20,7 +20,7 @@ export const LINIE_STANDARD = {titel: "Gerade Linie, rastet im 10er-Raster", nam
 // Die Vorlage kann Werkzeugleiste, Seitenleiste und Startwerkzeug über ihre Haken ergänzen.
 export function openEditor(scope, key){
   const data = S.get(skKey(scope, key)) || {}; data.s ||= []; data.t ||= []; data.o ||= []; data.c ||= [];
-  const pal = PAL[key] || [], v = VORL[key], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
+  const v = vorlage(key), pal = v.gruppen || [], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
   const keepTool = ["pen","line","rect","text","erase"].includes(ED.tool) ? ED.tool : "pen";
   Object.assign(ED, {scope, key, data, hist:[], zukunft:[], tx:null, cur:null, sel:null, selC:null, selS:null, selT:null, from:null, place:null, drag:null, tool: pal.length ? "sel" : v.startWerkzeug || keepTool});
   const ex = BY[scope], dlg = $("#editor");
@@ -49,9 +49,9 @@ export function openEditor(scope, key){
   $$("#editor [data-w]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.w === ED.w));
 }
 export function paletteHTML(groups){
-  return groups.map(g => `<div class="palg"><div class="palh">${GN[g]}</div>${Object.entries(BLK).filter(([, b]) => b.g === g && !b.hide).map(([k, b]) => { const [o, vb, extra] = SAMPLE[k] || pcSample(k);
+  return groups.map(g => `<div class="palg"><div class="palh">${GRUPPE[g].name}</div>${Object.entries(BLK).filter(([, b]) => b.g === g && !b.hide).map(([k, b]) => { const [o, vb, extra] = SAMPLE[k] || pcSample(k);
     return `<button type="button" class="palb" data-place="${k}" title="${b.n} setzen"><svg viewBox="${vb}" aria-hidden="true">${extra || ""}${drawObj(o, false)}</svg><span>${b.n}</span></button>`; }).join("")}</div>`).join("")
-    + `<div class="palhelp">${HINT[groups[0]] ? `<p>${HINT[groups[0]]}</p>` : ""}<p><b>Ziehen:</b> Bausteine direkt aus dieser Leiste aufs Blatt ziehen – oder anklicken und dann aufs Blatt klicken.</p><p><b>Andocken:</b> Ziehen Sie einen Baustein an einen Anschluss – die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p></div>`;
+    + `<div class="palhelp">${GRUPPE[groups[0]].hinweis ? `<p>${GRUPPE[groups[0]].hinweis}</p>` : ""}<p><b>Ziehen:</b> Bausteine direkt aus dieser Leiste aufs Blatt ziehen – oder anklicken und dann aufs Blatt klicken.</p><p><b>Andocken:</b> Ziehen Sie einen Baustein an einen Anschluss – die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p></div>`;
 }
 export function paintEditor(){
   ED.pages = pageCount(ED.key, ED.data); ED.extraY = 0;

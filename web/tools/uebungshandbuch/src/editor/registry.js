@@ -5,17 +5,14 @@
 // Die Reihenfolge der Einträge zählt: VORL ergibt die Reihenfolge der Kacheln, BLK die Reihenfolge in der Palette.
 
 /* ---------- Vorlagen ---------- */
-export const VORL = {};       // Vorlage → ganze Anmeldung {n, d, gruppen, …, Haken}
-export const TPL = {};        // Vorlage → body(ex, page, meta): vorgedruckter Inhalt eines Blatts als SVG-Text
-export const PAL = {};        // Vorlage → Bausteingruppen der Palette, z. B. ["elektro", "geraete", "leistung"]
-export const VRAIL = {};      // Vorlage → virtuelle Schienen [[Name, y, x, Breite], …] auf jedem Blatt
-export const FIXED = {};      // Vorlage → true: Formular mit genau einem Blatt (wächst nicht nach unten)
+export const VORL = {};       // Vorlage → ganze Anmeldung {n, d, gruppen, schienen, einblattig, body, …, Haken}
 
 /* ---------- Bausteingruppen ---------- */
 export const GRUPPE = {};     // Gruppe → ganze Anmeldung {name, hinweis, kette, verbinde, andocke, mitziehen, loeschen,
                               //   kennzeichen, nachSetzen, vorVerbinden, …}; Signaturen in vorlagen/README.md
-export const GN = {};         // Gruppe → Überschrift in der Palette
-export const HINT = {};       // Gruppe → Bedienhinweis unter der Palette
+
+// Eintrag einer Vorlage; {} für einen unbekannten Schlüssel, damit Haken ohne weitere Prüfung abfragbar sind
+export const vorlage = key => VORL[key] || {};
 
 /* ---------- Bausteine ---------- */
 export const BLK = {};        // Bausteinart oder Palettenvariante → {n, g, mk, hide, Haken}
@@ -35,17 +32,11 @@ export const art = k => PC[k] || BLK[k] || {};
 // Eine Vorlage anmelden. Felder: n, d, gruppen, schienen, einblattig, body(ex, page, meta) und die Haken der Vorlage
 export function registriereVorlage(key, v) {
   VORL[key] = v;
-  if (v.body) TPL[key] = v.body;
-  if (v.gruppen) PAL[key] = v.gruppen;
-  if (v.schienen) VRAIL[key] = v.schienen;
-  if (v.einblattig) FIXED[key] = true;
 }
 
 // Eine Bausteingruppe anmelden. Felder: name, hinweis und die Haken der Gruppe
 export function registriereGruppe(id, g) {
   GRUPPE[id] = g;
-  if (g.name !== undefined) GN[id] = g.name;
-  if (g.hinweis !== undefined) HINT[id] = g.hinweis;
 }
 
 // Bauteile mit Anschlüssen anmelden: Eintrag in PC und, falls noch keiner da ist, ein Paletteneintrag in BLK

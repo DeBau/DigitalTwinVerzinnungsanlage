@@ -2,13 +2,14 @@
 // Benutzt von Editor, Skizzen-Kacheln und Druck.
 import { BY, S } from '../app/basis.js';
 import { INK, PH, SVGT } from './svg.js';
-import { TPL, VORL } from './registry.js';
+import { VORL, vorlage } from './registry.js';
 import { frame } from './vorlagen-svg.js';
 import { inkSVG, pageCount } from './zeichnen.js';
 
 export function pagesSVG(key, ex, meta, n, edit){
+  const body = vorlage(key).body;
   let h = "";
-  for (let i = 0; i < n; i++) h += `<g transform="translate(0 ${i*PH})"><rect width="1000" height="${PH}" fill="#fff"/>${TPL[key] ? TPL[key](ex, i, meta) : ""}${frame({...meta, blatt: n > 1 ? `${i+1} von ${n}` : "1"})}</g>`;
+  for (let i = 0; i < n; i++) h += `<g transform="translate(0 ${i*PH})"><rect width="1000" height="${PH}" fill="#fff"/>${body ? body(ex, i, meta) : ""}${frame({...meta, blatt: n > 1 ? `${i+1} von ${n}` : "1"})}</g>`;
   if (edit) for (let i = 1; i < n; i++) h += `<g pointer-events="none"><path d="M0 ${i*PH}H1000" stroke="#9AA4AD" stroke-width="1" stroke-dasharray="2 6"/>${SVGT(990, i*PH - 5, `Seitenumbruch – Blatt ${i+1}`, "end", 9.5, 400, "#9AA4AD")}</g>`;
   return h;
 }

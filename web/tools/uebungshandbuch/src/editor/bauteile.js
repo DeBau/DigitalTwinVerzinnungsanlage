@@ -2,7 +2,7 @@
 // Potenzialschienen, Leitungsführung, Zustand der Simulation. Benutzt von den Vorlagen und vom Zeichnen.
 import { INK, PH, SVGT, clamp } from './svg.js';
 import { ED } from './status.js';
-import { PC, PORTS2, VRAIL } from './registry.js';
+import { PC, PORTS2, vorlage } from './registry.js';
 
 // Strichstile und Beschriftungen der Bauteilsymbole: Pfad, gestrichelt, Kennzeichen, Anschlussname
 export const SK = `stroke="${INK}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
@@ -55,11 +55,11 @@ export function nearestPort(o, pt){
   for (const p of portsOf(o)) { const d = Math.hypot(p.x - pt[0], p.y - pt[1]); if (!b || d < b.d) b = {n: p.n, d}; }
   return b ? b.n : null;
 }
-// Virtuelle Schienen der Vorlage (VRAIL) auf jedem Blatt. Sie sind Objekte der Bauteilart rail aus vorlagen/leistung.js.
+// Virtuelle Schienen der Vorlage (Haken schienen) auf jedem Blatt. Sie sind Objekte der Bauteilart rail aus vorlagen/leistung.js.
 // Offener Sonderfall: Der Kern kennt hier die Bauteilart "rail" beim Namen (siehe vorlagen/README.md).
 export function vrails(key, n){
   const r = [];
-  (VRAIL[key] || []).forEach(([v, y, x, w]) => {
+  (vorlage(key).schienen || []).forEach(([v, y, x, w]) => {
     for (let i = 0; i < n; i++) r.push({id: `_${v}@${i}`, k: "rail", v, x, y: y + i*PH, w, virt: true});
   });
   return r;

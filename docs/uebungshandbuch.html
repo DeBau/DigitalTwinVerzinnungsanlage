@@ -1121,13 +1121,8 @@ pre.code code{font-size:inherit}
 
   // web/tools/uebungshandbuch/src/editor/registry.js
   var VORL = {};
-  var TPL = {};
-  var PAL = {};
-  var VRAIL = {};
-  var FIXED = {};
   var GRUPPE = {};
-  var GN = {};
-  var HINT = {};
+  var vorlage = (key) => VORL[key] || {};
   var BLK = {};
   var PC = {};
   var PORTS2 = {};
@@ -1139,15 +1134,9 @@ pre.code code{font-size:inherit}
   var art = (k) => PC[k] || BLK[k] || {};
   function registriereVorlage(key, v) {
     VORL[key] = v;
-    if (v.body) TPL[key] = v.body;
-    if (v.gruppen) PAL[key] = v.gruppen;
-    if (v.schienen) VRAIL[key] = v.schienen;
-    if (v.einblattig) FIXED[key] = true;
   }
   function registriereGruppe(id, g) {
     GRUPPE[id] = g;
-    if (g.name !== void 0) GN[id] = g.name;
-    if (g.hinweis !== void 0) HINT[id] = g.hinweis;
   }
   function registriereBauteile(eintraege) {
     for (const [k, pc] of Object.entries(eintraege)) {
@@ -1309,7 +1298,7 @@ pre.code code{font-size:inherit}
   }
   function vrails(key, n) {
     const r = [];
-    (VRAIL[key] || []).forEach(([v, y, x, w]) => {
+    (vorlage(key).schienen || []).forEach(([v, y, x, w]) => {
       for (let i = 0; i < n; i++) r.push({ id: `_${v}@${i}`, k: "rail", v, x, y: y + i * PH, w, virt: true });
     });
     return r;
@@ -1485,7 +1474,7 @@ pre.code code{font-size:inherit}
       if (!e) return null;
       return { d: wireD(e[0], e[1], spuren), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"] };
     }
-    const gruppe = GRUPPE[fam(A)] || {};
+    const gruppe = gruppeVon(A);
     if (gruppe.kette) return verbindeKette(A, B, spuren);
     if (gruppe.verbinde) return gruppe.verbinde(c, A, B, objs, all, spuren);
     return verbindeRechtwinklig(A, B);
@@ -1511,7 +1500,7 @@ pre.code code{font-size:inherit}
     return !!b && b(A);
   };
   var treffer = (d, edit) => edit ? `<path d="${d}" fill="none" stroke="transparent" stroke-width="12"/>` : "";
-  var blattwechsel = (y1, y2, key) => !FIXED[key] && Math.floor(y1 / PH) !== Math.floor(y2 / PH);
+  var blattwechsel = (y1, y2, key) => !vorlage(key).einblattig && Math.floor(y1 / PH) !== Math.floor(y2 / PH);
   function leitungSVG(c, i, gm, objs, key, edit) {
     const [a, b] = gm.ends, sel = edit && ED.selC === i;
     const P = simOn() && ED.sim.P && (ED.sim.P.has(c.a + ":" + c.pa) || ED.sim.P.has(c.b + ":" + c.pb));
@@ -1590,8 +1579,8 @@ pre.code code{font-size:inherit}
     vrails(key, pageCount(key, d)).forEach((r) => {
       objs[r.id] = r;
     });
-    const v = VORL[key];
-    const rails = v && v.hintergrund ? v.hintergrund(d, cs) : "";
+    const v = vorlage(key);
+    const rails = v.hintergrund ? v.hintergrund(d, cs) : "";
     const spuren = neueSpuren();
     const conns = cs.map((c, i) => {
       const gm = connGeom(c, objs, cs, spuren);
@@ -1602,7 +1591,7 @@ pre.code code{font-size:inherit}
     return rails + conns + os + punkteSVG(d, cs, objs, edit) + strokesSVG(d, edit);
   }
   function pageCount(key, d, extraY = 0) {
-    if (FIXED[key]) return 1;
+    if (vorlage(key).einblattig) return 1;
     let m = extraY;
     (d && d.o || []).forEach((o) => {
       const b = bbox(o);
@@ -1618,7 +1607,7 @@ pre.code code{font-size:inherit}
   }
   function wireRef(o, port, key, y, x) {
     const b = Math.floor(y / PH) + 1, name = istSchiene(o) ? o.v : `${o.v || BLK[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
-    const v = VORL[key], pfad = v && v.verweis ? v.verweis(x, y) : "";
+    const v = vorlage(key), pfad = v.verweis ? v.verweis(x, y) : "";
     return `${name}, Blatt ${b}${pfad}`;
   }
   function pcSample(k) {
@@ -1633,8 +1622,9 @@ pre.code code{font-size:inherit}
 
   // web/tools/uebungshandbuch/src/editor/blaetter.js
   function pagesSVG(key, ex, meta, n, edit) {
+    const body = vorlage(key).body;
     let h = "";
-    for (let i = 0; i < n; i++) h += `<g transform="translate(0 ${i * PH})"><rect width="1000" height="${PH}" fill="#fff"/>${TPL[key] ? TPL[key](ex, i, meta) : ""}${frame({ ...meta, blatt: n > 1 ? `${i + 1} von ${n}` : "1" })}</g>`;
+    for (let i = 0; i < n; i++) h += `<g transform="translate(0 ${i * PH})"><rect width="1000" height="${PH}" fill="#fff"/>${body ? body(ex, i, meta) : ""}${frame({ ...meta, blatt: n > 1 ? `${i + 1} von ${n}` : "1" })}</g>`;
     if (edit) for (let i = 1; i < n; i++) h += `<g pointer-events="none"><path d="M0 ${i * PH}H1000" stroke="#9AA4AD" stroke-width="1" stroke-dasharray="2 6"/>${SVGT(990, i * PH - 5, `Seitenumbruch – Blatt ${i + 1}`, "end", 9.5, 400, "#9AA4AD")}</g>`;
     return h;
   }
@@ -2047,7 +2037,7 @@ pre.code code{font-size:inherit}
   var FARBEN = [["#17212B", "Schwarz"], ["#0E4C92", "Blau"], ["#C0392B", "Rot"]];
   var loeschKnopf = () => `<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div>`;
   function propsHTML() {
-    const v = VORL[ED.key], anleitung = v && v.anleitung && v.anleitung();
+    const v = vorlage(ED.key), anleitung = v.anleitung && v.anleitung();
     if (anleitung) return anleitung;
     if (ED.selT !== null && ED.data.t[ED.selT]) return textFelder(ED.data.t[ED.selT]);
     if (ED.selS !== null && ED.data.s[ED.selS]) return strichFelder(ED.data.s[ED.selS]);
@@ -2160,10 +2150,10 @@ pre.code code{font-size:inherit}
   // web/tools/uebungshandbuch/src/editor/pruefung.js
   var ROT = "#C0392B";
   var befunde = [];
-  var hatPruefung = (key) => !!(VORL[key] && VORL[key].pruefe);
+  var hatPruefung = (key) => !!vorlage(key).pruefe;
   function pruefeSkizze() {
-    const v = VORL[ED.key];
-    return v && v.pruefe ? v.pruefe(ED.data, { scope: ED.scope, key: ED.key }) : [];
+    const v = vorlage(ED.key);
+    return v.pruefe ? v.pruefe(ED.data, { scope: ED.scope, key: ED.key }) : [];
   }
   function befundSVG(b, i) {
     const o = b.o && objById(b.o), weg = b.c !== void 0 && ED.svg.querySelector(`.ink [data-c="${b.c}"] path`);
@@ -2421,8 +2411,8 @@ pre.code code{font-size:inherit}
   // web/tools/uebungshandbuch/src/editor/werkzeuge.js
   function setTool(t) {
     ED.pend = null;
-    const v = VORL[ED.key];
-    if (v && v.werkzeugWechsel) v.werkzeugWechsel(t);
+    const v = vorlage(ED.key);
+    if (v.werkzeugWechsel) v.werkzeugWechsel(t);
     ED.tool = t;
     if (t !== "place") ED.place = null;
     if (t !== "conn") ED.from = null;
@@ -2444,8 +2434,8 @@ pre.code code{font-size:inherit}
   }
   function snapW(pt) {
     if (!ED.grid) return [Math.round(pt[0]), Math.round(pt[1])];
-    const v = VORL[ED.key];
-    if (v && v.fangPunkt) return v.fangPunkt(pt);
+    const v = vorlage(ED.key);
+    if (v.fangPunkt) return v.fangPunkt(pt);
     return snap(pt);
   }
 
@@ -2591,7 +2581,7 @@ pre.code code{font-size:inherit}
   }
   var VORSCHAU = (d) => `<path d="${d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`;
   function smartPos(o) {
-    const v = VORL[ED.key];
+    const v = vorlage(ED.key);
     if (v.fangBaustein) v.fangBaustein(o);
     const dock = andockStelle(o), marks = [];
     if (dock) {
@@ -2643,7 +2633,7 @@ pre.code code{font-size:inherit}
     return (gm ? VORSCHAU(gm.d) : "") + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
   }
   function avoidBreak(o) {
-    if (FIXED[ED.key]) return;
+    if (vorlage(ED.key).einblattig) return;
     for (let i = 0; i < 4; i++) {
       const b = bbox(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
       if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) o.y += B + 70 - b.y;
@@ -2709,7 +2699,7 @@ pre.code code{font-size:inherit}
   }
 
   // web/tools/uebungshandbuch/src/editor/zeiger.js
-  var zeigerHaken = () => VORL[ED.key] && VORL[ED.key].zeiger || {};
+  var zeigerHaken = () => vorlage(ED.key).zeiger || {};
   var festhalten = (e) => ED.svg.setPointerCapture(e.pointerId);
   function edDown(e) {
     if (!e.target.closest("input")) {
@@ -3013,7 +3003,7 @@ pre.code code{font-size:inherit}
     data.t ||= [];
     data.o ||= [];
     data.c ||= [];
-    const pal = PAL[key] || [], v = VORL[key], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
+    const v = vorlage(key), pal = v.gruppen || [], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
     const keepTool = ["pen", "line", "rect", "text", "erase"].includes(ED.tool) ? ED.tool : "pen";
     Object.assign(ED, { scope, key, data, hist: [], zukunft: [], tx: null, cur: null, sel: null, selC: null, selS: null, selT: null, from: null, place: null, drag: null, tool: pal.length ? "sel" : v.startWerkzeug || keepTool });
     const ex = BY[scope], dlg = $("#editor");
@@ -3044,10 +3034,10 @@ pre.code code{font-size:inherit}
     $$("#editor [data-w]").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.w === ED.w));
   }
   function paletteHTML(groups) {
-    return groups.map((g) => `<div class="palg"><div class="palh">${GN[g]}</div>${Object.entries(BLK).filter(([, b]) => b.g === g && !b.hide).map(([k, b]) => {
+    return groups.map((g) => `<div class="palg"><div class="palh">${GRUPPE[g].name}</div>${Object.entries(BLK).filter(([, b]) => b.g === g && !b.hide).map(([k, b]) => {
       const [o, vb, extra] = SAMPLE[k] || pcSample(k);
       return `<button type="button" class="palb" data-place="${k}" title="${b.n} setzen"><svg viewBox="${vb}" aria-hidden="true">${extra || ""}${drawObj(o, false)}</svg><span>${b.n}</span></button>`;
-    }).join("")}</div>`).join("") + `<div class="palhelp">${HINT[groups[0]] ? `<p>${HINT[groups[0]]}</p>` : ""}<p><b>Ziehen:</b> Bausteine direkt aus dieser Leiste aufs Blatt ziehen – oder anklicken und dann aufs Blatt klicken.</p><p><b>Andocken:</b> Ziehen Sie einen Baustein an einen Anschluss – die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p></div>`;
+    }).join("")}</div>`).join("") + `<div class="palhelp">${GRUPPE[groups[0]].hinweis ? `<p>${GRUPPE[groups[0]].hinweis}</p>` : ""}<p><b>Ziehen:</b> Bausteine direkt aus dieser Leiste aufs Blatt ziehen – oder anklicken und dann aufs Blatt klicken.</p><p><b>Andocken:</b> Ziehen Sie einen Baustein an einen Anschluss – die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p></div>`;
   }
   function paintEditor() {
     ED.pages = pageCount(ED.key, ED.data);
@@ -5275,7 +5265,7 @@ END_CASE;`)}
     const r = ED.svg && $("#edstage").getBoundingClientRect();
     return r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
   };
-  var werkzeugNachAbbruch = () => setTool(PAL[ED.key] ? "sel" : ED.tool);
+  var werkzeugNachAbbruch = () => setTool(vorlage(ED.key).gruppen ? "sel" : ED.tool);
   function paletteDruecken(e) {
     const pb = e.target.closest("[data-place]");
     if (pb && e.button === 0) {
@@ -5365,8 +5355,8 @@ END_CASE;`)}
       setTool("place");
       return;
     }
-    const v = VORL[ED.key];
-    if (v && v.klick && v.klick(e)) return;
+    const v = vorlage(ED.key);
+    if (v.klick && v.klick(e)) return;
     const sy = e.target.closest("[data-sym]");
     if (sy) {
       zeichenEinfuegen(sy.dataset.sym);
