@@ -463,7 +463,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
 
 <script>
 (() => {
-  // web/tools/uebungshandbuch/src/app/daten.js
+  // src/app/daten.js
   var SIG = {"MB1":[{"n":"MB1_Einhaengen","a":"%Q0.0","k":"Einhängezylinder -MM1: Korb einhängen (fährt ein, Haken schwenkt unter den Bügel)"}],"MB2":[{"n":"MB2_Loesen","a":"%Q0.1","k":"Einhängezylinder -MM1: Korb lösen (fährt aus, Haken schwenkt frei)"}],"MB3":[{"n":"MB3_Senken","a":"%Q0.2","k":"Tauchzylinder -MM2: senken (fährt aus)"}],"MB4":[{"n":"MB4_Anheben","a":"%Q0.3","k":"Tauchzylinder -MM2: anheben (fährt ein)"}],"MB5":[{"n":"MB5_Zinnbad","a":"%Q0.4","k":"Verschiebezylinder -MM3: zum Zinnbad (fährt aus)"}],"MB6":[{"n":"MB6_Foerderband","a":"%Q0.5","k":"Verschiebezylinder -MM3: zum Förderband (fährt ein)"}],"MB7":[{"n":"MB7_Schliessen","a":"%Q0.6","k":"Abstreifzylinder -MM4: Bad abdecken (fährt aus)"}],"MB8":[{"n":"MB8_Oeffnen","a":"%Q0.7","k":"Abstreifzylinder -MM4: Bad öffnen (fährt ein)"}],"PF1":[{"n":"PF1_Automatik","a":"%Q1.0","k":"Meldeleuchte Anlage läuft (Automatik-Dauerbetrieb aktiv)"}],"PF2":[{"n":"PF2_Temperatur","a":"%Q1.1","k":"Meldeleuchte Zinnbad Betriebstemperatur erreicht"}],"PF3":[{"n":"PF3_Fuellhoehe","a":"%Q1.2","k":"Meldeleuchte Füllhöhe unterschritten"}],"PF4":[{"n":"PF4_Korb","a":"%Q1.3","k":"Meldeleuchte Materialkorb vorhanden"}],"PF5":[{"n":"PF5_Quittieren","a":"%Q1.4","k":"Leuchttaster Quittieren -SF4 Bedienpult (blinkt: Not-Halt quittieren)"}],"PF6":[{"n":"PF6_VorOrt","a":"%Q1.5","k":"Leuchte Vor-Ort-Steuerstelle aktiv"}],"PF7":[{"n":"PF7_Handbetrieb","a":"%Q1.6","k":"Leuchte Handbetrieb aktiv (Schaltschranktür)"}],"QA1":[{"n":"QA1_Band_Rechts","a":"%Q2.0","k":"Schütz Bandmotor Rechtslauf (Förderrichtung)"}],"QA2":[{"n":"QA2_Band_Links","a":"%Q2.1","k":"Schütz Bandmotor Linkslauf (Wendeschütz, mech. verriegelt)"}],"MB9":[{"n":"MB9_Anschlag_auf","a":"%Q2.2","k":"Anschlag -MM5 Übergabeplatz öffnen (5/2 monostabil, Feder schließt)"}],"MB10":[{"n":"MB10_Vereinzeler_zu","a":"%Q2.3","k":"Vereinzeler -MM6 sperren (5/2 monostabil, Feder öffnet)"}],"TB1":[{"n":"TB1_Heizung","a":"%Q2.4","k":"Heizung Zinnbad über Halbleiterrelais (2-Punkt oder Impuls/PWM)"}],"MB11":[{"n":"MB11_Nachfuellen","a":"%Q2.5","k":"Zinn-Nachfülleinrichtung öffnen (ca. 2 %/s)"}],"QA5":[{"n":"QA5_B2_Rechts","a":"%Q2.6","k":"Schütz Band 2 Rechtslauf (Förderrichtung)"}],"QA6":[{"n":"QA6_B2_Links","a":"%Q2.7","k":"Schütz Band 2 Linkslauf (Wendeschütz, mech. verriegelt)"}],"QA10":[{"n":"QA10_Kurve_Rechts","a":"%Q3.0","k":"Schütz Rollenkurve -MA6 Rechtslauf (Förderrichtung)"}],"QA7":[{"n":"QA7_Pumpe","a":"%Q3.1","k":"Schütz Umwälzpumpe Sprühkühlung -MA3"}],"KF10":[{"n":"KF10_Kamera_Trigger","a":"%Q3.2","k":"Keyence CV-X Trigger je Teil (Flanke)"}],"PF8":[{"n":"PF8_VorOrt2","a":"%Q3.3","k":"Leuchte Vor-Ort-Steuerstelle Band 2 aktiv"}],"MB13":[{"n":"MB13_Spruehwasser","a":"%Q3.4","k":"Sprühventil Abschrecken (wirkt nur bei laufender Pumpe -QA7)"}],"MB14":[{"n":"MB14_Luftmesser","a":"%Q3.5","k":"Luftmesser am Tunnelauslauf (bläst das Wasser ab)"}],"MB15":[{"n":"MB15_Kippen","a":"%Q3.6","k":"Korbkipper -MM8 kippen (5/2 monostabil)"}],"QA8":[{"n":"QA8_Vibro","a":"%Q3.7","k":"Vibrorinne -MA4 (vereinzelt die Teile)"}],"QA9":[{"n":"QA9_Pruefband","a":"%Q4.0","k":"Prüfband -MA5"}],"MB16":[{"n":"MB16_Ausblasen","a":"%Q4.1","k":"Ausblasdüse n.i.O.-Teile in den Ausschussbehälter"}],"QA11":[{"n":"QA11_Kurve_Links","a":"%Q4.2","k":"Schütz Rollenkurve -MA6 Linkslauf (Wendeschütz, mech. verriegelt)"}],"PF9":[{"n":"PF9_VorOrt3","a":"%Q4.3","k":"Leuchte Vor-Ort-Steuerstelle -S30 Rollenkurve aktiv"}],"QA12":[{"n":"QA12_Mulde_Vor","a":"%Q4.4","k":"Schütz Muldenrollen -MA7 vorwärts zum Endanschlag (Wendeschütz, mech. verriegelt)"}],"QA13":[{"n":"QA13_Mulde_Zurueck","a":"%Q4.5","k":"Schütz Muldenrollen -MA7 zurück (Wendeschütz, mech. verriegelt)"}],"PF11":[{"n":"PF11_VorOrt4","a":"%Q4.6","k":"Leuchte Vor-Ort-Steuerstelle -S40 Prüfstation aktiv"}],"PF12":[{"n":"PF12_Quitt_S10","a":"%Q4.7","k":"Leuchttaster Quittieren -SF41 an -S10 (blinkt: Not-Halt quittieren)"}],"PF13":[{"n":"PF13_Quitt_S20","a":"%Q5.0","k":"Leuchttaster Quittieren -SF42 an -S20 (blinkt: Not-Halt quittieren)"}],"PF14":[{"n":"PF14_Quitt_S30","a":"%Q5.1","k":"Leuchttaster Quittieren -SF43 an -S30 (blinkt: Not-Halt quittieren)"}],"PF15":[{"n":"PF15_Quitt_S40","a":"%Q5.2","k":"Leuchttaster Quittieren -SF44 an -S40 (blinkt: Not-Halt quittieren)"}],"BG1":[{"n":"BG1_MM1_eingehaengt","a":"%I0.0","k":"Endlage -MM1 eingefahren = Korb eingehängt"}],"BG2":[{"n":"BG2_MM1_geloest","a":"%I0.1","k":"Endlage -MM1 ausgefahren = Haken gelöst (Grundstellung)"}],"BG3":[{"n":"BG3_MM2_oben","a":"%I0.2","k":"Endlage -MM2 eingefahren = angehoben"}],"BG4":[{"n":"BG4_MM2_unten","a":"%I0.3","k":"Endlage -MM2 ausgefahren = abgesenkt (Grundstellung)"}],"BG5":[{"n":"BG5_MM3_Band","a":"%I0.4","k":"Endlage -MM3 eingefahren = über Förderband (Grundstellung)"}],"BG6":[{"n":"BG6_MM3_Bad","a":"%I0.5","k":"Endlage -MM3 ausgefahren = über Zinnbad"}],"BG7":[{"n":"BG7_MM4_offen","a":"%I0.6","k":"Endlage -MM4 eingefahren = Bad offen"}],"BG8":[{"n":"BG8_MM4_zu","a":"%I0.7","k":"Endlage -MM4 ausgefahren = Bad abgedeckt (Grundstellung)"}],"BG9":[{"n":"BG9_Temperatur","a":"%I1.0","k":"Betriebstemperatur Zinn erreicht (1 = ok, ab 250 °C)"}],"BG10":[{"n":"BG10_Fuellhoehe","a":"%I1.1","k":"Füllhöhe Zinnbad ausreichend (1 = ok, ab 40 %)"}],"BG11":[{"n":"BG11_Korb","a":"%I1.2","k":"Lichtschranke Einlauf Übergabeplatz (Korb kommt, liegt aber noch nicht am Anschlag)"}],"SF1":[{"n":"SF1_Start","a":"%I1.3","k":"Taster START (Schließer)"}],"SF2":[{"n":"SF2_Stop","a":"%I1.4","k":"Taster STOP (Öffner: 1 = nicht betätigt)"}],"SA3":[{"n":"SA3_Handbetrieb","a":"%I1.5","k":"Wahlschalter Schaltschranktür (1 = Hand, 0 = Auto)"}],"KF2":[{"n":"KF2_NotHalt_OK","a":"%I1.6","k":"Sicherheitsrelais -KF2 Rückmeldung (1 = Freigabe, 0 = Not-Halt)"}],"SF4":[{"n":"SF4_Quittieren","a":"%I1.7","k":"Taster Quittieren Bedienpult (Schließer, parallel auf -KF2 Start)"}],"SA1":[{"n":"SA1_Dauerbetrieb","a":"%I2.0","k":"Wahlschalter Betriebsart (1 = Automatik/Dauer, 0 = Einzelzyklus)"}],"SA2":[{"n":"SA2_VorOrt","a":"%I2.1","k":"Schlüsselschalter Vor-Ort-Steuerstelle -S10 (1 = aktiv)"}],"SF5":[{"n":"SF5_Band_Rechts","a":"%I2.2","k":"Vor-Ort Taster Band Rechtslauf (Schließer)"}],"SF6":[{"n":"SF6_Band_Links","a":"%I2.3","k":"Vor-Ort Taster Band Linkslauf (Schließer)"}],"SF7":[{"n":"SF7_Band_Halt","a":"%I2.4","k":"Vor-Ort Taster Band Halt (Öffner: 1 = nicht betätigt)"}],"BG12":[{"n":"BG12_Bandanfang","a":"%I2.5","k":"Lichtschranke Korb am Bandanfang"}],"BG13":[{"n":"BG13_Bandende","a":"%I2.6","k":"Lichtschranke Korb am Ende von Band 1 (Übergabe an die Rollenkurve)"}],"FA1":[{"n":"FA1_Motorschutz","a":"%I2.7","k":"Motorschutzschalter Band Hilfskontakt (1 = OK)"}],"SF11":[{"n":"SF11_MM1_Einhaengen","a":"%I3.0","k":"Handtaster -MM1 einhängen"}],"SF12":[{"n":"SF12_MM1_Loesen","a":"%I3.1","k":"Handtaster -MM1 lösen"}],"SF13":[{"n":"SF13_MM2_Senken","a":"%I3.2","k":"Handtaster -MM2 senken"}],"SF14":[{"n":"SF14_MM2_Anheben","a":"%I3.3","k":"Handtaster -MM2 anheben"}],"SF15":[{"n":"SF15_MM3_Zinnbad","a":"%I3.4","k":"Handtaster -MM3 zum Zinnbad"}],"SF16":[{"n":"SF16_MM3_Band","a":"%I3.5","k":"Handtaster -MM3 zum Band"}],"SF17":[{"n":"SF17_MM4_Schliessen","a":"%I3.6","k":"Handtaster -MM4 Bad abdecken"}],"SF18":[{"n":"SF18_MM4_Oeffnen","a":"%I3.7","k":"Handtaster -MM4 Bad öffnen"}],"BG14":[{"n":"BG14_MM5_zu","a":"%I4.0","k":"Anschlag -MM5 geschlossen (Finger über dem Band)"}],"BG15":[{"n":"BG15_MM5_offen","a":"%I4.1","k":"Anschlag -MM5 offen (90 Grad, erst dann Korb anheben oder absenken)"}],"BG16":[{"n":"BG16_MM6_zu","a":"%I4.2","k":"Vereinzeler -MM6 geschlossen (sperrt)"}],"BG17":[{"n":"BG17_MM6_offen","a":"%I4.3","k":"Vereinzeler -MM6 offen"}],"BG18":[{"n":"BG18_Geber_A","a":"%I4.4","k":"Inkrementalgeber Band Spur A (10 Imp/U, 24,5 mm Bandweg je Impuls)"},{"n":"BG18_Geber_B","a":"%I4.5","k":"Inkrementalgeber Band Spur B (90 Grad versetzt, vorwärts: B = 1 bei steigender Flanke A)"},{"n":"BG18_Geber_N","a":"%I4.6","k":"Inkrementalgeber Band Nullimpuls (1 je Umdrehung = 245 mm)"}],"SF19":[{"n":"SF19_MM5_Oeffnen","a":"%I5.0","k":"Handtaster -MM5 Anschlag öffnen"}],"SF20":[{"n":"SF20_MM5_Schliessen","a":"%I5.1","k":"Handtaster -MM5 Anschlag schließen"}],"SF21":[{"n":"SF21_MM6_Schliessen","a":"%I5.2","k":"Handtaster -MM6 Vereinzeler schließen"}],"SF22":[{"n":"SF22_MM6_Oeffnen","a":"%I5.3","k":"Handtaster -MM6 Vereinzeler öffnen"}],"BG20":[{"n":"BG20_Lichtvorhang_frei","a":"%I4.7","k":"Sicherheitslichtvorhang -BG20 Schutzfeld frei (1 = frei, Abschaltung über -KF2)"}],"BG21":[{"n":"BG21_B2_Anfang","a":"%I5.4","k":"Lichtschranke Band 2 Anfang (Korb von der Rollenkurve übernommen)"}],"BG22":[{"n":"BG22_B2_Kuehlung","a":"%I5.5","k":"Lichtschranke Kühlplatz"}],"BG32":[{"n":"BG32_Teil_Pruefplatz","a":"%I5.6","k":"Lichtschranke Teil am Kameraplatz (Prüfband)"}],"BG24":[{"n":"BG24_B2_Ende","a":"%I5.7","k":"Lichtschranke Band 2 Ende (Korb an der Übergabe zur Kippmulde)"}],"BG35":[{"n":"BG35_Kurve_Anfang","a":"%I6.0","k":"Lichtschranke Rollenkurve Anfang (Korb von Band 1 übernommen)"}],"BG36":[{"n":"BG36_Kurve_Ende","a":"%I6.1","k":"Lichtschranke Rollenkurve Ende (Korb vor der Übergabe auf Band 2)"}],"BG27":[{"n":"BG27_Geber2_A","a":"%I6.2","k":"Inkrementalgeber Band 2 Spur A (10 Imp/U)"},{"n":"BG27_Geber2_B","a":"%I6.3","k":"Inkrementalgeber Band 2 Spur B (90 Grad versetzt)"},{"n":"BG27_Geber2_N","a":"%I6.4","k":"Inkrementalgeber Band 2 Nullimpuls"}],"BG28":[{"n":"BG28_Pruefung_iO","a":"%I6.5","k":"Keyence CV-X Ergebnis Teil i.O. (0,3 s gültig)"}],"BG29":[{"n":"BG29_Pruefung_niO","a":"%I6.6","k":"Keyence CV-X Ergebnis Teil n.i.O. (0,3 s gültig)"}],"SA4":[{"n":"SA4_VorOrt2","a":"%I6.7","k":"Schlüsselschalter Vor-Ort-Steuerstelle -S20 (1 = aktiv)"}],"SF23":[{"n":"SF23_B2_Rechts","a":"%I7.0","k":"Vor-Ort Band 2 Rechtslauf (Schließer)"}],"SF24":[{"n":"SF24_B2_Links","a":"%I7.1","k":"Vor-Ort Band 2 Linkslauf (Schließer)"}],"SF25":[{"n":"SF25_B2_Halt","a":"%I7.2","k":"Vor-Ort Band 2 Halt (Öffner: 1 = nicht betätigt)"}],"FA5":[{"n":"FA5_Motorschutz2","a":"%I7.3","k":"Motorschutzschalter Band 2 Hilfskontakt (1 = OK)"}],"BG30":[{"n":"BG30_MM8_unten","a":"%I7.4","k":"Kipper -MM8 unten (Grundstellung)"}],"BG31":[{"n":"BG31_MM8_gekippt","a":"%I7.5","k":"Kipper -MM8 gekippt"}],"BG33":[{"n":"BG33_Kipper_Korb","a":"%I7.6","k":"Korb am Endanschlag der Kippmulde"}],"BG34":[{"n":"BG34_KLT_voll","a":"%I7.7","k":"KLT i.O.-Teile voll (144 Teile)"}],"BG40":[{"n":"BG40_Korb_am_Anschlag","a":"%I8.0","k":"Korb liegt am Anschlag -MM5 an (induktiver Sensor M12 bündig in der Anschlagleiste)"}],"SF28":[{"n":"SF28_MM8_Kippen","a":"%I8.2","k":"Handtaster -MM8 Kipper kippen"}],"SF29":[{"n":"SF29_MM8_Zurueck","a":"%I8.3","k":"Handtaster -MM8 Kipper zurück"}],"SA5":[{"n":"SA5_VorOrt3","a":"%I8.4","k":"Schlüsselschalter Vor-Ort-Steuerstelle -S30 (1 = aktiv)"}],"SF30":[{"n":"SF30_Kurve_Rechts","a":"%I8.5","k":"Vor-Ort Rollenkurve Rechtslauf (Schließer)"}],"SF31":[{"n":"SF31_Kurve_Links","a":"%I8.6","k":"Vor-Ort Rollenkurve Linkslauf (Schließer)"}],"SF32":[{"n":"SF32_Kurve_Halt","a":"%I8.7","k":"Vor-Ort Rollenkurve Halt (Öffner: 1 = nicht betätigt)"}],"FA7":[{"n":"FA7_Motorschutz3","a":"%I9.0","k":"Motorschutzschalter Rollenkurve -FA7 Hilfskontakt (1 = OK)"}],"SF0":[{"n":"SF0_NotHalt_frei","a":"%I9.1","k":"Not-Halt -SF0 Bedienpult Meldekontakt (Öffner: 1 = entriegelt, 0 = betätigt)"}],"SF8":[{"n":"SF8_NotHalt_frei","a":"%I9.2","k":"Not-Halt -SF8 Vor-Ort -S10 Band 1 Meldekontakt (Öffner: 1 = entriegelt, 0 = betätigt)"}],"SF9":[{"n":"SF9_NotHalt_frei","a":"%I9.3","k":"Not-Halt -SF9 Vor-Ort -S20 Band 2 Meldekontakt (Öffner: 1 = entriegelt, 0 = betätigt)"}],"SF10":[{"n":"SF10_NotHalt_frei","a":"%I9.4","k":"Not-Halt -SF10 Vor-Ort -S30 Rollenkurve Meldekontakt (Öffner: 1 = entriegelt, 0 = betätigt)"}],"SF33":[{"n":"SF33_NotHalt_frei","a":"%I9.5","k":"Not-Halt -SF33 Vor-Ort -S40 Prüfstation Meldekontakt (Öffner: 1 = entriegelt, 0 = betätigt)"}],"SA6":[{"n":"SA6_VorOrt4","a":"%I9.6","k":"Schlüsselschalter Vor-Ort-Steuerstelle -S40 (1 = aktiv, Automatik der Station ruht)"}],"SF34":[{"n":"SF34_Pruef_Ein","a":"%I9.7","k":"Vor-Ort -S40 Vibrorinne + Prüfband EIN (Schließer, Selbsthaltung in der SPS)"}],"SF35":[{"n":"SF35_Pruef_Halt","a":"%I10.0","k":"Vor-Ort -S40 Vibrorinne + Prüfband AUS (Öffner: 1 = nicht betätigt)"}],"SF36":[{"n":"SF36_Mulde_Vor","a":"%I10.1","k":"Vor-Ort -S40 Muldenrollen vorwärts tippen (Schließer)"}],"SF37":[{"n":"SF37_Mulde_Zurueck","a":"%I10.2","k":"Vor-Ort -S40 Muldenrollen zurück tippen (Schließer)"}],"SF38":[{"n":"SF38_Kipper_Kippen","a":"%I10.3","k":"Vor-Ort -S40 Kipper kippen (Schließer, nur mit Korb an -BG33 oder leerer Mulde)"}],"SF39":[{"n":"SF39_Kipper_Zurueck","a":"%I10.4","k":"Vor-Ort -S40 Kipper zurück (Schließer)"}],"FA8":[{"n":"FA8_Motorschutz4","a":"%I10.5","k":"Motorschutzschalter Muldenantrieb -MA7 -FA8 Hilfskontakt (1 = OK)"}],"SF41":[{"n":"SF41_Quittieren_S10","a":"%I10.6","k":"Taster Quittieren Vor-Ort -S10 Band 1 (Schließer, parallel zu -SF4 an -KF2)"}],"SF42":[{"n":"SF42_Quittieren_S20","a":"%I10.7","k":"Taster Quittieren Vor-Ort -S20 Band 2 (Schließer, parallel zu -SF4 an -KF2)"}],"SF43":[{"n":"SF43_Quittieren_S30","a":"%I11.0","k":"Taster Quittieren Vor-Ort -S30 Rollenkurve (Schließer, parallel zu -SF4 an -KF2)"}],"SF44":[{"n":"SF44_Quittieren_S40","a":"%I11.1","k":"Taster Quittieren Vor-Ort -S40 Prüfstation (Schließer, parallel zu -SF4 an -KF2)"}],"BG37":[{"n":"BG37_Kipper_Einlauf","a":"%I11.7","k":"Lichtschranke Einlauf Kippmulde (Korb in der Mulde, schwenkt mit)"}],"BT1":[{"n":"BT1_Temperatur","a":"%IW64","k":"Zinntemperatur analog 0…27648 = 0…400 °C"}],"BL1":[{"n":"BL1_Fuellstand","a":"%IW66","k":"Füllstand analog 0…27648 = 0…100 %"}],"BT2":[{"n":"BT2_Korbtemperatur","a":"%IW68","k":"Pyrometer Kühlplatz: Korbtemperatur 0…27648 = 0…400 °C"}],"TA2":[{"n":"TA2_STW1","a":"%QW256","k":"Umrichter -TA2 Steuerwort 1 (STW1)"},{"n":"TA2_NSOLL_A","a":"%QW258","k":"Umrichter -TA2 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 100 mm/s)"},{"n":"TA2_ZSW1","a":"%IW256","k":"Umrichter -TA2 Zustandswort 1 (ZSW1)"},{"n":"TA2_NIST_A","a":"%IW258","k":"Umrichter -TA2 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 100 mm/s)"}],"TA3":[{"n":"TA3_STW1","a":"%QW260","k":"Umrichter -TA3 Steuerwort 1 (STW1)"},{"n":"TA3_NSOLL_A","a":"%QW262","k":"Umrichter -TA3 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 120 mm/s)"},{"n":"TA3_ZSW1","a":"%IW260","k":"Umrichter -TA3 Zustandswort 1 (ZSW1)"},{"n":"TA3_NIST_A","a":"%IW262","k":"Umrichter -TA3 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 120 mm/s)"}],"TA4":[{"n":"TA4_STW1","a":"%QW264","k":"Umrichter -TA4 Steuerwort 1 (STW1)"},{"n":"TA4_NSOLL_A","a":"%QW266","k":"Umrichter -TA4 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 110 mm/s)"},{"n":"TA4_ZSW1","a":"%IW264","k":"Umrichter -TA4 Zustandswort 1 (ZSW1)"},{"n":"TA4_NIST_A","a":"%IW266","k":"Umrichter -TA4 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 110 mm/s)"}],"TA5":[{"n":"TA5_STW1","a":"%QW268","k":"Umrichter -TA5 Steuerwort 1 (STW1)"},{"n":"TA5_NSOLL_A","a":"%QW270","k":"Umrichter -TA5 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 150 mm/s)"},{"n":"TA5_ZSW1","a":"%IW268","k":"Umrichter -TA5 Zustandswort 1 (ZSW1)"},{"n":"TA5_NIST_A","a":"%IW270","k":"Umrichter -TA5 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 150 mm/s)"}],"SA7":[{"n":"SA7_VorOrt5","a":"%I11.2","k":"Schlüsselschalter Vor-Ort-Steuerstelle Prüfband -S50 (1 = Vor-Ort)"}],"SF45":[{"n":"SF45_Pruefband_Ein","a":"%I11.3","k":"Vor-Ort -S50 Prüfband EIN (Schließer)"}],"SF46":[{"n":"SF46_Pruefband_Aus","a":"%I11.4","k":"Vor-Ort -S50 Prüfband AUS (Öffner: 1 = nicht betätigt)"}],"SF47":[{"n":"SF47_Pruefband_Drehzahl","a":"%IW70","k":"Vor-Ort -S50 Drehzahlpotentiometer Prüfband 0…27648 = 0…100 %"}],"PF16":[{"n":"PF16_VorOrt5","a":"%Q5.3","k":"Leuchte Vor-Ort-Steuerstelle Prüfband -S50 aktiv"}],"MB17":[{"n":"MB17_Nachspeisen","a":"%Q5.4","k":"Magnetventil Frischwasser -MB17 Nachspeisen (2/2 NC, in Reihe mit Regelventil -MB18)"}],"MB18":[{"n":"MB18_Regelventil","a":"%QW80","k":"Regelventil Frischwasser -MB18 Stellwert 0…27648 = 0…100 % (AQ 4 Kanal 0, Stellzeit 8 s)"},{"n":"MB18_Stellung","a":"%IW74","k":"Regelventil -MB18 Stellungsrückmeldung 0…27648 = 0…100 %"}],"BL2":[{"n":"BL2_Wasserstand","a":"%IW72","k":"Füllstand Kühlwassertank Radar Micropilot FMR20B analog 0…27648 = 0…100 %"}],"BG38":[{"n":"BG38_Wasser_Min","a":"%I11.5","k":"Grenzschalter Liquiphant FTL31 Kühlwassertank MIN (1 = Gabel bedeckt über 25 %, Trockenlaufschutz Pumpe -MA3)"}],"BG39":[{"n":"BG39_Wasser_Max_frei","a":"%I11.6","k":"Grenzschalter Liquiphant FTL31 Kühlwassertank MAX (1 = Gabel frei unter 90 %, 0 = voll oder Drahtbruch)"}]};
   var EXTRA = {
     MM1: "Einhängezylinder: Korb einhängen / lösen",
@@ -1019,7 +1019,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   var critOf = () => CRIT, TYPN = { erkunden: "Erkunden", programmieren: "Programmieren", auslegen: "Auslegen", projekt: "Projekt" };
   var gradeOf = (p) => p >= 92 ? "1 sehr gut" : p >= 81 ? "2 gut" : p >= 67 ? "3 befriedigend" : p >= 50 ? "4 ausreichend" : p >= 30 ? "5 mangelhaft" : "6 ungenügend";
 
-  // web/tools/uebungshandbuch/src/app/basis.js
+  // src/app/basis.js
   var $ = (s, r = document) => r.querySelector(s);
   var $$ = (s, r = document) => [...r.querySelectorAll(s)];
   var BY = Object.fromEntries(SHEETS.map((s) => [s.id, s]));
@@ -1103,7 +1103,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   var USES = {};
   SHEETS.forEach((s) => s.sig.split(" ").forEach((t) => (USES[t] ||= []).push(s.id)));
 
-  // web/tools/uebungshandbuch/src/app/fortschritt.js
+  // src/app/fortschritt.js
   var filled = (key) => String(S.get(key) ?? "").trim().length > 0;
   var prDone = (k, i) => {
     const v = S.get(k + ":p" + i);
@@ -1130,7 +1130,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   var doneCount = (s) => [1, 2, 3, 4, 5, 6].filter((p) => phaseDone(s, p)).length;
   var nextSheet = () => SHEETS.find((s) => doneCount(s) < 6);
 
-  // web/tools/uebungshandbuch/src/editor/svg.js
+  // src/editor/svg.js
   var INK = "#17212B", MUTE = "#9AA4AD";
   var tw = (s, px = 13) => Math.max(...String(s ?? "").split("\n").map((l) => l.length)) * px * 0.58;
   var SVGT = (x, y, t, a = "middle", sz = 13, w = 500, f = INK) => {
@@ -1145,10 +1145,10 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   var PH = 707;
   var clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-  // web/tools/uebungshandbuch/src/editor/status.js
+  // src/editor/status.js
   var ED = { scope: null, key: null, data: null, tool: "pen", color: "#17212B", w: 2.2, hist: [], cur: null, sel: null, selC: null, from: null, place: null, drag: null, svg: null, grid: true, dock: true, selS: null, selT: null, sim: { on: false, st: {}, pos: {} } };
 
-  // web/tools/uebungshandbuch/src/editor/registry.js
+  // src/editor/registry.js
   var VORL = {};
   var TPL = {};
   var PAL = {};
@@ -1175,7 +1175,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   }
   var fuelle = (tabelle, eintraege) => Object.assign(tabelle, eintraege);
 
-  // web/tools/uebungshandbuch/src/editor/vorlagen-svg.js
+  // src/editor/vorlagen-svg.js
   var G = "#9AA4AD", G2 = "#C9D0D5";
   function grid(step, color, x0 = 15, y0 = 15, x1 = 985, y1 = 630) {
     let s = "";
@@ -1318,7 +1318,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     }).join("");
   }
 
-  // web/tools/uebungshandbuch/src/editor/bauteile.js
+  // src/editor/bauteile.js
   var SK = `stroke="${INK}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
   var PP = (d) => `<path d="${d}" ${SK}/>`;
   var PD = (d) => `<path d="${d}" ${SK} stroke-dasharray="3 2.5"/>`;
@@ -1501,7 +1501,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     return [pa || onRail(A, pb), pb || onRail(B, pa)];
   }
 
-  // web/tools/uebungshandbuch/src/editor/bausteine.js
+  // src/editor/bausteine.js
   var R = { state: 36, sinit: 36, start: 8, sum: 15 };
   var isAct = (o) => !!o && (o.k === "action" || o.k === "actionq");
   var atype = (o) => o.k === "actionq" ? "q" : o.t || "kont";
@@ -1561,7 +1561,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     return [b.x + b.w / 2, b.y + b.h / 2];
   };
 
-  // web/tools/uebungshandbuch/src/editor/vorlagen/alt.js
+  // src/editor/vorlagen/alt.js
   registriereVorlage("grafcet", { n: "GRAFCET", d: "Ablauf nach DIN EN 60848 mit Symbollegende", gruppen: ["grafcet"], body: (ex, page, meta) => tplBody("grafcet", ex, page, meta) });
   registriereVorlage("zustand", { n: "Zustandsdiagramm", d: "Zustände und Übergänge, z. B. für Übergaben und Antriebe", gruppen: ["zustand"], body: (ex, page, meta) => tplBody("zustand", ex, page, meta) });
   registriereVorlage("wegschritt", { n: "Weg-Schritt-Diagramm", d: "Zylinderbewegungen über die Schritte", einblattig: true, body: (ex, page, meta) => tplBody("wegschritt", ex, page, meta) });
@@ -2243,7 +2243,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     return "";
   }
 
-  // web/tools/uebungshandbuch/src/editor/zeichnen.js
+  // src/editor/zeichnen.js
   function simCompute() {
     const d = ED.data, adj = /* @__PURE__ */ new Map(), add = (a, b) => {
       if (!adj.has(a)) adj.set(a, []);
@@ -2622,7 +2622,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     return [o, `0 0 ${w + 8} ${h + 8}`, ""];
   }
 
-  // web/tools/uebungshandbuch/src/editor/blaetter.js
+  // src/editor/blaetter.js
   function pagesSVG(key, ex, meta, n, edit) {
     let h = "";
     for (let i = 0; i < n; i++) h += `<g transform="translate(0 ${i * PH})"><rect width="1000" height="${PH}" fill="#fff"/>${TPL[key] ? TPL[key](ex, i, meta) : ""}${frame({ ...meta, blatt: n > 1 ? `${i + 1} von ${n}` : "1" })}</g>`;
@@ -2649,7 +2649,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     };
   };
 
-  // web/tools/uebungshandbuch/src/app/start.js
+  // src/app/start.js
   var app = $("#app");
   function setNav(r) {
     $$("#nav a").forEach((a2) => a2.toggleAttribute("aria-current", false));
@@ -2707,7 +2707,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     return 6;
   }
 
-  // web/tools/uebungshandbuch/src/app/skizzen-kacheln.js
+  // src/app/skizzen-kacheln.js
   function sketchCards(scope, keys, ex) {
     return keys.map((key) => {
       const d = S.get(skKey(scope, key));
@@ -2724,7 +2724,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     if (el) el.innerHTML = sketchCards(s.id, EXVORL[s.id] || ["raster"], s);
   }
 
-  // web/tools/uebungshandbuch/src/app/variablen.js
+  // src/app/variablen.js
   var typeOf = (a) => /^%[IQEA]W/.test(a) ? "Int" : /^%[IQEA]/.test(a) ? "Bool" : "";
   function paintVars(s) {
     const el = $("#vars");
@@ -2733,7 +2733,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     el.innerHTML = rows.length ? rows.map((r, i) => `<tr>${["n", "t", "a", "k"].map((f) => `<td><input type="text" data-var="${i}" data-f="${f}" value="${esc(r[f])}" aria-label="${{ n: "Name", t: "Datentyp", a: "Adresse", k: "Kommentar" }[f]}, Zeile ${i + 1}"></td>`).join("")}<td><button class="del" type="button" data-act="var-del" data-i="${i}" aria-label="Zeile ${i + 1} löschen">${IC.trash}</button></td></tr>`).join("") : `<tr><td colspan="5" class="muted small" style="padding:14px 6px">Noch keine Variablen. Übernehmen Sie die Signale dieser Übung oder fügen Sie eine Zeile hinzu.</td></tr>`;
   }
 
-  // web/tools/uebungshandbuch/src/app/uebung.js
+  // src/app/uebung.js
   var timerId = null, timerEx = null, timerStart = 0;
   function fmtTime(sec) {
     const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
@@ -2931,7 +2931,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     }
   }
 
-  // web/tools/uebungshandbuch/src/editor/editor.js
+  // src/editor/editor.js
   var objById = (id) => ED.data.o.find((o) => o.id === id) || (String(id).startsWith("_") ? vrails(ED.key, ED.pages || 1).find((r) => r.id === id) : void 0);
   var uid = () => "o" + Math.random().toString(36).slice(2, 9);
   function openEditor(scope, key) {
@@ -4073,7 +4073,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     inp.addEventListener("blur", (ev) => commit(true, ev.relatedTarget));
   }
 
-  // web/tools/uebungshandbuch/src/app/druck.js
+  // src/app/druck.js
   function pageHead(ex, what) {
     const st = ex ? STUFEN[ex.st] : null;
     return `<div class="ph"><div class="c">${ex ? ex.id : "SPS"}</div><div><div class="t">${ex ? esc(ex.t) : what}</div><div class="u">${ex ? `${what}, Stufe ${ex.st} ${st.n}, ${ex.ue} UE` : "Übungshandbuch SPS-Technik"}</div></div><div class="r">Übungshandbuch<br>SPS-Technik</div></div>`;
@@ -4185,7 +4185,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     $("#dlg").showModal();
   }
 
-  // web/tools/uebungshandbuch/src/app/seiten.js
+  // src/app/seiten.js
   function viewVorlagen() {
     setNav("vorlagen");
     app.innerHTML = `<div class="page"><h1>Vorlagen</h1><p class="lead">Alle Skizzenvorlagen mit Schriftfeld. Zeichnen Sie direkt darin oder drucken Sie sie leer für die Arbeit auf Papier. Was Sie hier zeichnen, gehört zu keiner Übung.</p>
@@ -4391,7 +4391,7 @@ END_CASE;`)}
     el.textContent = any ? `${s} Punkte, ${gradeOf(s)}` : "noch keine Punkte";
   }
 
-  // web/tools/uebungshandbuch/src/symbole/grund.js
+  // src/symbole/grund.js
   var TINTE = "#17212B", GRAU = "#5A6672", BLAU = "#0E4C92", ANNAHME = "#9A6B00";
   var SCHRIFT = "Plex Sans,Segoe UI,sans-serif", SCHMAL = "Plex Cond,Plex Sans,Segoe UI,sans-serif";
   var maskiere = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -4430,7 +4430,7 @@ END_CASE;`)}
     return zeilen.map((z, i) => text(x, y + i * g * 1.25, z, opt)).join("");
   }
 
-  // web/tools/uebungshandbuch/src/symbole/iec60617.js
+  // src/symbole/iec60617.js
   var schliesser = (x, y) => linie(`M${x} ${y}V${y + 20}M${x} ${y + 60}V${y + 42}L${x - 13} ${y + 19}`);
   var oeffner = (x, y) => linie(`M${x} ${y}V${y + 20}H${x + 9}M${x} ${y + 60}V${y + 42}L${x + 12} ${y + 16}`);
   var hauptkontakt = (x, y) => linie(`M${x} ${y}V${y + 20}M${x} ${y + 60}V${y + 42}L${x - 11} ${y + 21}`) + linie(`M${x - 3.5} ${y + 20}A3.5 3.5 0 0 0 ${x + 3.5} ${y + 20}`);
@@ -4445,6 +4445,7 @@ END_CASE;`)}
     temperatur: (bx, my) => kasten(bx - 14, my - 7, 14, 14) + text(bx - 7, my + 4, "ϑ", { a: "middle", g: 10, w: 600 }),
     schwimmer: (bx, my) => linie(`M${bx} ${my}H${bx - 4}`) + kreis(bx - 9, my, 5, "none"),
     motorschutz: (bx, my) => kasten(bx - 18, my - 7, 18, 14) + text(bx - 9, my + 3.5, "I>", { a: "middle", g: 8, w: 600 }),
+    rolle: (bx, my) => linie(`M${bx} ${my}H${bx - 5}`) + kreis(bx - 9, my, 4, "none"),
     leuchte: (bx, my) => linie(`M${bx} ${my - 7}V${my + 7}M${bx} ${my - 7}H${bx - 4}M${bx} ${my + 7}H${bx - 4}`) + kreis(bx - 11, my, 5, "none") + linie(`M${bx - 14.5} ${my - 3.5}L${bx - 7.5} ${my + 3.5}M${bx - 7.5} ${my - 3.5}L${bx - 14.5} ${my + 3.5}`)
   };
   function kontakt(art, betaetigung) {
@@ -4455,16 +4456,18 @@ END_CASE;`)}
       return kontaktbild + betaetigt + nummern(x, y, 60, g);
     };
   }
+  var spule = (x, y, g) => zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + nummern(x, y, 60, g);
   function sensorKasten(x, y, inhalt, unten = "BK") {
-    return zuleitung(x, y, 60, 15, 15) + kasten(x - 15, y + 15, 30, 30) + inhalt + linie(`M${x - 15} ${y + 40}H${x - 24}`) + nummer(x + 5, y + 11, "BN") + nummer(x + 5, y + 57, unten) + nummer(x - 23, y + 37, "BU", "start");
+    return zuleitung(x, y, 60, 15, 15) + kasten(x - 15, y + 15, 30, 30) + inhalt + linie(`M${x - 15} ${y + 40}H${x - 24}`) + nummer(x + 5, y + 11, "BN") + nummer(x + 5, y + 57, unten) + nummer(x - 22, y + 51, "BU");
   }
   var strahlen = (x, y) => linie(`M${x - 9} ${y + 24}H${x + 9}M${x - 9} ${y + 30}H${x + 9}M${x - 9} ${y + 36}H${x + 9}`, 1) + linie(`M${x + 5} ${y + 21}l4 3l-4 3M${x + 5} ${y + 33}l4 3l-4 3`, 1);
   var lichtpfeile = (x, y) => linie(`M${x - 6} ${y + 24}L${x + 2} ${y + 32}M${x - 1} ${y + 32}H${x + 2}V${y + 29}M${x - 2} ${y + 26}L${x + 6} ${y + 34}M${x + 3} ${y + 34}H${x + 6}V${y + 31}`, 1);
-  var SENSORART = { mag: "Magnet", ind: "induktiv", opt: "optisch", us: "Ultraschall" };
+  var SENSORART = { mag: "Magnet", ind: "induktiv", opt: "optisch", us: "Ultraschall", niv: "Füllstand" };
   var raute = (x, y) => linie(`M${x} ${y + 22}L${x + 8} ${y + 30}L${x} ${y + 38}L${x - 8} ${y + 30}Z`);
-  function geraetKasten(x, y, g, breite = 40) {
-    const t = g.text || g.variante || "";
-    return zuleitung(x, y, 60, 15, 15) + kasten(x - breite / 2, y + 15, breite, 30) + text(x, y + 34, t, { a: "middle", g: t.length > 7 ? 7 : 8.5, w: 600 }) + nummern(x, y, 60, g);
+  function geraetKasten(x, y, g) {
+    const t = g.text || g.variante || "", groesse = t.length > 7 ? 7.5 : 8.5;
+    const breite = Math.max(40, Math.ceil(t.length * groesse * 0.6) + 10);
+    return zuleitung(x, y, 60, 15, 15) + kasten(x - breite / 2, y + 15, breite, 30) + text(x, y + 34, t, { a: "middle", g: groesse, w: 600 }) + nummern(x, y, 60, g);
   }
   var POLE = [-20, 0, 20];
   var allePole = (x, f) => POLE.map((d) => f(x + d)).join("");
@@ -4478,7 +4481,21 @@ END_CASE;`)}
     const kontakte2 = allePole(x, (p) => hauptkontakt(p, y + 20)) + b.map((p) => hauptkontakt(p, y + 20)).join("") + wirklinie(`M${x - 31} ${y + 51}H${x + 20}`) + wirklinie(`M${b[0] - 11} ${y + 51}H${b[2]}`);
     const tauschen = linie(`M${b[0]} ${y + 80}V${y + 96}H${x + 20}M${b[1]} ${y + 80}V${y + 90}H${x}M${b[2]} ${y + 80}V${y + 84}H${x - 20}`) + linie(`M${x - 20} ${y + 80}V${y + 100}M${x} ${y + 80}V${y + 100}M${x + 20} ${y + 80}V${y + 100}`) + punkt(x + 20, y + 96) + punkt(x, y + 90) + punkt(x - 20, y + 84);
     const verriegelung = wirklinie(`M${b[2] + 4} ${y + 58}H${x - 30}`) + linie(`M${b[2] + 10} ${y + 54}l4 8l4 -8zM${x - 44} ${y + 54}l4 8l4 -8z`, 1);
-    return verteilen + kontakte2 + tauschen + verriegelung + POLE.map((d, i) => nummer(x + d + 4, y + 31, ["1", "3", "5"][i])).join("") + b.map((p, i) => nummer(p + 4, y + 31, ["1", "3", "5"][i])).join("");
+    const polNr = (px, i) => nummer(px + 4, y + 31, ["1", "3", "5"][i]) + nummer(px + 4, y + 77, ["2", "4", "6"][i]);
+    return verteilen + kontakte2 + tauschen + verriegelung + POLE.map((d, i) => polNr(x + d, i)).join("") + b.map((p, i) => polNr(p, i)).join("");
+  }
+  function bruecke3(x, y, g) {
+    return allePole(x, (p) => `<path d="M${p} ${y}V${y + 30}" stroke="${TINTE}" stroke-width="1.4" stroke-dasharray="4 3"/>`) + absatz(x + 82, y + 13, String(g.text || "Umsteckbrücke").split(": "), { g: 7.5, f: GRAU });
+  }
+  function poti(x, y) {
+    const r = x + 24;
+    return linie(`M${x} ${y}V${y + 8}H${r}V${y + 14}`) + kasten(r - 5, y + 14, 10, 30) + linie(`M${r} ${y + 44}V${y + 60}`) + linie(`M${x} ${y + 29}H${r - 7}`) + linie(`M${r - 11} ${y + 26}L${r - 6} ${y + 29}L${r - 11} ${y + 32}`, 1.2) + linie(`M${x} ${y + 29}V${y + 60}`) + nummer(x - 10, y + 6, "1") + nummer(x - 10, y + 58, "2") + nummer(r + 5, y + 58, "3");
+  }
+  function fehlerstrom(x, y, g) {
+    return linie(`M${x} ${y}V${y + 20}M${x} ${y + 60}V${y + 42}L${x - 11} ${y + 21}`) + wirklinie(`M${x - 7} ${y + 31}H${x - 24}`) + kasten(x - 44, y + 24, 20, 14) + text(x - 34, y + 35, "IΔ", { a: "middle", g: 8, w: 600 }) + nummern(x, y, 60, g);
+  }
+  function erde(x, y) {
+    return linie(`M${x} ${y}V${y + 16}`) + linie(`M${x - 10} ${y + 16}H${x + 10}M${x - 6} ${y + 20}H${x + 6}M${x - 2} ${y + 24}H${x + 2}`);
   }
   function motor3(x, y) {
     const r = 26, cy = y + 52;
@@ -4489,7 +4506,8 @@ END_CASE;`)}
   }
   function klemme3(x, y, g) {
     const nr = g.an || [];
-    return allePole(x, (p) => linie(`M${p} ${y}V${y + 8}M${p} ${y + 16}V${y + 24}`) + kreis(p, y + 12, 4)) + kreis(x + PE_X, y + 12, 4) + POLE.map((d, i) => nummer(x + d - 4, y + 22, nr[i], "end")).join("") + nummer(x + PE_X - 6, y + 22, nr[3], "end");
+    const pe = nr[3] ? kreis(x + PE_X, y + 12, 4) + nummer(x + PE_X - 6, y + 22, nr[3], "end") : "";
+    return allePole(x, (p) => linie(`M${p} ${y}V${y + 8}M${p} ${y + 16}V${y + 24}`) + kreis(p, y + 12, 4)) + POLE.map((d, i) => nummer(x + d - 4, y + 22, nr[i], "end")).join("") + pe;
   }
   function heizung3(x, y) {
     return allePole(x, (p) => linie(`M${p} ${y}V${y + 12}`) + kasten(p - 5, y + 12, 10, 30) + linie(`M${p} ${y + 42}V${y + 52}`)) + linie(`M${x - 20} ${y + 52}H${x + 20}`) + punkt(x, y + 52) + text(x + 34, y + 30, "3,5 kW", { g: 8, f: GRAU });
@@ -4513,14 +4531,15 @@ END_CASE;`)}
     geber: { name: "Drehgeber", h: 60, pole: 1, rolle: "geraet", bu: true, zeichne: (x, y, g) => sensorKasten(x, y, text(x, y + 35, "G", { a: "middle", g: 13, w: 600 }), g.variante) },
     lvh: { name: "Lichtvorhang", h: 60, pole: 1, rolle: "geraet", bu: true, zeichne: (x, y, g) => sensorKasten(x, y, strahlen(x, y), g.an[1] || "OSSD") },
     geraet: { name: "Gerät", h: 60, pole: 1, rolle: "geraet", zeichne: (x, y, g) => geraetKasten(x, y, g) },
-    spule: { name: "Spule (Schütz, Relais)", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: (x, y, g) => zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + nummern(x, y, 60, g) },
+    spule: { name: "Spule (Schütz, Relais)", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: spule },
+    coil: { name: "Schützspule", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: spule },
     mbv: { name: "Ventilspule", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: (x, y, g) => zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + linie(`M${x - 15} ${y + 42}L${x + 15} ${y + 18}`) + nummern(x, y, 60, g) },
     ssr: { name: "Halbleiterrelais, Steuerkreis", h: 60, pole: 1, rolle: "haupt", an: ["A1+", "A2−"], zeichne: (x, y, g) => zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + lichtpfeile(x, y) + nummern(x, y, 60, g) },
     sirelais: { name: "Sicherheitsrelais", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: (x, y, g) => zuleitung(x, y, 60, 12, 12) + kasten(x - 27, y + 12, 54, 36) + text(x, y + 28, "Sicherheit", { a: "middle", g: 7.5, w: 600 }) + text(x, y + 40, g.text || "", { a: "middle", g: 7.5, f: GRAU }) + nummern(x, y, 60, g) },
     lamp: { name: "Leuchtmelder", h: 60, pole: 1, rolle: "geraet", an: ["X1", "X2"], zeichne: (x, y, g) => zuleitung(x, y, 60, 18, 18) + kreis(x, y + 30, 12) + linie(`M${x - 8.5} ${y + 21.5}L${x + 8.5} ${y + 38.5}M${x + 8.5} ${y + 21.5}L${x - 8.5} ${y + 38.5}`) + nummern(x, y, 60, g) },
-    mu: { name: "Messumformer", h: 60, pole: 1, rolle: "geraet", an: ["+", "−"], zeichne: (x, y, g) => zuleitung(x, y, 60, 16, 16) + kasten(x - 17, y + 16, 34, 28) + text(x - 6, y + 35, g.variante || "", { a: "middle", g: 12, w: 600 }) + linie(`M${x + 2} ${y + 30}H${x + 12}`) + linie(`M${x + 9} ${y + 27}L${x + 12} ${y + 30}L${x + 9} ${y + 33}`, 1) + nummern(x, y, 60, g) },
-    poti: { name: "Potentiometer", h: 60, pole: 1, rolle: "geraet", an: ["1", "2"], zeichne: (x, y, g) => zuleitung(x, y, 60, 15, 15) + kasten(x - 5, y + 15, 10, 30) + linie(`M${x + 16} ${y + 20}L${x + 6} ${y + 30}`) + linie(`M${x + 6} ${y + 30}l6 -1.5M${x + 6} ${y + 30}l1.5 -6`, 1.2) + nummern(x, y, 60, g) },
-    stell: { name: "Stellantrieb Regelventil", h: 60, pole: 1, rolle: "haupt", an: ["Y", "M"], zeichne: (x, y, g) => zuleitung(x, y, 60, 14, 14) + kasten(x - 17, y + 14, 34, 32) + linie(`M${x - 10} ${y + 22}L${x + 10} ${y + 38}V${y + 22}L${x - 10} ${y + 38}Z`, 1.2) + nummern(x, y, 60, g) },
+    mu: { name: "Messumformer", h: 60, pole: 1, rolle: "geraet", an: ["+", "−"], rueck: [17, 36], zeichne: (x, y, g) => zuleitung(x, y, 60, 16, 16) + kasten(x - 17, y + 16, 34, 28) + text(x - 6, y + 35, g.variante || "", { a: "middle", g: 12, w: 600 }) + linie(`M${x + 2} ${y + 30}H${x + 12}`) + linie(`M${x + 9} ${y + 27}L${x + 12} ${y + 30}L${x + 9} ${y + 33}`, 1) + nummern(x, y, 60, g) },
+    poti: { name: "Potentiometer", h: 60, pole: 1, rolle: "geraet", rueck: [24, 60], zeichne: poti },
+    stell: { name: "Stellantrieb Regelventil", h: 60, pole: 1, rolle: "haupt", an: ["Y", "M"], rueck: [17, 22], zeichne: (x, y, g) => zuleitung(x, y, 60, 14, 14) + kasten(x - 17, y + 14, 34, 32) + linie(`M${x - 10} ${y + 22}L${x + 10} ${y + 38}V${y + 22}L${x - 10} ${y + 38}Z`, 1.2) + nummern(x, y, 60, g) },
     klemme: { name: "Klemme", h: 24, pole: 1, rolle: "klemme", zeichne: (x, y) => zuleitung(x, y, 24, 8, 8) + kreis(x, y + 12, 4) },
     port: { name: "Steckverbinder M12", h: 24, pole: 1, rolle: "klemme", zeichne: (x, y, g) => linie(`M${x} ${y}V${y + 13}M${x - 6} ${y + 9}A6 6 0 0 0 ${x + 6} ${y + 9}M${x} ${y + 15}V${y + 24}`) + nummer(x + 8, y + 18, g.an[0]) },
     ls1: {
@@ -4531,6 +4550,9 @@ END_CASE;`)}
       an: ["1", "2"],
       zeichne: (x, y, g) => schutzpol(x, y) + nummern(x, y, 60, g)
     },
+    fi: { name: "Fehlerstromschutzschalter", h: 60, pole: 1, rolle: "geraet", links: 50, an: ["1", "2"], zeichne: fehlerstrom },
+    tuer: { name: "Positionsschalter (Türkontakt)", h: 60, pole: 1, rolle: "geraet", links: 44, an: ["13", "14"], zeichne: kontakt("no", "rolle") },
+    erde: { name: "Erdung", h: 24, pole: 1, rolle: "geraet", zeichne: erde },
     sicherung: { name: "Sicherung", h: 60, pole: 1, rolle: "geraet", an: ["1", "2"], zeichne: (x, y, g) => linie(`M${x} ${y}V${y + 60}`) + kasten(x - 5, y + 16, 10, 28, "none") + nummern(x, y, 60, g) },
     k1: {
       name: "Hauptkontakt Schütz",
@@ -4552,17 +4574,17 @@ END_CASE;`)}
     wende: { name: "Wendeschaltung", h: 100, pole: 3, rolle: "kontakt", zeichne: wende },
     hlr3: { name: "Halbleiterrelais, Lastkreis", h: 60, pole: 3, rolle: "kontakt", zeichne: halbleiter3 },
     umrichter: { name: "Frequenzumrichter", h: 90, pole: 3, rolle: "haupt", pe: true, zeichne: umrichter },
+    bruecke3: { name: "Umsteckbrücke", h: 30, pole: 3, rolle: "hinweis", zeichne: bruecke3 },
     klemme3: { name: "Klemmen 3-polig mit PE", h: 24, pole: 3, rolle: "klemme", pe: true, zeichne: klemme3 },
     motor3: { name: "Drehstrommotor", h: 80, pole: 3, rolle: "geraet", pe: true, zeichne: motor3 },
     heizung3: { name: "Heizwiderstand 3~", h: 60, pole: 3, rolle: "geraet", zeichne: heizung3 }
   };
-  SYM.coil = { ...SYM.spule, name: "Schützspule" };
   function zeichen(wert) {
     const [schluessel, variante = ""] = String(wert).split(":");
     return { sym: SYM[schluessel], schluessel, variante };
   }
 
-  // web/tools/uebungshandbuch/src/schaltplan/daten.js
+  // src/schaltplan/daten.js
   var PLAN = {
  "meta": {
   "titel": "Schaltplan der Anlage: Verzinnungsanlage",
@@ -4575,11 +4597,13 @@ END_CASE;`)}
  "hinweise": [
   ["Wozu dieser Plan?", "Der Plan zeigt die komplette Elektrik der Anlage: Einspeisung, Motoren, Sicherheitskreis und jeden Ein- und Ausgang der SPS. Er ist einfacher als ein Plan aus der Praxis, folgt aber denselben Regeln. Nutze ihn zum Nachschlagen, zur Fehlersuche und als Vorlage für eigene Skizzen."],
   ["So liest du eine Seite", "Jede Seite hat 10 Spalten (0 bis 9). Ein Querverweis wie /21.3 bedeutet Seite 21, Spalte 3. Klick auf einen Querverweis springt dorthin. Unter jeder Spule steht der Kontaktspiegel: welche Kontakte das Gerät hat und wo sie im Plan liegen."],
-  ["Abschaltung bei Not-Halt", "Schützspulen und Ventilspulen hängen an L+S. L+S ist über den Freigabekontakt 13/14 des Sicherheitsrelais −KF2 geschaltet. Leuchtmelder, der Kamera-Trigger und alle Meldungen hängen an L+ (ungeschaltet). So blinken die Quittierleuchten auch bei Not-Halt."],
-  ["Gemischte Ausgangsbytes", "Die Bytes %Q3, %Q4 und %Q5 mischen Spulen und Leuchten. Die Lastgruppe dieser Bytes hängt an L+. Jede Spule in diesen Bytes bekommt deshalb einen Schließer der Kontakterweiterungen −KF3, −KF4 oder −KF5. Diese Hilfsschütze hängen an L+S und fallen bei Not-Halt ab."],
-  ["Schütz oder Umrichter", "Band 1, Band 2, Rollenkurve und Prüfband laufen je nach Übungsumfang über Wendeschütze oder über einen Umrichter SINAMICS G120. Der Plan zeigt beide Wege. Umgeschaltet wird an der Klemmleiste −X1."],
-  ["Angenommen", "Was das 3D-Modell und die Signalliste nicht festlegen, ist sinnvoll ergänzt und mit „angenommen“ markiert: zum Beispiel Absicherungen, Klemmennummern, Frontstecker-Pins und Motorleistungen. Für eine echte Anlage prüfst du diese Angaben am Gerätehandbuch."],
-  ["Klemmen", "Im 3D-Modell sind die Klemmleisten vereinfacht. Maßgeblich für die Belegung ist dieser Plan: −X1 Motorabgänge, −X3 Eingänge, −X4 Ausgänge, −X5 Analogwerte."]
+  ["Abschaltung bei Not-Halt", "Schützspulen und Ventilspulen hängen an L+S. L+S ist über den Freigabekontakt 13/14 des Sicherheitsrelais −KF2 geschaltet. Leuchtmelder, der Kamera-Trigger und alle Meldungen hängen an L+3 (ungeschaltet). So blinken die Quittierleuchten auch bei Not-Halt."],
+  ["Gemischte Ausgangsbytes", "Die Bytes %Q3, %Q4 und %Q5 mischen Spulen und Leuchten, ihre Lastgruppe hängt deshalb an L+3. Die Spulen dieser Bytes enden nicht direkt an M, sondern an M3S, M4S oder M5S. Diese Rückleiter schalten die Koppelrelais −KF3, −KF4 und −KF5. Die Relais hängen an L+S und fallen bei Not-Halt ab."],
+  ["Rückführkreis", "In Reihe zu den Quittiertastern liegen die Öffner 31/32 aller Schütze. −KF2 lässt sich nur quittieren, wenn alle Schütze abgefallen sind. Ein verschweißtes Schütz verhindert so den Wiederanlauf."],
+  ["Rückmeldung an die SPS", "−KF2 und −KF7 melden über ihren Freigabekontakt 33/34. Dann gilt 1 = in Ordnung, und ein Drahtbruch meldet eine Störung. Der Meldekontakt 41/42 ist ein Öffner und würde die umgekehrte Logik liefern."],
+  ["Schütz oder Umrichter", "Band 1, Band 2, Rollenkurve und Prüfband laufen je nach Übungsumfang über Wendeschütze oder über einen Umrichter. Jeder Weg hat eigene Klemmen auf −X1. Eine Umsteckbrücke verbindet genau einen Weg mit den Motorklemmen. Der Umrichter schaltet sicher über STO: −KF8 nimmt die Freigabe an F-DI 0."],
+  ["Angenommen", "Was das 3D-Modell und die Signalliste nicht festlegen, ist sinnvoll ergänzt und mit „angenommen“ markiert: zum Beispiel Absicherungen, Hilfsschalter, Klemmennummern, Frontstecker-Pins und Motorleistungen. Für eine echte Anlage prüfst du diese Angaben am Gerätehandbuch."],
+  ["Klemmen und Kabel", "Im 3D-Modell sind die Klemmleisten vereinfacht, maßgeblich ist dieser Plan: −X1 Abgänge, −X3 Eingänge, −X4 Ausgänge, −X5 Analogwerte. Feldgeräte am Feldverteiler bekommen L+ und M über Pin 1 und Pin 3 der Stammleitung −W. Im Plan ist ihre Versorgung zur Übersicht direkt an L+2 und M gezeichnet."]
  ],
  "orte": {
   "+A1": "Schaltschrank, Montageplatte", "+T1": "Schaltschranktür, Handtableau", "+P1": "Bedienpult",
@@ -4589,54 +4613,58 @@ END_CASE;`)}
  },
  "geraete": [
   ["−X0", "Einspeiseklemmen 16 mm² L1 L2 L3 N PE", "+A1"],
-  ["−QB1", "Lasttrennschalter 3LD, abschließbar", "+A1"],
-  ["−FA1", "Motorschutzschalter 3RV2011-1EA10, 2,8 bis 4 A, Band 1", "+A1"],
+  ["−QB1", "Lasttrennschalter, abschließbar", "+A1", 0, "3LD"],
+  ["−FA1", "Motorschutzschalter 0,9 bis 1,25 A, Band 1", "+A1", 1, "3RV2011-0KA10"],
   ["−FA2", "Leitungsschutzschalter C16, 3-polig, Heizung", "+A1"],
   ["−FA3", "Leitungsschutzschalter B6, Netzteil −TA1", "+A1"],
   ["−FA4", "Leitungsschutzschalter B6, PM 1507, Steckdose, Licht, Lüfter", "+A1"],
-  ["−FA5", "Motorschutzschalter 3RV2, Band 2", "+A1"],
-  ["−FA6", "Motorschutzschalter 3RV2, Pumpe", "+A1"],
-  ["−FA7", "Motorschutzschalter 3RV2, Rollenkurve", "+A1"],
-  ["−FA8", "Motorschutzschalter 3RV2, Muldenantrieb", "+A1"],
+  ["−FA5", "Motorschutzschalter 0,9 bis 1,25 A, Band 2", "+A1", 1, "3RV2011-0KA10"],
+  ["−FA6", "Motorschutzschalter 0,55 bis 0,8 A, Pumpe", "+A1", 1, "3RV2011-0HA10"],
+  ["−FA7", "Motorschutzschalter 0,9 bis 1,25 A, Rollenkurve", "+A1", 1, "3RV2011-0KA10"],
+  ["−FA8", "Motorschutzschalter 0,35 bis 0,5 A, Muldenantrieb", "+A1", 1, "3RV2011-0FA10"],
   ["−FA9", "Leitungsschutzschalter B6, Vibrorinne", "+A1", 1],
-  ["−FA10", "Motorschutzschalter 3RV2, Prüfband", "+A1", 1],
+  ["−FA10", "Motorschutzschalter 0,9 bis 1,25 A, Prüfband", "+A1", 1, "3RV2011-0KA10"],
   ["−FA11", "Leitungsschutzschalter C10, Umrichter −TA2", "+A1", 1],
   ["−FA12", "Leitungsschutzschalter C10, Umrichter −TA3", "+A1", 1],
   ["−FA13", "Leitungsschutzschalter C10, Umrichter −TA4", "+A1", 1],
   ["−FA14", "Leitungsschutzschalter C10, Umrichter −TA5", "+A1", 1],
+  ["−FB1", "Fehlerstromschutzschalter 30 mA, Servicesteckdose", "+A1", 1],
   ["−FC1", "Sicherung 2 A, 24 V Sicherheitskreis", "+A1", 1],
-  ["−FC2", "Sicherung 4 A, 24 V Geber und Feldverteiler", "+A1", 1],
-  ["−FC3", "Sicherung 6 A, 24 V Ausgänge ungeschaltet", "+A1", 1],
+  ["−FC2", "Sicherung 4 A, 24 V Eingänge, Geber, Feldverteiler, Analogwerte", "+A1", 1],
+  ["−FC3", "Sicherung 6 A, 24 V Ausgänge ungeschaltet, Stellantrieb", "+A1", 1],
   ["−FC4", "Sicherung 6 A, 24 V L+S", "+A1", 1],
-  ["−FC5", "Sicherung 4 A, 24 V HMI, Kamera, Umrichter", "+A1", 1],
-  ["−TA1", "Netzteil SITOP PSU8200 24 V/10 A", "+A1"],
-  ["−KF1", "CPU 1516-3 PN/DP mit E/A-Baugruppen", "+A1"],
-  ["−KF1.0", "Systemstromversorgung PM 1507 70 W", "+A1"],
-  ["−KF2", "Sicherheitsrelais SIRIUS 3SK1111, Not-Halt", "+A1"],
-  ["−KF3", "Hilfsschütz 3RH2, Kontakterweiterung Not-Halt", "+A1", 1],
-  ["−KF4", "Hilfsschütz 3RH2, Kontakterweiterung Not-Halt", "+A1", 1],
-  ["−KF5", "Hilfsschütz 3RH2, Kontakterweiterung Not-Halt", "+A1", 1],
-  ["−KF7", "Sicherheitsrelais 3SK1111, Lichtvorhang", "+A1", 1],
-  ["−KF8", "Sicherheitsrelais 3SK1211, STO der Umrichter", "+A1", 1],
+  ["−FC5", "Sicherung 4 A, 24 V HMI, Kamera, Umrichter-Regelteil", "+A1", 1],
+  ["−TA1", "Netzteil 24 V/10 A", "+A1", 0, "SITOP PSU8200"],
+  ["−TA6", "Referenzspannung 10 V DC für Sollwertpotentiometer", "+A1", 1],
+  ["−KF1", "CPU mit E/A-Baugruppen", "+A1", 0, "CPU 1516-3 PN/DP"],
+  ["−KF1.0", "Systemstromversorgung 70 W", "+A1", 0, "PM 1507 6EP1332-4BA00"],
+  ["−KF2", "Sicherheitsrelais Not-Halt", "+A1", 0, "SIRIUS 3SK1111"],
+  ["−KF3", "Koppelrelais, schaltet M der Spulen in %Q3", "+A1", 0, "3RQ3"],
+  ["−KF4", "Koppelrelais, schaltet M der Spulen in %Q4", "+A1", 0, "3RQ3"],
+  ["−KF5", "Koppelrelais, schaltet M der Spulen in %Q5", "+A1", 0, "3RQ3"],
+  ["−KF6", "Koppelrelais, Reserve", "+A1", 0, "3RQ3"],
+  ["−KF7", "Sicherheitsrelais Lichtvorhang", "+A1", 1, "3SK1111"],
+  ["−KF8", "Sicherheitsrelais STO der Umrichter", "+A1", 1, "3SK1211"],
   ["−KF10", "Prüfkamera, Controller mit Kamera", "+A1"],
-  ["−PF10", "Bediengerät TP1200 Comfort, PROFINET", "+T1"],
-  ["−QA1", "Schütz 3RT2015, Band 1 rechts", "+A1"], ["−QA2", "Schütz 3RT2015, Band 1 links", "+A1"],
-  ["−QA3", "Schütz 3RT2015, Heizung", "+A1"],
-  ["−QA5", "Schütz, Band 2 rechts", "+A1"], ["−QA6", "Schütz, Band 2 links", "+A1"],
-  ["−QA7", "Schütz, Umwälzpumpe", "+A1"], ["−QA8", "Schütz, Vibrorinne 230 V", "+A1"], ["−QA9", "Schütz, Prüfband", "+A1"],
-  ["−QA10", "Schütz, Rollenkurve rechts", "+A1"], ["−QA11", "Schütz, Rollenkurve links", "+A1"],
-  ["−QA12", "Schütz, Mulde vor", "+A1"], ["−QA13", "Schütz, Mulde zurück", "+A1"],
-  ["−TB1", "Halbleiterrelais 3RF2 20 A, Heizung", "+A1", 1],
+  ["−PF10", "Bediengerät, PROFINET", "+T1", 0, "TP1200 Comfort"],
+  ["−QA1", "Schütz Band 1 rechts", "+A1", 0, "3RT2015"], ["−QA2", "Schütz Band 1 links", "+A1", 0, "3RT2015"],
+  ["−QA3", "Schütz Heizung", "+A1", 0, "3RT2015"],
+  ["−QA5", "Schütz Band 2 rechts", "+A1"], ["−QA6", "Schütz Band 2 links", "+A1"],
+  ["−QA7", "Schütz Umwälzpumpe", "+A1"], ["−QA8", "Schütz Vibrorinne 230 V", "+A1"], ["−QA9", "Schütz Prüfband", "+A1"],
+  ["−QA10", "Schütz Rollenkurve rechts", "+A1"], ["−QA11", "Schütz Rollenkurve links", "+A1"],
+  ["−QA12", "Schütz Mulde vor", "+A1"], ["−QA13", "Schütz Mulde zurück", "+A1"],
+  ["−TB1", "Halbleiterrelais 20 A, Heizung", "+A1", 1, "3RF2"],
   ["−EB1", "Heizung Lötbad 3,5 kW, 400 V", "+F2"],
-  ["−TA2", "Umrichter SINAMICS G120, 0,37 kW, Band 1", "+A1"], ["−TA3", "Umrichter SINAMICS G120, Band 2", "+A1"],
-  ["−TA4", "Umrichter SINAMICS G120, Rollenkurve", "+A1"], ["−TA5", "Umrichter SINAMICS G120, Prüfband", "+A1"],
+  ["−TA2", "Umrichter 0,37 kW, Band 1", "+A1", 0, "SINAMICS G120"], ["−TA3", "Umrichter Band 2", "+A1", 0, "SINAMICS G120"],
+  ["−TA4", "Umrichter Rollenkurve", "+A1", 0, "SINAMICS G120"], ["−TA5", "Umrichter Prüfband", "+A1", 0, "SINAMICS G120"],
   ["−MA1", "Getriebemotor Band 1, 0,37 kW", "+F3", 1], ["−MA2", "Getriebemotor Band 2, 0,37 kW", "+F5", 1],
   ["−MA3", "Umwälzpumpe Sprühkühlung, 0,25 kW", "+F5", 1], ["−MA4", "Vibrorinne mit Steuergerät, 230 V", "+F6", 1],
   ["−MA5", "Getriebemotor Prüfband, 0,37 kW", "+F6", 1], ["−MA6", "Getriebemotor Rollenkurve, 0,37 kW", "+F4", 1],
   ["−MA7", "Schneckengetriebemotor Muldenrollen, 0,12 kW", "+F6", 1],
-  ["−XD9", "Servicesteckdose", "+A1"], ["−EA1", "Schrankleuchte mit Türkontakt", "+A1", 1], ["−EC1", "Filterlüfter", "+A1", 1],
-  ["−X1", "Klemmleiste 400 V, Motorabgänge", "+A1"], ["−X3", "Klemmleiste Eingänge", "+A1"],
-  ["−X4", "Klemmleiste Ausgänge", "+A1"], ["−X5", "Klemmleiste Analogwerte", "+A1"],
+  ["−XD9", "Servicesteckdose", "+A1"], ["−EA1", "Schrankleuchte", "+A1", 1], ["−BG90", "Türkontakt Schaltschrank", "+A1", 1],
+  ["−EC1", "Filterlüfter", "+A1", 1],
+  ["−X1", "Klemmleiste 400 V und 230 V, Abgänge", "+A1"], ["−X3", "Klemmleiste Eingänge", "+A1"],
+  ["−X4", "Klemmleiste Ausgänge", "+A1"], ["−X5", "Klemmleiste Analogwerte", "+A1"], ["−XPE", "Schutzleiterschiene", "+A1"],
   ["−XD1", "Feldverteiler Portal links, M12, 8 Ports", "+F1"], ["−XD2", "Feldverteiler Portal rechts", "+F2"],
   ["−XD3", "Feldverteiler Band 1 vorn", "+F3"], ["−XD5", "Feldverteiler Prüfstation", "+F6"],
   ["−QM1", "Ventilinsel Portal, 4 × 5/2 bistabil, Multipol", "+F1"], ["−QM2", "Ventilinsel Band, 2 × 5/2 monostabil", "+F3"],
@@ -4666,7 +4694,7 @@ END_CASE;`)}
    ["I0.6", "BG7_MM4_offen", "−BG7", "sens:mag", "+F2", "", "−XD2:X0:4"],
    ["I0.7", "BG8_MM4_zu", "−BG8", "sens:mag", "+F2", "", "−XD2:X1:4"],
    ["I1.0", "BG9_Temperatur", "−BG9", "temp", "+F2", "13/14", "−XD2:X2:4"],
-   ["I1.1", "BG10_Fuellhoehe", "−BG10", "niveau", "+F2", "13/14", "−XD2:X3:4"],
+   ["I1.1", "BG10_Fuellhoehe", "−BG10", "sens:niv", "+F2", "", "−XD2:X3:4"],
    ["I1.2", "BG11_Korb", "−BG11", "sens:opt", "+F3", "", ""],
    ["I1.3", "SF1_Start", "−SF1", "tno", "+P1", "13/14", ""],
    ["I1.4", "SF2_Stop", "−SF2", "tnc", "+P1", "21/22", ""],
@@ -4696,7 +4724,7 @@ END_CASE;`)}
    ["I4.4", "BG18_Geber_A", "−BG18", "geber:A", "+F3", "", ""],
    ["I4.5", "BG18_Geber_B", "−BG18", "geber:B", "+F3", "", ""],
    ["I4.6", "BG18_Geber_N", "−BG18", "geber:N", "+F3", "", ""],
-   ["I4.7", "BG20_Lichtvorhang_frei", "−BG20", "lvh", "+F1", "", "", 1],
+   ["I4.7", "BG20_Lichtvorhang_frei", "−KF7", "no", "+A1", "33/34", "", 1],
    ["I5.0", "SF19_MM5_Oeffnen", "−SF19", "tno", "+T1", "13/14", ""],
    ["I5.1", "SF20_MM5_Schliessen", "−SF20", "tno", "+T1", "13/14", ""],
    ["I5.2", "SF21_MM6_Schliessen", "−SF21", "tno", "+T1", "13/14", ""],
@@ -4749,8 +4777,8 @@ END_CASE;`)}
    ["I11.2", "SA7_VorOrt5", "−SA7", "key", "+S50", "13/14", ""],
    ["I11.3", "SF45_Pruefband_Ein", "−SF45", "tno", "+S50", "13/14", ""],
    ["I11.4", "SF46_Pruefband_Aus", "−SF46", "tnc", "+S50", "21/22", ""],
-   ["I11.5", "BG38_Wasser_Min", "−BG38", "niveau", "+F5", "13/14", ""],
-   ["I11.6", "BG39_Wasser_Max_frei", "−BG39", "niveau", "+F5", "21/22", ""],
+   ["I11.5", "BG38_Wasser_Min", "−BG38", "sens:niv", "+F5", "", ""],
+   ["I11.6", "BG39_Wasser_Max_frei", "−BG39", "sens:niv", "+F5", "", ""],
    ["I11.7", "BG37_Kipper_Einlauf", "−BG37", "sens:opt", "+F6", "", "−XD5:X6:4"]
   ],
   "DQ": [
@@ -4818,11 +4846,11 @@ END_CASE;`)}
   ],
   "reserve": ["I8.1", "Q1.7", "IW76", "IW78", "QW82", "QW84", "QW86"]
  },
- "versorgung": {"Q0": "L+S", "Q1": "L+", "Q2": "L+S", "Q3": "L+", "Q4": "L+", "Q5": "L+"},
+ "versorgung": {"DI": "L+2", "AI": "L+2", "AQ": "L+2", "Q0": "L+S", "Q1": "L+3", "Q2": "L+S", "Q3": "L+3", "Q4": "L+3", "Q5": "L+3"},
+ "speisung": {"−MB18": "L+3"},
  "abschalten": {
-  "Q3.0": "−KF3:13/14", "Q3.1": "−KF3:23/24", "Q3.4": "−KF3:33/34", "Q3.5": "−KF3:43/44",
-  "Q3.6": "−KF4:13/14", "Q3.7": "−KF4:23/24", "Q4.0": "−KF4:33/34", "Q4.1": "−KF4:43/44",
-  "Q4.2": "−KF5:13/14", "Q4.4": "−KF5:23/24", "Q4.5": "−KF5:33/34", "Q5.4": "−KF5:43/44"
+  "Q3.0": "M3S", "Q3.1": "M3S", "Q3.4": "M3S", "Q3.5": "M3S", "Q3.6": "M3S", "Q3.7": "M3S",
+  "Q4.0": "M4S", "Q4.1": "M4S", "Q4.2": "M4S", "Q4.4": "M4S", "Q4.5": "M4S", "Q5.4": "M5S"
  },
  "verriegelung": {
   "Q2.0": "−QA2:21/22", "Q2.1": "−QA1:21/22", "Q2.6": "−QA6:21/22", "Q2.7": "−QA5:21/22",
@@ -4831,38 +4859,58 @@ END_CASE;`)}
  "pfadseiten": [
   {"titel": "Versorgung 230 V", "oben": "L1", "unten": "N", "pfade": [
    {"titel": "Netzteil 24 V", "glieder": [["ls1", "−FA3", "1/2"], ["netzteil", "−TA1", "L/N"]]},
-   {"titel": "Verteilung 230 V", "glieder": [["ls1", "−FA4", "1/2"]], "bis": "230 V verteilt"},
-   {"titel": "Systemstromversorgung", "von": "−FA4:2", "glieder": [["geraet", "−KF1.0", "L/N", "PM 1507"]]},
-   {"titel": "Steckdose", "von": "−FA4:2", "glieder": [["dose", "−XD9", ""]]},
-   {"titel": "Schrankleuchte", "von": "−FA4:2", "glieder": [["leuchte", "−EA1", "X1/X2"]]},
-   {"titel": "Lüfter", "von": "−FA4:2", "glieder": [["motor1", "−EC1", ""]]},
-   {"titel": "Vibrorinne", "glieder": [["ls1", "−FA9", "1/2"], ["k1", "−QA8", "1/2"], ["klemme", "−X1", ""], ["geraet", "−MA4", "L/N", "Steuergerät"]]}
+   {"titel": "Verteilung 230 V", "glieder": [["ls1", "−FA4", "1/2"]], "bis": "L1.1"},
+   {"titel": "Systemstromversorgung", "von": "L1.1", "glieder": [["geraet", "−KF1.0", "L/N", "PM 1507"]]},
+   {"titel": "Steckdose", "von": "L1.1", "glieder": [["fi", "−FB1", "1/2", "",1], ["dose", "−XD9", ""]]},
+   {"titel": "Schrankleuchte", "von": "L1.1", "glieder": [["tuer", "−BG90", "13/14", "",1], ["leuchte", "−EA1", "X1/X2"]]},
+   {"titel": "Lüfter", "von": "L1.1", "glieder": [["motor1", "−EC1", ""]]},
+   {"titel": "Vibrorinne", "pe": true, "glieder": [["ls1", "−FA9", "1/2"], ["k1", "−QA8", "1/2"], ["klemme", "−X1", "L"], ["geraet", "−MA4", "L/N", "Steuergerät"], ["klemme", "−X1", "N"]]}
   ]},
   {"titel": "Verteilung 24 V", "oben": "L+", "unten": "M", "quelle": "−TA1", "pfade": [
    {"titel": "Sicherheitskreis", "glieder": [["sicherung", "−FC1", "1/2"]], "bis": "L+1"},
-   {"titel": "Geber, Feldverteiler", "glieder": [["sicherung", "−FC2", "1/2"]], "bis": "L+2"},
+   {"titel": "Eingänge, Geber, Analogwerte", "glieder": [["sicherung", "−FC2", "1/2"]], "bis": "L+2"},
    {"titel": "Ausgänge ungeschaltet", "glieder": [["sicherung", "−FC3", "1/2"]], "bis": "L+3"},
    {"titel": "Ausgänge geschaltet", "glieder": [["sicherung", "−FC4", "1/2"], ["no", "−KF2", "13/14"]], "bis": "L+S"},
-   {"titel": "HMI, Kamera, Umrichter", "glieder": [["sicherung", "−FC5", "1/2"]], "bis": "L+5"},
-   {"titel": "Erdung M", "von": "M", "glieder": [], "bis": "−XPE"}
+   {"titel": "HMI, Kamera, Regelteil Umrichter", "glieder": [["sicherung", "−FC5", "1/2"]], "bis": "L+5"},
+   {"titel": "Referenz 10 V", "von": "L+2", "glieder": [["geraet", "−TA6", "24 V/10 V", "Referenz",1]], "bis": "+10V"},
+   {"titel": "M geerdet", "erde": true, "glieder": []}
   ]},
   {"titel": "Not-Halt-Kreis", "oben": null, "unten": null, "pfade": [
    {"titel": "Kanal 1", "von": "−KF2:S11", "glieder": [["nh", "−SF0", "11/12"], ["nh", "−SF8", "11/12"], ["nh", "−SF9", "11/12"], ["nh", "−SF10", "11/12"], ["nh", "−SF33", "11/12"], ["no", "−KF7", "13/14"]], "bis": "−KF2:S12"},
    {"titel": "Kanal 2", "von": "−KF2:S21", "glieder": [["nh", "−SF0", "21/22"], ["nh", "−SF8", "21/22"], ["nh", "−SF9", "21/22"], ["nh", "−SF10", "21/22"], ["nh", "−SF33", "21/22"], ["no", "−KF7", "23/24"]], "bis": "−KF2:S22"},
-   {"titel": "Quittieren Pult", "von": "−KF2:S33", "glieder": [["tnol", "−SF4", "23/24"]], "bis": "−KF2:S34"},
-   {"titel": "Quittieren −S10", "von": "−KF2:S33", "glieder": [["tnol", "−SF41", "23/24"]], "bis": "−KF2:S34"},
-   {"titel": "Quittieren −S20", "von": "−KF2:S33", "glieder": [["tnol", "−SF42", "23/24"]], "bis": "−KF2:S34"},
-   {"titel": "Quittieren −S30", "von": "−KF2:S33", "glieder": [["tnol", "−SF43", "23/24"]], "bis": "−KF2:S34"},
-   {"titel": "Quittieren −S40", "von": "−KF2:S33", "glieder": [["tnol", "−SF44", "23/24"]], "bis": "−KF2:S34"}
+   {"titel": "Rückführkreis 1", "von": "−KF2:S33", "glieder": [["nc", "−QA1", "31/32", "",1], ["nc", "−QA2", "31/32", "",1], ["nc", "−QA3", "31/32", "",1], ["nc", "−QA5", "31/32", "",1], ["nc", "−QA6", "31/32", "",1], ["nc", "−QA7", "31/32", "",1]], "bis": "RK1"},
+   {"titel": "Rückführkreis 2", "von": "RK1", "glieder": [["nc", "−QA8", "31/32", "",1], ["nc", "−QA9", "31/32", "",1], ["nc", "−QA10", "31/32", "",1], ["nc", "−QA11", "31/32", "",1], ["nc", "−QA12", "31/32", "",1], ["nc", "−QA13", "31/32", "",1]], "bis": "RK2"},
+   {"titel": "Quittieren Pult", "von": "RK2", "glieder": [["tnol", "−SF4", "23/24"]], "bis": "−KF2:S34"},
+   {"titel": "Quittieren −S10", "von": "RK2", "glieder": [["tnol", "−SF41", "23/24"]], "bis": "−KF2:S34"},
+   {"titel": "Quittieren −S20", "von": "RK2", "glieder": [["tnol", "−SF42", "23/24"]], "bis": "−KF2:S34"},
+   {"titel": "Quittieren −S30", "von": "RK2", "glieder": [["tnol", "−SF43", "23/24"]], "bis": "−KF2:S34"},
+   {"titel": "Quittieren −S40", "von": "RK2", "glieder": [["tnol", "−SF44", "23/24"]], "bis": "−KF2:S34"}
   ]},
-  {"titel": "Sicherheitsrelais und Freigaben", "oben": "L+", "unten": "M", "pfade": [
+  {"titel": "Sicherheitsrelais und Freigaben", "oben": null, "unten": "M", "pfade": [
    {"titel": "Not-Halt-Relais", "von": "L+1", "glieder": [["sirelais", "−KF2", "A1/A2", "Not-Halt"]]},
-   {"titel": "Lichtvorhang", "von": "L+1", "glieder": [["lvh", "−BG20", "OSSD"], ["sirelais", "−KF7", "A1/A2", "Lichtvorhang"]], "a": 1},
+   {"titel": "Lichtvorhang-Relais", "von": "L+1", "glieder": [["sirelais", "−KF7", "A1/A2", "Lichtvorhang",1]]},
+   {"titel": "STO-Relais", "von": "L+S", "glieder": [["sirelais", "−KF8", "A1/A2", "STO",1]]},
    {"titel": "Heizung frei", "von": "L+S", "glieder": [["no", "−KF2", "23/24"], ["spule", "−QA3", "A1/A2"]]},
-   {"titel": "Erweiterung 1", "von": "L+S", "glieder": [["spule", "−KF3", "A1/A2"]], "a": 1},
-   {"titel": "Erweiterung 2", "von": "L+S", "glieder": [["spule", "−KF4", "A1/A2"]], "a": 1},
-   {"titel": "Erweiterung 3", "von": "L+S", "glieder": [["spule", "−KF5", "A1/A2"]], "a": 1},
-   {"titel": "STO Umrichter", "von": "L+S", "glieder": [["sirelais", "−KF8", "A1/A2", "STO"]], "a": 1}
+   {"titel": "Koppelrelais %Q3", "von": "L+S", "glieder": [["spule", "−KF3", "A1/A2"]]},
+   {"titel": "Koppelrelais %Q4", "von": "L+S", "glieder": [["spule", "−KF4", "A1/A2"]]},
+   {"titel": "Koppelrelais %Q5", "von": "L+S", "glieder": [["spule", "−KF5", "A1/A2"]]}
+  ]},
+  {"titel": "Lichtvorhang und geschaltetes M", "oben": null, "unten": "M", "pfade": [
+   {"titel": "Lichtvorhang OSSD1", "von": "L+1", "glieder": [["lvh", "−BG20", "BN/OSSD1"]], "bis": "−KF7:S12"},
+   {"titel": "Lichtvorhang OSSD2", "von": "−BG20:OSSD2", "glieder": [], "bis": "−KF7:S22"},
+   {"titel": "M der Spulen %Q3", "von": "M3S", "definiert": "von", "glieder": [["no", "−KF3", "11/14"]]},
+   {"titel": "M der Spulen %Q4", "von": "M4S", "definiert": "von", "glieder": [["no", "−KF4", "11/14"]]},
+   {"titel": "M der Spulen %Q5", "von": "M5S", "definiert": "von", "glieder": [["no", "−KF5", "11/14"]]}
+  ]},
+  {"titel": "Umrichter: STO und Regelteil", "oben": null, "unten": "M", "pfade": [
+   {"titel": "STO −TA2", "von": "L+1", "glieder": [["no", "−KF8", "13/14"]], "bis": "−TA2:F-DI 0"},
+   {"titel": "STO −TA3", "von": "L+1", "glieder": [["no", "−KF8", "23/24"]], "bis": "−TA3:F-DI 0"},
+   {"titel": "STO −TA4", "von": "L+1", "glieder": [["no", "−KF8", "33/34"]], "bis": "−TA4:F-DI 0"},
+   {"titel": "STO −TA5", "von": "L+1", "glieder": [["no", "−KF8", "43/44"]], "bis": "−TA5:F-DI 0"},
+   {"titel": "Regelteil −TA2", "von": "L+5", "glieder": [["geraet", "−TA2", "31/32", "CU 24 V"]]},
+   {"titel": "Regelteil −TA3", "von": "L+5", "glieder": [["geraet", "−TA3", "31/32", "CU 24 V"]]},
+   {"titel": "Regelteil −TA4", "von": "L+5", "glieder": [["geraet", "−TA4", "31/32", "CU 24 V"]]},
+   {"titel": "Regelteil −TA5", "von": "L+5", "glieder": [["geraet", "−TA5", "31/32", "CU 24 V"]]}
   ]}
  ],
  "leistung": [
@@ -4879,22 +4927,22 @@ END_CASE;`)}
   {"titel": "Umrichter Prüfband", "glieder": [["ls3", "−FA14"], ["umrichter", "−TA5"], ["klemme3", "−X1"], ["motor3", "−MA5"]]}
  ],
  "feldverteiler": {
-  "−XD1": ["−BG1 / −BG2", "−BG3", "−BG4", "−BG5", "−BG6", "", "", ""],
-  "−XD2": ["−BG7", "−BG8", "−BG9", "−BG10", "", "", "", ""],
-  "−XD3": ["−BG14", "−BG15", "−BG16", "−BG17", "−BG40", "", "", ""],
-  "−XD5": ["−BG30", "−BG31", "−BG33", "−BG32", "−BG34", "−MB15 / −MB16", "−BG37", ""]
+  "−XD1": {"kabel": "−W1", "ports": ["−BG1 / −BG2", "−BG3", "−BG4", "−BG5", "−BG6", "", "", ""], "hinweis": "X0 mit Y-Verteiler: −BG1 an Pin 4, −BG2 an Pin 2"},
+  "−XD2": {"kabel": "−W2", "ports": ["−BG7", "−BG8", "−BG9", "−BG10", "", "", "", ""]},
+  "−XD3": {"kabel": "−W3", "ports": ["−BG14", "−BG15", "−BG16", "−BG17", "−BG40", "", "", ""]},
+  "−XD5": {"kabel": "−W5", "ports": ["−BG30", "−BG31", "−BG33", "−BG32", "−BG34", "−MB15 / −MB16", "−BG37", ""], "hinweis": "X5 mit Y-Verteiler: −MB15 an Pin 4, −MB16 an Pin 2"}
  },
  "ventilinseln": {
-  "−QM1": [["0", "−MB1", "−MB2", "−MM1 Einhängen / Lösen"], ["1", "−MB3", "−MB4", "−MM2 Senken / Anheben"], ["2", "−MB5", "−MB6", "−MM3 Zinnbad / Band"], ["3", "−MB7", "−MB8", "−MM4 Schließen / Öffnen"]],
-  "−QM2": [["0", "−MB9", "", "−MM5 Anschlag"], ["1", "−MB10", "", "−MM6 Vereinzeler"]],
-  "−QM4": [["0", "−MB15", "", "−MM8 Kippen"], ["1", "−MB16", "", "Ausblasdüse"]]
+  "−QM1": {"kabel": "−W11", "plaetze": [["0", "−MB1", "−MB2", "−MM1 Einhängen / Lösen"], ["1", "−MB3", "−MB4", "−MM2 Senken / Anheben"], ["2", "−MB5", "−MB6", "−MM3 Zinnbad / Band"], ["3", "−MB7", "−MB8", "−MM4 Schließen / Öffnen"]]},
+  "−QM2": {"kabel": "−W12", "plaetze": [["0", "−MB9", "", "−MM5 Anschlag"], ["1", "−MB10", "", "−MM6 Vereinzeler"]]},
+  "−QM4": {"kabel": "−W5", "plaetze": [["0", "−MB15", "", "−MM8 Kippen"], ["1", "−MB16", "", "Ausblasdüse"]]}
  },
  "profinet": [["−KF1", "X1 P1", "−TA2", "192.168.0.1"], ["−TA2", "P2", "−TA3", "192.168.0.21"], ["−TA3", "P2", "−TA4", "192.168.0.22"],
   ["−TA4", "P2", "−TA5", "192.168.0.23"], ["−TA5", "", "", "192.168.0.24"], ["−KF1", "X1 P2", "−PF10", "192.168.0.10"]]
 }
 ;
 
-  // web/tools/uebungshandbuch/src/schaltplan/querverweise.js
+  // src/schaltplan/querverweise.js
   var neuerIndex = () => ({ orte: /* @__PURE__ */ new Map(), signale: /* @__PURE__ */ new Map() });
   function merke(index, bmk, eintrag) {
     if (!bmk) return;
@@ -4915,8 +4963,120 @@ END_CASE;`)}
   }
   var kontakte = (index, bmk) => fundstellen(index, bmk).filter((e) => e.rolle === "kontakt");
 
-  // web/tools/uebungshandbuch/src/schaltplan/modell.js
+  // src/schaltplan/klemmen.js
   var LEISTE = { DI: "−X3", DQ: "−X4", AI: "−X5", AQ: "−X5" };
+  var AUSGANG = {
+    ms3: ["2", "4", "6"],
+    ls3: ["2", "4", "6"],
+    schuetz3: ["2", "4", "6"],
+    wende: ["2", "4", "6"],
+    hlr3: ["2", "4", "6"],
+    umrichter: ["U2", "V2", "W2"]
+  };
+  var VERBRAUCHER_AN = { motor3: ["U1", "V1", "W1"], heizung3: ["1", "2", "3"] };
+  var ANALOG = {
+    strom: { haupt: ["−", (n) => `I${n}+`], seite: ["+", (n) => `UV${n}`], vonOben: true, text: "2-Leiter, gespeist von der Baugruppe" },
+    spannung: { haupt: ["+", (n) => `U${n}+`], seite: ["−", (n) => `U${n}−`], vonOben: false, text: "Spannungssignal" },
+    ausgang: { haupt: ["Y", (n) => `QV${n}`], seite: ["M", () => "MANA"], vonOben: false, text: "Spannungsausgang" }
+  };
+  var FELD_AN = { poti: ["2", "3"] };
+  function analogAnschluss(k) {
+    const art = k.typ === "AQ" ? "ausgang" : /mA/.test(k.an) ? "strom" : "spannung";
+    const a = ANALOG[art], feld = FELD_AN[String(k.sym).split(":")[0]], n = k.modul.kanal;
+    return {
+      art,
+      text: a.text,
+      vonOben: a.vonOben,
+      haupt: { feld: feld ? feld[0] : a.haupt[0], baugruppe: a.haupt[1](n) },
+      seite: { feld: feld ? feld[1] : a.seite[0], baugruppe: a.seite[1](n) }
+    };
+  }
+  function neueListe() {
+    const liste = [], zaehler = {};
+    const neu = (leiste2, feld, schrank, signal = "", ziel2 = "") => {
+      zaehler[leiste2] = (zaehler[leiste2] || 0) + 1;
+      const klemme = `${leiste2}:${zaehler[leiste2]}`;
+      liste.push({ klemme, feld, schrank, signal, ziel: ziel2 });
+      return klemme;
+    };
+    return { liste, neu };
+  }
+  var SENSOR = /^(sens|geber|lvh)/;
+  function feldAnschlussDigital(k) {
+    if (SENSOR.test(k.sym)) return String(k.sym).split(":")[1]?.length === 1 ? String(k.sym).split(":")[1] : "BK";
+    const teile = String(k.an || "").split("/");
+    return k.typ === "DI" ? teile[1] || teile[0] : teile[0] || "A1";
+  }
+  function kanalKlemmen(kanaele, k) {
+    for (const kanal of kanaele) {
+      if (kanal.typ[0] === "A") kanal.analog = analogAnschluss(kanal);
+      if (kanal.ort === "+A1") continue;
+      const leiste2 = LEISTE[kanal.typ], schrank = `−KF1 %${kanal.adr}`;
+      if (kanal.typ === "DI" || kanal.typ === "DQ") {
+        const pin = kanal.modul.pin ? `, Pin ${kanal.modul.pin}` : "";
+        kanal.klemme = k.neu(leiste2, `${kanal.bmk} ${feldAnschlussDigital(kanal)}`, schrank + pin, kanal.signal, kanal.bmk);
+        continue;
+      }
+      const a = kanal.analog;
+      kanal.klemme = k.neu(leiste2, `${kanal.bmk} ${a.haupt.feld}`, `${schrank} ${a.haupt.baugruppe}`, kanal.signal, kanal.bmk);
+      kanal.klemmeSeite = k.neu(leiste2, `${kanal.bmk} ${a.seite.feld}`, `${schrank} ${a.seite.baugruppe}`, kanal.signal, kanal.bmk);
+    }
+  }
+  function leistungKlemmen(leistung, k) {
+    const wege = /* @__PURE__ */ new Map(), motorSatz = /* @__PURE__ */ new Map();
+    for (const a of leistung) wege.set(verbraucherVon(a).bmk, (wege.get(verbraucherVon(a).bmk) || 0) + 1);
+    for (const a of leistung) {
+      const i = a.glieder.findIndex((g) => g.sym === "klemme3"), vor = a.glieder[i - 1], ziel2 = verbraucherVon(a);
+      const quelle2 = AUSGANG[vor.sym].map((t) => `${vor.bmk} ${t}`), an = VERBRAUCHER_AN[ziel2.sym];
+      if (wege.get(ziel2.bmk) < 2) {
+        a.glieder[i].nummern = satz(k, an.map((t) => `${ziel2.bmk} ${t}`), quelle2, ziel2.bmk, true);
+        continue;
+      }
+      const weg = satz(k, ["Umsteckbrücke", "Umsteckbrücke", "Umsteckbrücke"], quelle2, ziel2.bmk, false);
+      if (!motorSatz.has(ziel2.bmk)) motorSatz.set(ziel2.bmk, satz(
+        k,
+        an.map((t) => `${ziel2.bmk} ${t}`),
+        ["Umsteckbrücke", "Umsteckbrücke", "Umsteckbrücke"],
+        ziel2.bmk,
+        true
+      ));
+      a.glieder.splice(
+        i,
+        1,
+        { ...a.glieder[i], nummern: weg },
+        { sym: "bruecke3", bmk: "", an: "", text: "Umsteckbrücke: nur ein Weg gesteckt" },
+        { ...a.glieder[i], nummern: motorSatz.get(ziel2.bmk) }
+      );
+    }
+  }
+  var verbraucherVon = (a) => a.glieder[a.glieder.length - 1];
+  function satz(k, feld, schrank, ziel2, mitPE) {
+    const nummern2 = feld.map((f, i) => k.neu("−X1", f, schrank[i], "", ziel2).split(":")[1]);
+    nummern2.push(mitPE ? k.neu("−X1", `${ziel2} PE`, "−XPE", "", ziel2).split(":")[1] : "");
+    return nummern2;
+  }
+  function pfadKlemmen(pfadseiten, k) {
+    for (const seite of pfadseiten) for (const pfad of seite.pfade) {
+      pfad.glieder.forEach((g, i) => {
+        if (g.sym !== "klemme") return;
+        const vor = pfad.glieder[i - 1], nach = pfad.glieder[i + 1];
+        const feld = g.an === "N" ? `${vor.bmk} N` : `${nach.bmk} ${g.an}`;
+        const schrank = g.an === "N" ? `${seite.unten} (Schiene)` : `${vor.bmk} ${String(vor.an).split("/")[1] || ""}`.trim();
+        g.bmk = k.neu(g.bmk, feld, schrank, "", feld.split(" ")[0]);
+      });
+      const geraet = pfad.glieder.find((g) => g.sym === "geraet");
+      if (pfad.pe && geraet) pfad.peKlemme = k.neu("−X1", `${geraet.bmk} PE`, "−XPE", "", geraet.bmk);
+    }
+  }
+  function klemmenAufbauen(kanaele, leistung, pfadseiten) {
+    const k = neueListe();
+    kanalKlemmen(kanaele, k);
+    leistungKlemmen(leistung, k);
+    pfadKlemmen(pfadseiten, k);
+    return k.liste;
+  }
+
+  // src/schaltplan/modell.js
   var SPALTEN = ["adr", "signal", "bmk", "sym", "ort", "an", "weg", "annahme"];
   function signalTabelle(sig) {
     const tabelle = /* @__PURE__ */ new Map();
@@ -4927,58 +5087,48 @@ END_CASE;`)}
     const m = /^([IQ])(\d+)\.(\d)$/.exec(adr);
     return m ? { bereich: m[1], byte: +m[2], bit: +m[3] } : { bereich: adr.slice(0, 2), byte: +adr.slice(2), bit: 0 };
   }
+  var startByte = (baugruppe3) => +String(baugruppe3[3]).replace(/\D/g, "");
   function baugruppe(sps2, typ2, teile) {
     const passend = sps2.filter(([, name]) => name.startsWith(typ2));
-    const start = (b) => +String(b[3]).replace(/\D/g, "");
-    if (typ2 === "AI" || typ2 === "AQ") return { platz: passend[0][0], name: passend[0][1], kanal: (teile.byte - start(passend[0])) / 2 };
-    const gruppe = passend.find((b) => teile.byte >= start(b) && teile.byte < start(b) + 4);
-    const kanal = (teile.byte - start(gruppe)) * 8 + teile.bit;
-    return { platz: gruppe[0], name: gruppe[1], kanal, pin: 1 + kanal % 8 + 10 * Math.floor(kanal / 8) };
+    if (typ2 === "AI" || typ2 === "AQ") {
+      const b2 = passend[0];
+      return { platz: b2[0], name: b2[1], kanal: (teile.byte - startByte(b2)) / 2 };
+    }
+    const b = passend.find((g) => teile.byte >= startByte(g) && teile.byte < startByte(g) + 4);
+    const kanal = (teile.byte - startByte(b)) * 8 + teile.bit;
+    return { platz: b[0], name: b[1], kanal, pin: 1 + kanal % 8 + 10 * Math.floor(kanal / 8) };
   }
-  function kanalObjekt(typ2, zeile, signale, sps2) {
+  function kanalObjekt(typ2, zeile, signale, plan2) {
     const k = Object.fromEntries(SPALTEN.map((s, i) => [s, zeile[i] ?? ""]));
     const teile = zerlege(k.adr);
-    return { ...k, typ: typ2, annahme: !!k.annahme, info: signale.get(k.signal) || null, teile, modul: baugruppe(sps2, typ2, teile) };
+    const versorgung = plan2.versorgung[typ2] || plan2.versorgung[typ2[1] + teile.byte];
+    return {
+      ...k,
+      typ: typ2,
+      annahme: !!k.annahme,
+      info: signale.get(k.signal) || null,
+      teile,
+      versorgung,
+      modul: baugruppe(plan2.sps, typ2, teile)
+    };
   }
-  function vergibKlemmen(kanaele) {
-    const zaehler = {};
-    for (const k of kanaele) {
-      if (k.ort === "+A1") continue;
-      const leiste2 = LEISTE[k.typ];
-      zaehler[leiste2] = (zaehler[leiste2] || 0) + 1;
-      k.klemme = `${leiste2}:${zaehler[leiste2]}`;
-    }
-  }
-  var glied = ([sym, bmk, an = "", text2 = ""]) => ({ sym, bmk, an, text: text2 });
-  function motorKlemmen(leistung, pfadseiten) {
-    const nummern2 = /* @__PURE__ */ new Map();
-    let n = 0;
-    for (const abgang of leistung) {
-      const ziel2 = abgang.glieder[abgang.glieder.length - 1].bmk;
-      if (!nummern2.has(ziel2)) {
-        nummern2.set(ziel2, [n + 1, n + 2, n + 3, n + 4].map(String));
-        n += 4;
-      }
-      abgang.klemmen = nummern2.get(ziel2);
-    }
-    for (const seite of pfadseiten) for (const pfad of seite.pfade) for (const g of pfad.glieder) {
-      if (g.sym === "klemme" && g.bmk === "−X1") g.nummer = String(++n);
-    }
-  }
+  var glied = ([sym, bmk, an = "", text2 = "", annahme2 = 0]) => ({ sym, bmk, an, text: text2, annahme: !!annahme2 });
+  var verbraucher = (abgang) => abgang.glieder[abgang.glieder.length - 1];
   function betriebsmittel(plan2, kanaele) {
-    const liste = new Map(plan2.geraete.map(([bmk, text2, ort, annahme2]) => [bmk, { bmk, text: text2, ort, annahme: !!annahme2 }]));
-    for (const k of kanaele) if (!liste.has(k.bmk)) liste.set(k.bmk, { bmk: k.bmk, text: k.info ? k.info.k : "", ort: k.ort, annahme: k.annahme });
+    const liste = new Map(plan2.geraete.map(([bmk, text2, ort, annahme2, typ2 = ""]) => [bmk, { bmk, text: text2, ort, typ: typ2, annahme: !!annahme2 }]));
+    for (const k of kanaele) {
+      if (!liste.has(k.bmk)) liste.set(k.bmk, { bmk: k.bmk, text: k.info ? k.info.k : "", ort: k.ort, typ: "", annahme: k.annahme });
+    }
     return liste;
   }
   function aufbereiten(plan2, sig) {
     const signale = signalTabelle(sig);
-    const kanaele = ["DI", "DQ", "AI", "AQ"].flatMap((typ2) => plan2.kanaele[typ2].map((z) => kanalObjekt(typ2, z, signale, plan2.sps)));
-    vergibKlemmen(kanaele);
+    const kanaele = ["DI", "DQ", "AI", "AQ"].flatMap((typ2) => plan2.kanaele[typ2].map((z) => kanalObjekt(typ2, z, signale, plan2)));
     const leistung = plan2.leistung.map((a) => ({ ...a, glieder: a.glieder.map(glied) }));
     const pfadseiten = plan2.pfadseiten.map((s) => ({ ...s, pfade: s.pfade.map((p) => ({ ...p, glieder: p.glieder.map(glied) })) }));
-    motorKlemmen(leistung, pfadseiten);
+    const klemmen = klemmenAufbauen(kanaele, leistung, pfadseiten);
     const profinet2 = plan2.kanaele.PN.map(([adr, signal, bmk]) => ({ typ: "PN", adr, signal, bmk, info: signale.get(signal) || null }));
-    return { plan: plan2, signale, kanaele, profinet: profinet2, leistung, pfadseiten, geraete: betriebsmittel(plan2, kanaele) };
+    return { plan: plan2, signale, kanaele, profinet: profinet2, leistung, pfadseiten, klemmen, geraete: betriebsmittel(plan2, kanaele) };
   }
   function pruefe(modell, symbole) {
     const fehler = [], gezaehlt = /* @__PURE__ */ new Map();
@@ -4989,10 +5139,12 @@ END_CASE;`)}
     }
     for (const name of gezaehlt.keys()) if (!modell.signale.has(name)) fehler.push(`Signal ${name} fehlt in signale.csv`);
     for (const k of modell.kanaele) if (!symbole[String(k.sym).split(":")[0]]) fehler.push(`${k.adr}: Zeichen ${k.sym} unbekannt`);
+    const namen = modell.klemmen.map((z) => z.klemme);
+    for (const n of new Set(namen)) if (namen.indexOf(n) !== namen.lastIndexOf(n)) fehler.push(`Klemme ${n} doppelt vergeben`);
     return fehler;
   }
 
-  // web/tools/uebungshandbuch/src/schaltplan/blatt.js
+  // src/schaltplan/blatt.js
   var BREITE = 1188, HOEHE = 840;
   var X0 = 30, X1 = 1178, Y0 = 10, KOPF = 26, FUSS = 770;
   var SPALTE = (X1 - X0) / 10;
@@ -5024,38 +5176,32 @@ END_CASE;`)}
   }
   var ueberschrift = (t, unter = "") => text(X0 + 20, 60, t, { g: 20, w: 600, schrift: SCHMAL, f: TINTE }) + (unter ? text(X0 + 20, 80, unter, { g: 10, f: GRAU }) : "");
 
-  // web/tools/uebungshandbuch/src/schaltplan/tabellen.js
+  // src/schaltplan/tabellen.js
   var ref = (e) => e ? { ref: `${e.seite}.${e.spalte}` } : "";
   var natuerlich = (a, b) => a.localeCompare(b, "de", { numeric: true });
+  var MAX_FUNDSTELLEN = 4;
   function klemmZeilen(ctx) {
-    const { modell, lesen } = ctx, zeilen = [];
-    for (const k of modell.kanaele) {
-      if (!k.klemme) continue;
-      zeilen.push([k.klemme, `${k.bmk} ${k.an || ""}`.trim(), `−KF1 %${k.adr}`, k.signal, ref(fundstellen(lesen, k.klemme)[0])]);
-    }
-    const wege = /* @__PURE__ */ new Map();
-    for (const a of modell.leistung) {
-      const ziel2 = a.glieder[a.glieder.length - 1].bmk;
-      if (!wege.has(ziel2)) wege.set(ziel2, { klemmen: a.klemmen, titel: [] });
-      wege.get(ziel2).titel.push(a.titel);
-    }
-    for (const [ziel2, w] of wege) {
-      ["U", "V", "W", "PE"].forEach((leiter, i) => zeilen.push([
-        `−X1:${w.klemmen[i]}`,
-        `${ziel2} ${leiter}`,
-        w.titel.join(" oder "),
-        "",
-        ref(fundstellen(lesen, ziel2)[0])
-      ]));
-    }
-    return zeilen.sort((a, b) => natuerlich(a[0], b[0]));
+    const { modell, lesen } = ctx;
+    const sortiert = [...modell.klemmen].sort((a, b) => natuerlich(a.klemme, b.klemme));
+    return sortiert.map((z) => [
+      z.klemme,
+      z.feld,
+      z.schrank,
+      z.signal,
+      ref(fundstellen(lesen, z.klemme)[0] || fundstellen(lesen, z.ziel)[0])
+    ]);
+  }
+  function fundstellenZellen(lesen, bmk) {
+    const gesehen = /* @__PURE__ */ new Set(), alle = fundstellen(lesen, bmk).filter((e) => {
+      const schluessel = `${e.seite}.${e.spalte}`;
+      return !gesehen.has(schluessel) && gesehen.add(schluessel);
+    });
+    const zellen = alle.slice(0, MAX_FUNDSTELLEN).map(ref);
+    return alle.length > MAX_FUNDSTELLEN ? [...zellen, "…"] : zellen;
   }
   function bmZeilen(ctx) {
     const liste = [...ctx.modell.geraete.values()].sort((a, b) => natuerlich(a.bmk, b.bmk));
-    return liste.map((g) => {
-      const orte = fundstellen(ctx.lesen, g.bmk).slice(0, 5).map(ref);
-      return [g.bmk, g.text + (g.annahme ? " (angenommen)" : ""), g.ort, ...orte];
-    });
+    return liste.map((g) => [g.bmk, g.text + (g.annahme ? " (angenommen)" : ""), g.typ, g.ort, ...fundstellenZellen(ctx.lesen, g.bmk)]);
   }
   function signalZeilen(ctx) {
     const alle = [...ctx.modell.kanaele, ...ctx.modell.profinet];
@@ -5068,21 +5214,31 @@ END_CASE;`)}
       jeSeite: 30,
       anzahl: () => 0,
       zeilen: inhaltZeilen,
-      spalten: [["Seite", 80], ["Inhalt", 640], ["Art", 260], ["", 128]]
+      spalten: [["Seite", 80], ["Inhalt", 640], ["Art", 260], ["Sprung", 128]]
     },
     klemmen: {
       titel: "Klemmenplan −X1, −X3, −X4, −X5",
       jeSeite: 30,
       zeilen: klemmZeilen,
-      anzahl: (m) => m.kanaele.filter((k) => k.klemme).length + new Set(m.leistung.map((a) => a.glieder[a.glieder.length - 1].bmk)).size * 4,
-      spalten: [["Klemme", 130], ["Feld (Gerät, Anschluss)", 230], ["Schrank (Ziel)", 260], ["Signal", 360], ["Seite", 128]]
+      anzahl: (m) => m.klemmen.length,
+      spalten: [["Klemme", 100], ["Feld (Gerät, Anschluss)", 240], ["Schrank (Ziel)", 270], ["Signal", 360], ["Seite", 138]]
     },
     betriebsmittel: {
       titel: "Betriebsmittelliste",
       jeSeite: 30,
       zeilen: bmZeilen,
       anzahl: (m) => m.geraete.size,
-      spalten: [["Kennzeichen", 110], ["Beschreibung", 560], ["Ort", 70], ["Fundstellen", 74], ["", 74], ["", 74], ["", 74], ["", 72]]
+      spalten: [
+        ["Kennzeichen", 100],
+        ["Beschreibung", 420],
+        ["Typ", 170],
+        ["Ort", 60],
+        ["Fundstellen", 72],
+        ["", 72],
+        ["", 72],
+        ["", 72],
+        ["", 70]
+      ]
     },
     signale: {
       titel: "SPS-Zuordnungsliste",
@@ -5093,48 +5249,59 @@ END_CASE;`)}
     }
   };
 
-  // web/tools/uebungshandbuch/src/schaltplan/seiten.js
+  // src/schaltplan/seiten.js
   var stueckeln = (liste, n) => Array.from({ length: Math.ceil(liste.length / n) }, (_, i) => liste.slice(i * n, i * n + n));
   var PORT = /^(−\w+):(\w+):(\w+)$/;
-  function portGlied(weg) {
+  function portGlied(weg, plan2) {
     const m = PORT.exec(weg || "");
     if (!m) return null;
-    const istInsel = m[1].startsWith("−QM");
-    return { sym: "port", bmk: istInsel ? m[1] : `${m[1]}:${m[2]}`, an: istInsel ? `Platz ${m[2]}, ${m[3]}` : `Pin ${m[3]}` };
+    const istInsel = m[1].startsWith("−QM"), quelle2 = (istInsel ? plan2.ventilinseln : plan2.feldverteiler)[m[1]];
+    return {
+      sym: "port",
+      bmk: istInsel ? m[1] : `${m[1]}:${m[2]}`,
+      an: istInsel ? `Platz ${m[2]}, ${m[3]}` : `Pin ${m[3]}`,
+      kabel: quelle2 ? quelle2.kabel : ""
+    };
   }
   var klemmGlied = (k) => k.klemme ? { sym: "klemme", bmk: k.klemme } : null;
-  var geraetGlied = (k) => ({ sym: k.sym, bmk: k.bmk, an: k.typ === "AI" || k.typ === "AQ" ? "" : k.an, annahme: k.annahme });
+  var geraetGlied = (k) => ({ sym: k.sym, bmk: k.bmk, an: k.analog ? "" : k.an, annahme: k.annahme });
   function kontaktGlied(eintrag, sym) {
     if (!eintrag) return null;
     const [bmk, an] = eintrag.split(":");
     return { sym, bmk, an };
   }
-  function kanalGlieder(k, plan2) {
-    if (k.typ === "DI" || k.typ === "AI") return [geraetGlied(k), portGlied(k.weg), klemmGlied(k)].filter(Boolean);
-    const vorher = [kontaktGlied(plan2.abschalten[k.adr], "no"), klemmGlied(k), portGlied(k.weg), kontaktGlied(plan2.verriegelung[k.adr], "nc")];
-    return [...vorher, geraetGlied(k)].filter(Boolean);
+  var GLIEDER = {
+    DI: (k, plan2) => [geraetGlied(k), portGlied(k.weg, plan2), klemmGlied(k)],
+    AI: (k) => [geraetGlied(k), klemmGlied(k)],
+    DQ: (k, plan2) => [klemmGlied(k), portGlied(k.weg, plan2), kontaktGlied(plan2.verriegelung[k.adr], "nc"), geraetGlied(k)],
+    AQ: (k) => [klemmGlied(k), geraetGlied(k)]
+  };
+  function analogAnfang(k, plan2) {
+    if (k.sym === "poti") return { von: "+10V" };
+    const speisung2 = (plan2.speisung || {})[k.bmk];
+    return speisung2 && !k.analog.vonOben ? { von: speisung2 } : { frei: true };
   }
+  function kanalPfad(k, i, plan2) {
+    const pfad = { spalte: i + 1, glieder: GLIEDER[k.typ](k, plan2).filter(Boolean), kanal: k, titel: k.info ? k.info.n : k.signal };
+    if (k.typ === "AI") Object.assign(pfad, analogAnfang(k, plan2));
+    if (plan2.abschalten[k.adr]) Object.assign(pfad, { bis: plan2.abschalten[k.adr], definiert: "keine" });
+    return pfad;
+  }
+  var SCHIENEN = { DI: (v) => ({ oben: v, oben2: "M" }), AI: () => ({}), DQ: () => ({ unten: "M" }), AQ: () => ({ unten: "M" }) };
   function kanalSeite(typ2, gruppe, modell, titel) {
-    const ersterKanal = gruppe[0];
-    const istEingang = typ2 === "DI" || typ2 === "AI";
-    const pfade = gruppe.map((k, i) => ({ spalte: i + 1, glieder: kanalGlieder(k, modell.plan), kanal: k, titel: k.info ? k.info.n : k.signal }));
+    const erster = gruppe[0], istEingang = typ2 === "DI" || typ2 === "AI";
     return {
       typ: "pfade",
       art: istEingang ? "Eingänge" : "Ausgänge",
       titel,
       ort: "+A1",
-      pfade,
       signaltext: true,
-      oben: istEingang ? "L+" : null,
-      oben2: istEingang ? "M" : null,
-      unten: istEingang ? null : "M",
-      modul: {
-        lage: istEingang ? "unten" : "oben",
-        typ: typ2,
-        kanaele: gruppe,
-        baugruppe: ersterKanal.modul,
-        versorgung: typ2 === "DQ" ? modell.plan.versorgung["Q" + ersterKanal.teile.byte] : "L+"
-      }
+      pfade: gruppe.map((k, i) => kanalPfad(k, i, modell.plan)),
+      oben: null,
+      oben2: null,
+      unten: null,
+      ...SCHIENEN[typ2](erster.versorgung),
+      modul: { lage: istEingang ? "unten" : "oben", typ: typ2, kanaele: gruppe, baugruppe: erster.modul, versorgung: erster.versorgung }
     };
   }
   function digitalSeiten(typ2, modell) {
@@ -5198,7 +5365,8 @@ END_CASE;`)}
   }
   function seitenBauen(modell) {
     const ohneInhalt = SEITENARTEN.flatMap((art) => art(modell));
-    const inhalt = tabellenSeiten("inhalt", modell, ohneInhalt.length + Math.ceil((ohneInhalt.length + 2) / TABELLEN.inhalt.jeSeite));
+    const eigene = Math.ceil((ohneInhalt.length + 2) / TABELLEN.inhalt.jeSeite);
+    const inhalt = tabellenSeiten("inhalt", modell, ohneInhalt.length + eigene);
     const seiten = [ohneInhalt[0], ...inhalt, ...ohneInhalt.slice(1)];
     seiten.forEach((s, i) => {
       s.nr = i + 1;
@@ -5206,7 +5374,7 @@ END_CASE;`)}
     return seiten;
   }
 
-  // web/tools/uebungshandbuch/src/schaltplan/elemente.js
+  // src/schaltplan/elemente.js
   function verweis(x, y, ziel2, a = "end") {
     if (!ziel2) return "";
     return text(x, y, ziel2, { a, g: 8, f: BLAU, k: "sp-ref", attr: `data-ref="${ziel2.slice(1)}"` });
@@ -5226,14 +5394,82 @@ END_CASE;`)}
     merke(ctx.schreiben, g.bmk.split(":")[0], { ...hier, rolle: sym.rolle, an: g.anText || g.an || an.join("/"), sym: schluessel });
     if (sym.rolle === "klemme") merke(ctx.schreiben, g.bmk, { ...hier, rolle: "klemme" });
     const bild = sym.zeichne(x, y, { an, variante, text: g.text });
+    if (!g.bmk) return { svg: bild, h: sym.h, sym };
     const links = sym.pole === 3 ? x + 82 : x - (sym.rolle === "klemme" ? 10 : sym.links || 34);
     const marke2 = beschriftung(ctx, g.bmk, links, y + sym.h / 2 + 4, { a: sym.pole === 3 ? "start" : "end", annahme: g.annahme, zeichenX: x });
     return { svg: bild + marke2, h: sym.h, sym };
   }
   var grauerText = (x, y, t, a = "middle") => text(x, y, t, { a, g: 8, f: GRAU });
 
-  // web/tools/uebungshandbuch/src/schaltplan/pfade.js
-  var SCHIENE = 64, SCHIENE2 = 80, MODUL_OBEN = [36, 86], LUECKE = 16;
+  // src/schaltplan/kontaktspiegel.js
+  var ZEILE = 13;
+  var REIHENFOLGE = { haupt: 0, no: 1, nc: 2 };
+  function kontaktArt(an) {
+    const [erste, zweite = ""] = String(an).split("/");
+    if (/^[135]$/.test(erste)) return "haupt";
+    return zweite.endsWith("2") ? "nc" : "no";
+  }
+  var BILD = {
+    no: (x, y) => linie(`M${x} ${y}V${y + 3}M${x} ${y + 11}V${y + 8}L${x - 4} ${y + 2}`, 1),
+    nc: (x, y) => linie(`M${x} ${y}V${y + 3}H${x + 3}M${x} ${y + 11}V${y + 8}L${x + 4} ${y + 2}`, 1),
+    haupt: (x, y) => linie(`M${x} ${y}V${y + 3}M${x} ${y + 11}V${y + 8}L${x - 4} ${y + 2}`, 1.4)
+  };
+  function eindeutig(liste) {
+    const gesehen = /* @__PURE__ */ new Set();
+    return liste.filter((e) => {
+      const schluessel = `${e.seite}.${e.spalte}:${e.an}`;
+      if (gesehen.has(schluessel)) return false;
+      gesehen.add(schluessel);
+      return true;
+    });
+  }
+  function kontaktspiegel(ctx, bmk, x, y) {
+    const liste = eindeutig(kontakte(ctx.lesen, bmk)).sort((a, b) => REIHENFOLGE[kontaktArt(a.an)] - REIHENFOLGE[kontaktArt(b.an)]);
+    if (!liste.length) return { svg: "", h: 0 };
+    let s = linie(`M${x - 34} ${y - 4}H${x + 34}`, 0.6);
+    liste.forEach((e, i) => {
+      const zy = y + i * ZEILE, refX = Math.max(x + 6, x - 18 + String(e.an).length * 4.2 + 6);
+      s += BILD[kontaktArt(e.an)](x - 26, zy) + text(x - 18, zy + 9, e.an, { g: 7.5, f: GRAU }) + verweis(refX, zy + 9, verweisText(e), "start");
+    });
+    return { svg: s, h: liste.length * ZEILE };
+  }
+
+  // src/schaltplan/analog.js
+  var ABSTAND = 24, MODUL_UNTEN = 86;
+  function anfang(k, x, geraet) {
+    if (k.analog.vonOben) return { svg: linie(`M${x} ${geraet.y - 16}H${x + ABSTAND}`), y: geraet.y - 16 };
+    const [dx, dy] = geraet.sym.rueck, y = geraet.y + dy;
+    return { svg: dx < ABSTAND ? linie(`M${x + dx} ${y}H${x + ABSTAND}`) : "", y };
+  }
+  function klemmeSeite(ctx, k, x, y) {
+    merke(ctx.schreiben, k.klemmeSeite, { seite: ctx.seite.nr, spalte: spalteVon(x), rolle: "klemme" });
+    return kreis(x, y + 12, 4) + text(x + 7, y + 15, k.klemmeSeite, { g: 7.5, w: 600, schrift: SCHMAL });
+  }
+  function schirm(x, y) {
+    return `<ellipse cx="${x + ABSTAND / 2}" cy="${y}" rx="${ABSTAND / 2 + 9}" ry="5" fill="none" stroke="#17212B" stroke-width=".9" stroke-dasharray="3 2"/>` + text(x - 10, y + 3, "Schirm auf PE", { a: "end", g: 7, f: GRAU });
+  }
+  function analogLeiter(ctx, pfad, x, lage, unten) {
+    const k = pfad.kanal, xs = x + ABSTAND, start = anfang(k, x, lage.geraet), kl = lage.klemme;
+    const unterModul = ctx.seite.modul.lage === "unten";
+    const [von, bis] = unterModul ? [start.y, unten] : [MODUL_UNTEN, start.y];
+    let s = start.svg + linie(`M${xs} ${von}V${kl + 8}M${xs} ${kl + 16}V${bis}`) + klemmeSeite(ctx, k, xs, kl);
+    s += unterModul ? schirm(x, (kl + 24 + unten) / 2) : schirm(x, (MODUL_UNTEN + kl) / 2);
+    return s;
+  }
+  function analogModulAnschluss(k, x, anschluss, oben) {
+    const a = k.analog, y = oben ? anschluss - 6 : anschluss + 12;
+    return linie(`M${x + ABSTAND} ${anschluss}V${oben ? anschluss - 8 : anschluss + 8}`) + text(x - 3, y, a.haupt.baugruppe, { a: "end", g: 7, f: GRAU }) + text(x + ABSTAND + 3, y, a.seite.baugruppe, { g: 7, f: GRAU });
+  }
+  function speisung(ctx, pfad, x, lage) {
+    const pot = (ctx.modell.plan.speisung || {})[pfad.kanal.bmk];
+    if (!pot || !lage.geraet || pfad.kanal.typ !== "AQ") return "";
+    const y = lage.geraet.y + 40, hier = { seite: ctx.seite.nr, spalte: spalteVon(x) };
+    return linie(`M${x + 17} ${y}H${x + 40}`) + text(x + 42, y + 3, `24 V ${pot}`, { g: 7.5, w: 600, schrift: SCHMAL }) + verweis(x + 42, y + 13, verweisZu(ctx.lesen, pot, hier), "start");
+  }
+
+  // src/schaltplan/pfade.js
+  var SCHIENE = 64, SCHIENE2 = 80, MODUL = { y: 36, h: 50 }, LUECKE = 16, START_MARKE = 112;
+  var UNTEN = { kanal: 520, pfad: 700 };
   var istPotenzial = (name) => name && !name.startsWith("−");
   function schiene(ctx, name, y) {
     const hier = { seite: ctx.seite.nr, spalte: 0 };
@@ -5241,79 +5477,78 @@ END_CASE;`)}
     const herkunft = ctx.seite.quelle ? `von ${ctx.seite.quelle}` : "";
     return linie(`M${X0 + 4} ${y}H${X1 - 4}`, 1.6) + text(X0 + 6, y - 4, name, { g: 9.5, w: 600, schrift: SCHMAL }) + verweis(X0 + 26 + name.length * 4, y - 4, verweisZu(ctx.lesen, name, hier), "start") + (herkunft ? grauerText(X0 + 60, y - 4, herkunft, "start") : "");
   }
-  function marke(ctx, name, x, y) {
+  function marke(ctx, name, x, y, definiert) {
     const hier = { seite: ctx.seite.nr, spalte: spalteVon(x) };
-    const bmk = name.split(":")[0];
-    if (istPotenzial(name) && ctx.bisSchreibt) merke(ctx.schreiben, name, { ...hier, rolle: "haupt" });
-    const ziel2 = ctx.bisSchreibt && istPotenzial(name) ? "" : verweisZu(ctx.lesen, bmk, hier);
-    return text(x, y, name, { a: "middle", g: 8.5, w: 600, schrift: SCHMAL }) + verweis(x, y + 10, ziel2, "middle");
-  }
-  function kontaktArt(an) {
-    const erste = String(an).split("/")[0];
-    if (/^[135]$/.test(erste)) return "haupt";
-    return erste.endsWith("1") ? "nc" : "no";
-  }
-  function kontaktBild(x, y, an) {
-    if (kontaktArt(an) === "nc") return linie(`M${x} ${y}V${y + 3}H${x + 3}M${x} ${y + 11}V${y + 8}L${x + 4} ${y + 2}`, 1);
-    return linie(`M${x} ${y}V${y + 3}M${x} ${y + 11}V${y + 8}L${x - 4} ${y + 2}`, 1);
-  }
-  function kontaktspiegel(ctx, bmk, x, y) {
-    const liste = kontakte(ctx.lesen, bmk);
-    let s = "";
-    liste.forEach((e, i) => {
-      const zy = y + i * 13;
-      const refX = Math.max(x + 6, x - 18 + String(e.an).length * 4.2 + 6);
-      s += kontaktBild(x - 26, zy, e.an) + text(x - 18, zy + 9, e.an, { g: 7.5, f: GRAU }) + verweis(refX, zy + 9, verweisText(e), "start");
-    });
-    return { svg: liste.length ? linie(`M${x - 34} ${y - 4}H${x + 34}`, 0.6) + s : "", h: liste.length * 13 };
+    if (definiert && istPotenzial(name)) merke(ctx.schreiben, name, { ...hier, rolle: "haupt" });
+    const ziel2 = definiert && istPotenzial(name) ? "" : verweisZu(ctx.lesen, name.split(":")[0], hier);
+    return `<g class="sp-bmk" data-bmk="${name.split(":")[0]}">` + text(x, y, name, { a: "middle", g: 8.5, w: 600, schrift: SCHMAL }) + "</g>" + verweis(x, y + 10, ziel2, "middle");
   }
   function pfadTitel(x, t) {
     const zeilen = umbrechen(t, SPALTE - 10, 8).slice(0, 2);
     return absatz(x, 40, zeilen, { a: "middle", g: 8, f: GRAU });
   }
-  function startHoehe(ctx, pfad) {
-    const s = ctx.seite;
-    if (pfad.von) return 112;
-    if (s.modul && s.modul.lage === "oben") return MODUL_OBEN[1];
+  var modulOben = (s) => s.modul && s.modul.lage === "oben";
+  function startHoehe(s, pfad) {
+    if (pfad.von || pfad.erde || pfad.frei) return START_MARKE;
+    if (modulOben(s)) return MODUL.y + MODUL.h;
     return s.oben2 ? SCHIENE2 : SCHIENE;
   }
   function kopf(ctx, pfad, x) {
-    const s = ctx.seite;
-    if (pfad.von) return marke(ctx, pfad.von, x, 98);
-    if (s.modul && s.modul.lage === "oben") return "";
-    return punkt(x, SCHIENE) + linie(`M${x} ${SCHIENE}V${startHoehe(ctx, pfad)}`);
+    const s = ctx.seite, d = pfad.definiert || "bis";
+    if (pfad.von) return marke(ctx, pfad.von, x, 98, d === "von");
+    if (pfad.erde || pfad.frei || modulOben(s)) return "";
+    return punkt(x, SCHIENE) + linie(`M${x} ${SCHIENE}V${startHoehe(s, pfad)}`);
   }
   function sensorRueckleiter(ctx, x, y) {
     if (ctx.seite.oben2) return linie(`M${x - 24} ${y + 40}V${SCHIENE2}`) + punkt(x - 24, SCHIENE2);
-    return text(x - 27, y + 43, "M", { a: "end", g: 7.5, f: GRAU });
+    return text(x - 27, y + 52, "M", { a: "end", g: 7.5, f: GRAU });
   }
-  function zeichnePfad(ctx, pfad) {
-    const x = spaltenMitte(pfad.spalte), unten = ctx.unten;
-    let y = startHoehe(ctx, pfad), s = kopf(ctx, pfad, x);
-    if (!ctx.seite.signaltext && pfad.titel) s += pfadTitel(x, pfad.titel);
-    const spulen = [];
+  var kabel = (x, y, name) => name ? text(x + 6, y + 10, name, { g: 7.5, f: GRAU, schrift: SCHMAL }) : "";
+  function glieder(ctx, pfad, x, y) {
+    let s = "";
+    const spulen = [], lage = {};
     for (const g of pfad.glieder) {
       s += linie(`M${x} ${y}V${y + LUECKE}`);
       y += LUECKE;
       const teil = setze(ctx, g, x, y);
-      s += teil.svg + (teil.sym.bu ? sensorRueckleiter(ctx, x, y) : "");
+      s += teil.svg + (teil.sym.bu ? sensorRueckleiter(ctx, x, y) : "") + kabel(x, y + teil.h, g.kabel);
       if (teil.sym.rolle === "haupt") spulen.push(g.bmk);
+      if (teil.sym.rueck) lage.geraet = { y, sym: teil.sym, bmk: g.bmk };
+      if (teil.sym.rolle === "klemme" && !lage.klemme) lage.klemme = y;
+      if (g.sym === "geraet" && !lage.geraetPE) lage.geraetPE = y;
       y += teil.h;
     }
-    ctx.bisSchreibt = true;
-    if (pfad.bis) s += linie(`M${x} ${y}V${y + 12}`) + marke(ctx, pfad.bis, x, y + 24);
-    else s += linie(`M${x} ${y}V${unten}`) + (ctx.seite.unten ? punkt(x, unten) : "");
-    ctx.bisSchreibt = false;
-    return { svg: s, spulen, x };
+    return { svg: s, spulen, y, lage };
   }
-  function modulKasten(ctx) {
+  function ende(ctx, pfad, x, y, unten) {
+    const d = pfad.definiert || "bis";
+    if (pfad.bis) return linie(`M${x} ${y}V${y + 12}`) + marke(ctx, pfad.bis, x, y + 24, d === "bis");
+    if (pfad.erde) return punkt(x, unten) + linie(`M${x} ${unten}V${unten + 20}`) + SYM.erde.zeichne(x, unten + 20, {}) + text(x + 14, unten + 40, "−XPE", { g: 8.5, w: 600, schrift: SCHMAL });
+    return linie(`M${x} ${y}V${unten}`) + (ctx.seite.unten ? punkt(x, unten) : "");
+  }
+  function schutzleiter(ctx, pfad, x, lage) {
+    if (!pfad.peKlemme || !lage.geraetPE) return "";
+    const y = lage.geraetPE + 30;
+    merke(ctx.schreiben, pfad.peKlemme, { seite: ctx.seite.nr, spalte: spalteVon(x), rolle: "klemme" });
+    return `<path d="M${x + 34} ${y}H${x + 52}" stroke="#17212B" stroke-width="1.4" stroke-dasharray="10 3"/>` + text(x + 55, y + 3, `PE ${pfad.peKlemme}`, { g: 7.5, f: GRAU, schrift: SCHMAL });
+  }
+  function zeichnePfad(ctx, pfad, unten) {
+    const x = spaltenMitte(pfad.spalte);
+    let s = kopf(ctx, pfad, x);
+    if (!ctx.seite.signaltext && pfad.titel) s += pfadTitel(x, pfad.titel);
+    const teil = glieder(ctx, pfad, x, startHoehe(ctx.seite, pfad));
+    s += teil.svg + ende(ctx, pfad, x, teil.y, unten) + schutzleiter(ctx, pfad, x, teil.lage);
+    if (pfad.kanal && pfad.kanal.analog) s += analogLeiter(ctx, pfad, x, teil.lage, unten) + speisung(ctx, pfad, x, teil.lage);
+    return { svg: s, spulen: teil.spulen, x };
+  }
+  function modulKasten(ctx, unten) {
     const m = ctx.seite.modul, n = m.kanaele.length, oben = m.lage === "oben";
-    const y = oben ? MODUL_OBEN[0] : ctx.unten, h = 50, x0 = X0 + SPALTE + 4, breite = SPALTE * n - 8;
-    let s = kasten(x0, y, breite, h, "#F7F9FB");
+    const y = oben ? MODUL.y : unten, x0 = X0 + SPALTE + 4, breite = SPALTE * n - 8;
+    let s = kasten(x0, y, breite, MODUL.h, "#F7F9FB");
     m.kanaele.forEach((k, i) => {
-      const x = spaltenMitte(i + 1), anschluss = oben ? y + h : y;
+      const x = spaltenMitte(i + 1), anschluss = oben ? y + MODUL.h : y;
       merkeSignal(ctx.schreiben, k.signal, { seite: ctx.seite.nr, spalte: i + 1 });
-      s += linie(`M${x} ${anschluss}V${oben ? anschluss - 8 : anschluss + 8}`) + text(x, y + 30, `%${k.adr}`, { a: "middle", g: 9.5, w: 600, schrift: SCHMAL }) + grauerText(x, oben ? y + 14 : y + 44, `Kanal ${k.modul.kanal}` + (k.modul.pin ? `, Pin ${k.modul.pin}` : ""));
+      s += linie(`M${x} ${anschluss}V${oben ? anschluss - 8 : anschluss + 8}`) + text(x, y + 30, `%${k.adr}`, { a: "middle", g: 9.5, w: 600, schrift: SCHMAL }) + grauerText(x, oben ? y + 14 : y + 44, `Kanal ${k.modul.kanal}` + (k.modul.pin ? `, Pin ${k.modul.pin}` : "")) + (k.analog ? analogModulAnschluss(k, x, anschluss, oben) : "");
     });
     return s + modulBeschriftung(ctx, m, y);
   }
@@ -5321,25 +5556,24 @@ END_CASE;`)}
     const x = X0 + 8, b = m.baugruppe, hier = { seite: ctx.seite.nr, spalte: 0 };
     let s = `<g class="sp-bmk" data-bmk="−KF1">${text(x, y + 12, "−KF1", { g: 10, w: 600, schrift: SCHMAL })}</g>` + verweis(x + 34, y + 12, verweisZu(ctx.lesen, "−KF1", hier), "start");
     s += absatz(x, y + 24, [`Steckplatz ${b.platz}`, ...umbrechen(b.name, SPALTE - 14, 7.5)], { g: 7.5, f: GRAU });
-    if (m.typ === "DQ") s += text(x, y + 58, `Lastgruppe an ${m.versorgung}`, { g: 7.5, w: 600, f: BLAU });
-    return s;
+    const versorgung = m.typ === "DQ" ? `Lastgruppe L+ an ${m.versorgung}` : `L+ an ${m.versorgung}, M an M`;
+    return s + text(x, y + 62, versorgung, { g: 7.5, w: 600, f: BLAU }) + verweis(x, y + 72, verweisZu(ctx.lesen, m.versorgung, hier), "start");
   }
   function signalText(k, x, y) {
     const tag = k.signal.split("_")[0], kommentar = k.info ? k.info.k : "Signal fehlt in der Signalliste";
-    const zusatz = k.typ === "AI" || k.typ === "AQ" ? [k.an] : [];
-    return text(x - SPALTE / 2 + 6, y, k.signal, { g: 7.8, w: 600, k: "sig", attr: `data-tag="${tag}" tabindex="0"`, schrift: SCHMAL }) + absatz(x - SPALTE / 2 + 6, y + 11, [...zusatz, ...umbrechen(kommentar, SPALTE - 12, 7.2)].slice(0, 9), { g: 7.2, f: GRAU });
+    const zusatz = k.analog ? [k.an, k.analog.text] : [];
+    return text(x - SPALTE / 2 + 6, y, k.signal, { g: 7.8, w: 600, k: "sig", attr: `data-tag="${tag}" tabindex="0"`, schrift: SCHMAL }) + absatz(x - SPALTE / 2 + 6, y + 11, umbrechen([...zusatz, kommentar].join(". "), SPALTE - 12, 7.2).slice(0, 10), { g: 7.2, f: GRAU });
   }
   function pfadInhalt(ctx) {
-    const s = ctx.seite;
-    ctx.unten = s.signaltext ? 520 : 700;
+    const s = ctx.seite, unten = s.signaltext ? UNTEN.kanal : UNTEN.pfad;
     let svg = "";
     if (s.oben) svg += schiene(ctx, s.oben, SCHIENE);
     if (s.oben2) svg += schiene(ctx, s.oben2, SCHIENE2);
-    if (s.unten) svg += schiene(ctx, s.unten, ctx.unten);
-    if (s.modul) svg += modulKasten(ctx);
+    if (s.unten) svg += schiene(ctx, s.unten, unten);
+    if (s.modul) svg += modulKasten(ctx, unten);
     for (const pfad of s.pfade) {
-      const teil = zeichnePfad(ctx, pfad);
-      let tiefe = ctx.unten + (s.modul && s.modul.lage === "unten" ? 62 : 14);
+      const teil = zeichnePfad(ctx, pfad, unten);
+      let tiefe = unten + (s.modul && s.modul.lage === "unten" ? 62 : 14);
       for (const bmk of teil.spulen) {
         const spiegel = kontaktspiegel(ctx, bmk, teil.x, tiefe);
         svg += spiegel.svg;
@@ -5350,11 +5584,10 @@ END_CASE;`)}
     return svg;
   }
 
-  // web/tools/uebungshandbuch/src/schaltplan/leistung.js
+  // src/schaltplan/leistung.js
   var LEITER = [["L1", 50], ["L2", 62], ["L3", 74], ["N", 86], ["PE", 98]];
   var PE_X2 = 70, START = 150, LUECKE2 = 22, POLE2 = [-20, 0, 20];
   var PE_ANSCHLUSS = { klemme3: [8, 16], umrichter: [45, 45], motor3: [0, null] };
-  var ZWEITER_KONTAKT = { wende: true };
   function schienen(ctx, quelle2) {
     return LEITER.map(([name, y]) => {
       const hier = { seite: ctx.seite.nr, spalte: 0 };
@@ -5368,7 +5601,7 @@ END_CASE;`)}
     for (const [bmk, px] of [[a, x], [b, x - 90]]) {
       merke(ctx.schreiben, bmk, { seite: ctx.seite.nr, spalte: spalteVon(px), rolle: "kontakt", an: "1/2 3/4 5/6", sym: "wende" });
     }
-    return { svg: SYM.wende.zeichne(x, y, {}) + beschriftung(ctx, a, x + 82, y + 54, { a: "start", zeichenX: x }) + beschriftung(ctx, b, x - 122, y + 54, { a: "end", zeichenX: x - 90 }), h: SYM.wende.h };
+    return { svg: SYM.wende.zeichne(x, y, {}) + beschriftung(ctx, a, x + 82, y + 54, { a: "start", zeichenX: x }) + beschriftung(ctx, b, x - 128, y + 36, { a: "end", zeichenX: x - 90 }), h: SYM.wende.h };
   }
   function abgangSetzen(ctx, abgang, x) {
     let y = START, peY = LEITER[4][1], s = POLE2.map((d, i) => punkt(x + d, LEITER[i][1]) + linie(`M${x + d} ${LEITER[i][1]}V${y}`)).join("");
@@ -5378,9 +5611,9 @@ END_CASE;`)}
         s += POLE2.map((d) => linie(`M${x + d} ${y}V${y + LUECKE2}`)).join("");
         y += LUECKE2;
       }
-      const teil = ZWEITER_KONTAKT[g.sym] ? wendeSetzen(ctx, g, x, y) : setze(ctx, { ...g, nummern: g.sym === "klemme3" ? abgang.klemmen : void 0, anText: g.sym === "schuetz3" ? "1/2 3/4 5/6" : "" }, x, y);
-      const pe = PE_ANSCHLUSS[g.sym];
-      if (pe) {
+      const teil = g.sym === "wende" ? wendeSetzen(ctx, g, x, y) : setze(ctx, { ...g, anText: g.sym === "schuetz3" ? "1/2 3/4 5/6" : "" }, x, y);
+      const pe = PE_ANSCHLUSS[g.sym], ohnePE = g.sym === "klemme3" && !g.nummern[3];
+      if (pe && !ohnePE) {
         s += linie(`M${x + PE_X2} ${peY}V${y + pe[0]}`) + (peY === LEITER[4][1] ? punkt(x + PE_X2, peY) : "");
         if (pe[1] !== null) peY = y + pe[1];
       }
@@ -5441,8 +5674,8 @@ END_CASE;`)}
     return kette.svg + sammelschiene(ctx, kette.x) + abgangsListe(ctx);
   }
 
-  // web/tools/uebungshandbuch/src/schaltplan/liste.js
-  var OBEN = 104, ZEILE = 20.5, LINKS = X0 + 20;
+  // src/schaltplan/liste.js
+  var OBEN = 104, ZEILE2 = 20.5, LINKS = X0 + 20;
   function zelle(inhalt, x, y, breite, kopfspalte) {
     if (inhalt && inhalt.ref) return verweis(x + 4, y, `/${inhalt.ref}`, "start");
     const zeichen2 = Math.floor(breite / 5);
@@ -5460,7 +5693,7 @@ END_CASE;`)}
     }
     svg += linie(`M${LINKS} ${OBEN}H${LINKS + breite}`, 1.2);
     zeilen.forEach((z, i) => {
-      const y = OBEN + (i + 1) * ZEILE - 6;
+      const y = OBEN + (i + 1) * ZEILE2 - 6;
       let zx = LINKS;
       t.spalten.forEach(([, b], j) => {
         svg += zelle(z[j], zx, y, b, j === 0);
@@ -5471,46 +5704,69 @@ END_CASE;`)}
     return svg;
   }
 
-  // web/tools/uebungshandbuch/src/schaltplan/bloecke.js
-  function zielVon(ctx, bmk) {
-    const ziel2 = hauptort(ctx.lesen, bmk) || fundstellen(ctx.lesen, bmk)[0];
-    return ziel2 && ziel2.seite !== ctx.seite.nr ? verweisText(ziel2) : "";
+  // src/schaltplan/deckblatt.js
+  var STATION = "#EEF3F9", SCHRANK = "#FFF4D6";
+  var KAESTEN = [
+    [660, 300, 78, 56, "Schaltschrank", "+A1", SCHRANK],
+    [752, 312, 64, 34, "Bedienpult", "+P1", SCHRANK],
+    [880, 352, 112, 48, "Zinnbad", "+F2", STATION],
+    [1032, 432, 118, 64, "Prüfstation", "+F6", STATION]
+  ];
+  var BAENDER = [[700, 1e3, 470, "Band 1", "+F3", 1], [700, 1e3, 530, "Band 2, Kühlung", "+F5", -1]];
+  var pfeil = (x, y, r) => linie(`M${x} ${y}h${24 * r}m${-6 * r} -4l${6 * r} 4l${-6 * r} 4`, 1);
+  var STEUERSTELLEN = [["+S10", 712, 446], ["+S20", 712, 560], ["+S30", 1040, 552], ["+S40", 1040, 420], ["+S50", 1110, 420]];
+  function kaesten() {
+    return KAESTEN.map(([x, y, b, h, titel, ort, farbe]) => kasten(x, y, b, h, farbe) + text(x + b / 2, y + h / 2 - 2, titel, { a: "middle", g: 9, w: 600, schrift: SCHMAL }) + text(x + b / 2, y + h / 2 + 11, ort, { a: "middle", g: 8.5, f: BLAU, schrift: SCHMAL })).join("");
   }
-  var kennzeichen = (bmk, x, y, opt = {}) => `<g class="sp-bmk" data-bmk="${bmk}">` + text(x, y, bmk, { g: 10, w: 600, schrift: SCHMAL, ...opt }) + "</g>";
-  var kuerzen = (t, n) => t.length > n ? t.slice(0, n - 1) + "…" : t;
-  var merkeHier = (ctx, bmk, x, rolle) => merke(ctx.schreiben, bmk, { seite: ctx.seite.nr, spalte: spalteVon(x), rolle });
+  function baender() {
+    const band = ([x1, x2, y, titel, ort, r]) => kasten(x1, y - 8, x2 - x1, 16, "#fff") + text(x1 + 8, y + 4, `${titel}  ${ort}`, { g: 8.5, schrift: SCHMAL }) + pfeil(r > 0 ? x2 - 40 : x2 - 16, y, r);
+    const kurve = linie("M1000 470C1032 470 1032 530 1000 530", 2) + text(1040, 512, "Rollenkurve +F4", { g: 8.5, schrift: SCHMAL });
+    return BAENDER.map(band).join("") + kurve;
+  }
+  function portal() {
+    return linie("M860 330H1010M870 330V462M1000 330V462", 2.2) + text(866, 322, "Portal +F1", { g: 8.5, w: 600, schrift: SCHMAL }) + linie("M936 330V350", 1) + kasten(926, 342, 20, 8, "#fff");
+  }
+  function steuerstellen() {
+    return STEUERSTELLEN.map(([ort, x, y]) => kreis(x, y, 4.5, "#fff", 1.1) + text(x + 8, y + 3, ort, { g: 7.5, f: GRAU, schrift: SCHMAL })).join("");
+  }
+  function skizze() {
+    return text(660, 286, "Übersicht der Anlage", { g: 11, w: 600, schrift: SCHMAL }) + linie("M738 328H752", 1) + kaesten() + baender() + portal() + steuerstellen();
+  }
   function kennzahl(x, y, zahl2, wort) {
     return kasten(x, y, 150, 74, "#F4F7FA") + text(x + 75, y + 40, String(zahl2), { a: "middle", g: 28, w: 600, schrift: SCHMAL, f: BLAU }) + text(x + 75, y + 60, wort, { a: "middle", g: 9, f: GRAU });
   }
-  function zeichenReihe(y) {
-    const reihe = ["nh", "tno", "sens", "spule", "lamp", "mbv", "sicherung", "ls1"];
-    return reihe.map((k, i) => SYM[k].zeichne(130 + i * 120, y, { an: SYM[k].an || [], variante: "ind" })).join("");
-  }
-  function deckblatt(ctx) {
-    const m = ctx.modell, meta = m.plan.meta;
-    const anzahl = (test) => m.kanaele.filter(test).length;
+  function kennzahlen(ctx) {
+    const m = ctx.modell, anzahl = (test) => m.kanaele.filter(test).length;
     const zahlen = [
       [ctx.seiten.length, "Seiten"],
       [m.geraete.size, "Betriebsmittel"],
+      [m.klemmen.length, "Klemmen"],
       [anzahl((k) => k.typ === "DI"), "Digitaleingänge"],
       [anzahl((k) => k.typ === "DQ"), "Digitalausgänge"],
-      [anzahl((k) => k.typ[0] === "A"), "Analogwerte"],
-      [m.profinet.length, "PROFINET-Worte"]
+      [anzahl((k) => k.typ[0] === "A") + m.profinet.length, "Analog- und Antriebsworte"]
     ];
-    let s = linie(`M${X0} 250H${X1}`, 0.8) + text(110, 150, "Schaltplan der Anlage", { g: 54, w: 600, schrift: SCHMAL });
-    s += text(112, 192, meta.anlage, { g: 20, f: GRAU }) + text(112, 222, meta.norm, { g: 10, f: GRAU });
-    zahlen.forEach(([z, w], i) => {
-      s += kennzahl(110 + i * 165, 300, z, w);
-    });
-    s += zeichenReihe(440) + linie(`M${X0} 560H${X1}`, 0.8);
-    const orte = Object.entries(m.plan.orte);
-    s += text(110, 595, "Ortskennzeichen", { g: 12, w: 600, schrift: SCHMAL });
-    orte.forEach(([k, t], i) => {
+    return zahlen.map(([z, w], i) => kennzahl(110 + i % 3 * 165, 290 + Math.floor(i / 3) * 92, z, w)).join("");
+  }
+  function orte(ctx) {
+    let s = text(110, 595, "Ortskennzeichen", { g: 12, w: 600, schrift: SCHMAL });
+    Object.entries(ctx.modell.plan.orte).forEach(([k, t], i) => {
       const x = 110 + Math.floor(i / 5) * 270, y = 620 + i % 5 * 26;
       s += text(x, y, k, { g: 10, w: 600, schrift: SCHMAL }) + text(x + 46, y, t, { g: 9.5 });
     });
     return s;
   }
+  function deckblatt(ctx) {
+    const meta = ctx.modell.plan.meta;
+    return linie(`M${X0} 250H${X1}`, 0.8) + text(110, 150, "Schaltplan der Anlage", { g: 54, w: 600, schrift: SCHMAL }) + text(112, 192, meta.anlage, { g: 20, f: GRAU }) + text(112, 222, meta.norm, { g: 10, f: GRAU }) + kennzahlen(ctx) + skizze() + linie(`M${X0} 570H${X1}`, 0.8) + orte(ctx);
+  }
+
+  // src/schaltplan/bloecke.js
+  function zielVon(ctx, bmk) {
+    const ziel2 = hauptort(ctx.lesen, bmk) || fundstellen(ctx.lesen, bmk)[0];
+    return ziel2 && ziel2.seite !== ctx.seite.nr ? verweisText(ziel2) : "";
+  }
+  var kennzeichen = (bmk, x, y, opt = {}) => `<g class="sp-bmk" data-bmk="${bmk}">` + text(x, y, bmk, { g: 10, w: 600, schrift: SCHMAL, ...opt }) + "</g>";
+  var merkeHier = (ctx, bmk, x, rolle) => merke(ctx.schreiben, bmk, { seite: ctx.seite.nr, spalte: spalteVon(x), rolle });
   var LEGENDE = [
     "tno",
     "tnc",
@@ -5522,7 +5778,7 @@ END_CASE;`)}
     "nc",
     "hk",
     "temp",
-    "niveau",
+    "tuer",
     "sens",
     "geber",
     "lvh",
@@ -5538,18 +5794,21 @@ END_CASE;`)}
     "port",
     "sicherung",
     "ls1",
+    "fi",
     "k1",
     "netzteil",
     "dose",
-    "motor1"
+    "motor1",
+    "erde"
   ];
+  var LEGENDE_SPALTEN = 6, LEGENDE_X = 668, LEGENDE_DX = 88, LEGENDE_DY = 106;
   var BEISPIEL = { sens: "ind", geber: "A", mu: "ϑ" };
   function legende() {
     let s = text(640, 60, "Legende der Schaltzeichen (IEC 60617)", { g: 14, w: 600, schrift: SCHMAL });
     LEGENDE.forEach((k, i) => {
-      const sym = SYM[k], x = 680 + i % 5 * 100, y = 82 + Math.floor(i / 5) * 106;
+      const sym = SYM[k], x = LEGENDE_X + i % LEGENDE_SPALTEN * LEGENDE_DX, y = 82 + Math.floor(i / LEGENDE_SPALTEN) * LEGENDE_DY;
       s += sym.zeichne(x, y, { an: sym.an || [], variante: BEISPIEL[k] || "" });
-      s += absatz(x, y + 76, umbrechen(sym.name, 92, 7.5), { a: "middle", g: 7.5, f: GRAU });
+      s += absatz(x, y + 76, umbrechen(sym.name, LEGENDE_DX - 8, 7.5), { a: "middle", g: 7.5, f: GRAU });
     });
     return s;
   }
@@ -5574,6 +5833,10 @@ END_CASE;`)}
     });
     return s;
   }
+  function seiteVon(ctx, block) {
+    const seite = ctx.seiten.find((s) => s.block === block);
+    return seite ? `/${seite.nr}.0` : "";
+  }
   var kanalSeiten = (ctx, platz) => ctx.seiten.filter((s) => s.modul && s.modul.baugruppe.platz === platz).map((s) => s.nr);
   function sps(ctx) {
     merkeHier(ctx, "−KF1", 200, "haupt");
@@ -5582,7 +5845,7 @@ END_CASE;`)}
     s += ctx.modell.plan.sps.map((b, i) => baugruppe2(ctx, b, i)).join("");
     s += kennzeichen("−KF1", 80, 470) + text(130, 470, "CPU 1516-3 PN/DP, PROFINET an X1", { g: 10 });
     const reserve = "Freie Kanäle (Reserve): " + ctx.modell.plan.kanaele.reserve.join(", ");
-    s += verweis(390, 470, zielVon(ctx, "−TA2"), "start") + text(80, 492, reserve, { g: 9, f: GRAU });
+    s += verweis(390, 470, seiteVon(ctx, "profinet"), "start") + text(80, 492, reserve, { g: 9, f: GRAU });
     return s + annahme(80, 510, "start") + text(150, 510, "Frontstecker-Pins nach Formel, am Gerätehandbuch prüfen", { g: 8, f: GRAU });
   }
   function teilnehmer(ctx, bmk, x, y, ip) {
@@ -5599,18 +5862,22 @@ END_CASE;`)}
     s += linie(`M200 147H${70 + 4 * 200}`) + teilnehmer(ctx, "−PF10", 70, 220, "192.168.0.10") + linie("M135 174V220");
     s += text(70, 320, "Telegramm 1 der Umrichter (Standardtelegramm)", { g: 12, w: 600, schrift: SCHMAL });
     ctx.modell.profinet.forEach((k, i) => {
-      const x = 70 + Math.floor(i / 8) * 540, y = 344 + i % 8 * 22;
+      const x = 70 + Math.floor(i / 8) * 540, y = 344 + i % 8 * 26;
       merkeSignal(ctx.schreiben, k.signal, { seite: ctx.seite.nr, spalte: spalteVon(x) });
       const signal = text(x + 70, y, k.signal, { g: 9, k: "sig", attr: `data-tag="${k.signal.split("_")[0]}"` });
-      s += text(x, y, `%${k.adr}`, { g: 9.5, w: 600, schrift: SCHMAL }) + signal + text(x + 200, y, kuerzen(k.info ? k.info.k : "", 72), { g: 8, f: GRAU });
+      const kommentar = umbrechen(k.info ? k.info.k : "", 320, 7.5).slice(0, 2);
+      s += text(x, y, `%${k.adr}`, { g: 9.5, w: 600, schrift: SCHMAL }) + signal + absatz(x + 200, y - (kommentar.length > 1 ? 4 : 0), kommentar, { g: 7.5, f: GRAU });
     });
-    return s + annahme(70, 540, "start") + text(140, 540, "IP-Adressen", { g: 8, f: GRAU });
+    return s + annahme(70, 570, "start") + text(140, 570, "IP-Adressen", { g: 8, f: GRAU });
   }
-  function verteiler(ctx, bmk, ports, x, y) {
+  function feldKopf(ctx, bmk, x, y, breite, hoehe, kabel2) {
     merkeHier(ctx, bmk, x, "haupt");
-    let s = kasten(x, y, 500, 40 + ports.length * 20, "#fff") + kennzeichen(bmk, x + 12, y + 22);
     const geraet = ctx.modell.geraete.get(bmk);
-    s += text(x + 70, y + 22, geraet ? geraet.text : "", { g: 9, f: GRAU });
+    return kasten(x, y, breite, hoehe, "#fff") + kennzeichen(bmk, x + 12, y + 22) + text(x + 70, y + 22, geraet ? geraet.text : "", { g: 9, f: GRAU }) + text(x + breite - 10, y + 22, `Stammleitung ${kabel2} zum Schaltschrank`, { a: "end", g: 8.5, w: 600, schrift: SCHMAL });
+  }
+  function verteiler(ctx, bmk, daten, x, y) {
+    const ports = daten.ports, hoehe = 40 + ports.length * 20 + (daten.hinweis ? 18 : 0);
+    let s = feldKopf(ctx, bmk, x, y, 500, hoehe, daten.kabel);
     ports.forEach((belegt, i) => {
       const py = y + 46 + i * 20, liste = belegt ? belegt.split(" / ") : [];
       s += text(x + 12, py, `X${i}`, { g: 9, w: 600 }) + (liste.length ? "" : text(x + 60, py, "frei", { g: 8.5, f: GRAU }));
@@ -5618,20 +5885,19 @@ END_CASE;`)}
         s += kennzeichen(b, x + 60 + j * 130, py, { g: 9 }) + verweis(x + 116 + j * 130, py, zielVon(ctx, b), "start");
       });
     });
-    return s;
+    return s + (daten.hinweis ? text(x + 12, y + hoehe - 10, daten.hinweis, { g: 8.5, f: GRAU }) : "");
   }
   function feldverteiler(ctx) {
     const liste = Object.entries(ctx.modell.plan.feldverteiler);
-    let s = ueberschrift("Feldverteiler M12", "Pin 1 L+ (braun), Pin 2 Signal 2 (weiß), Pin 3 M (blau), Pin 4 Signal 1 (schwarz)");
-    liste.forEach(([bmk, ports], i) => {
-      s += verteiler(ctx, bmk, ports, 60 + i % 2 * 560, 110 + Math.floor(i / 2) * 230);
+    let s = ueberschrift("Feldverteiler M12", "Pin 1 L+ (braun), Pin 2 Signal 2 (weiß), Pin 3 M (blau), Pin 4 Signal 1 (schwarz). L+ und M kommen über die Stammleitung von L+2 und M.");
+    liste.forEach(([bmk, daten], i) => {
+      s += verteiler(ctx, bmk, daten, 60 + i % 2 * 560, 110 + Math.floor(i / 2) * 240);
     });
     return s;
   }
-  function insel(ctx, bmk, plaetze, x, y) {
-    merkeHier(ctx, bmk, x, "haupt");
-    const geraet = ctx.modell.geraete.get(bmk);
-    let s = kasten(x, y, 1060, 40 + plaetze.length * 20, "#fff") + kennzeichen(bmk, x + 12, y + 22) + text(x + 70, y + 22, geraet.text, { g: 9, f: GRAU });
+  function insel(ctx, bmk, daten, x, y) {
+    const plaetze = daten.plaetze;
+    let s = feldKopf(ctx, bmk, x, y, 1060, 40 + plaetze.length * 20, daten.kabel);
     plaetze.forEach(([platz, s14, s12, antrieb], i) => {
       const py = y + 46 + i * 20;
       s += text(x + 12, py, `Platz ${platz}`, { g: 9, w: 600 }) + text(x + 380, py, antrieb, { g: 9 });
@@ -5643,15 +5909,15 @@ END_CASE;`)}
   }
   function ventilinseln(ctx) {
     let s = ueberschrift("Ventilinseln", "Spule 14 schaltet die Arbeitsstellung, Spule 12 die Grundstellung (Anschlüsse nach ISO 11727)"), y = 110;
-    for (const [bmk, plaetze] of Object.entries(ctx.modell.plan.ventilinseln)) {
-      s += insel(ctx, bmk, plaetze, 60, y);
-      y += 70 + plaetze.length * 20;
+    for (const [bmk, daten] of Object.entries(ctx.modell.plan.ventilinseln)) {
+      s += insel(ctx, bmk, daten, 60, y);
+      y += 70 + daten.plaetze.length * 20;
     }
     return s;
   }
   var BLOECKE = { deckblatt, hinweise, sps, profinet, feldverteiler, ventilinseln };
 
-  // web/tools/uebungshandbuch/src/schaltplan/plan.js
+  // src/schaltplan/plan.js
   var ZEICHNER = {
     block: (ctx) => BLOECKE[ctx.seite.block](ctx),
     einspeisung: einspeisungInhalt,
@@ -5675,7 +5941,7 @@ END_CASE;`)}
     };
   }
 
-  // web/tools/uebungshandbuch/src/schaltplan/ansicht.js
+  // src/schaltplan/ansicht.js
   var plan = null, aktuell = 1;
   var ladePlan = () => plan || (plan = zeichnePlan(aufbereiten(PLAN, SIG)));
   var ziel = (seite, spalte) => `#/schaltplan/${seite}` + (spalte !== void 0 ? `/${spalte}` : "");
@@ -5771,7 +6037,7 @@ END_CASE;`)}
     });
   }
 
-  // web/tools/uebungshandbuch/src/app/tooltip.js
+  // src/app/tooltip.js
   var tip = $("#tip");
   function showTip(el) {
     const t = el.dataset.tag, list = SIG[t], ex = EXTRA[t];
@@ -5801,7 +6067,7 @@ END_CASE;`)}
     addEventListener("scroll", hideTip, { passive: true });
   }
 
-  // web/tools/uebungshandbuch/src/app/router.js
+  // src/app/router.js
   function route() {
     hideTip();
     const h = location.hash.replace(/^#\/?/, "").split("/");
@@ -5850,7 +6116,7 @@ END_CASE;`)}
     route();
   }
 
-  // web/tools/uebungshandbuch/src/app/ereignisse.js
+  // src/app/ereignisse.js
   var curEx = () => (location.hash.match(/^#\/(L\d\d)/) || [])[1];
   function openDataDialog() {
     $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>Meine Daten</h2><p class="muted">Alle Eingaben, Häkchen und Skizzen bleiben nur in diesem Browser. Sichern Sie sie als Datei, um sie abzugeben oder auf einem anderen Rechner weiterzuarbeiten.</p>
@@ -5999,7 +6265,7 @@ END_CASE;`)}
     });
   }
 
-  // web/tools/uebungshandbuch/src/editor/ereignisse.js
+  // src/editor/ereignisse.js
   var palDrag = null;
   var overSheet = (e) => {
     const r = ED.svg && $("#edstage").getBoundingClientRect();
@@ -6239,7 +6505,7 @@ END_CASE;`)}
     });
   }
 
-  // web/tools/uebungshandbuch/src/main.js
+  // src/main.js
   init5();
   init4();
   init2();

@@ -8,36 +8,56 @@ const stueckeln = (liste, n) => Array.from({length: Math.ceil(liste.length / n)}
 /* ---------- Kanäle als Strompfade ---------- */
 const PORT = /^(−\w+):(\w+):(\w+)$/;   // "−XD1:X0:4" oder "−QM1:0:14"
 
-function portGlied(weg){
+// Steckverbinder am Feldverteiler oder an der Ventilinsel, mit dem Kabel zum Schaltschrank
+function portGlied(weg, plan){
   const m = PORT.exec(weg || "");
   if (!m) return null;
-  const istInsel = m[1].startsWith("−QM");
-  return {sym: "port", bmk: istInsel ? m[1] : `${m[1]}:${m[2]}`, an: istInsel ? `Platz ${m[2]}, ${m[3]}` : `Pin ${m[3]}`};
+  const istInsel = m[1].startsWith("−QM"), quelle = (istInsel ? plan.ventilinseln : plan.feldverteiler)[m[1]];
+  return {sym: "port", bmk: istInsel ? m[1] : `${m[1]}:${m[2]}`, an: istInsel ? `Platz ${m[2]}, ${m[3]}` : `Pin ${m[3]}`,
+    kabel: quelle ? quelle.kabel : ""};
 }
 
 const klemmGlied = k => k.klemme ? {sym: "klemme", bmk: k.klemme} : null;
-const geraetGlied = k => ({sym: k.sym, bmk: k.bmk, an: k.typ === "AI" || k.typ === "AQ" ? "" : k.an, annahme: k.annahme});
+const geraetGlied = k => ({sym: k.sym, bmk: k.bmk, an: k.analog ? "" : k.an, annahme: k.annahme});
 
-function kontaktGlied(eintrag, sym){   // "−KF3:13/14" → Kontakt des Geräts −KF3
+function kontaktGlied(eintrag, sym){   // "−QA2:21/22" → Kontakt des Geräts −QA2
   if (!eintrag) return null;
   const [bmk, an] = eintrag.split(":");
   return {sym, bmk, an};
 }
 
-function kanalGlieder(k, plan){
-  if (k.typ === "DI" || k.typ === "AI") return [geraetGlied(k), portGlied(k.weg), klemmGlied(k)].filter(Boolean);
-  const vorher = [kontaktGlied(plan.abschalten[k.adr], "no"), klemmGlied(k), portGlied(k.weg), kontaktGlied(plan.verriegelung[k.adr], "nc")];
-  return [...vorher, geraetGlied(k)].filter(Boolean);
+const GLIEDER = {
+  DI: (k, plan) => [geraetGlied(k), portGlied(k.weg, plan), klemmGlied(k)],
+  AI: k => [geraetGlied(k), klemmGlied(k)],
+  DQ: (k, plan) => [klemmGlied(k), portGlied(k.weg, plan), kontaktGlied(plan.verriegelung[k.adr], "nc"), geraetGlied(k)],
+  AQ: k => [klemmGlied(k), geraetGlied(k)],
+};
+
+// Oberer Anschluss eines Analoggeräts: Potentiometer an der 10-V-Referenz, aktives Gerät an seiner 24-V-Speisung,
+// 2-Leiter-Messumformer frei (er wird über den zweiten Leiter von der Baugruppe gespeist)
+function analogAnfang(k, plan){
+  if (k.sym === "poti") return {von: "+10V"};
+  const speisung = (plan.speisung || {})[k.bmk];
+  return speisung && !k.analog.vonOben ? {von: speisung} : {frei: true};
 }
 
+// Ein Kanal als Strompfad. Spulen in gemischten Ausgangsbytes enden am geschalteten M (M3S usw.).
+function kanalPfad(k, i, plan){
+  const pfad = {spalte: i + 1, glieder: GLIEDER[k.typ](k, plan).filter(Boolean), kanal: k, titel: k.info ? k.info.n : k.signal};
+  if (k.typ === "AI") Object.assign(pfad, analogAnfang(k, plan));
+  if (plan.abschalten[k.adr]) Object.assign(pfad, {bis: plan.abschalten[k.adr], definiert: "keine"});
+  return pfad;
+}
+
+// Schienen je Kanalart: Eingänge hängen an ihrer Versorgung und M, Ausgänge enden an M
+const SCHIENEN = {DI: v => ({oben: v, oben2: "M"}), AI: () => ({}), DQ: () => ({unten: "M"}), AQ: () => ({unten: "M"})};
+
 function kanalSeite(typ, gruppe, modell, titel){
-  const ersterKanal = gruppe[0];
-  const istEingang = typ === "DI" || typ === "AI";
-  const pfade = gruppe.map((k, i) => ({spalte: i + 1, glieder: kanalGlieder(k, modell.plan), kanal: k, titel: k.info ? k.info.n : k.signal}));
-  return {typ: "pfade", art: istEingang ? "Eingänge" : "Ausgänge", titel, ort: "+A1", pfade, signaltext: true,
-    oben: istEingang ? "L+" : null, oben2: istEingang ? "M" : null, unten: istEingang ? null : "M",
-    modul: {lage: istEingang ? "unten" : "oben", typ, kanaele: gruppe, baugruppe: ersterKanal.modul,
-      versorgung: typ === "DQ" ? modell.plan.versorgung["Q" + ersterKanal.teile.byte] : "L+"}};
+  const erster = gruppe[0], istEingang = typ === "DI" || typ === "AI";
+  return {typ: "pfade", art: istEingang ? "Eingänge" : "Ausgänge", titel, ort: "+A1", signaltext: true,
+    pfade: gruppe.map((k, i) => kanalPfad(k, i, modell.plan)), oben: null, oben2: null, unten: null,
+    ...SCHIENEN[typ](erster.versorgung),
+    modul: {lage: istEingang ? "unten" : "oben", typ, kanaele: gruppe, baugruppe: erster.modul, versorgung: erster.versorgung}};
 }
 
 function digitalSeiten(typ, modell){
@@ -89,7 +109,10 @@ function tabellenSeiten(name, modell, anzahl){
 // Alle Seiten mit Nummer; das Inhaltsverzeichnis kommt als Seite 2 dazu, sobald die Seitenzahl feststeht
 export function seitenBauen(modell){
   const ohneInhalt = SEITENARTEN.flatMap(art => art(modell));
-  const inhalt = tabellenSeiten("inhalt", modell, ohneInhalt.length + Math.ceil((ohneInhalt.length + 2) / TABELLEN.inhalt.jeSeite));
+  // Das Inhaltsverzeichnis listet auch seine eigenen Seiten. Geschätzt: alle übrigen Seiten plus die Seiten,
+  // die es selbst braucht (mit 2 Zeilen Reserve, damit die Schätzung bei einem Seitenwechsel nicht zu knapp wird).
+  const eigene = Math.ceil((ohneInhalt.length + 2) / TABELLEN.inhalt.jeSeite);
+  const inhalt = tabellenSeiten("inhalt", modell, ohneInhalt.length + eigene);
   const seiten = [ohneInhalt[0], ...inhalt, ...ohneInhalt.slice(1)];
   seiten.forEach((s, i) => { s.nr = i + 1; });
   return seiten;

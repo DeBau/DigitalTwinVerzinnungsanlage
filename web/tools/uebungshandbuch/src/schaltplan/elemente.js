@@ -33,6 +33,7 @@ export function setze(ctx, g, x, y){
   merke(ctx.schreiben, g.bmk.split(":")[0], {...hier, rolle: sym.rolle, an: g.anText || g.an || an.join("/"), sym: schluessel});
   if (sym.rolle === "klemme") merke(ctx.schreiben, g.bmk, {...hier, rolle: "klemme"});
   const bild = sym.zeichne(x, y, {an, variante, text: g.text});
+  if (!g.bmk) return {svg: bild, h: sym.h, sym};   // reiner Hinweis ohne Kennzeichen (Umsteckbrücke)
   const links = sym.pole === 3 ? x + 82 : x - (sym.rolle === "klemme" ? 10 : sym.links || 34);
   const marke = beschriftung(ctx, g.bmk, links, y + sym.h / 2 + 4, {a: sym.pole === 3 ? "start" : "end", annahme: g.annahme, zeichenX: x});
   return {svg: bild + marke, h: sym.h, sym};

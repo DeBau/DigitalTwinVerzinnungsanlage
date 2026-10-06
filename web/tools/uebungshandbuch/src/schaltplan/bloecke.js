@@ -3,6 +3,7 @@
 import { BLAU, GRAU, SCHMAL, TINTE, absatz, kasten, linie, text, umbrechen } from '../symbole/grund.js';
 import { SYM } from '../symbole/iec60617.js';
 import { X0, X1, spalteVon, ueberschrift } from './blatt.js';
+import { deckblatt } from './deckblatt.js';
 import { annahme, verweis } from './elemente.js';
 import { fundstellen, hauptort, merke, merkeSignal, verweisText } from './querverweise.js';
 
@@ -13,51 +14,22 @@ function zielVon(ctx, bmk){
 }
 const kennzeichen = (bmk, x, y, opt = {}) => `<g class="sp-bmk" data-bmk="${bmk}">`
   + text(x, y, bmk, {g: 10, w: 600, schrift: SCHMAL, ...opt}) + "</g>";
-const kuerzen = (t, n) => t.length > n ? t.slice(0, n - 1) + "…" : t;
 const merkeHier = (ctx, bmk, x, rolle) => merke(ctx.schreiben, bmk, {seite: ctx.seite.nr, spalte: spalteVon(x), rolle});
 
-/* ---------- Deckblatt ---------- */
-function kennzahl(x, y, zahl, wort){
-  return kasten(x, y, 150, 74, "#F4F7FA") + text(x + 75, y + 40, String(zahl), {a: "middle", g: 28, w: 600, schrift: SCHMAL, f: BLAU})
-    + text(x + 75, y + 60, wort, {a: "middle", g: 9, f: GRAU});
-}
-
-function zeichenReihe(y){   // Schmuckleiste aus echten Schaltzeichen
-  const reihe = ["nh", "tno", "sens", "spule", "lamp", "mbv", "sicherung", "ls1"];
-  return reihe.map((k, i) => SYM[k].zeichne(130 + i * 120, y, {an: SYM[k].an || [], variante: "ind"})).join("");
-}
-
-function deckblatt(ctx){
-  const m = ctx.modell, meta = m.plan.meta;
-  const anzahl = test => m.kanaele.filter(test).length;
-  const zahlen = [[ctx.seiten.length, "Seiten"], [m.geraete.size, "Betriebsmittel"], [anzahl(k => k.typ === "DI"), "Digitaleingänge"],
-    [anzahl(k => k.typ === "DQ"), "Digitalausgänge"], [anzahl(k => k.typ[0] === "A"), "Analogwerte"],
-    [m.profinet.length, "PROFINET-Worte"]];
-  let s = linie(`M${X0} 250H${X1}`, .8) + text(110, 150, "Schaltplan der Anlage", {g: 54, w: 600, schrift: SCHMAL});
-  s += text(112, 192, meta.anlage, {g: 20, f: GRAU}) + text(112, 222, meta.norm, {g: 10, f: GRAU});
-  zahlen.forEach(([z, w], i) => { s += kennzahl(110 + i * 165, 300, z, w); });
-  s += zeichenReihe(440) + linie(`M${X0} 560H${X1}`, .8);
-  const orte = Object.entries(m.plan.orte);
-  s += text(110, 595, "Ortskennzeichen", {g: 12, w: 600, schrift: SCHMAL});
-  orte.forEach(([k, t], i) => {
-    const x = 110 + Math.floor(i / 5) * 270, y = 620 + (i % 5) * 26;
-    s += text(x, y, k, {g: 10, w: 600, schrift: SCHMAL}) + text(x + 46, y, t, {g: 9.5});
-  });
-  return s;
-}
-
 /* ---------- Hinweise und Legende ---------- */
-const LEGENDE = ["tno", "tnc", "nh", "key", "sw", "tnol", "no", "nc", "hk", "temp", "niveau", "sens", "geber", "lvh", "spule",
-  "mbv", "ssr", "sirelais", "lamp", "mu", "poti", "stell", "klemme", "port", "sicherung", "ls1", "k1", "netzteil", "dose", "motor1"];
+const LEGENDE = ["tno", "tnc", "nh", "key", "sw", "tnol", "no", "nc", "hk", "temp", "tuer", "sens", "geber", "lvh", "spule",
+  "mbv", "ssr", "sirelais", "lamp", "mu", "poti", "stell", "klemme", "port", "sicherung", "ls1", "fi", "k1", "netzteil", "dose",
+  "motor1", "erde"];
+const LEGENDE_SPALTEN = 6, LEGENDE_X = 668, LEGENDE_DX = 88, LEGENDE_DY = 106;
 
 const BEISPIEL = {sens: "ind", geber: "A", mu: "ϑ"};   // Variante, mit der ein Zeichen in der Legende erscheint
 
 function legende(){
   let s = text(640, 60, "Legende der Schaltzeichen (IEC 60617)", {g: 14, w: 600, schrift: SCHMAL});
   LEGENDE.forEach((k, i) => {
-    const sym = SYM[k], x = 680 + (i % 5) * 100, y = 82 + Math.floor(i / 5) * 106;
+    const sym = SYM[k], x = LEGENDE_X + (i % LEGENDE_SPALTEN) * LEGENDE_DX, y = 82 + Math.floor(i / LEGENDE_SPALTEN) * LEGENDE_DY;
     s += sym.zeichne(x, y, {an: sym.an || [], variante: BEISPIEL[k] || ""});
-    s += absatz(x, y + 76, umbrechen(sym.name, 92, 7.5), {a: "middle", g: 7.5, f: GRAU});
+    s += absatz(x, y + 76, umbrechen(sym.name, LEGENDE_DX - 8, 7.5), {a: "middle", g: 7.5, f: GRAU});
   });
   return s;
 }
@@ -85,6 +57,12 @@ function baugruppe(ctx, [platz, name, bestell, start], i){
   return s;
 }
 
+// Verweis auf eine Übersichtsseite (Spalte 0)
+function seiteVon(ctx, block){
+  const seite = ctx.seiten.find(s => s.block === block);
+  return seite ? `/${seite.nr}.0` : "";
+}
+
 // Seiten mit den Kanälen einer Baugruppe
 const kanalSeiten = (ctx, platz) => ctx.seiten.filter(s => s.modul && s.modul.baugruppe.platz === platz).map(s => s.nr);
 
@@ -95,7 +73,7 @@ function sps(ctx){
   s += ctx.modell.plan.sps.map((b, i) => baugruppe(ctx, b, i)).join("");
   s += kennzeichen("−KF1", 80, 470) + text(130, 470, "CPU 1516-3 PN/DP, PROFINET an X1", {g: 10});
   const reserve = "Freie Kanäle (Reserve): " + ctx.modell.plan.kanaele.reserve.join(", ");
-  s += verweis(390, 470, zielVon(ctx, "−TA2"), "start") + text(80, 492, reserve, {g: 9, f: GRAU});
+  s += verweis(390, 470, seiteVon(ctx, "profinet"), "start") + text(80, 492, reserve, {g: 9, f: GRAU});
   return s + annahme(80, 510, "start") + text(150, 510, "Frontstecker-Pins nach Formel, am Gerätehandbuch prüfen", {g: 8, f: GRAU});
 }
 
@@ -114,41 +92,48 @@ function profinet(ctx){
   s += linie(`M200 147H${70 + 4 * 200}`) + teilnehmer(ctx, "−PF10", 70, 220, "192.168.0.10") + linie("M135 174V220");
   s += text(70, 320, "Telegramm 1 der Umrichter (Standardtelegramm)", {g: 12, w: 600, schrift: SCHMAL});
   ctx.modell.profinet.forEach((k, i) => {
-    const x = 70 + Math.floor(i / 8) * 540, y = 344 + (i % 8) * 22;
+    const x = 70 + Math.floor(i / 8) * 540, y = 344 + (i % 8) * 26;
     merkeSignal(ctx.schreiben, k.signal, {seite: ctx.seite.nr, spalte: spalteVon(x)});
     const signal = text(x + 70, y, k.signal, {g: 9, k: "sig", attr: `data-tag="${k.signal.split("_")[0]}"`});
+    const kommentar = umbrechen(k.info ? k.info.k : "", 320, 7.5).slice(0, 2);
     s += text(x, y, `%${k.adr}`, {g: 9.5, w: 600, schrift: SCHMAL}) + signal
-      + text(x + 200, y, kuerzen(k.info ? k.info.k : "", 72), {g: 8, f: GRAU});
+      + absatz(x + 200, y - (kommentar.length > 1 ? 4 : 0), kommentar, {g: 7.5, f: GRAU});
   });
-  return s + annahme(70, 540, "start") + text(140, 540, "IP-Adressen", {g: 8, f: GRAU});
+  return s + annahme(70, 570, "start") + text(140, 570, "IP-Adressen", {g: 8, f: GRAU});
 }
 
 /* ---------- Feldverteiler und Ventilinseln ---------- */
-function verteiler(ctx, bmk, ports, x, y){
+// Kopf eines Feldgeräts mit Stammleitung zum Schaltschrank
+function feldKopf(ctx, bmk, x, y, breite, hoehe, kabel){
   merkeHier(ctx, bmk, x, "haupt");
-  let s = kasten(x, y, 500, 40 + ports.length * 20, "#fff") + kennzeichen(bmk, x + 12, y + 22);
   const geraet = ctx.modell.geraete.get(bmk);
-  s += text(x + 70, y + 22, geraet ? geraet.text : "", {g: 9, f: GRAU});
+  return kasten(x, y, breite, hoehe, "#fff") + kennzeichen(bmk, x + 12, y + 22)
+    + text(x + 70, y + 22, geraet ? geraet.text : "", {g: 9, f: GRAU})
+    + text(x + breite - 10, y + 22, `Stammleitung ${kabel} zum Schaltschrank`, {a: "end", g: 8.5, w: 600, schrift: SCHMAL});
+}
+
+function verteiler(ctx, bmk, daten, x, y){
+  const ports = daten.ports, hoehe = 40 + ports.length * 20 + (daten.hinweis ? 18 : 0);
+  let s = feldKopf(ctx, bmk, x, y, 500, hoehe, daten.kabel);
   ports.forEach((belegt, i) => {
     const py = y + 46 + i * 20, liste = belegt ? belegt.split(" / ") : [];
     s += text(x + 12, py, `X${i}`, {g: 9, w: 600}) + (liste.length ? "" : text(x + 60, py, "frei", {g: 8.5, f: GRAU}));
     liste.forEach((b, j) => { s += kennzeichen(b, x + 60 + j * 130, py, {g: 9}) + verweis(x + 116 + j * 130, py, zielVon(ctx, b), "start"); });
   });
-  return s;
+  return s + (daten.hinweis ? text(x + 12, y + hoehe - 10, daten.hinweis, {g: 8.5, f: GRAU}) : "");
 }
 
 function feldverteiler(ctx){
   const liste = Object.entries(ctx.modell.plan.feldverteiler);
-  let s = ueberschrift("Feldverteiler M12", "Pin 1 L+ (braun), Pin 2 Signal 2 (weiß), Pin 3 M (blau), Pin 4 Signal 1 (schwarz)");
-  liste.forEach(([bmk, ports], i) => { s += verteiler(ctx, bmk, ports, 60 + (i % 2) * 560, 110 + Math.floor(i / 2) * 230); });
+  let s = ueberschrift("Feldverteiler M12", "Pin 1 L+ (braun), Pin 2 Signal 2 (weiß), Pin 3 M (blau), Pin 4 Signal 1 (schwarz). "
+    + "L+ und M kommen über die Stammleitung von L+2 und M.");
+  liste.forEach(([bmk, daten], i) => { s += verteiler(ctx, bmk, daten, 60 + (i % 2) * 560, 110 + Math.floor(i / 2) * 240); });
   return s;
 }
 
-function insel(ctx, bmk, plaetze, x, y){
-  merkeHier(ctx, bmk, x, "haupt");
-  const geraet = ctx.modell.geraete.get(bmk);
-  let s = kasten(x, y, 1060, 40 + plaetze.length * 20, "#fff") + kennzeichen(bmk, x + 12, y + 22)
-    + text(x + 70, y + 22, geraet.text, {g: 9, f: GRAU});
+function insel(ctx, bmk, daten, x, y){
+  const plaetze = daten.plaetze;
+  let s = feldKopf(ctx, bmk, x, y, 1060, 40 + plaetze.length * 20, daten.kabel);
   plaetze.forEach(([platz, s14, s12, antrieb], i) => {
     const py = y + 46 + i * 20;
     s += text(x + 12, py, `Platz ${platz}`, {g: 9, w: 600}) + text(x + 380, py, antrieb, {g: 9});
@@ -162,9 +147,9 @@ function insel(ctx, bmk, plaetze, x, y){
 
 function ventilinseln(ctx){
   let s = ueberschrift("Ventilinseln", "Spule 14 schaltet die Arbeitsstellung, Spule 12 die Grundstellung (Anschlüsse nach ISO 11727)"), y = 110;
-  for (const [bmk, plaetze] of Object.entries(ctx.modell.plan.ventilinseln)) {
-    s += insel(ctx, bmk, plaetze, 60, y);
-    y += 70 + plaetze.length * 20;
+  for (const [bmk, daten] of Object.entries(ctx.modell.plan.ventilinseln)) {
+    s += insel(ctx, bmk, daten, 60, y);
+    y += 70 + daten.plaetze.length * 20;
   }
   return s;
 }

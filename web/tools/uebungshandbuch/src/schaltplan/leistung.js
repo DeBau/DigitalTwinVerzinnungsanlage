@@ -9,7 +9,6 @@ import { fundstellen, hauptort, kontakte, merke, verweisText, verweisZu } from '
 export const LEITER = [["L1", 50], ["L2", 62], ["L3", 74], ["N", 86], ["PE", 98]];
 const PE_X = 70, START = 150, LUECKE = 22, POLE = [-20, 0, 20];
 const PE_ANSCHLUSS = {klemme3: [8, 16], umrichter: [45, 45], motor3: [0, null]};   // PE kommt an / geht weiter
-const ZWEITER_KONTAKT = {wende: true};
 
 function schienen(ctx, quelle){
   return LEITER.map(([name, y]) => {
@@ -27,8 +26,9 @@ function wendeSetzen(ctx, g, x, y){
   for (const [bmk, px] of [[a, x], [b, x - 90]]) {
     merke(ctx.schreiben, bmk, {seite: ctx.seite.nr, spalte: spalteVon(px), rolle: "kontakt", an: "1/2 3/4 5/6", sym: "wende"});
   }
+  // Kennzeichen von Schütz b über seiner Wirklinie, damit es die gestrichelte Linie nicht überdeckt
   return {svg: SYM.wende.zeichne(x, y, {}) + beschriftung(ctx, a, x + 82, y + 54, {a: "start", zeichenX: x})
-    + beschriftung(ctx, b, x - 122, y + 54, {a: "end", zeichenX: x - 90}), h: SYM.wende.h};
+    + beschriftung(ctx, b, x - 128, y + 36, {a: "end", zeichenX: x - 90}), h: SYM.wende.h};
 }
 
 function abgangSetzen(ctx, abgang, x){
@@ -39,10 +39,10 @@ function abgangSetzen(ctx, abgang, x){
       s += POLE.map(d => linie(`M${x + d} ${y}V${y + LUECKE}`)).join("");
       y += LUECKE;
     }
-    const teil = ZWEITER_KONTAKT[g.sym] ? wendeSetzen(ctx, g, x, y)
-      : setze(ctx, {...g, nummern: g.sym === "klemme3" ? abgang.klemmen : undefined, anText: g.sym === "schuetz3" ? "1/2 3/4 5/6" : ""}, x, y);
-    const pe = PE_ANSCHLUSS[g.sym];
-    if (pe) {
+    const teil = g.sym === "wende" ? wendeSetzen(ctx, g, x, y)
+      : setze(ctx, {...g, anText: g.sym === "schuetz3" ? "1/2 3/4 5/6" : ""}, x, y);
+    const pe = PE_ANSCHLUSS[g.sym], ohnePE = g.sym === "klemme3" && !g.nummern[3];
+    if (pe && !ohnePE) {
       s += linie(`M${x + PE_X} ${peY}V${y + pe[0]}`) + (peY === LEITER[4][1] ? punkt(x + PE_X, peY) : "");
       if (pe[1] !== null) peY = y + pe[1];
     }

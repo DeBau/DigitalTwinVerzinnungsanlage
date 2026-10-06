@@ -5,33 +5,30 @@ import { fundstellen } from './querverweise.js';
 
 const ref = e => e ? {ref: `${e.seite}.${e.spalte}`} : "";
 const natuerlich = (a, b) => a.localeCompare(b, "de", {numeric: true});
+const MAX_FUNDSTELLEN = 4;
 
 /* ---------- Zeilen ---------- */
+// Klemmenplan direkt aus der Liste, in der modell.js jede Klemme vergeben hat
 function klemmZeilen(ctx){
-  const {modell, lesen} = ctx, zeilen = [];
-  for (const k of modell.kanaele) {
-    if (!k.klemme) continue;
-    zeilen.push([k.klemme, `${k.bmk} ${k.an || ""}`.trim(), `−KF1 %${k.adr}`, k.signal, ref(fundstellen(lesen, k.klemme)[0])]);
-  }
-  const wege = new Map();   // Verbraucher → alle Abgänge, über die er läuft (Schütz oder Umrichter)
-  for (const a of modell.leistung) {
-    const ziel = a.glieder[a.glieder.length - 1].bmk;
-    if (!wege.has(ziel)) wege.set(ziel, {klemmen: a.klemmen, titel: []});
-    wege.get(ziel).titel.push(a.titel);
-  }
-  for (const [ziel, w] of wege) {
-    ["U", "V", "W", "PE"].forEach((leiter, i) => zeilen.push([`−X1:${w.klemmen[i]}`, `${ziel} ${leiter}`, w.titel.join(" oder "), "",
-      ref(fundstellen(lesen, ziel)[0])]));
-  }
-  return zeilen.sort((a, b) => natuerlich(a[0], b[0]));
+  const {modell, lesen} = ctx;
+  const sortiert = [...modell.klemmen].sort((a, b) => natuerlich(a.klemme, b.klemme));
+  return sortiert.map(z => [z.klemme, z.feld, z.schrank, z.signal,
+    ref(fundstellen(lesen, z.klemme)[0] || fundstellen(lesen, z.ziel)[0])]);
+}
+
+// Fundstellen ohne Doppelte (gleiche Seite und Spalte), höchstens vier, sonst "…"
+function fundstellenZellen(lesen, bmk){
+  const gesehen = new Set(), alle = fundstellen(lesen, bmk).filter(e => {
+    const schluessel = `${e.seite}.${e.spalte}`;
+    return !gesehen.has(schluessel) && gesehen.add(schluessel);
+  });
+  const zellen = alle.slice(0, MAX_FUNDSTELLEN).map(ref);
+  return alle.length > MAX_FUNDSTELLEN ? [...zellen, "…"] : zellen;
 }
 
 function bmZeilen(ctx){
   const liste = [...ctx.modell.geraete.values()].sort((a, b) => natuerlich(a.bmk, b.bmk));
-  return liste.map(g => {
-    const orte = fundstellen(ctx.lesen, g.bmk).slice(0, 5).map(ref);
-    return [g.bmk, g.text + (g.annahme ? " (angenommen)" : ""), g.ort, ...orte];
-  });
+  return liste.map(g => [g.bmk, g.text + (g.annahme ? " (angenommen)" : ""), g.typ, g.ort, ...fundstellenZellen(ctx.lesen, g.bmk)]);
 }
 
 function signalZeilen(ctx){
@@ -44,14 +41,13 @@ const inhaltZeilen = ctx => ctx.seiten.map(s => [String(s.nr), s.titel, s.art, {
 /* ---------- Tabelle der Listen ---------- */
 export const TABELLEN = {
   inhalt: {titel: "Inhaltsverzeichnis", jeSeite: 30, anzahl: () => 0, zeilen: inhaltZeilen,
-    spalten: [["Seite", 80], ["Inhalt", 640], ["Art", 260], ["", 128]]},
-  klemmen: {titel: "Klemmenplan −X1, −X3, −X4, −X5", jeSeite: 30, zeilen: klemmZeilen,
-    anzahl: m => m.kanaele.filter(k => k.klemme).length + new Set(m.leistung.map(a => a.glieder[a.glieder.length - 1].bmk)).size * 4,
-    spalten: [["Klemme", 130], ["Feld (Gerät, Anschluss)", 230], ["Schrank (Ziel)", 260], ["Signal", 360], ["Seite", 128]]},
+    spalten: [["Seite", 80], ["Inhalt", 640], ["Art", 260], ["Sprung", 128]]},
+  klemmen: {titel: "Klemmenplan −X1, −X3, −X4, −X5", jeSeite: 30, zeilen: klemmZeilen, anzahl: m => m.klemmen.length,
+    spalten: [["Klemme", 100], ["Feld (Gerät, Anschluss)", 240], ["Schrank (Ziel)", 270], ["Signal", 360], ["Seite", 138]]},
   betriebsmittel: {titel: "Betriebsmittelliste", jeSeite: 30, zeilen: bmZeilen, anzahl: m => m.geraete.size,
-    spalten: [["Kennzeichen", 110], ["Beschreibung", 560], ["Ort", 70], ["Fundstellen", 74], ["", 74], ["", 74], ["", 74], ["", 72]]},
+    spalten: [["Kennzeichen", 100], ["Beschreibung", 420], ["Typ", 170], ["Ort", 60],
+      ["Fundstellen", 72], ["", 72], ["", 72], ["", 72], ["", 70]]},
   signale: {titel: "SPS-Zuordnungsliste", jeSeite: 30, zeilen: signalZeilen,
     anzahl: m => m.kanaele.length + m.profinet.length,
     spalten: [["Adresse", 90], ["Symbolname", 230], ["Kennzeichen", 100], ["Kommentar", 560], ["Seite", 128]]},
 };
-

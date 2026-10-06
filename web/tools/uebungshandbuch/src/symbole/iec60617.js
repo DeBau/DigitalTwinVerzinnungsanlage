@@ -5,11 +5,12 @@
      rolle  haupt (Spule, Gerät mit Kontaktspiegel), kontakt (gehört zu einem Gerät), geraet, klemme
      an     Anschlussnummern oben und unten, wenn der Plan keine angibt
      bu     Gerät braucht eine eigene Leitung zu M (Sensor mit drei Leitern)
+     rueck  Analoggerät: Abgang des Rückleiters [dx, dy] relativ zum Anschluss oben
      pe     dreipoliges Gerät mit Schutzleiteranschluss auf x + 70
      links  Platz links vom Zeichen für das Kennzeichen (Standard 34)
      zeichne(x, y, g)  liefert SVG, g = {an: [oben, unten], variante, text}
    Die Geometrie der Kontakte, Taster und Spulen ist aus dem Skizzen-Editor übernommen (Kopie, keine Neuerfindung). */
-import { GRAU, kasten, kreis, linie, nummer, punkt, text, wirklinie, TINTE } from './grund.js';
+import { GRAU, absatz, kasten, kreis, linie, nummer, punkt, text, wirklinie, TINTE } from './grund.js';
 
 /* ---------- Bausteine der Zeichen ---------- */
 const schliesser = (x, y) => linie(`M${x} ${y}V${y + 20}M${x} ${y + 60}V${y + 42}L${x - 13} ${y + 19}`);
@@ -30,6 +31,7 @@ const BETAETIGUNG = {
   temperatur: (bx, my) => kasten(bx - 14, my - 7, 14, 14) + text(bx - 7, my + 4, "ϑ", {a: "middle", g: 10, w: 600}),
   schwimmer: (bx, my) => linie(`M${bx} ${my}H${bx - 4}`) + kreis(bx - 9, my, 5, "none"),
   motorschutz: (bx, my) => kasten(bx - 18, my - 7, 18, 14) + text(bx - 9, my + 3.5, "I>", {a: "middle", g: 8, w: 600}),
+  rolle: (bx, my) => linie(`M${bx} ${my}H${bx - 5}`) + kreis(bx - 9, my, 4, "none"),
   leuchte: (bx, my) => linie(`M${bx} ${my - 7}V${my + 7}M${bx} ${my - 7}H${bx - 4}M${bx} ${my + 7}H${bx - 4}`)
     + kreis(bx - 11, my, 5, "none") + linie(`M${bx - 14.5} ${my - 3.5}L${bx - 7.5} ${my + 3.5}M${bx - 7.5} ${my - 3.5}L${bx - 14.5} ${my + 3.5}`),
 };
@@ -43,10 +45,12 @@ function kontakt(art, betaetigung){   // Schließer oder Öffner mit Betätigung
   };
 }
 
+const spule = (x, y, g) => zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + nummern(x, y, 60, g);
+
 function sensorKasten(x, y, inhalt, unten = "BK"){   // Gerät mit drei Leitern: BN oben, BK unten, BU links zu M
   return zuleitung(x, y, 60, 15, 15) + kasten(x - 15, y + 15, 30, 30) + inhalt
     + linie(`M${x - 15} ${y + 40}H${x - 24}`) + nummer(x + 5, y + 11, "BN") + nummer(x + 5, y + 57, unten)
-    + nummer(x - 23, y + 37, "BU", "start");
+    + nummer(x - 22, y + 51, "BU");   // unter dem Abgang zu M, frei von Kennzeichen und Leitung
 }
 
 // Lichtvorhang: Strahlen zwischen Sender und Empfänger
@@ -57,13 +61,14 @@ const strahlen = (x, y) => linie(`M${x - 9} ${y + 24}H${x + 9}M${x - 9} ${y + 30
 const lichtpfeile = (x, y) => linie(`M${x - 6} ${y + 24}L${x + 2} ${y + 32}M${x - 1} ${y + 32}H${x + 2}V${y + 29}`
   + `M${x - 2} ${y + 26}L${x + 6} ${y + 34}M${x + 3} ${y + 34}H${x + 6}V${y + 31}`, 1);
 
-const SENSORART = {mag: "Magnet", ind: "induktiv", opt: "optisch", us: "Ultraschall"};
+const SENSORART = {mag: "Magnet", ind: "induktiv", opt: "optisch", us: "Ultraschall", niv: "Füllstand"};
 const raute = (x, y) => linie(`M${x} ${y + 22}L${x + 8} ${y + 30}L${x} ${y + 38}L${x - 8} ${y + 30}Z`);
 
-function geraetKasten(x, y, g, breite = 40){   // Gerät als beschrifteter Kasten
-  const t = g.text || g.variante || "";
+function geraetKasten(x, y, g){   // Gerät als beschrifteter Kasten, so breit wie der Text
+  const t = g.text || g.variante || "", groesse = t.length > 7 ? 7.5 : 8.5;
+  const breite = Math.max(40, Math.ceil(t.length * groesse * .6) + 10);
   return zuleitung(x, y, 60, 15, 15) + kasten(x - breite / 2, y + 15, breite, 30)
-    + text(x, y + 34, t, {a: "middle", g: t.length > 7 ? 7 : 8.5, w: 600}) + nummern(x, y, 60, g);
+    + text(x, y + 34, t, {a: "middle", g: groesse, w: 600}) + nummern(x, y, 60, g);
 }
 
 /* ---------- Dreipolige Zeichen: Pole auf x − 20, x, x + 20 ---------- */
@@ -87,9 +92,36 @@ function wende(x, y){   // Wendeschaltung: Schütz a direkt, Schütz b links dan
     + punkt(x + 20, y + 96) + punkt(x, y + 90) + punkt(x - 20, y + 84);
   const verriegelung = wirklinie(`M${b[2] + 4} ${y + 58}H${x - 30}`)
     + linie(`M${b[2] + 10} ${y + 54}l4 8l4 -8zM${x - 44} ${y + 54}l4 8l4 -8z`, 1);
+  const polNr = (px, i) => nummer(px + 4, y + 31, ["1", "3", "5"][i]) + nummer(px + 4, y + 77, ["2", "4", "6"][i]);
   return verteilen + kontakte + tauschen + verriegelung
-    + POLE.map((d, i) => nummer(x + d + 4, y + 31, ["1", "3", "5"][i])).join("")
-    + b.map((p, i) => nummer(p + 4, y + 31, ["1", "3", "5"][i])).join("");
+    + POLE.map((d, i) => polNr(x + d, i)).join("") + b.map((p, i) => polNr(p, i)).join("");
+}
+
+// Umsteckbrücke zwischen Wegklemmen und Motorklemmen: gestrichelt, weil nur ein Weg gesteckt ist
+function bruecke3(x, y, g){
+  return allePole(x, p => `<path d="M${p} ${y}V${y + 30}" stroke="${TINTE}" stroke-width="1.4" stroke-dasharray="4 3"/>`)
+    + absatz(x + 82, y + 13, String(g.text || "Umsteckbrücke").split(": "), {g: 7.5, f: GRAU});
+}
+
+// Potentiometer mit drei Anschlüssen: 1 oben (Speisung), 3 unten rechts (Bezug M), Schleifer 2 auf der Pfadlinie.
+// Der Widerstand sitzt rechts neben der Pfadlinie auf der Linie des Rückleiters (x + 24).
+function poti(x, y){
+  const r = x + 24;
+  return linie(`M${x} ${y}V${y + 8}H${r}V${y + 14}`) + kasten(r - 5, y + 14, 10, 30) + linie(`M${r} ${y + 44}V${y + 60}`)
+    + linie(`M${x} ${y + 29}H${r - 7}`) + linie(`M${r - 11} ${y + 26}L${r - 6} ${y + 29}L${r - 11} ${y + 32}`, 1.2)
+    + linie(`M${x} ${y + 29}V${y + 60}`) + nummer(x - 10, y + 6, "1") + nummer(x - 10, y + 58, "2") + nummer(r + 5, y + 58, "3");
+}
+
+// Fehlerstromschutzschalter: Schaltglied, über die Wirklinie betätigt vom Fehlerstromauslöser (Kasten IΔ)
+function fehlerstrom(x, y, g){
+  return linie(`M${x} ${y}V${y + 20}M${x} ${y + 60}V${y + 42}L${x - 11} ${y + 21}`)
+    + wirklinie(`M${x - 7} ${y + 31}H${x - 24}`) + kasten(x - 44, y + 24, 20, 14)
+    + text(x - 34, y + 35, "IΔ", {a: "middle", g: 8, w: 600}) + nummern(x, y, 60, g);
+}
+
+// Erdung: kurzer Strich mit Erdungszeichen (drei kürzer werdende Striche)
+function erde(x, y){
+  return linie(`M${x} ${y}V${y + 16}`) + linie(`M${x - 10} ${y + 16}H${x + 10}M${x - 6} ${y + 20}H${x + 6}M${x - 2} ${y + 24}H${x + 2}`);
 }
 
 function motor3(x, y){
@@ -108,11 +140,11 @@ function umrichter(x, y, g){
     + polNummern(x, y, 90, ["L1", "L2", "L3"], ["U2", "V2", "W2"]);
 }
 
-function klemme3(x, y, g){
+function klemme3(x, y, g){   // drei Klemmen, die vierte (PE) nur, wenn eine Nummer da ist
   const nr = g.an || [];
+  const pe = nr[3] ? kreis(x + PE_X, y + 12, 4) + nummer(x + PE_X - 6, y + 22, nr[3], "end") : "";
   return allePole(x, p => linie(`M${p} ${y}V${y + 8}M${p} ${y + 16}V${y + 24}`) + kreis(p, y + 12, 4))
-    + kreis(x + PE_X, y + 12, 4) + POLE.map((d, i) => nummer(x + d - 4, y + 22, nr[i], "end")).join("")
-    + nummer(x + PE_X - 6, y + 22, nr[3], "end");
+    + POLE.map((d, i) => nummer(x + d - 4, y + 22, nr[i], "end")).join("") + pe;
 }
 
 function heizung3(x, y){
@@ -145,8 +177,8 @@ export const SYM = {
     sensorKasten(x, y, text(x, y + 35, "G", {a: "middle", g: 13, w: 600}), g.variante)},
   lvh: {name: "Lichtvorhang", h: 60, pole: 1, rolle: "geraet", bu: true, zeichne: (x, y, g) => sensorKasten(x, y, strahlen(x, y), g.an[1] || "OSSD")},
   geraet: {name: "Gerät", h: 60, pole: 1, rolle: "geraet", zeichne: (x, y, g) => geraetKasten(x, y, g)},
-  spule: {name: "Spule (Schütz, Relais)", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: (x, y, g) =>
-    zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + nummern(x, y, 60, g)},
+  spule: {name: "Spule (Schütz, Relais)", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: spule},
+  coil: {name: "Schützspule", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: spule},
   mbv: {name: "Ventilspule", h: 60, pole: 1, rolle: "haupt", an: ["A1", "A2"], zeichne: (x, y, g) =>
     zuleitung(x, y, 60, 18, 18) + kasten(x - 15, y + 18, 30, 24) + linie(`M${x - 15} ${y + 42}L${x + 15} ${y + 18}`) + nummern(x, y, 60, g)},
   ssr: {name: "Halbleiterrelais, Steuerkreis", h: 60, pole: 1, rolle: "haupt", an: ["A1+", "A2−"], zeichne: (x, y, g) =>
@@ -157,13 +189,11 @@ export const SYM = {
   lamp: {name: "Leuchtmelder", h: 60, pole: 1, rolle: "geraet", an: ["X1", "X2"], zeichne: (x, y, g) =>
     zuleitung(x, y, 60, 18, 18) + kreis(x, y + 30, 12)
     + linie(`M${x - 8.5} ${y + 21.5}L${x + 8.5} ${y + 38.5}M${x + 8.5} ${y + 21.5}L${x - 8.5} ${y + 38.5}`) + nummern(x, y, 60, g)},
-  mu: {name: "Messumformer", h: 60, pole: 1, rolle: "geraet", an: ["+", "−"], zeichne: (x, y, g) =>
+  mu: {name: "Messumformer", h: 60, pole: 1, rolle: "geraet", an: ["+", "−"], rueck: [17, 36], zeichne: (x, y, g) =>
     zuleitung(x, y, 60, 16, 16) + kasten(x - 17, y + 16, 34, 28) + text(x - 6, y + 35, g.variante || "", {a: "middle", g: 12, w: 600})
     + linie(`M${x + 2} ${y + 30}H${x + 12}`) + linie(`M${x + 9} ${y + 27}L${x + 12} ${y + 30}L${x + 9} ${y + 33}`, 1) + nummern(x, y, 60, g)},
-  poti: {name: "Potentiometer", h: 60, pole: 1, rolle: "geraet", an: ["1", "2"], zeichne: (x, y, g) =>
-    zuleitung(x, y, 60, 15, 15) + kasten(x - 5, y + 15, 10, 30) + linie(`M${x + 16} ${y + 20}L${x + 6} ${y + 30}`)
-    + linie(`M${x + 6} ${y + 30}l6 -1.5M${x + 6} ${y + 30}l1.5 -6`, 1.2) + nummern(x, y, 60, g)},
-  stell: {name: "Stellantrieb Regelventil", h: 60, pole: 1, rolle: "haupt", an: ["Y", "M"], zeichne: (x, y, g) =>
+  poti: {name: "Potentiometer", h: 60, pole: 1, rolle: "geraet", rueck: [24, 60], zeichne: poti},
+  stell: {name: "Stellantrieb Regelventil", h: 60, pole: 1, rolle: "haupt", an: ["Y", "M"], rueck: [17, 22], zeichne: (x, y, g) =>
     zuleitung(x, y, 60, 14, 14) + kasten(x - 17, y + 14, 34, 32)
     + linie(`M${x - 10} ${y + 22}L${x + 10} ${y + 38}V${y + 22}L${x - 10} ${y + 38}Z`, 1.2)
     + nummern(x, y, 60, g)},
@@ -172,6 +202,9 @@ export const SYM = {
     linie(`M${x} ${y}V${y + 13}M${x - 6} ${y + 9}A6 6 0 0 0 ${x + 6} ${y + 9}M${x} ${y + 15}V${y + 24}`) + nummer(x + 8, y + 18, g.an[0])},
   ls1: {name: "Leitungsschutzschalter", h: 60, pole: 1, rolle: "geraet", an: ["1", "2"],
     zeichne: (x, y, g) => schutzpol(x, y) + nummern(x, y, 60, g)},
+  fi: {name: "Fehlerstromschutzschalter", h: 60, pole: 1, rolle: "geraet", links: 50, an: ["1", "2"], zeichne: fehlerstrom},
+  tuer: {name: "Positionsschalter (Türkontakt)", h: 60, pole: 1, rolle: "geraet", links: 44, an: ["13", "14"], zeichne: kontakt("no", "rolle")},
+  erde: {name: "Erdung", h: 24, pole: 1, rolle: "geraet", zeichne: erde},
   sicherung: {name: "Sicherung", h: 60, pole: 1, rolle: "geraet", an: ["1", "2"], zeichne: (x, y, g) =>
     linie(`M${x} ${y}V${y + 60}`) + kasten(x - 5, y + 16, 10, 28, "none") + nummern(x, y, 60, g)},
   k1: {name: "Hauptkontakt Schütz", h: 60, pole: 1, rolle: "kontakt", an: ["1", "2"],
@@ -201,12 +234,11 @@ export const SYM = {
   wende: {name: "Wendeschaltung", h: 100, pole: 3, rolle: "kontakt", zeichne: wende},
   hlr3: {name: "Halbleiterrelais, Lastkreis", h: 60, pole: 3, rolle: "kontakt", zeichne: halbleiter3},
   umrichter: {name: "Frequenzumrichter", h: 90, pole: 3, rolle: "haupt", pe: true, zeichne: umrichter},
+  bruecke3: {name: "Umsteckbrücke", h: 30, pole: 3, rolle: "hinweis", zeichne: bruecke3},
   klemme3: {name: "Klemmen 3-polig mit PE", h: 24, pole: 3, rolle: "klemme", pe: true, zeichne: klemme3},
   motor3: {name: "Drehstrommotor", h: 80, pole: 3, rolle: "geraet", pe: true, zeichne: motor3},
   heizung3: {name: "Heizwiderstand 3~", h: 60, pole: 3, rolle: "geraet", zeichne: heizung3},
 };
-
-SYM.coil = {...SYM.spule, name: "Schützspule"};   // Kurzname in der Kanalliste
 
 // Zeichen und Variante aus dem Datenwert "sens:mag" bzw. "geraet:OUT0"
 export function zeichen(wert){
