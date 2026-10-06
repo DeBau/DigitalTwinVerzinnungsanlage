@@ -18,7 +18,7 @@ import { FELD_LEDS, ketteAktualisieren } from '../anlage/verdrahtung.js';
 import { SAEULE } from '../anlage/umhausung.js';
 import { KUPFER, ZINN_FARBE, daempfe, koerbe, rauchMat } from '../anlage/koerbe.js';
 import { toastBis } from './ereignisse.js';
-import { ausgang, eingang, wirksam } from '../logik/eingaenge.js';
+import { ausgang, eingang, ketteLaeuft, wirksam } from '../logik/eingaenge.js';
 import { demo } from '../logik/demo-sps.js';
 import { korbUnterkante } from '../logik/prozess.js';
 import { pruefstationZeichnen } from '../logik/pruefstation.js';
@@ -145,7 +145,7 @@ export function visual(dt) {
   $('bad-info').textContent = tr`Heizung −TB1: ${tr(st.heizU ? 'EIN' : 'AUS')} · Heizelement ${fmt0.format(st.heizElement * 100)} % · BT1 = ${eingang('BT1_Temperatur')} · BL1 = ${eingang('BL1_Fuellstand')}`
     + (st.kf2 ? '' : ' · ' + tr('NOT-HALT aktiv'));
 
-  $('ro-step').textContent = st.modus === 'demo' ? String(demo.schritt) + (demo.t > 0 ? ' · ' + fmt0.format(demo.t) + ' s' : '') : tr('SPS');
+  $('ro-step').textContent = ketteLaeuft() ? String(demo.schritt) + (demo.t > 0 ? ' · ' + fmt0.format(demo.t) + ' s' : '') : tr('SPS');
   $('ro-temp').textContent = fmt0.format(st.temp) + ' °C';
   $('ro-temp').classList.toggle('warn', st.temp < TEMP_SOLL);
   $('ro-level').textContent = fmt0.format(st.fuell) + ' %';

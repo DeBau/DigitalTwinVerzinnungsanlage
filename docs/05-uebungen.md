@@ -11,6 +11,7 @@ programmiert.
 
 | Stufe | Dein Programm macht | Das Modell macht |
 |---|---|---|
+| **0 – Nur Förderstrecke** | Band 1, Anschlag, Vereinzeler, Rollenkurve, Band 2, Kippmulde, Prüfstation (Übungsumfang *Portal automatisch*, *Band: SPS steuert*) | Verzinnen (Schrittkette −MM1…−MM4), Temperaturregelung |
 | **1 – Nur Verzinnen** | Schrittkette −MM1…−MM4, Betriebsarten, Meldeleuchten | Band, Rollenkurve, Band 2, Kühlung, Prüfstation, Temperaturregelung |
 | **2 – + Förderstrecke** | zusätzlich Band 1, Anschlag, Vereinzeler, Rollenkurve, Band 2, Kippmulde, Prüfstation, Vor-Ort-Steuerstellen; Band 1, Band 2, Rollenkurve und Prüfband wahlweise über Schütz oder Umrichter (Telegramm 1) | Temperaturregelung, Nachspeisung Kühlwasser |
 | **3 – + Zinnbad und Kühlwasser** | zusätzlich Heizung −TB1 und Nachfüllen −MB11 aus Analogwerten, Nachspeisung des Kühlwassertanks −MB17/−MB18 | nichts mehr – die ganze Anlage hängt an deinem Programm |

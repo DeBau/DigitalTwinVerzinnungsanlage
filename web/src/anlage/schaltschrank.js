@@ -16,7 +16,7 @@ import { MULDE, ST } from './pruefstation.js';
 import { dummy, rohrNeu } from './pneumatik.js';
 import { drucktaster, meldeleuchte, tafelText, wahlschalter } from './befehlsgeraete.js';
 import { koerbe } from './koerbe.js';
-import { ausgang, eingang, korbAmPyrometer } from '../logik/eingaenge.js';
+import { ausgang, ausgangSps, eingang, ketteLaeuft, korbAmPyrometer } from '../logik/eingaenge.js';
 import { demo } from '../logik/demo-sps.js';
 import { g120Aktualisieren, g120Bauen } from './g120.js';
 import { UMRICHTER_LISTE } from '../logik/umrichter.js';
@@ -783,7 +783,8 @@ function hmiZeichnen() {
   txt(t(hand ? 'HAND (Schaltschrank)' : auto ? 'AUTOMATIK' : 'EINZELZYKLUS'), 40, 160, 34, hand ? '#c27a00' : '#1f3b57', 700);
   lampe(55, 210, A('PF1_Automatik')); txt(t('Anlage läuft'), 85, 219);
   lampe(55, 255, E('BG40_Korb_am_Anschlag')); txt(t('Korb am Übergabeplatz'), 85, 264);
-  txt(st.modus === 'demo' ? t`Schritt ${demo.schritt}: ${t(SCHRITT_TEXT[demo.schritt] || '')}` : t('Schritt: siehe SPS'), 40, 315, 26, '#1b232c', 600);
+  if (st.modus === 'sps' && st.betriebPortal === 'auto') { lampe(260, 210, true, '#2f7fd0'); txt(t('Portal auto'), 285, 219, 22); }
+  txt(ketteLaeuft() ? t`Schritt ${demo.schritt}: ${t(SCHRITT_TEXT[demo.schritt] || '')}` : t('Schritt: siehe SPS'), 40, 315, 26, '#1b232c', 600);
   txt(t`Verzinnt: ${st.verzinnt}`, 40, 360, 26);
   // Zinnbad
   feld(440, 90, 400, 300, 'Zinnbad');
@@ -845,7 +846,7 @@ export function spsLedsAktualisieren(dt) {
   for (const s of SIGNALE) {
     const i = adrIndex(s.adresse);
     if (i < 0 || i > 95 || (s.richtung !== 'eingang' && i > 63)) continue;
-    if (s.richtung === 'eingang') di[i] = !!eingang(s.name); else dq[i] = ausgang(s.name);
+    if (s.richtung === 'eingang') di[i] = !!eingang(s.name); else dq[i] = ausgangSps(s.name);
   }
   SCHRANK.diLeds.forEach((m, i) => { m.emissiveIntensity = di[i] ? 2 : 0; });
   SCHRANK.dqLeds.forEach((m, i) => { m.emissiveIntensity = dq[i] ? 2 : 0; });

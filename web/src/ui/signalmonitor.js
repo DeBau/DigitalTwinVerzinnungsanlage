@@ -1,7 +1,7 @@
 import { SIGNALE } from '../signale.js';
 import { st } from '../logik/zustand.js';
 import { $ } from '../core/szene.js';
-import { ausgang, ausgangWort, eingang, istAnalog } from '../logik/eingaenge.js';
+import { ausgangSps, ausgangWort, eingang, istAnalog, vomPortal } from '../logik/eingaenge.js';
 import { signalName, t } from '../core/sprache.js';
 
 // ----------------------------------------------------------------------------
@@ -39,6 +39,7 @@ export function monitorAufbauen() {
                <button type="button" data-f="auto" aria-pressed="${f === 'auto'}" title="${esc(t('Wert aus dem Modell'))}">A</button>
                <button type="button" data-f="0" aria-pressed="${f === '0'}" title="${esc(t('Auf 0 forcen'))}">0</button>
                <button type="button" data-f="1" aria-pressed="${f === '1'}" title="${esc(t('Auf 1 forcen'))}">1</button></span>`
+          : vomPortal(s.name) ? `<span class="src" title="${esc(t('Übungsumfang Verzinnen: Portal automatisch. Das Ventil schaltet die Portalsteuerung, dieser SPS-Ausgang ist ohne Wirkung.'))}">${esc(t('Portal'))}</span>`
           : `<span class="src">${esc(t('SPS'))}</span>`}</td>`;
       tr.querySelectorAll('.force button').forEach(b => b.onclick = () => {
         const f = b.dataset.f;
@@ -77,7 +78,7 @@ export function monitorAktualisieren() {
   for (const s of SIGNALE) {
     const z = monZeilen.get(s.name);
     if (!z || z.tr.hidden) continue;
-    let wert = z.analog ? (s.richtung === 'eingang' ? eingang(s.name) : ausgangWort(s.name)) : (s.richtung === 'eingang' ? !!eingang(s.name) : ausgang(s.name));
+    let wert = z.analog ? (s.richtung === 'eingang' ? eingang(s.name) : ausgangWort(s.name)) : (s.richtung === 'eingang' ? !!eingang(s.name) : ausgangSps(s.name));
     if (z.analog && /_[SZ]TW\d$/.test(s.name)) wert = '16#' + (wert & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');   // Steuer-/Zustandswort
     if (letzterWert.get(s.name) === wert) continue;
     letzterWert.set(s.name, wert);

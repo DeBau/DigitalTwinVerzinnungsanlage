@@ -76,7 +76,7 @@ import { MM8, MULDE, ST } from './anlage/pruefstation.js';
 import { schrankAktualisieren, spsLedsAktualisieren } from './anlage/schaltschrank.js';
 import { koerbe } from './anlage/koerbe.js';
 import { ereignis } from './ui/ereignisse.js';
-import { eingang } from './logik/eingaenge.js';
+import { eingang, ketteLaeuft } from './logik/eingaenge.js';
 import { demo, demoSps } from './logik/demo-sps.js';
 import { prozess } from './logik/prozess.js';
 import { visual } from './ui/visualisierung.js';
@@ -100,7 +100,7 @@ setTimeout(() => { if (st.modus === 'demo' && !st.plcVerbunden) { demo.auto = tr
 
 // Testzugang (Konsole): __zwilling.sim(30) rechnet 30 s Anlagenzeit ohne Darstellung
 window.__zwilling = { renderer, sun, st, KW, ZYL, demo, koerbe, scene, anlage, THREE, eingang, BAND, BAND2, KURVE, MM8, MULDE, ST, M, camera, cam(px, py, pz, tx, ty, tz) { KAMERA.bewegt = true; camera.position.set(px, py, pz); controls.target.set(tx, ty, tz); }, sim(sek) {
-  for (let t = 0; t < sek; t += 0.01) { if (st.modus === 'demo') demoSps(0.01); prozess(0.01); }
+  for (let t = 0; t < sek; t += 0.01) { if (ketteLaeuft()) demoSps(0.01); prozess(0.01); }
 } };
 
 
@@ -114,7 +114,7 @@ function schritt(zeichnen) {
   const dt = Math.min(uhr.getDelta(), 0.25);
   // Feste Teilschritte, damit Pneumatik und Sensoren auch bei langsamen Bildraten sauber schalten
   const n = Math.max(1, Math.ceil(dt / 0.01));
-  ZM('prozess', () => { if (!st.pause) for (let i = 0; i < n; i++) { if (st.modus === 'demo') demoSps(dt / n); prozess(dt / n); } });
+  ZM('prozess', () => { if (!st.pause) for (let i = 0; i < n; i++) { if (ketteLaeuft()) demoSps(dt / n); prozess(dt / n); } });
   ZM('visual', () => visual(dt));
   ZM('schrank', () => { schrankAktualisieren(dt); spsLedsAktualisieren(dt); });
   ZM('monitor', () => { if (TAKT.bild % 6 === 3) monitorAktualisieren(); if (TAKT.bild % 3 === 1) fuFensterAktualisieren(); wzAufzeichnen(dt); fuAufzeichnen(dt); eingaengeSenden(false); });

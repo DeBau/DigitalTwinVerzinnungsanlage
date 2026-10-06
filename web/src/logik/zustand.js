@@ -17,8 +17,8 @@ export const SCHALT_EIN = 3.0, SCHALT_AUS = 4.5;   // Schaltpunkt der Nutsensore
 
 export const TEMP_SOLL = 250;
 export const FUELL_MIN = 40;
-export const TAUCH_SOLL = 10;
-export const TROPF_SOLL = 10;
+// Rezept: Tauch- und Abtropfzeit (Sollwerte in s, in der Seitenleiste unter „Prozess“ einstellbar) stehen in st.tauchSoll/st.tropfSoll
+export const ZEIT_MIN = 2, ZEIT_MAX = 30;
 // Kühlwassertank der Sprühkühlung: Grenzschalter Liquiphant FTL31 −BG38 (MIN-Sicherheit, Trockenlaufschutz) und −BG39 (MAX-Sicherheit), Saugstutzen der Pumpe
 export const WASSER_MIN = 25, WASSER_MAX = 90, WASSER_SAUG = 8;
 // Nachspeisung: Magnetventil −MB17 (Absperrung) in Reihe mit dem Regelventil −MB18 (Stellantrieb 0…100 %, Stellzeit 8 s)
@@ -53,6 +53,8 @@ export const st = {
   force: {},
   temp: 266, heizung: true, fuell: 62,
   betriebBand: 'auto', betriebBad: 'auto', betriebWasser: 'auto',   // Übungsumfang: 'auto' = Anlage regelt selbst, 'sps' = SPS-Programm
+  betriebPortal: 'sps',                                    // Verzinnen −MM1…−MM4: 'sps' = dein Programm, 'auto' = Portalsteuerung (Schrittkette der Demo-SPS)
+  tauchSoll: 10, tropfSoll: 10,                            // Rezept: Tauch- und Abtropfzeit in s
   wasser: 70, ablass: false,                               // Kühlwassertank: Füllstand in %, Ablasshahn offen
   antrieb: { TA2: 'schuetz', TA3: 'schuetz', TA4: 'schuetz', TA5: 'schuetz' },   // je Förderer 'schuetz' oder 'fu' = Umrichter (Telegramm 1)
   notHalt: { sf0: false, sf8: false, sf9: false, sf10: false, sf33: false }, kf2: true, sf4Alt: false, eingriff: false,

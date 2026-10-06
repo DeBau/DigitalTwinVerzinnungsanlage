@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TAUCH_SOLL, TROPF_SOLL, st } from './zustand.js';
+import { st } from './zustand.js';
 import { BAND2, BAND_Y } from '../anlage/baender.js';
 import { kipperKinematik, kippWinkel, MM8, MULDE, ST } from '../anlage/pruefstation.js';
 import { E2 } from '../anlage/band2.js';
@@ -167,7 +167,7 @@ export function pruefstation(dt) {
 function teilGut(k) {
   if (!k.getaucht || k.beschichtung < 0.95) return Math.random() < 0.05;            // Kupfer sichtbar
   if (k.nass > 0.3) return Math.random() < 0.3;                                      // Wasserflecken
-  if (k.tauch < TAUCH_SOLL - 0.5 || k.tropf < TROPF_SOLL - 0.5) return Math.random() < 0.4;
+  if (k.tauch < st.tauchSoll - 0.5 || k.tropf < st.tropfSoll - 0.5) return Math.random() < 0.4;
   return Math.random() > 0.04;                                                       // Zinnzapfen/Perlen
 }
 function teilAbschliessen(t) {

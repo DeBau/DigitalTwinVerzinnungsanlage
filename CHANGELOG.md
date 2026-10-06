@@ -6,6 +6,32 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.10.0 – 2026-10-06
+
+Bridge neu bauen (`Bridgeuild.bat`): Der Code der Bridge hat sich nicht geändert, aber sie trägt die
+neue Nebenversion. Signalliste und TIA-Variablentabellen bleiben gleich.
+
+**Warum**
+Wer nur die Förderstrecke programmieren wollte, musste trotzdem die ganze Schrittkette des Portals
+schreiben – ohne Verzinnen kommt kein fertiger Korb auf das Band. Und Tauch- und Abtropfzeit standen
+fest auf 10 s.
+
+**Neu**
+- **Übungsumfang „Verzinnen: Portal −MM1…−MM4“** mit *Portal automatisch* / *SPS steuert*
+  (Standard: SPS steuert, bestehende Programme laufen unverändert). Automatisch fährt die
+  Portalsteuerung die Schrittkette der Demo-SPS – ohne START und unabhängig von −SA1, sobald −KF2 frei
+  ist und ein Korb an −BG40 anliegt; −SA3 HAND schaltet auf die Tipptaster am Türtableau. Die
+  Ausgänge −MB1…−MB8 der SPS sind dann ohne Wirkung (Signalmonitor: Quelle „Portal“, die DQ-LEDs
+  zeigen weiter, was die CPU schreibt). HMI-Lampe „Portal auto“, Schrittnummer und Weg-Zeit-Diagramm
+  laufen mit.
+- **Rezept: Tauch- und Abtropfzeit** unter *Prozess* einstellbar (2…30 s, Standard je 10 s). Die
+  Demo-SPS und das Portal „automatisch“ halten sie; steuert dein Programm das Portal, misst der
+  Zwilling jeden Korb daran (kürzer als Soll − 0,5 s → „Korb mangelhaft“, öfter Ausschuss).
+
+**Doku**
+- `docs/03-bedienung.md`: Umschalter Portal, Übergabe Band ↔ Portal (−BG40, −BG1, −BG15, −BG2), Rezept.
+- `docs/05-uebungen.md`: Stufe 0 „Nur Förderstrecke“.
+
 ## 1.9.0 – 2026-10-06
 
 Bridge neu bauen (`Bridge\build.bat`) und mit der neuen `signale.csv` starten: Der Code der Bridge

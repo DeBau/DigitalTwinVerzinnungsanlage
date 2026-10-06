@@ -1,6 +1,7 @@
 import { ZYL, st } from '../logik/zustand.js';
 import { $ } from '../core/szene.js';
 import { demo } from '../logik/demo-sps.js';
+import { ketteLaeuft } from '../logik/eingaenge.js';
 import { BAND, STOPPER } from '../anlage/baender.js';
 import { MM8 } from '../anlage/pruefstation.js';
 import { DROSSEL, DROSSEL_GRUND, drosselSpeichern } from '../logik/drosseln.js';
@@ -54,7 +55,7 @@ export function wzAufzeichnen(dt) {
   tSim += dt;
   const p = Float32Array.from(KANAELE, k => k.pos());
   fahrzeitenMessen(tSim);
-  verlauf.push({ t: tSim, p, s: st.modus === 'demo' ? demo.schritt : null });
+  verlauf.push({ t: tSim, p, s: ketteLaeuft() ? demo.schritt : null });
   while (verlauf.length && verlauf[0].t < tSim - PUFFER_S) verlauf.shift();
   while (kanten.length && kanten[0].t < tSim - PUFFER_S) kanten.shift();
   if (document.hidden) return;

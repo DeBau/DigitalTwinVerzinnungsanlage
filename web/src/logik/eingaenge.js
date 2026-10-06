@@ -7,9 +7,19 @@ import { UMRICHTER, nistA, zsw1 } from './umrichter.js';
 // ----------------------------------------------------------------------------
 // Signale lesen
 // ----------------------------------------------------------------------------
+// Übungsumfang „Verzinnen: Portal automatisch“: die Ventile −MB1…−MB8 schaltet die Portalsteuerung (Schrittkette der
+// Demo-SPS), die Ausgänge der SPS dafür sind ohne Wirkung
+const PORTAL_VENTIL = /^MB[1-8]_/;
+export const vomPortal = (name) => st.modus === 'sps' && st.betriebPortal === 'auto' && PORTAL_VENTIL.test(name);
 export function ausgang(name) {
+  return st.modus === 'sps' && !vomPortal(name) ? !!st.spsAusgaenge[name] : !!st.demoAusgaenge[name];
+}
+// Ausgang, wie ihn die CPU schreibt (Signalmonitor, LEDs der DQ-Baugruppe)
+export function ausgangSps(name) {
   return st.modus === 'sps' ? !!st.spsAusgaenge[name] : !!st.demoAusgaenge[name];
 }
+// Schrittkette der Demo-SPS läuft: in der Demo und für das Portal „automatisch“
+export const ketteLaeuft = () => st.modus === 'demo' || st.betriebPortal === 'auto';
 // Ventile, Schütze und das Halbleiterrelais hängen hinter dem Sicherheitsrelais −KF2:
 // bei Not-Halt sind sie spannungslos, auch wenn die SPS den Ausgang noch setzt
 const KF2_GESCHALTET = /^(MB\d+|QA\d+|TB\d)_/;

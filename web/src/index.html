@@ -480,6 +480,13 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
       <summary><h2>Übungsumfang</h2></summary>
       <div class="inhalt">
         <div class="betrieb">
+          <span>Verzinnen: Portal −MM1…−MM4</span>
+          <div class="seg klein" role="group" aria-label="Steuerung des Portals">
+            <button type="button" id="pt-auto" aria-pressed="false">Portal automatisch</button>
+            <button type="button" id="pt-sps" aria-pressed="true">SPS steuert</button>
+          </div>
+        </div>
+        <div class="betrieb">
           <span>Band, Anschlag, Vereinzeler</span>
           <div class="seg klein" role="group" aria-label="Steuerung des Bandes">
             <button type="button" id="bm-auto" aria-pressed="true">Bandmodul automatisch</button>
@@ -701,6 +708,13 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
         </div>
         <p class="hint" id="bad-info"></p>
         <p class="hint" id="kw-info"></p>
+        <div class="param">
+          <label for="p-tauch">Tauchzeit (Rezept)</label><output id="o-tauch" for="p-tauch">10 s</output>
+          <input type="range" id="p-tauch" min="2" max="30" step="1" value="10">
+          <label for="p-tropf">Abtropfzeit (Rezept)</label><output id="o-tropf" for="p-tropf">10 s</output>
+          <input type="range" id="p-tropf" min="2" max="30" step="1" value="10">
+        </div>
+        <p class="hint">Die Demo-SPS und das Portal „automatisch“ tauchen und tropfen so lange. Steuert dein Programm das Portal, prüft der Zwilling, ob es die Zeiten einhält: Ist ein Korb kürzer getaucht oder abgetropft (0,5 s Toleranz), ist er mangelhaft.</p>
         <div class="param">
           <label for="p-speed">Geschwindigkeit aller Zylinder</label><output id="o-speed" for="p-speed">100 %</output>
           <input type="range" id="p-speed" min="0.3" max="2" step="0.1" value="1">

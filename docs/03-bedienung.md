@@ -62,9 +62,20 @@ Seitenleiste. Beide zeigen denselben Zustand und schreiben dieselben Eingänge.
 
 | Umschalter | „automatisch“ | „SPS“ |
 |---|---|---|
+| **Verzinnen: Portal −MM1…−MM4** (Standard: SPS) | Die Portalsteuerung fährt die Schrittkette der Demo-SPS: einhängen, anheben, zum Bad, Abdeckung auf, tauchen, abtropfen, zurück, absetzen, lösen. Ohne START und unabhängig von −SA1 – sie fährt, sobald −KF2 frei ist und ein Korb an −BG40 anliegt; −SA3 HAND schaltet auf die Tipptaster am Türtableau. Die Ausgänge −MB1…−MB8 deiner SPS sind ohne Wirkung (Signalmonitor: Quelle „Portal“). | Dein Programm schaltet −MB1…−MB8, Endlagen −BG1…−BG8. |
 | **Band, Anschlag, Vereinzeler** (mit Rollenkurve und Band 2) | Das Bandmodul fördert, stoppt am Anschlag, vereinzelt und übergibt über die Rollenkurve auf Band 2 selbstständig. | Dein Programm steuert −QA1/−QA2 (Rechts-/Linkslauf), −MB9 Anschlag, −MB10 Vereinzeler, die Rollenkurve −QA10/−QA11, Band 2 (−QA5/−QA6, Kühlung), die Muldenrollen −QA12/−QA13 und die Prüfstation. Eingänge: −BG11…−BG13, −BG35/−BG36, −BG21…−BG24, −BG37/−BG33 (Kippmulde), Vor-Ort-Steuerstellen, −FA1/−FA5/−FA7/−FA8. |
 | **Zinnbad Temperatur/Füllstand** | Der Regler am Bad hält 280 °C, Nachfüllen per Knopf. | Dein Programm schaltet −TB1 Heizung und −MB11 Nachfüllen. Istwerte −BT1/−BL1 analog. Ob 2-Punkt, Impuls/PWM oder PID_Compact – das entscheidet dein Programm. |
 | **Kühlwassertank: Nachspeisung** | Der Niveauregler am Tank speist zwischen 55 und 75 % nach und sperrt die Pumpe −MA3 unter −BG38. | Dein Programm schaltet −MB17 und stellt −MB18 (%QW80). Istwerte −BL2 (%IW72) und −MB18 (%IW74) analog, Grenzschalter −BG38/−BG39. Zweipunkt oder PID_Compact – und den Trockenlaufschutz der Pumpe übernimmst du auch. |
+
+**Portal automatisch, Band aus deinem Programm:** Die Portalsteuerung hebt und senkt am Übergabeplatz nur bei
+offenem Anschlag (−BG15). Dein Programm stoppt das Band, wenn −BG40 meldet, öffnet −MB9 spätestens, wenn −BG1
+„eingehängt“ meldet, und hält den Anschlag offen, bis der fertige Korb abgesetzt, gelöst (−BG2) und abgefahren ist
+(−BG11 frei). Erst danach Anschlag zu und Vereinzeler auf. Solange der Haken im Korb ist, muss das Band stehen.
+
+**Rezept: Tauch- und Abtropfzeit** stellst du unter *Prozess* ein (2…30 s, Standard je 10 s). Die Demo-SPS
+und das Portal „automatisch“ halten diese Zeiten. Steuert dein Programm das Portal, sind es die Sollwerte, an
+denen der Zwilling jeden Korb misst: kürzer getaucht oder abgetropft (0,5 s Toleranz) → „Korb mangelhaft“ und
+öfter Ausschuss an der Prüfstation.
 
 Regelstrecke Zinnbad: Heizelement PT1 (6 s) → Bad PT1 (150 s), 100 % Heizleistung ergibt 360 °C im Beharrungszustand, für 280 °C sind ca. 76 % nötig. Jedes Tauchen kühlt um 5 K und verbraucht 4 % Zinn. Analogwerte: 0…27648 = 0…400 °C bzw. 0…100 %.
 

@@ -1,4 +1,4 @@
-import { NOT_HALT, QUITT, TAUCH_SOLL, TROPF_SOLL, ZYL, notHaltText, st } from './zustand.js';
+import { NOT_HALT, QUITT, ZYL, notHaltText, st } from './zustand.js';
 import { anlage } from '../core/szene.js';
 import { fmt1 } from '../core/format.js';
 import { BAND, BAND_ENDE, BAND_Y, KORB_TEILUNG, KURVE, STOPPER } from '../anlage/baender.js';
@@ -147,7 +147,7 @@ export function prozess(dt) {
       k.zustand = 'band'; k.z = 0; k.fertig = true;
       if (!k.getaucht) ereignis(t`Korb ${k.nr} unverzinnt abgelegt`, 'err');
       else {
-        const ok = k.tauch >= TAUCH_SOLL - 0.5 && k.tropf >= TROPF_SOLL - 0.5;
+        const ok = k.tauch >= st.tauchSoll - 0.5 && k.tropf >= st.tropfSoll - 0.5;
         if (ok) st.verzinnt++;
         ereignis(ok ? t`Korb ${k.nr} verzinnt · Tauchzeit ${fmt1.format(k.tauch)} s · Abtropfzeit ${fmt1.format(k.tropf)} s` : t`Korb ${k.nr} mangelhaft · Tauchzeit ${fmt1.format(k.tauch)} s · Abtropfzeit ${fmt1.format(k.tropf)} s`, ok ? 'ok' : 'err');
       }

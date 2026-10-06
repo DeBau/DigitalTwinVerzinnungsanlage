@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { KW, ZYL, st } from '../logik/zustand.js';
+import { KW, ZEIT_MAX, ZEIT_MIN, ZYL, st } from '../logik/zustand.js';
 import { $, anlage, camera, controls, renderer } from '../core/szene.js';
 import { fmt0 } from '../core/format.js';
 import { PULT_TASTER } from '../anlage/register.js';
@@ -115,6 +115,18 @@ $('sa4').onclick = () => { st.sa4 = !st.sa4; bedienSync(); };
 $('sa1').onclick = () => { st.sa1 = !st.sa1; bedienSync(); };
 $('sa2').onclick = () => { st.sa2 = !st.sa2; bedienSync(); };
 function betriebSetzen(was, wert) {
+  if (was === 'portal') {
+    if (st.betriebPortal === wert) return;
+    st.betriebPortal = wert;
+    // Portalsteuerung übernimmt: Kette in Schritt 1, ein schon verzinnter Korb am Übergabeplatz wird nicht noch einmal getaucht
+    if (wert === 'auto') Object.assign(demo, { schritt: 1, t: 0, mitKorb: false, korbFertig: koerbe.some(k => k.zustand === 'band' && k.fertig && Math.abs(k.z) < 60) });
+    ereignis(wert === 'auto'
+      ? (st.modus === 'sps' ? 'Übungsumfang: Portal −MM1…−MM4 fährt jetzt automatisch, die Ventilausgänge −MB1…−MB8 der SPS sind ohne Wirkung' : 'Übungsumfang: Portal automatisch (wirkt mit PLCSIM Advanced, in der Demo fährt die Demo-SPS ohnehin)')
+      : 'Übungsumfang: Portal −MM1…−MM4 steuert jetzt die SPS');
+    monitorAufbauen();
+    bedienSync();
+    return;
+  }
   if (was === 'band') st.betriebBand = wert; else if (was === 'wasser') st.betriebWasser = wert; else st.betriebBad = wert;
   ereignis(was === 'band'
     ? (wert === 'sps' ? 'Übungsumfang: Band, Anschlag und Vereinzeler steuert jetzt die SPS' : 'Übungsumfang: Bandmodul läuft wieder automatisch')
@@ -123,6 +135,8 @@ function betriebSetzen(was, wert) {
       : (wert === 'sps' ? 'Übungsumfang: Zinnbad-Temperatur und Nachfüllen regelt jetzt die SPS' : 'Übungsumfang: Zinnbad wird wieder vom Regler am Bad geregelt'));
   bedienSync();
 }
+$('pt-auto').onclick = () => betriebSetzen('portal', 'auto');
+$('pt-sps').onclick = () => betriebSetzen('portal', 'sps');
 $('bm-auto').onclick = () => betriebSetzen('band', 'auto');
 $('bm-sps').onclick = () => betriebSetzen('band', 'sps');
 // Antriebe: je Förderer Schütz oder Umrichter (−TA2 Band 1, −TA3 Band 2, −TA4 Rollenkurve, −TA5 Prüfband)
@@ -155,6 +169,8 @@ function bedienSync() {
   $('o-sf47').textContent = fmt0.format(st.pbPoti * 100) + ' %';
   $('sf33').setAttribute('aria-pressed', st.notHalt.sf33);
   $('sa3').setAttribute('aria-pressed', st.sa3);
+  $('pt-auto').setAttribute('aria-pressed', st.betriebPortal === 'auto');
+  $('pt-sps').setAttribute('aria-pressed', st.betriebPortal === 'sps');
   $('bm-auto').setAttribute('aria-pressed', st.betriebBand === 'auto');
   $('bm-sps').setAttribute('aria-pressed', st.betriebBand === 'sps');
   $('zb-auto').setAttribute('aria-pressed', st.betriebBad === 'auto');
@@ -167,6 +183,7 @@ function bedienSync() {
   $('btn-heizung').disabled = st.betriebBad === 'sps';
   $('btn-fuellen').disabled = st.betriebBad === 'sps';
   $('betrieb-hint').textContent = [
+    st.betriebPortal === 'auto' ? 'Portal: Die Portalsteuerung fährt die Schrittkette selbst (einhängen, anheben, zum Bad, tauchen, abtropfen, zurück, absetzen, lösen) – ohne START, sobald −KF2 frei ist; −SA3 Hand schaltet auf die Tipptaster am Türtableau. Sie beginnt, wenn ein Korb an −BG40 anliegt, und hebt und senkt nur bei offenem Anschlag −BG15. Dein Programm stoppt also das Band an −BG40, öffnet −MB9, sobald −BG1 eingehängt meldet, und lässt den fertigen Korb nach −BG2 gelöst abfahren.' : 'Portal: −MB1…−MB8 (Einhängen/Lösen, Senken/Anheben, Bad/Band, Abdeckung) aus deinem Programm; Endlagen −BG1…−BG8.',
     st.betriebBand === 'sps' ? 'Band: −QA1/−QA2 (Rechts/Links), −MB9 Anschlag, −MB10 Vereinzeler, Rollenkurve −QA10/−QA11, Band 2, Muldenrollen −QA12/−QA13 und Prüfstation aus deinem Programm; −BG11…−BG13, −BG40 (Korb liegt am Anschlag an), −BG35/−BG36, −BG21…−BG24, −BG37/−BG33 (Einlauf/Endanschlag Kippmulde) und die Vor-Ort-Steuerstellen sind Eingänge.' : 'Band: Das Bandmodul fördert, stoppt, vereinzelt und übergibt über die Rollenkurve selbstständig.',
     UMRICHTER_LISTE.some(fu => st.antrieb[fu.name] === 'fu') ? t`Am Umrichter: ${UMRICHTER_LISTE.filter(fu => st.antrieb[fu.name] === 'fu').map(fu => '−' + fu.name).join(', ')}. ${t(st.betriebBand === 'sps' ? 'Dein Programm führt sie über Standardtelegramm 1 (STW1/NSOLL_A → ZSW1/NIST_A), z. B. mit TO_SpeedAxis; die zugehörigen Schütze sind ohne Wirkung.' : 'Das Bandmodul führt sie selbst. Mit „SPS steuert“ übernimmt dein Programm die Telegramme.')}` : '',
     st.betriebBad === 'sps' ? 'Zinnbad: −TB1 Heizung (2-Punkt, Impuls/PWM oder PID) und −MB11 Nachfüllen aus deinem Programm, Istwerte −BT1/−BL1 analog.' : 'Zinnbad: Der Regler am Bad hält 280 °C, nachfüllen per Knopf.',
@@ -192,6 +209,17 @@ $('btn-zufuhr').onclick = (e) => {
   st.zufuhr = !st.zufuhr;
   e.currentTarget.setAttribute('aria-pressed', st.zufuhr);
 };
+// Rezept: Tauch- und Abtropfzeit
+function rezeptSync() {
+  $('p-tauch').value = st.tauchSoll; $('o-tauch').textContent = fmt0.format(st.tauchSoll) + ' s';
+  $('p-tropf').value = st.tropfSoll; $('o-tropf').textContent = fmt0.format(st.tropfSoll) + ' s';
+}
+const zeit = (v) => Math.max(ZEIT_MIN, Math.min(ZEIT_MAX, Math.round(Number(v)) || ZEIT_MIN));
+for (const [id, key, was] of [['p-tauch', 'tauchSoll', 'Tauchzeit'], ['p-tropf', 'tropfSoll', 'Abtropfzeit']]) {
+  $(id).addEventListener('input', (e) => { st[key] = zeit(e.target.value); rezeptSync(); });
+  $(id).addEventListener('change', () => ereignis(t`Rezept: ${t(was)} ${fmt0.format(st[key])} s`));   // erst beim Loslassen des Schiebers
+}
+rezeptSync();
 $('p-speed').addEventListener('input', (e) => {
   st.speed = parseFloat(e.target.value);
   $('o-speed').textContent = fmt0.format(st.speed * 100) + ' %';

@@ -1,4 +1,4 @@
-import { NOT_HALT, QUITT, TAUCH_SOLL, TROPF_SOLL, st } from './zustand.js';
+import { NOT_HALT, QUITT, st } from './zustand.js';
 import { eingang } from './eingaenge.js';
 
 // ----------------------------------------------------------------------------
@@ -30,6 +30,9 @@ export function demoSps(dt) {
   if (!frei) { demo.auto = false; demo.warten = true; }
   if (startFlanke && dauer) { demo.auto = true; demo.warten = false; }
   if (stop || !dauer || hand) demo.auto = false;
+  // Im Betrieb mit PLCSIM rechnet die Kette nur für den Übungsumfang „Verzinnen: Portal automatisch“. Das Portal
+  // braucht dann weder START noch −SA1 (die gehören deinem Programm): es fährt, sobald −KF2 frei ist und nicht Hand.
+  if (st.modus === 'sps') { demo.auto = frei && !hand; demo.warten = !frei; }
   const handStart = startFlanke && !dauer;
   if (handStart) demo.warten = false;
   if (hand) demo.schritt = 1;
@@ -60,8 +63,8 @@ export function demoSps(dt) {
     case 3: if (E('BG3_MM2_oben')) demo.schritt = 4; break;
     case 4: if (E('BG6_MM3_Bad')) demo.schritt = 5; break;
     case 5: if (E('BG7_MM4_offen')) demo.schritt = 6; break;
-    case 6: if (E('BG4_MM2_unten') && demo.t >= TAUCH_SOLL) demo.schritt = 7; break;
-    case 7: if (E('BG3_MM2_oben') && demo.t >= TROPF_SOLL) demo.schritt = 8; break;
+    case 6: if (E('BG4_MM2_unten') && demo.t >= st.tauchSoll) demo.schritt = 7; break;
+    case 7: if (E('BG3_MM2_oben') && demo.t >= st.tropfSoll) demo.schritt = 8; break;
     case 8: if (E('BG5_MM3_Band') && E('BG8_MM4_zu') && E('BG15_MM5_offen')) demo.schritt = 9; break;
     case 9: if (E('BG4_MM2_unten')) demo.schritt = 10; break;
     case 10: if (E('BG2_MM1_geloest')) { demo.schritt = 1; demo.korbFertig = true; } break;
