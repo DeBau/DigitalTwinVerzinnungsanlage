@@ -28,18 +28,21 @@ importiert nie aus einer Vorlage.
 | `editor/svg.js` | SVG-Grundlagen: `INK`, `MUTE`, `SVGT`, `tw`, `clamp`, `arrowHead`, Blatthöhe `PH` |
 | `editor/status.js` | Zustand des Editors `ED` |
 | `editor/registry.js` | Tabellen der Vorlagen, Gruppen, Bausteine und Stricharten, `art()`, Funktionen zum Anmelden |
+| `editor/spuren.js` | Spurbelegung `neueSpuren(raster)` mit `belege` und `knick`, `pfadD` |
 | `editor/vorlagen-svg.js` | Raster, Punkte, Rahmen, Schriftfeld, `snap`, Striche und Texte (`shapeD`, `strokesSVG`) |
 | `editor/bauteile.js` | Bauteile mit Anschlüssen: Strichstile, Drehen und Spiegeln, Anschlüsse, Schienen, Leitungen, `simOn`, `pressed` |
 | `editor/bausteine.js` | Geometrie: `bbox`, `ctr`, `outPt`, `inPt`, `fam`, `gruppeVon`, `rund`, `LINIE`, `platzhalter` |
 | `editor/auswahl.js` | `objById`, `uid`, `anySel`, `clearSel` |
 | `editor/kette.js` | Ablaufkette: senkrechte Verbindung, Kettenvorgänger, Ausrichten, Andocken, Seitenbausteine |
-| `editor/zeichnen.js` | `drawObj`, `connGeom`, `inkSVG` mit Leitungen, Verbindungen, Bausteinen und Punkten, `pageCount`, `wireRef` |
+| `editor/zeichnen.js` | `drawObj`, `connGeom`, `inkSVG` mit Leitungen, Verbindungen, Bausteinen und Punkten, `abzweigpunkte`, `pageCount`, `wireRef` |
 | `editor/blaetter.js` | Blätter, `sketchSVG`, Schriftfeld-Daten |
 | **App-Seiten** | `app/start.js`, `app/skizzen-kacheln.js`, `app/variablen.js`, `app/uebung.js` |
 | **Editor-Kern: Bedienung** | |
+| `editor/signalfeld.js` | Kennzeichenfeld mit Vorschlagsliste: `signalFeld`, `signalVorschlaege`, `normKennzeichen` |
 | `editor/eigenschaften.js` | Eigenschaftsfeld links (`propsHTML`, `updateProps`), Feldbausteine `textFeld`, `auswahlFeld`, `FARBEN`, `loeschKnopf` |
 | `editor/anzeige.js` | Blatt und Zeichnung neu zeichnen (`renderInk`, `refreshTpl`), Blattzahl, Größe |
-| `editor/verlauf.js` | `snapshot`, `saveSketch`, `undo`, Kopie aus einer früheren Übung |
+| `editor/pruefung.js` | Knopf „Prüfen“: `pruefeSkizze`, `zeigeBefunde`, `befundeWeg`, `waehleBefund` |
+| `editor/verlauf.js` | `aendere`, `beginne`, `schliesse`, `undo`, `redo`, `snapshot` (Übergang), `saveSketch`, Kopie aus einer früheren Übung |
 | `editor/beschriften.js` | Beschriftungsfeld auf dem Blatt (`editLabel`, `editObjLabel`, `editConnLabel`, `editTextItem`) |
 | `editor/werkzeuge.js` | `setTool`, `svgPt`, Punkt fangen `snapW` |
 | `editor/bearbeiten.js` | Eigenschaft übernehmen `applyProp`, Drehen, Löschen, Radieren |
@@ -76,6 +79,9 @@ Daten bleiben außerhalb von `src/`: `uebungen.js`, `quiz.js`, `stil.js`, `texte
   vorher `docs/uebungshandbuch.html` nach `docs/uebungshandbuch.ref.html` kopieren, umbauen, bauen, dann
   `node web/tools/uebungshandbuch/pruefen/pruefen.mjs`. Erwartet sind 0 Abweichungen. Baue nicht neu, solange
   `pruefen.mjs` läuft: Es lädt `docs/uebungshandbuch.html` für jedes Szenario neu.
+* `pruefen/tests/lauf.mjs [paket …] [--nur text] [--bauen]` führt die Abnahmetests aus (`pruefen/tests/<paket>.mjs`,
+  Treiber in `treiber.mjs`, Startdaten in `tests/daten/`). Im Bündel gibt es kein globales `ED`: Tests lesen den Zustand
+  aus dem DOM und aus `localStorage["uebh2:<scope>:sk:<key>"]`.
 * `pruefen/beispiele/*.json` sind feste Beispielzeichnungen. `pruefen/beispiele-erzeugen.mjs` läuft nur gegen
   einen Build mit globalen Namen (bis Commit 640c36d), siehe Kopfkommentar dort.
 
@@ -151,6 +157,7 @@ Funktionen zum Anmelden: `registriereVorlage(key, v)`, `registriereGruppe(id, g)
 | `zeiger.gezogen` | `(st) → true wenn erledigt` | `edUp`, Strich fertig und gespeichert | neu zeichnen |
 | `hintergrund` | `(d, cs) → SVG` | `inkSVG` (zeichnen.js), unter den Verbindungen | |
 | `verweis` | `(x, y) → Text` | `wireRef` (zeichnen.js), Verweis an Abbruchstellen | nur Kennzeichen und Blatt |
+| `pruefe` | `(d, {scope, key}) → [Befund]` | Knopf „Prüfen“ (pruefung.js); Befund `{stufe: "fehler" oder "hinweis", text, o?, c?, pt?}` | kein Knopf |
 
 ### Haken einer Gruppe (`registriereGruppe`)
 
@@ -158,7 +165,7 @@ Funktionen zum Anmelden: `registriereVorlage(key, v)`, `registriereGruppe(id, g)
 | --- | --- | --- | --- |
 | `name`, `hinweis` | Text | Palette (`paletteHTML`) | |
 | `kette` | `true` | `kettenQuelle`, `andockStelle` (kette.js), `connGeom` | kein Fortsetzen, kein Andocken |
-| `verbinde` | `(c, A, B, objs, alle) → {d, arrow, lbl}` | `connGeom` (zeichnen.js) nach der Gruppe von A | rechtwinklig von Rand zu Rand |
+| `verbinde` | `(c, A, B, objs, alle, spuren) → {d, arrow, lbl}` | `connGeom` (zeichnen.js) nach der Gruppe von A | rechtwinklig von Rand zu Rand |
 | `schleife` | `true` | `connect` (andocken.js) | keine Verbindung auf sich selbst |
 | `pfeiltext` | `true` | `verbindungFelder` (eigenschaften.js) | Verbindung ohne Beschriftung |
 | `bedingung` | `(A) → true/false` | Platzhalter in `verbindungSVG`, Abfrage in `connect` | |
@@ -190,11 +197,12 @@ einfachen Verbindung (ein Verlaufsschritt).
 | `umbau` | beide | `["t", …]` | `feldGeaendert` (editor/ereignisse.js): Feld baut das Eigenschaftsfeld neu auf | |
 | `beschriftung` | beide | `false` oder `{sofort, ort(o), wert(o), hinweis(o), setze(o, v)}` | `editObjLabel` (beschriften.js), `placeObj` | Text `o.v` links am Umriss |
 | `verweisName` | beide | `(o, objs, cs, dir) → Text` | `refName` (zeichnen.js) | `o.v` oder Name |
-| `seite` | BLK | `{verbinde, quelle, ausrichten, andocken, punkt}` | kette.js: Seitenbaustein einer Kette | gewöhnliches Kettenglied |
+| `seite` | BLK | `{verbinde(A, B, spuren), quelle, ausrichten, andocken, punkt}` | kette.js: Seitenbaustein einer Kette | gewöhnliches Kettenglied |
 | `schiene` | PC | `true` | `istSchiene` (bauteile.js): Anschluss „~“ an beliebiger Stelle | |
 | `drehbar` | PC | `false` | `xform`, `turnSel`, Drehknöpfe | drehbar und spiegelbar |
 | `rahmen` | PC | `true` | `istRahmen` (zeichnen.js): unter allen Bausteinen, nur am Rand greifbar | |
 | `zusatz` | PC | `(o, belegt) → SVG` | `punkteSVG` (zeichnen.js); `belegt(n)`: Anschluss n ist verdrahtet | |
+| `kennbuchstaben` | beide | `["QA", "KF"]` | `kennzeichenFeld` (eigenschaften.js): Kennzeichen mit Vorschlagsliste | einfaches Textfeld |
 | `sim` | PC | `(o, stellung, hatDruck) → {src, pairs, dir}` | `simCompute` (pneumatik-simulation.js) | nimmt nicht an der Simulation teil |
 
 Hilfen für die Haken: `textFeld`, `auswahlFeld`, `FARBEN`, `loeschKnopf` (eigenschaften.js), `LINIE`,
@@ -213,6 +221,18 @@ Hilfen für die Haken: `textFeld`, `auswahlFeld`, `FARBEN`, `loeschKnopf` (eigen
 | `ziehen` | `(st, drag, dx, dy)` | `zieheStrich` (zeiger.js) | verschieben, Ecke fängt |
 
 Eigene Felder eines Strichs trägst du in `STRICHFELD` ein, z. B. `fuelle(STRICHFELD, {sl: "lbl"})`.
+
+## Verlauf: Änderungen über aendere
+
+Jede Änderung an der Zeichnung läuft über `aendere(d => { … }, {ohneRender})` (verlauf.js). Die Funktion vergleicht
+die Zeichnung vorher und nachher als JSON. Nur bei einer echten Änderung legt sie einen Verlaufsschritt an, leert
+Wiederholen, speichert, löscht die Markierungen der Prüfung, zeichnet das Schriftfeld neu (wenn `meta` anders ist)
+und die Zeichnung (außer mit `ohneRender`). Gibt die Änderung eine neue Zeichnung zurück, ersetzt diese `ED.data`.
+
+Ziehen und Tippen fasst du mit `beginne(schluessel)` und `schliesse()` zu einem Schritt zusammen: Dazwischen legt
+`aendere` keinen eigenen Schritt an, `schliesse` legt einen an, wenn sich etwas geändert hat. `undo` und `redo`
+schließen eine offene Transaktion. `snapshot()` ist der alte Weg (legt immer einen Stand ab) und verschwindet,
+sobald alle Aufrufer umgestellt sind.
 
 ## Neue Bausteinart anlegen
 
@@ -264,3 +284,41 @@ als Nutzen brächte.
 * Die Ventil-Varianten der Pneumatik stehen in der Palette vor den Zylindern, weil `pneumatik.js` die Bauteile in
   zwei Aufrufen von `registriereBauteile` anmeldet und dazwischen `PCPAL` einträgt.
 * `pruefen/beispiele-erzeugen.mjs` läuft nur gegen den alten Ein-Skript-Stand, die Beispiele sind fest.
+* Ein Hinweis aus `vorVerbinden` (`zeigeHinweis`) und die Befundliste der Prüfung stehen in `#props`, bis sich die
+  Markierung ändert. Nach einem Klick auf einen Knopf in `#props` liegt der Fokus nicht mehr im Editor (K10).
+
+## Welle 1: wer ändert was
+
+Grundlage ist der Stand mit Tag `welle1-k0`. Jedes Paket arbeitet in einem eigenen Worktree und ändert in
+gemeinsamen Dateien nur die Funktionen, die ihm gehören, ohne Umformatieren. Neue Haken liefert nur KERN. Vor jedem
+Commit: `module.mjs imports`, Build, `pruefen/tests/lauf.mjs` (alle Pakete) und `pruefen.mjs` als Rauchtest.
+
+| Paket | Eigene Dateien | Funktionen in gemeinsamen Dateien |
+| --- | --- | --- |
+| KERN | `verlauf.js`, `zeiger.js`, `oeffnen.js`, `ereignisse.js`, `registry.js`, `spuren.js`, `signalfeld.js`, `pruefung.js`, `anzeige.js`, `auswahl.js`, `status.js`, `styles/07-editor.css`, `pruefen/tests/lauf.mjs`, `treiber.mjs`, `kern.mjs` | Rahmen von `eigenschaften.js`, `andocken.js`, `bearbeiten.js`; `pageCount` (zeichnen.js), `pagesSVG`, `sketchSVG` (blaetter.js), `sketchPage` (app/druck.js), `S.set` (app/basis.js) |
+| GRAFCET | `vorlagen/grafcet.js`, `vorlagen/zustand.js`, `pruefen/tests/grafcet.mjs` | `avoidBreak` (andocken.js), `routeV`, GRAFCET-Teil von `kettenQuelle` und `ausrichten` (kette.js) |
+| ELEKTRO | `vorlagen/elektro.js`, `vorlagen/leistung.js`, `pruefen/tests/elektro.mjs` | `wireEnds` (bauteile.js), `abzweigpunkte`, `wireRef` (zeichnen.js) |
+| PNEU | `vorlagen/pneumatik*.js`, `vorlagen/wegschritt*.js`, `pruefen/tests/pneu.mjs` | `wireD`, `xform` (bauteile.js); `vPairs`, `drawValve`, `simCompute`, `simStep`, `simClick` liegen in den eigenen Dateien |
+| REGEL | `vorlagen/regelkreis.js`, `vorlagen/trend.js`, `vorlagen/raster.js`, `pruefen/tests/regel.mjs` | keine; Wege nur über den Haken `verbinde` mit `spuren` |
+
+Die Kettenlogik (`kette.js`) teilen sich GRAFCET und Steuerstromkreis. Eine andere Fangweite oder eigene Regeln
+kommen über den Gruppen-Haken `andocke` in die Vorlagendatei, z. B.
+`andocke: (o, andere) => andockKette(o, andere, 70)`, nicht als Änderung in `andockKette`.
+
+Namen aus dem Plan und die Haken, die es dafür gibt:
+
+| Plan | Haken | Wo |
+| --- | --- | --- |
+| `andocke` (dockFor) | Gruppe `andocke(o, andere)`, Standard `andockKette`, Seitenbausteine `seite.andocken` | kette.js |
+| `raste` (Strompfad aus smartPos) | Vorlage `fangBaustein(o)` | elektro.js, Aufruf in `smartPos` |
+| `reihe` | nicht angelegt, kein Bedarf in Welle 1 | |
+| `nachSetzen` | Gruppe `nachSetzen(o, d, {A, dock})` | `placeObj` |
+| `verbinde` (Veto) | Gruppe `vorVerbinden(A, B, d)`; `verbinde` bleibt die Geometrie | `connect` |
+| `mitziehen` | Gruppe `mitziehen(o, {umschalt}, d)` | `mitnehmen` (zeiger.js) |
+| `loesche`, `nachLoeschen` | Gruppe `loeschen(o, d)`: mitgehende IDs, ergänzt vorher Verbindungen | `removeObj` |
+| `kennzeichen` | Gruppe `kennzeichen(k, d, vorschlag)` | `makeObj` |
+| `autoLeitungen` (L+/M-Block) | Vorlage `hintergrund(d, cs)` | elektro.js (`strompfadAnschluesse`), Aufruf in `inkSVG` |
+| `weg` | Gruppe `verbinde(…, spuren)`, `seite.verbinde(A, B, spuren)`, `routeV`, `wireD` | `connGeom` |
+| `PRUEF[vorlage]` | Vorlage `pruefe(d, {scope, key})` | pruefung.js |
+| `SIGART[bausteinart]` | Bausteinart `kennbuchstaben` | `kennzeichenFeld` (eigenschaften.js) |
+| `edit()` | `aendere()` (`edit` ist überall ein lokaler Parameter) | verlauf.js |
