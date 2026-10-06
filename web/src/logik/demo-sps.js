@@ -5,7 +5,7 @@ import { eingang } from './eingaenge.js';
 // Demo-SPS – Schrittkette im Browser, wenn keine SPS gekoppelt ist
 // ----------------------------------------------------------------------------
 export const demo = { hand8: false, kurve: { rechts: false, links: false, nachlauf: 0 }, ps: { kip: false, kt: 0, gekippt: false, nachlauf: 0, bg32Alt: false, niOAlt: false, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false, voPb: false }, nh: { aktiv: [], erst: null, quittiertAn: null, freiAlt: true }, b2: { mulde: false, rechts: false, links: false, nachlauf: 0, trig: false, tt: 0, geprueft: false }, hand5: false, hand6: false, schritt: 1, auto: false, t: 0, korbFertig: false, mitKorb: false, sf1Alt: false, warten: false,
-  band: { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Aus: 0, uebNach: 0 }, bad: { heiz: false, fuell: false }, kw: { i: 0 } };
+  band: { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Aus: 0, uebNach: 0, steht: 0 }, bad: { heiz: false, fuell: false }, kw: { i: 0 } };
 // Telegramm 1: 16#047F = Betrieb, 16#047E = AUS1, aus der Einschaltsperre (ZSW1.6) erst mit AUS1 = 0;
 // Störungen quittiert ein Quittiertaster über STW1.7
 function telegramm(A, name, vor, zurueck, nsoll = 0x4000) {
@@ -52,16 +52,17 @@ export function demoSps(dt) {
       }
       break;
     case 11: if (E('BG3_MM2_oben')) demo.schritt = 12; break;
-    case 12: if (E('BG5_MM3_Band') && E('BG8_MM4_zu')) demo.schritt = 13; break;
+    case 12: if (E('BG5_MM3_Band') && E('BG8_MM4_zu') && (!demo.mitKorb || E('BG15_MM5_offen'))) demo.schritt = 13; break;
     case 13: if (E('BG4_MM2_unten')) demo.schritt = 14; break;
     case 14: if (E('BG2_MM1_geloest')) { demo.schritt = 1; demo.korbFertig = demo.korbFertig || demo.mitKorb; } break;
-    case 2: if (E('BG1_MM1_eingehaengt')) demo.schritt = 3; break;
+    // Anheben und Absenken am Übergabeplatz nur mit offenem Anschlag (−BG15): sonst hängen die Korbpuffer unter dem Hebel
+    case 2: if (E('BG1_MM1_eingehaengt') && E('BG15_MM5_offen')) demo.schritt = 3; break;
     case 3: if (E('BG3_MM2_oben')) demo.schritt = 4; break;
     case 4: if (E('BG6_MM3_Bad')) demo.schritt = 5; break;
     case 5: if (E('BG7_MM4_offen')) demo.schritt = 6; break;
     case 6: if (E('BG4_MM2_unten') && demo.t >= TAUCH_SOLL) demo.schritt = 7; break;
     case 7: if (E('BG3_MM2_oben') && demo.t >= TROPF_SOLL) demo.schritt = 8; break;
-    case 8: if (E('BG5_MM3_Band') && E('BG8_MM4_zu')) demo.schritt = 9; break;
+    case 8: if (E('BG5_MM3_Band') && E('BG8_MM4_zu') && E('BG15_MM5_offen')) demo.schritt = 9; break;
     case 9: if (E('BG4_MM2_unten')) demo.schritt = 10; break;
     case 10: if (E('BG2_MM1_geloest')) { demo.schritt = 1; demo.korbFertig = true; } break;
   }
@@ -111,8 +112,13 @@ export function demoSps(dt) {
     b.anschlagAuf = false; b.nachlauf = 0; b.abgabe = 0;
   } else {
     b.links = false;
+    // Erst Band stoppen, dann Anschlag öffnen: Korb am Haken über dem Übergabeplatz (Schritte 2, 3, 9, 10) → Band aus;
+    // der Anschlag öffnet, wenn das Band 0,5 s steht (ausgelaufen), und bleibt offen, bis der fertige Korb abgefahren ist
+    const korbAmPlatz = s === 2 || s === 3 || s === 9 || s === 10 || (s >= 13 && demo.mitKorb);
+    const imZyklus = (s >= 2 && s <= 10) || (s >= 11 && demo.mitKorb);
+    if (imZyklus && (b.anschlagAuf || b.steht > 0.5)) b.anschlagAuf = true;
     if (demo.korbFertig && bg11 && demo.schritt === 1) b.anschlagAuf = true;   // fertigen Korb abfahren lassen
-    if (b.bg11Aus > 0.5) b.anschlagAuf = false;
+    if (!imZyklus && b.bg11Aus > 0.5) b.anschlagAuf = false;
     if (bg12) b.nachlauf = 12;                                                 // Zufuhr: Band ist 1,5 m lang
     if (b.anschlagAuf) b.abgabe = 18;                                          // Abgabe: fertigen Korb bis ans Bandende (Rollenkurve) bringen
     b.nachlauf = Math.max(0, b.nachlauf - dt);
@@ -124,12 +130,14 @@ export function demoSps(dt) {
     b.uebNach = Math.max(0, b.uebNach - dt);
     const uebergabe1 = demo.kurve.rechts && b.uebNach > 0;
     const einlauf = bg11 && !bg40 && !demo.korbFertig;                       // Korb unter −BG11, liegt noch nicht an: weiterfördern
-    b.rechts = motorOk && (b.abgabe > 0 || (b.nachlauf > 0 && !korbWartet) || einlauf || uebergabe1);   // Stauband: wartender Korb rutscht am Anschlag
+    const hakenImKorb = E('BG5_MM3_Band') && !E('BG3_MM2_oben') && !E('BG2_MM1_geloest');   // Band steht, solange der Haken im Korb ist
+    b.rechts = motorOk && !hakenImKorb && !korbAmPlatz && (b.abgabe > 0 || (b.nachlauf > 0 && !korbWartet) || einlauf || uebergabe1);   // Stauband: wartender Korb rutscht am Anschlag
   }
+  b.steht = b.rechts || b.links ? 0 : b.steht + dt;
   A.QA1_Band_Rechts = b.rechts;
   A.QA2_Band_Links = b.links;
   A.MB9_Anschlag_auf = b.anschlagAuf;
-  A.MB10_Vereinzeler_zu = !E('SA2_VorOrt') && (demo.schritt !== 1 || bg11);
+  A.MB10_Vereinzeler_zu = !E('SA2_VorOrt') && (demo.schritt !== 1 || bg11 || !E('BG14_MM5_zu'));   // nächsten Korb erst bei geschlossenem Anschlag
   // Rollenkurve −MA6 und Band 2 (wirken nur bei Übungsumfang „SPS steuert“)
   {
     const k = demo.kurve, okK = frei && E('FA7_Motorschutz3');

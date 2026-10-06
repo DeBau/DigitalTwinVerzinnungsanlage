@@ -28,110 +28,94 @@ BAND.geberStecker = inkrementalgeber(b1g, B1.trommeln[1], -1, '−BG18 Inkrement
 
 // Anschlag am Übergabeplatz und Vereinzeler: Schwenkhebel-Stopper seitlich (+x) über der Seitenführung.
 // Drahtgurt → kein Hubstopper von unten durch den Gurt möglich. Der Hebel (Flachstahl 16 × 12) liegt in einer Ebene
-// quer zum Band (Drehachse parallel zur Förderrichtung) und schwenkt zum Öffnen um 49° nach oben – er fährt dabei
-// nie in einen Korb und greift beim Vereinzeler in die 40-mm-Lücke zwischen den Korbkörpern.
-// Der Korb läuft mit der Stirnwand (Höhe 48…64 über dem Gurt) gegen eine gedämpfte Anschlagleiste (PE-UHMW auf
-// Alu-Träger, zwei Führungsbolzen, Stoßdämpfer M12 × 1 wie Festo YSR-12 neben dem Korb, Resthub 3 mm bis zum Hebel).
-// Antrieb: Kompaktzylinder Festo ADN-20-40 senkrecht auf der Konsole, Gabelkopf SG-M8 mit Bolzen in der Kulisse
-// (Langloch) der Kurbel r = 35 – der Zylinder steht fest, Schläuche und Nutsensoren bleiben in Ruhe.
-// Konsole (Alu 8 mm): Adapterplatte an der Profilnut (Nutensteine M6), Kopfplatte mit Lagerlaschen und Bolzen Ø10,
-// Zylinderkonsole mit Rippe. Endlagen über Nutsensoren SMT-8M (Kolbenmagnet) in den Nuten der Zylinder-Außenseite.
-// Lokale z: Anschlagfläche in Ruhe bei z = 0 (Welt za), Leiste 0…7, Hebel 10…22, Bolzenköpfe bis 25. Die Leiste sitzt auf den
-// Führungsbolzen und wird vom Korb um den Resthub (STOPPER.HUB) gegen den Dämpfer gedrückt, die Muttern heben dabei vom Hebel ab.
-// −MM5 hat zusätzlich die Abfrage −BG40: Schaltfahne (Stahl) auf dem Alu-Träger über den Hebel hinaus, davor ein induktiver
-// Sensor M8 (bündig, sn 1,5 mm) im Winkel auf dem Hebel – meldet erst, wenn die Leiste eingedrückt ist (Korb liegt an).
-const HEBEL = { x: 155, y: 356, r: 35, winkel: 48.8 * Math.PI / 180, zylX: 190, zm: 16 };   // Hub 40 = r · tan 48,8°
-BAND.stopperStangen = []; BAND.stopperLeisten = []; BAND.stopperAnschluss = {};
+// quer zum Band (Drehachse parallel zur Förderrichtung) und schwenkt zum Öffnen um 90° senkrecht nach oben. Dann steht er
+// ganz neben dem Korb: An −MM5 kann der Korb angehoben und wieder abgesetzt werden, ohne dass die Puffer unten am Korb
+// unter dem Hebel hängen bleiben. Der Vereinzelerhebel greift in die 50-mm-Lücke zwischen den Korbkörpern.
+// Der Korb läuft mit der Stirnwand (Höhe 48…64 über dem Gurt) gegen eine feste Anschlagleiste (PE-UHMW auf Alu-Träger,
+// versenkt verschraubt). Bei 0,1 m/s und rund 5 kg Korbmasse braucht es keinen Dämpfer.
+// Antrieb: pneumatischer Schwenkantrieb 90° (Drehflügel, wie Festo DSM-16) vor dem Hebel auf einer Alu-Konsole an der
+// Profilnut; seine Welle ist die Hebelachse (Klemmnabe). Endlagen über zwei induktive Sensoren M8 an einer Schaltnocke
+// auf der Welle (Sensorhalter vorn am Antrieb, „zu“ bei +x, „offen“ bei −y) – sie fragen die Welle ab, nicht den Hebel.
+// −MM5 hat zusätzlich −BG40: induktiver Sensor M12, bündig in der Anschlagleiste vor dem Eckstab des Korbs
+// (Rundstahl Ø6 bei Welt x = +52), meldet, wenn der Korb anliegt.
+// Lokale z: Anschlagfläche bei z = 0 (Welt za), PE 0…3, Alu-Träger 3…7, Arm 7…19, Nabe 4…20; Antrieb davor bei z −56…−10.
+const H = { x: STOPPER.X, y: STOPPER.Y, zm: 13 };
+BAND.stopperNocken = []; BAND.stopperAnschluss = {};
 function bandAnschlag(za, name, sigZu, sigOffen, txtZu, txtOffen, ventil, abfrage) {
-  const H = HEBEL, zm = H.zm, xc = H.zylX;
   const fest = new THREE.Group(); fest.position.set(0, 0, za); anlage.add(fest);
-  // Konsole (Alu eloxiert anthrazit)
-  box(8, 144, 36, M.anthrazit, 136.5, 266, zm, fest);                                            // Adapterplatte an der Profilnut
-  for (const y of [228, 272]) for (const dz of [-8, 8]) zyl(5, 4, M.schwarz, 142.5, y, zm + dz, 'x', fest, 6);
-  box(9.5, 8, 36, M.anthrazit, 145.25, 334, zm, fest);                                            // Kopfplatte (stößt an die Adapterplatte)
-  for (const dz of [-9, 9]) box(28, 40, 4, M.anthrazit, H.x, 352, zm + dz, fest);                 // Lagerlaschen
-  zyl(5, 28, M.stahl, H.x, H.y, zm, 'z', fest, 12);                                               // Lagerbolzen Ø10
-  for (const dz of [-14.5, 14.5]) zyl(8, 3, M.stahl, H.x, H.y, zm + dz, 'z', fest, 6);            // Kopf / Mutter
-  box(65.5, 8, 36, M.anthrazit, 173.25, 198, zm, fest);                                           // Zylinderkonsole (stößt an die Adapterplatte)
-  box(48, 18, 6, M.anthrazit, 164.5, 185, zm, fest);                                              // Rippe
-  // Kompaktzylinder ADN-20-40 (Profil 36 × 36), Deckel Druckguss, Anschlüsse G1/8 mit QS-6 nach −z
-  box(34, 66, 34, M.zylinder, xc, 240, zm, fest);
-  for (const y of [206, 274]) box(36, 8, 36, M.deckel, xc, y, zm, fest);
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) zyl(1.6, 1, M.schwarz, xc + sx * 13, 278.5, zm + sz * 13, null, fest, 6);
-  zyl(7, 4, M.deckel, xc, 280, zm, null, fest, 16);                                              // Lagerbund
-  for (const dz of [-10, 10]) box(0.8, 64, 3, M.schwarz, xc + 17.1, 240, zm + dz, fest);         // Sensornuten
-  platte(tafel('adn20', 30, 9, (c) => { c.fillStyle = '#c4c9ce'; c.fillRect(0, 0, 30, 9); c.fillStyle = '#1d1f22'; c.font = '700 4px Arial'; c.fillText('FESTO', 1.5, 4); c.font = '500 2.6px Arial'; c.fillText('ADN-20-40-A-P-A', 1.5, 7.6); }, 10), 30, 9, fest, xc, 246, zm + 17.3, 0);
-  // Anschlüsse mit Drosselrückschlagventilen (Abluftdrosselung), Steckanschluss nach −z
-  const anschluss = [], kurz = name.match(/MM\d/)[0];
-  for (const y of [214, 266]) {
-    const p = new THREE.Group(); p.position.set(xc, y, zm - 18); p.rotation.x = -Math.PI / 2; fest.add(p);
+  const kurz = name.match(/MM\d/)[0];
+  // Konsole (Alu eloxiert anthrazit): Adapterplatte an der Profilnut, Tragplatte unter dem Antrieb mit Rippe
+  box(8, 132, 64, M.anthrazit, 136.5, 260, -24, fest);                                          // y 194…326, z −56…8
+  for (const y of [222, 290]) for (const z of [-44, -4]) zyl(5, 4, M.schwarz, 142.5, y, z, 'x', fest, 6);
+  box(42, 8, 46, M.anthrazit, 161.5, H.y - 26, -33, fest);                                     // Tragplatte x 140,5…182,5, y 326…334
+  box(36, 30, 6, M.anthrazit, 158.5, H.y - 45, -33, fest);                                     // Rippe
+  // Schwenkantrieb: Gehäuse mit Deckeln, Typschild, Welle Ø10 bis in die Klemmnabe des Hebels
+  box(44, 44, 38, M.festoAlu, H.x, H.y, -33, fest);                                            // z −52…−14
+  for (const z of [-54, -12]) box(46, 46, 4, M.deckel, H.x, H.y, z, fest);
+  for (const sx of [-1, 1]) for (const sy of [-1, 1]) zyl(1.8, 1, M.schwarz, H.x + sx * 18, H.y + sy * 18, -56.5, 'z', fest, 6);
+  zyl(5, 18, M.stahl, H.x, H.y, -1, 'z', fest, 12);                                            // Welle z −10…8
+  zyl(4, 10, M.stahl, H.x, H.y, -61, 'z', fest, 12);                                           // Wellenende für die Schaltnocke
+  platte(tafel('dsm16', 30, 9, (c) => { c.fillStyle = '#c4c9ce'; c.fillRect(0, 0, 30, 9); c.fillStyle = '#1d1f22'; c.font = '700 4px Arial'; c.fillText('FESTO', 1.5, 4); c.font = '500 2.6px Arial'; c.fillText('DSM-16-90-P-A-B', 1.5, 7.6); }, 10), 30, 9, fest, H.x + 22.3, H.y, -33, Math.PI / 2);
+  // Anschlüsse vorn (oben) mit Drosselrückschlagventilen (Abluftdrosselung), Steckanschluss nach −z
+  const anschluss = [];
+  for (const dx of [-14, 8]) {
+    const p = new THREE.Group(); p.position.set(H.x + dx, H.y + 14, -56); p.rotation.x = -Math.PI / 2; fest.add(p);
     const oeffnung = drosselVentil(p, 0, 0, 0, 3.2, kurz);
-    anschluss.push(V(xc, y, za + zm - 18 - oeffnung.y));
+    anschluss.push(V(H.x + dx, H.y + 14, za - 56 - oeffnung.y));
   }
-  BAND.stopperAnschluss[ventil] = anschluss;                                                       // [Kolbenseite, Stangenseite]
-  // Nutsensoren SMT-8M: „zu“ oben (Stange aus), „offen“ unten; Kabel in der Nut nach unten, an der Konsole vorbei
-  [[sigZu, txtZu, 262, zm + 10], [sigOffen, txtOffen, 218, zm - 10]].forEach(([sig, txt, y, z]) => {
-    box(2.6, 24.5, 4.6, M.kunststoff, xc + 18.4, y, z, fest);
-    const mat = sensorLed(fest, xc + 20.3, y + 9, z, sig, 1.6, 3.4, 3);   // Schaltanzeige, steht über das Gehäuse hinaus
-    zyl(1.1, 0.6, M.stahl, xc + 19.8, y - 9, z, 'x', fest, 6);
-    schlauch([[xc + 18.6, y - 12.5, z], [xc + 19.5, y - 16, z], [xc + 19.5, 205, z], [xc + 19.5, 196, z]], M.kabelGrau, 1.6, fest, 24);
-    SENSOREN.push({ signal: sig, mat, div: label(txt, fest, xc + 40, y, z, 'klein') });
-    BAND.sensorAus[sig] = V(xc + 19.5, 196, za + z);
+  BAND.stopperAnschluss[ventil] = anschluss;
+  // Schaltnocke auf der Welle (dreht mit dem Antrieb) und Sensorhalter mit den Endlagensensoren M8
+  const nocke = new THREE.Group(); nocke.position.set(H.x, H.y, -62); fest.add(nocke); BAND.stopperNocken.push(nocke);
+  zyl(12, 3, M.stahl, 0, 0, 0, 'z', nocke, 20);
+  box(10, 7, 3, M.stahl, 16, 0, 0, nocke);                                                     // Nocke bis r = 21
+  box(58, 58, 3, M.anthrazit, H.x + 27, H.y - 27, -66.5, fest);                                // Sensorhalter
+  [[sigZu, txtZu, 1, 0], [sigOffen, txtOffen, 0, -1]].forEach(([sig, txt, rx, ry]) => {
+    const P = (r) => [H.x + rx * r, H.y + ry * r, -61.5], achse = rx ? 'x' : null;
+    zyl(4, 30, M.stahl, ...P(37), achse, fest, 12);                                            // Gewindehülse M8, Stirnfläche bei r = 22
+    zyl(6.5, 2.5, M.stahl, ...P(30), achse, fest, 6);                                          // Mutter
+    zyl(4.2, 6, M.kunststoff, ...P(55), achse, fest, 12);                                      // Endkappe mit Kabelabgang
+    const [lx, ly] = P(55);
+    const mat = sensorLed(fest, lx + (rx ? 0 : 4.4), ly + (rx ? 4.4 : 0), -61.5, sig, rx ? 2.4 : 1, rx ? 1 : 2.4, 3);
+    SENSOREN.push({ signal: sig, mat, div: label(txt, fest, lx + 25, ly - (rx ? 0 : 20), -61.5, 'klein') });
+    // Leitung an der Konsole vorbei nach unten (dort übernimmt die Verdrahtung)
+    const xa = rx ? H.x + 64 : H.x + 6;                                                       // −BG14/−BG16 innen am Schlauch von −MB9 vorbei
+    const weg = rx ? [[H.x + 58, H.y, -61.5], [H.x + 61, H.y, -61.5], [xa, H.y - 6, -61.5]] : [[H.x, H.y - 58, -61.5], [H.x, H.y - 64, -61.5], [xa, H.y - 72, -61.5]];
+    schlauch([...weg, [xa, 215, -61.5], [xa, 196, -61.5]], M.kabelGrau, 1.6, fest, 24);
+    BAND.sensorAus[sig] = V(xa, 196, za - 61.5);
   });
-  label(name, fest, 120, BAND_Y + 140, zm, 'cyl');
-  // Kolbenstange mit Gabelkopf; der Bolzen läuft in der Kulisse der Kurbel (bewegt sich senkrecht)
-  const stange = new THREE.Group(); fest.add(stange); BAND.stopperStangen.push(stange);
-  zyl(4, 64, M.stahl, xc, 294, zm, null, stange, 16);
-  zyl(6.5, 4, M.stahl, xc, 324, zm, null, stange, 6);                                            // Kontermutter
-  box(16, 8, 26, M.stahl, xc, 330, zm, stange);                                                   // Gabelkopf SG-M8
-  for (const dz of [-11, 11]) box(16, 30, 4, M.stahl, xc, 349, zm + dz, stange);
-  zyl(4, 30, M.stahl, xc, H.y, zm, 'z', stange, 12);                                              // Bolzen Ø8
-  for (const dz of [-14, 14]) zyl(5, 1, M.schwarz, xc, H.y, zm + dz, 'z', stange, 10);           // Sicherungsringe
-  // Schwenkhebel (Drehpunkt im Ursprung): Arm nach −x über das Band, Kurbel mit Kulisse nach +x
+  label(name, fest, 120, BAND_Y + 140, H.zm, 'cyl');
+  // Schwenkhebel (Drehpunkt im Ursprung): Arm nach −x über das Band, Klemmnabe auf der Welle, feste Anschlagleiste
   const hebel = new THREE.Group(); hebel.position.set(H.x, H.y, 0); fest.add(hebel);
-  // (Teile stoßen aneinander statt sich zu überlappen; Nabe und Dämpferaufnahme stehen 1 mm über – keine gleichen Ebenen)
-  box(195, 16, 12, M.verzinkt, -97.5, 0, zm, hebel);                                              // Arm (bis zur Kurbel)
-  zyl(13, 14, M.verzinkt, 0, 0, zm, 'z', hebel, 24);                                              // Nabe
-  box(24, 24, 12, M.verzinkt, 12, 0, zm, hebel);                                                  // Kurbel
-  for (const sy of [-1, 1]) box(38, 7.5, 12, M.verzinkt, 43, sy * 8.25, zm, hebel);              // Kulisse (Langloch 9)
-  box(6, 24, 12, M.verzinkt, 65, 0, zm, hebel);
-  box(24, 24, 14, M.verzinkt, -91, 0, zm, hebel);                                                 // Aufnahme Stoßdämpfer
-  // gedämpfte Anschlagleiste (eigene Gruppe: wird vom Korb eingedrückt)
-  const leiste = new THREE.Group(); hebel.add(leiste); BAND.stopperLeisten.push(leiste);
-  box(122, 16, 4, M.alu, -142, 0, 5, leiste);                                                     // Alu-Träger
-  box(100, 16, 3, M.gelb, -150, 0, 1.5, leiste);                                                  // PE-UHMW-Leiste
-  for (const x of [-185, -120]) { zyl(3, 20, M.stahl, x, 0, 13, 'z', leiste, 10); zyl(5, 3, M.stahl, x, 0, 23.5, 'z', leiste, 10); }   // Bolzen endet in der Mutter
-  zyl(2, 4, M.stahl, -91, 0, 8.5, 'z', leiste, 8);                                                // Kolbenstange Dämpfer (liegt am Träger an)
-  zyl(6, 34, M.schwarz, -91, 0, 39, 'z', hebel, 16);                                              // Dämpferkörper M12 × 1
-  zyl(9, 4, M.stahl, -91, 0, 24, 'z', hebel, 6);                                                  // Kontermutter
-  zyl(4, 3, M.messing, -91, 0, 57.5, 'z', hebel, 10);                                             // Stellschraube Dämpfung
+  box(195, 16, 12, M.verzinkt, -97.5, 0, H.zm, hebel);                                          // Arm z 7…19
+  zyl(14, 16, M.verzinkt, 0, 0, 12, 'z', hebel, 24);                                           // Klemmnabe z 4…20
+  box(10, 6, 16, M.verzinkt, 0, 15, 12, hebel);                                                // Klemmschlitz
+  zyl(2.5, 14, M.stahl, 0, 15, 12, 'x', hebel, 8);                                             // Klemmschraube
+  box(130, 16, 4, M.alu, -130, 0, 5, hebel);                                                   // Alu-Träger z 3…7
+  box(110, 16, 3, M.gelb, -140, 0, 1.5, hebel);                                                // PE-UHMW-Leiste z 0…3
   if (abfrage) {
-    // Schaltfahne über dem Arm; Sensor M8 × 1 (Stirnfläche bei z = 11, Fahne in Ruhe 4 mm davor) im Haltewinkel auf dem Arm
-    const xs = -150, ys = 22;
-    box(14, 22, 2, M.stahl, xs, 19, 6, leiste);                                                   // Schaltfahne
-    box(16, 3, 30, M.anthrazit, xs, 9.5, 27, hebel);                                              // Haltewinkel: Fuß auf dem Arm
-    box(16, 22, 3, M.anthrazit, xs, 22, 21.5, hebel);                                             //   Schenkel mit Bohrung
-    zyl(4, 30, M.stahl, xs, ys, 26, 'z', hebel, 12);                                              // Gewindehülse
-    for (const z of [18.75, 24.25]) zyl(7, 2.5, M.stahl, xs, ys, z, 'z', hebel, 6);               // Muttern
-    zyl(4.2, 8, M.kunststoff, xs, ys, 45, 'z', hebel, 12);                                        // Endkappe mit Kabelabgang
-    const mat = sensorLed(hebel, xs, ys + 4.4, 45, abfrage.sig, 2.4, 1, 3);
-    SENSOREN.push({ signal: abfrage.sig, mat, div: label(abfrage.txt, hebel, xs, 60, 30, 'klein') });
-    // PUR-Leitung auf dem Arm zur Drehachse, im Bogen (R ≈ 16) senkrecht nach unten; auf der Achse geht sie in die feste
+    // −BG40: M12 durch Leiste, Träger und Arm, Stirnfläche 0,5 mm hinter der Anschlagfläche, Mutter hinter dem Arm
+    const xs = -103;
+    zyl(6, 44, M.stahl, xs, 0, 22.5, 'z', hebel, 16);                                          // Gewindehülse z 0,5…44,5
+    zyl(9.5, 3, M.stahl, xs, 0, 20.5, 'z', hebel, 6);                                          // Mutter
+    zyl(7, 9, M.kunststoff, xs, 0, 49, 'z', hebel, 14);                                        // M12-Stecker
+    const mat = sensorLed(hebel, xs, 6.3, 42, abfrage.sig, 2.4, 1, 3);
+    SENSOREN.push({ signal: abfrage.sig, mat, div: label(abfrage.txt, hebel, xs, 40, 30, 'klein') });
+    // PUR-Leitung über den Arm zur Drehachse, im Bogen senkrecht nach unten; auf der Achse geht sie in die feste
     // Verlegung über (die Achse bewegt sich nicht)
-    schlauch([[xs, ys, 49], [xs, ys, 56], [-110, 20, 62], [-48, 20, 55], [-20, 20, 51], [-4, 13, 50], [0, 4, 50], [0, 0, 50]], M.kabelGrau, 2.4, hebel, 32);
-    BAND.abfrageAus = V(H.x, H.y, za + 50);
+    schlauch([[xs, 0, 53.5], [xs, 0, 59], [xs + 12, 12, 60], [-40, 14, 52], [-14, 14, 46], [-3, 9, 42], [0, 3, 42], [0, 0, 42]], M.kabelGrau, 2.4, hebel, 32);
+    BAND.abfrageAus = V(H.x, H.y, za + 42);
   }
-  hebel.userData.stellen = (pos) => {
-    const w = H.winkel * pos;
-    hebel.rotation.z = -w;                                                                        // Arm schwenkt nach oben
-    stange.position.y = -H.r * Math.tan(w);                                                       // Bolzen folgt der Kulisse
+  // pos 0 = zu, 1 = offen (90°); ein abgerissener Hebel bleibt verbogen hochgeklappt, die Welle (Nocke) folgt weiter dem Antrieb
+  hebel.userData.stellen = (pos, defekt) => {
+    const w = STOPPER.WINKEL * pos;
+    nocke.rotation.z = -w;
+    hebel.rotation.set(defekt ? 0.05 : 0, defekt ? -0.04 : 0, -(defekt ? STOPPER.DEFEKT : w));
   };
-  hebel.userData.druecken = (d) => { leiste.position.z = d; };                                   // Leiste eingedrückt (mm)
   return hebel;
 }
 BAND.anschlag = bandAnschlag(STOPPER.MM5, '−MM5 Anschlag', 'BG14_MM5_zu', 'BG15_MM5_offen', '−BG14', '−BG15', 'MB9_Anschlag_auf',
-  { sig: 'BG40_Korb_am_Anschlag', txt: '−BG40 Korb liegt an' });                                 // eingedrückt bei 55: Korb bei 0
-BAND.vereinzeler = bandAnschlag(STOPPER.MM6, '−MM6 Vereinzeler', 'BG16_MM6_zu', 'BG17_MM6_offen', '−BG16', '−BG17', 'MB10_Vereinzeler_zu');   // eingedrückt bei −95: nächster Korb bei −150
+  { sig: 'BG40_Korb_am_Anschlag', txt: '−BG40 Korb liegt an' });                               // Anschlagfläche z = 55: Korb bei 0
+BAND.vereinzeler = bandAnschlag(STOPPER.MM6, '−MM6 Vereinzeler', 'BG16_MM6_zu', 'BG17_MM6_offen', '−BG16', '−BG17', 'MB10_Vereinzeler_zu');   // z = −105: nächster Korb bei −160
 
 // Lichtschranken (Sensor auf der Bedienerseite −x, Reflektor gegenüber); −BG13 kurz vor der Umlenktrommel, Haltewinkel vor dem Flanschlager
 lichtschranke(LS_POS.BG11_Korb, 'BG11_Korb', '−BG11');

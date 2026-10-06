@@ -14,11 +14,13 @@ KURVE.L = KURVE.R * Math.PI / 2;
 export const B1 = { z0: -850, z1: KURVE.zA - 20 }; B1.L = B1.z1 - B1.z0; B1.zm = (B1.z0 + B1.z1) / 2;
 export const B2 = { x0: KURVE.R + 5, x1: 2820, z: KURVE.zA + KURVE.R }; B2.L = B2.x1 - B2.x0; B2.xm = (B2.x0 + B2.x1) / 2;
 // Gurtweg in mm (Obertrum, + = Förderrichtung): BAND.weg / BAND2.weg
-export const BAND = { weg: 0, v: 0, vSoll: 100, a: 250, wende: 0, fu: false, sensorAus: {}, vorOrt: { r: false, l: false }, trommeln: [], anschlag: null, vereinzeler: null, anschlagPos: 1, vereinzelerPos: 0, anschlagDruck: 0, vereinzelerDruck: 0, stecker: {} };
-// Schwenkhebel-Stopper −MM5/−MM6: gefederte Anschlagleiste, Vorderkante in Ruhe bei za, vom Korb um bis zu HUB (Resthub des
-// Dämpfers) eingedrückt → ein Korb am Anschlag steht mit der Stirnwand bei za + HUB (−MM5: Korbmitte 0, −MM6: −150).
-// −BG40 fragt die eingedrückte Leiste von −MM5 ab (Schaltfahne vor einem induktiven M8-Sensor, Abstand 4 − Hub, sn 1,5 mm).
-export const STOPPER = { MM5: 52, MM6: -98, HUB: 3, BG40_AB: 2.5 };
+export const BAND = { weg: 0, v: 0, vSoll: 100, a: 250, wende: 0, fu: false, sensorAus: {}, vorOrt: { r: false, l: false }, trommeln: [], anschlag: null, vereinzeler: null, anschlagPos: 1, vereinzelerPos: 0, anschlagDefekt: false, stecker: {} };
+// Schwenkhebel-Stopper −MM5/−MM6 (Schwenkantrieb 90°): feste Anschlagleiste, Anschlagfläche bei za (−MM5: Korbmitte 0,
+// −MM6: −160, 10 mm Luft zwischen den Puffern – der hintere Puffer des Korbs am Übergabeplatz kommt beim Anheben frei).
+// Hebel: Drehachse (X, Y), Arm L lang und 16 hoch nach −x; Leiste, Träger und Arm bis za + DICKE, −BG40 (M12) ragt bei −MM5
+// hinten bis za + RUECKEN_MM5. Die Korbpuffer (unten, x = ±38 ± 7, bis 20 mm vor der Stirnwand) liegen bei geschlossenem
+// −MM5 unter dem Hebel: Anheben/Absenken nur bei offenem Anschlag (frei ab ca. 56°, ein Korb passiert ab FREI).
+export const STOPPER = { MM5: 55, MM6: -105, X: 155, Y: 356, L: 195, WINKEL: Math.PI / 2, DICKE: 19, RUECKEN_MM5: 53, FREI: 0.8, SCHWENKZEIT: 0.3, DEFEKT: 62 * Math.PI / 180 };
 export const BAND2 = { weg: 0, v: 0, vSoll: 120, a: 300, wende: 0, fu: false, vorOrt: { r: false, l: false }, trommeln: [], halt: 0, pruefT: 0, ergebnis: null, ergebnisT: 0, triggerAlt: false, pumpe: 0, spruehen: 0, blasen: 0 };
 
 export const BAND_ENDE = 720, KORB_TEILUNG = 150;

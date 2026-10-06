@@ -24,6 +24,9 @@ export default {
   // --- Zylinder: Verriegelungen und Kollisionen ---
   'Kollision: −MM2 senkt auf die geschlossene Badabdeckung (−BG7 fehlt)': 'Collision: −MM2 lowers onto the closed bath cover (−BG7 missing)',
   'Kollision: −MM2 senkt auf den Badrand (−MM3 nicht in Endlage)': 'Collision: −MM2 lowers onto the bath rim (−MM3 not in end position)',
+  'Kollision: Korb setzt mit dem Puffer auf dem geschlossenen Anschlag −MM5 auf und hängt schief': 'Collision: the basket buffer lands on the closed stop −MM5, the basket sits askew',
+  'Kollision: Puffer von Korb {0} hängt unter dem geschlossenen Anschlag −MM5, der Korb kippt': 'Collision: buffer of basket {0} is caught under the closed stop −MM5, the basket tilts',
+  'Anschlag −MM5 abgerissen: Korb {0} bei geschlossenem Anschlag angehoben. Hebel verbogen, ohne Funktion bis „Anlage zurücksetzen“': 'Stop −MM5 torn off: basket {0} lifted with the stop closed. Lever bent, out of order until “Reset line”',
   'Verriegelung: −MM3 fährt nicht, Tauchzylinder −MM2 ist nicht oben (−BG3)': 'Interlock: −MM3 does not move, dip cylinder −MM2 is not up (−BG3)',
   'Kollision: Abdeckung −MM4 stößt an den abgesenkten Korb': 'Collision: cover −MM4 hits the lowered basket',
   'Kippen gesperrt: Korb steht nicht am Endanschlag der Mulde (−BG33)': 'Tipping blocked: basket is not at the end stop of the trough (−BG33)',

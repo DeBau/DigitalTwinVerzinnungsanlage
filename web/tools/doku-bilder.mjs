@@ -47,16 +47,13 @@ const BILDER = {
   // Drosselrückschlagventile am Anschlag −MM5 (Zylinder am Übergabeplatz)
   '10-drosselventile': async (p) => {
     await p.waitForTimeout(5000);
-    // Kamera vor die beiden Drosseln von −MM5 (Klickflächen der Ventile), etwas von oben
+    // Kamera vor die beiden Drosseln von −MM5 (Klickflächen der Ventile) vorn am Schwenkantrieb, etwas von oben und +x
     await p.evaluate(() => {
       const z = window.__zwilling, T = z.THREE, punkte = [];
       z.scene.updateMatrixWorld(true);
       z.scene.traverse((o) => { if (o.userData.art === 'drossel' && o.userData.taster === 'MM5') punkte.push(o.getWorldPosition(new T.Vector3())); });
       const mitte = punkte.reduce((a, b) => a.add(b), new T.Vector3()).multiplyScalar(1 / punkte.length);
-      let zyl = null; z.scene.traverse((o) => { if (!zyl && o.userData.art === 'drossel' && o.userData.taster === 'MM5') zyl = o.parent.getWorldPosition(new T.Vector3()); });
-      const r = mitte.clone().sub(zyl).setY(0).normalize(), q = new T.Vector3(-r.z, 0, r.x);   // r: Zylinder → Ventile, q: seitlich
-      const kam = mitte.clone().addScaledVector(r, 0.28).addScaledVector(q, -0.05);
-      z.cam(kam.x, kam.y, kam.z, mitte.x, mitte.y - 0.02, mitte.z);
+      z.cam(mitte.x + 0.09, mitte.y + 0.07, mitte.z - 0.2, mitte.x, mitte.y - 0.01, mitte.z);
     });
     await p.waitForTimeout(1600);
   },

@@ -808,7 +808,7 @@ function hmiZeichnen() {
   x.fillStyle = '#3a4047'; x.fillRect(80, 530, 1120, 34);
   for (const k of koerbe) if (k.zustand === 'band') { const px = 640 + (k.z - 150) / 950 * 560; x.fillStyle = k.fertig ? '#c9cfd5' : '#b8743f'; x.fillRect(px - 36, 480, 72, 50); x.strokeStyle = '#4a5866'; x.strokeRect(px - 36, 480, 72, 50); }
   // −BG40 sitzt an der Anschlagleiste −MM5 (33 px neben −BG11): Beschriftungen der beiden nach außen ausgerichtet
-  for (const [sig, t, z, ausr] of [['BG12_Bandanfang', 'BG12'], ['BG11_Korb', 'BG11', LS_POS.BG11_Korb, 'right'], ['BG40_Korb_am_Anschlag', 'BG40', STOPPER.MM5 + STOPPER.HUB, 'left'], ['BG13_Bandende', 'BG13']]) {
+  for (const [sig, t, z, ausr] of [['BG12_Bandanfang', 'BG12'], ['BG11_Korb', 'BG11', LS_POS.BG11_Korb, 'right'], ['BG40_Korb_am_Anschlag', 'BG40', STOPPER.MM5, 'left'], ['BG13_Bandende', 'BG13']]) {
     const px = 640 + ((z ?? LS_POS[sig]) - 150) / 950 * 560, dx = ausr === 'right' ? 8 : ausr === 'left' ? -8 : 0;
     lampe(px, 588, E(sig), '#e3a100'); txt(t, px + dx, 620, 18, '#1b232c', 600, ausr || 'center');
   }

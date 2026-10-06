@@ -1,7 +1,7 @@
 import { ZYL, st } from '../logik/zustand.js';
 import { $ } from '../core/szene.js';
 import { demo } from '../logik/demo-sps.js';
-import { BAND } from '../anlage/baender.js';
+import { BAND, STOPPER } from '../anlage/baender.js';
 import { MM8 } from '../anlage/pruefstation.js';
 import { DROSSEL, DROSSEL_GRUND, drosselSpeichern } from '../logik/drosseln.js';
 import { LOCALE, t } from '../core/sprache.js';
@@ -22,8 +22,8 @@ export const KANAELE = [
   { kurz: 'MM2', name: 'Tauchen', e0: 'oben', e1: 'unten', ...zyl(ZYL.MM2) },
   { kurz: 'MM3', name: 'Verschieben', e0: 'Band', e1: 'Bad', ...zyl(ZYL.MM3) },
   { kurz: 'MM4', name: 'Abstreifen', e0: 'offen', e1: 'zu', ...zyl(ZYL.MM4) },
-  { kurz: 'MM5', name: 'Anschlag', e0: 'offen', e1: 'zu', pos: () => 1 - BAND.anschlagPos, s0: () => BAND.anschlagPos > 0.92, s1: () => BAND.anschlagPos < 0.08, nenn: 1 / 6 },
-  { kurz: 'MM6', name: 'Vereinzeler', e0: 'offen', e1: 'zu', pos: () => 1 - BAND.vereinzelerPos, s0: () => BAND.vereinzelerPos > 0.92, s1: () => BAND.vereinzelerPos < 0.08, nenn: 1 / 6 },
+  { kurz: 'MM5', name: 'Anschlag', e0: 'offen', e1: 'zu', pos: () => 1 - BAND.anschlagPos, s0: () => BAND.anschlagPos > 0.92, s1: () => BAND.anschlagPos < 0.08, nenn: STOPPER.SCHWENKZEIT },
+  { kurz: 'MM6', name: 'Vereinzeler', e0: 'offen', e1: 'zu', pos: () => 1 - BAND.vereinzelerPos, s0: () => BAND.vereinzelerPos > 0.92, s1: () => BAND.vereinzelerPos < 0.08, nenn: STOPPER.SCHWENKZEIT },
   { kurz: 'MM8', name: 'Kippen', e0: 'unten', e1: 'gekippt', ...zyl(MM8) },
 ].map(uebersetzt);
 const N = KANAELE.length;

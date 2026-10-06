@@ -6,6 +6,46 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.9.0 – 2026-10-06
+
+Bridge neu bauen (`Bridge\build.bat`) und mit der neuen `signale.csv` starten: Der Code der Bridge
+hat sich nicht geändert, aber sie trägt die neue Nebenversion. Die TIA-Variablentabellen neu
+importieren (Kommentare von −BG15 und −BG40 geändert, Adressen gleich).
+
+**Warum**
+Die gefederte Anschlagleiste aus 1.8.0 war so nicht baubar: Hebt das Portal den Korb ab, federt
+die Leiste vor und steht dem abgesenkten Korb im Weg. Außerdem liegen die PU-Stoßpuffer unten am
+Korb bei geschlossenem Anschlag unter dem Hebel – der Korb lässt sich am Übergabeplatz gar nicht
+anheben, solange der Anschlag zu ist, auch nicht bei den 49° des alten Hebels. Und der hintere
+Puffer stand 5 mm unter dem Vereinzelerhebel.
+
+**Neu**
+- **Anschlag und Vereinzeler mit pneumatischem Schwenkantrieb 90°** (Drehflügel, wie Festo DSM-16)
+  statt Kompaktzylinder mit Kulisse: Der Hebel schwenkt senkrecht nach oben und steht dann ganz
+  neben dem Korb. Endlagen −BG14…−BG17 über zwei induktive Sensoren M8 an einer Schaltnocke auf der
+  Welle, Drosselrückschlagventile direkt am Antrieb, Alu-Konsole an der Profilnut.
+- **Feste Anschlagleiste** (PE-UHMW auf Alu-Träger, kein Dämpfer), **−BG40 als induktiver Sensor
+  M12 bündig in der Anschlagfläche** vor dem Eckstab des Korbs. Adresse und Name bleiben.
+- **Vereinzeler 10 mm weiter zurück** (Anschlagfläche z = −105, wartender Korb bei −160): Der hintere
+  Puffer des Korbs am Übergabeplatz kommt beim Anheben am Vereinzelerhebel vorbei.
+- **Kollision sichtbar:** Anheben bei geschlossenem −MM5 – der vordere Puffer hängt unter dem Hebel,
+  der Korb kippt am Haken nach vorn; ab 10° reißt er den Anschlag ab (Hebel verbogen hochgeklappt,
+  ohne Funktion bis „Anlage zurücksetzen“, die Endlagen am Antrieb melden trotzdem „zu“), danach
+  pendelt der Korb frei. Absenken auf den geschlossenen −MM5 – der Korb setzt mit dem Puffer auf dem
+  Hebel auf und steht schief auf dem Gurt, −MM2 erreicht −BG4 nicht. Beides mit Meldung.
+
+**Geändert**
+- Ablauf am Übergabeplatz (Demo-SPS und Bandmodul): Korb an −BG40 → **Band stoppen → Anschlag
+  öffnen (−BG15) → einhängen und anheben**. Der fertige Korb wird bei offenem Anschlag abgesenkt und
+  fährt ab; erst wenn −MM5 wieder zu ist (−BG14), gibt der Vereinzeler den nächsten Korb frei.
+  Solange der Haken im Korb am Übergabeplatz ist, steht das Band.
+- Nennschwenkzeit von −MM5/−MM6 im Weg-Zeit-Diagramm 0,3 s.
+
+**Doku**
+- `docs/02-anlage.md`: Schwenkhebel-Stopper mit Schwenkantrieb, Puffer und Vereinzeler-Abstand.
+- `docs/05-uebungen.md`: Aufgabe 7 um die Übernahme am Übergabeplatz und die Kollisionen ergänzt.
+- Bild `10-drosselventile` neu (Drosseln am Schwenkantrieb).
+
 ## 1.8.0 – 2026-10-06
 
 Bridge neu bauen (`Bridge\build.bat`) und mit der neuen `signale.csv` starten: Der Code der Bridge

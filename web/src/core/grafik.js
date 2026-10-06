@@ -23,7 +23,7 @@ export const STUFEN = [
   { name: 'Niedrig', pr: 0.7, schattenAlle: -1, sm: 2048, lambert: true, schatten: true, nurBoden: true },
   { name: 'Minimal', pr: 0.55, schattenAlle: 0, sm: 1024, lambert: true, schatten: false, nurBoden: true },
 ];
-const DYN_WURZELN = () => [schlitten, deckel, BAND.anschlag, BAND.vereinzeler, ...(BAND.stopperStangen || []), ...(BAND.stopperLeisten || []), ...KURVE.rollen, ST.kipper, ST.zylBody, ST.zylStange, ST.rinneGruppe, ...BAND.trommeln, ...BAND2.trommeln, ...SCHRANK.tueren, ...koerbe.map(k => k.g), PERSON?.g].filter(Boolean);
+const DYN_WURZELN = () => [schlitten, deckel, BAND.anschlag, BAND.vereinzeler, ...(BAND.stopperNocken || []), ...KURVE.rollen, ST.kipper, ST.zylBody, ST.zylStange, ST.rinneGruppe, ...BAND.trommeln, ...BAND2.trommeln, ...SCHRANK.tueren, ...koerbe.map(k => k.g), PERSON?.g].filter(Boolean);
 export const Q = { modus: 'auto', stufe: 0, gesperrt: new Set(), t: 0, n: 0, zuletzt: performance.now(), ruhe: 0, gutSeit: 0 };
 try { const m = localStorage.getItem('zinnbad-grafik'); if (m) Q.modus = m; } catch { /* kein Speicher */ }
 // Standard ↔ Lambert: Lambert-Kopien, Laufzeitwerte (Farbe, Leuchten, Deckkraft) werden jedes Bild übernommen

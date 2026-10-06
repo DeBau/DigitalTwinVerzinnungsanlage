@@ -62,17 +62,19 @@ export function visual(dt) {
     KUEHL.dampfTakt = 0.15;
   }
   pruefstationZeichnen();
-  BAND.anschlag.userData.stellen(BAND.anschlagPos);           // Schwenkhebel und Kolbenstange
-  BAND.vereinzeler.userData.stellen(BAND.vereinzelerPos);
-  BAND.anschlag.userData.druecken(BAND.anschlagDruck);       // Anschlagleisten (Korb drückt gegen den Dämpfer)
-  BAND.vereinzeler.userData.druecken(BAND.vereinzelerDruck);
+  BAND.anschlag.userData.stellen(BAND.anschlagPos, BAND.anschlagDefekt);   // Schwenkhebel und Schaltnocke
+  BAND.vereinzeler.userData.stellen(BAND.vereinzelerPos, false);
 
   for (const k of koerbe) {
     if (k.zustand === 'kipper') { /* Position in pruefstationZeichnen */ }
-    else if (k.zustand === 'haken') { k.g.position.set(schlitten.position.x, korbUnterkante(), 0); k.g.rotation.y = 0; }
-    else if (k.zustand === 'kurve') { const p = kurvenPunkt(k.s); k.g.position.set(p.x, BAND_Y, p.z); k.g.rotation.y = p.winkel; }   // Korb dreht sich mit der Kurve
-    else if (k.zustand === 'band2') { k.g.position.set(k.x, BAND_Y, B2.z); k.g.rotation.y = Math.PI / 2; }
-    else { k.g.position.set(0, BAND_Y, k.z); k.g.rotation.y = 0; }
+    else if (k.zustand === 'haken') {
+      // gekippt (Puffer am Anschlag −MM5): Drehung um die Bügelmitte, 158 über der Unterkante
+      const a = k.kipp || 0;
+      k.g.position.set(schlitten.position.x, korbUnterkante() + 158 * (1 - Math.cos(a)), -158 * Math.sin(a)); k.g.rotation.set(a, 0, 0);
+    }
+    else if (k.zustand === 'kurve') { const p = kurvenPunkt(k.s); k.g.position.set(p.x, BAND_Y, p.z); k.g.rotation.set(0, p.winkel, 0); }   // Korb dreht sich mit der Kurve
+    else if (k.zustand === 'band2') { k.g.position.set(k.x, BAND_Y, B2.z); k.g.rotation.set(0, Math.PI / 2, 0); }
+    else { k.g.position.set(0, BAND_Y, k.z); k.g.rotation.set(0, 0, 0); }
     k.teilMat.color.copy(KUPFER).lerp(ZINN_FARBE, k.beschichtung);
     k.teilMat.roughness = 0.3 - 0.15 * k.beschichtung;
   }

@@ -94,7 +94,7 @@ SF17_MM4_Schliessen;%I3.6;Handtaster -MM4 Bad abdecken
 SF18_MM4_Oeffnen;%I3.7;Handtaster -MM4 Bad oeffnen
 # --- Band: Endlagen Stopperzylinder (Feldverteiler -XD3) und Inkrementalgeber (2. DI-Baugruppe) ---
 BG14_MM5_zu;%I4.0;Anschlag -MM5 geschlossen (Finger ueber dem Band)
-BG15_MM5_offen;%I4.1;Anschlag -MM5 offen
+BG15_MM5_offen;%I4.1;Anschlag -MM5 offen (90 Grad, erst dann Korb anheben oder absenken)
 BG16_MM6_zu;%I4.2;Vereinzeler -MM6 geschlossen (sperrt)
 BG17_MM6_offen;%I4.3;Vereinzeler -MM6 offen
 BG18_Geber_A;%I4.4;Inkrementalgeber Band Spur A (10 Imp/U, 24,5 mm Bandweg je Impuls)
@@ -127,8 +127,8 @@ BG30_MM8_unten;%I7.4;Kipper -MM8 unten (Grundstellung)
 BG31_MM8_gekippt;%I7.5;Kipper -MM8 gekippt
 BG33_Kipper_Korb;%I7.6;Korb am Endanschlag der Kippmulde
 BG34_KLT_voll;%I7.7;KLT i.O.-Teile voll (104 Teile)
-# --- 3. DI-Baugruppe ab %I8.0 (%I8.1 Reserve): Abfrage Anschlagleiste -MM5 ---
-BG40_Korb_am_Anschlag;%I8.0;Korb liegt am Anschlag -MM5 an (induktiver Sensor M8 an der gefederten Anschlagleiste)
+# --- 3. DI-Baugruppe ab %I8.0 (%I8.1 Reserve): Korbabfrage am Anschlag -MM5 ---
+BG40_Korb_am_Anschlag;%I8.0;Korb liegt am Anschlag -MM5 an (induktiver Sensor M12 buendig in der Anschlagleiste)
 # --- Handbetrieb MM8 ---
 SF28_MM8_Kippen;%I8.2;Handtaster -MM8 Kipper kippen
 SF29_MM8_Zurueck;%I8.3;Handtaster -MM8 Kipper zurueck

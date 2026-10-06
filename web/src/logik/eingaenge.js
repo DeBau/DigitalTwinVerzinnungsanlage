@@ -1,5 +1,5 @@
 import { FUELL_MIN, KW, NOT_HALT, QUITT, TEMP_SOLL, WASSER_MAX, WASSER_MIN, ZYL_LISTE, st } from './zustand.js';
-import { BAND, BAND2, KURVE, LS_POS, STOPPER, TROMMEL_R } from '../anlage/baender.js';
+import { BAND, BAND2, KURVE, LS_POS, TROMMEL_R } from '../anlage/baender.js';
 import { MM8, ST } from '../anlage/pruefstation.js';
 import { kipperKorb, koerbe } from '../anlage/koerbe.js';
 import { UMRICHTER, nistA, zsw1 } from './umrichter.js';
@@ -51,7 +51,7 @@ function rohEingang(name) {
     case 'BG9_Temperatur': return st.temp >= TEMP_SOLL;
     case 'BG10_Fuellhoehe': return st.fuell >= FUELL_MIN;
     case 'BG11_Korb': return korbAmBand();
-    case 'BG40_Korb_am_Anschlag': return BAND.anschlagDruck > STOPPER.BG40_AB;   // Leiste −MM5 eingedrückt: Korb liegt an
+    case 'BG40_Korb_am_Anschlag': return BAND.bg40;                       // M12 in der Anschlagleiste −MM5 (Prozessmodell)
     case 'BG12_Bandanfang': return korbAn(LS_POS.BG12_Bandanfang);
     case 'BG13_Bandende': return korbAn(LS_POS.BG13_Bandende);
     case 'SF1_Start': return st.bedien.sf1;

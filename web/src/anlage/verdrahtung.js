@@ -213,22 +213,22 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
     kabel([e, f, V(f.x, 14, f.z), V(f.x, 14, BRUECKE.z + lg), V(BRUECKE.x + lg, 14, BRUECKE.z + lg), V(BRUECKE.x + lg, 14, -60)], anlage, M.kabelGrau, 2.2, 14, false);
   });
   { const m = KURVE.motor.abgang, mb = m[m.length - 1], d = lage(); kabel([...m, V(mb.x, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)], anlage, M.kabel, 4.5, 30, false); }
-  // Feldverteiler −XD3 am Bandgestell (+x): Endlagen −BG14…−BG17 der Stopperzylinder, Abfrage Anschlagleiste −BG40
+  // Feldverteiler −XD3 am Bandgestell (+x): Endlagen −BG14…−BG17 der Schwenkantriebe, Korbabfrage −BG40 am Anschlag
   const XD3 = feldverteiler(132.5, 250, -460, Math.PI / 2, '−XD3 Feldverteiler Band', [['BG14_MM5_zu'], ['BG15_MM5_offen'], ['BG16_MM6_zu'], ['BG17_MM6_offen'], ['BG40_Korb_am_Anschlag'], null, null, null]);
   ['BG14_MM5_zu', 'BG15_MM5_offen', 'BG16_MM6_zu', 'BG17_MM6_offen'].forEach((sig, i) => {
-    // Nutsensorkabel unter der Zylinderkonsole nach außen, je eine eigene Lage am Band entlang zu −XD3
+    // Sensorkabel vom Sensorhalter vorn am Schwenkantrieb nach unten, je eine eigene Lage am Band entlang zu −XD3
     // (unter −XD3 ankommen: das Bündel steigt dann senkrecht vor dem Verteiler zu den Ports)
     const e = BAND.sensorAus[sig], xl = 240 + (3 - i) * 6.3, yl = 150 - i * 7;
     zumPort([e, V(e.x, yl, e.z), V(xl, yl, e.z - 60), V(xl, yl, XD3.ports[i].p.z)], XD3.ports[i]);
   });
   // −BG40: Leitung kommt auf der Drehachse von −MM5 an (dort ruht sie, der Hebel dreht sich darum), senkrecht hinter der
-  // Konsole hinunter und unter den Nutsensorleitungen (unterste Lage, gleich im Abstand ihres Bogens vor −XD3)
+  // Konsole hinunter und unter den Endlagenleitungen (unterste Lage, gleich im Abstand ihres Bogens vor −XD3)
   { const e = BAND.abfrageAus, xl = 257, yl = 150 - 4 * 7; zumPort([e, V(e.x, yl, e.z), V(xl, yl, e.z - 60), V(xl, yl, XD3.ports[4].p.z)], XD3.ports[4]); }
   { const t = XD3.sammel; kabel([t, V(t.x, 80, t.z), V(-160, 80, t.z), V(-160, KANAL1.unten + 1, t.z)], anlage, M.kabelGrau, 4); }
   // Ventilinsel −QM2: Multipolleitung unter dem Band hindurch in den Kanal, Schläuche zu Anschlag und Vereinzeler
   kabel([V(156, 189, QM2.z), V(156, 150, QM2.z), V(-160, 150, QM2.z), V(-160, KANAL1.unten + 1, QM2.z)], anlage, M.kabel, 3.5);
   const druck = new THREE.MeshStandardMaterial({ color: 0x2f7fd0, roughness: 0.42 });
-  // je Ventil 2/4 auf Kolben-/Stangenseite des ADN (QS-6 nach −z); −MB9 außen am Vereinzeler vorbei
+  // je Ventil 2/4 auf die beiden Kammern des Schwenkantriebs (QS-6 nach −z); −MB9 außen am Vereinzeler vorbei
   for (const sig of ['MB9_Anschlag_auf', 'MB10_Vereinzeler_zu']) {
     QM2[sig].forEach((P, i) => {
       // Höhenversatz Ventil → Zylinder als leichte Neigung auf der langen Strecke, nicht als Knick

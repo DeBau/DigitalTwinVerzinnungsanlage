@@ -218,7 +218,7 @@ function anlageZuruecksetzen() {
   for (const t of tropfen.splice(0)) anlage.remove(t.m);
   for (const d of daempfe.splice(0)) { anlage.remove(d.s); d.s.material.dispose(); }
   korbNrZuruecksetzen();
-  korbErzeugen(-150);
+  korbErzeugen(-160);
   Object.assign(st, { temp: 266, heizung: true, fuell: 62, verzinnt: 0, wasser: 70, ablass: false });
   Object.assign(KW, { y: 0, mb17: false, zulauf: 0, verbrauch: 0, ablauf: 0, regelEin: false, sperre: false, sperreGemeldet: false, trocken: false, ohneFluss: 0 });
   demo.kw.i = 0;
@@ -229,9 +229,9 @@ function anlageZuruecksetzen() {
   Object.assign(MULDE, { v: 0, wende: 0 });
   Object.assign(demo.ps, { kip: false, kt: 0, gekippt: false, nachlauf: 0, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false, voPb: false }); ST.korbSumme.clear(); MM8.x = 0; MM8.v = 0; MM8.ventil = -1; MM8.an0 = true; MM8.an1 = false; rollenkurveZuruecksetzen();
   Object.assign(demo.kurve, { rechts: false, links: false, nachlauf: 0 });
-  Object.assign(demo.band, { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Zeit: 0, bg11Aus: 0, uebNach: 0 });
+  Object.assign(demo.band, { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Aus: 0, uebNach: 0, steht: 0 });
   demo.b2.mulde = false;
-  Object.assign(BAND, { v: 0, wende: 0, anschlagPos: 1, vereinzelerPos: 0, anschlagDruck: 0, vereinzelerDruck: 0 });
+  Object.assign(BAND, { v: 0, wende: 0, anschlagPos: 1, vereinzelerPos: 0, anschlagDefekt: false, bg40: false });
   bedienSync();
   $('btn-heizung').setAttribute('aria-pressed', true);
   $('btn-heizung').textContent = t('Heizung ein');

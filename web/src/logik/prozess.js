@@ -17,7 +17,8 @@ import { pruefstation } from './pruefstation.js';
 let angehaengt = null;
 let spawnSperre = 0;
 let nhAlt = new Set();
-export function prozessZuruecksetzen() { angehaengt = null; spawnSperre = 0; nhAlt = new Set(); }
+let pufferLage = null, korbXMax = Infinity;          // Korbpuffer unter/über dem Hebel −MM5, Grenze für −MM2 beim Absenken
+export function prozessZuruecksetzen() { angehaengt = null; spawnSperre = 0; nhAlt = new Set(); pufferLage = null; korbXMax = Infinity; BAND.anschlagDefekt = false; }
 // Korb hängt mit dem Bügel (Mitte 158 über Korbboden) in den Hakenmulden (Bügelmitte im Haken bei 446);
 // über dem Band steht er so lange auf dem Gurt, bis der Haken die 12 mm Spiel überwunden hat
 export function korbUnterkante() { const u = (1 - ZYL.MM2.pos) * 300 + 446 - 158; return ZYL.MM3.pos < 0.05 ? Math.max(BAND_Y, u) : u; }
@@ -39,9 +40,11 @@ export function prozess(dt) {
 
   zylinderBewegen(ZYL.MM1, dt);
   const badFrei = p3 > 0.97 && p4 < 0.03;
+  const badSperre = p3 > 0.6 && !badFrei;
   zylinderBewegen(ZYL.MM2, dt, {
-    xMax: (p3 > 0.6 && !badFrei) ? 0.45 * 300 : 300,
-    sperrText: p3 > 0.97 ? 'Kollision: −MM2 senkt auf die geschlossene Badabdeckung (−BG7 fehlt)' : 'Kollision: −MM2 senkt auf den Badrand (−MM3 nicht in Endlage)',
+    xMax: Math.min(badSperre ? 0.45 * 300 : 300, korbXMax),
+    sperrText: !badSperre ? 'Kollision: Korb setzt mit dem Puffer auf dem geschlossenen Anschlag −MM5 auf und hängt schief'
+      : p3 > 0.97 ? 'Kollision: −MM2 senkt auf die geschlossene Badabdeckung (−BG7 fehlt)' : 'Kollision: −MM2 senkt auf den Badrand (−MM3 nicht in Endlage)',
     last: ZYL.MM2.ventil > 0 ? 1.12 : (angehaengt ? 0.82 : 0.95),
   });
   zylinderBewegen(ZYL.MM3, dt, { gesperrt: p2 > 0.05, sperrText: 'Verriegelung: −MM3 fährt nicht, Tauchzylinder −MM2 ist nicht oben (−BG3)' });
@@ -65,24 +68,28 @@ export function prozess(dt) {
 
   // Band: Antrieb, Anschlag und Vereinzeler – je nach Übungsumfang vom Bandmodul oder von der SPS gesteuert
   const bandKoerbe = koerbe.filter(k => k.zustand === 'band');
-  // Schwenkhebel −MM5/−MM6: Anschlagleiste in Ruhe ab za, Leiste/Hebel/Bolzenköpfe bis za + 25 (Dämpfer liegt neben dem Korb)
-  const ueberdeckt = (za) => bandKoerbe.some(k => k.z + 55 > za + 0.5 && k.z - 55 < za + 25);   // Korbkörper ±55
+  // Schwenkhebel −MM5/−MM6: Anschlagleiste ab za, Hebel bis za + DICKE (bei −MM5 ragt −BG40 weiter nach hinten)
+  const ueberdeckt = (za, tief) => bandKoerbe.some(k => k.z + 55 > za + 0.5 && k.z - 55 < za + tief);   // Korbkörper ±55
+  // −MM5 schwenkt auch nicht in einen Korb, der am Haken über dem Übergabeplatz hängt (Puffer und Korbkörper im Weg)
+  const korbUnterMM5 = !!angehaengt && p3 < 0.05 && korbHoehe() < 170;
   let anschlagZu, vereinzelerZu;
   if (st.betriebBand === 'auto' && !st.sa3) {
-    anschlagZu = !bandKoerbe.some(k => k.fertig && k.z > -60 && k.z < 125);
-    vereinzelerZu = !!angehaengt || bandKoerbe.some(k => k.z > -40 && k.z < 125);
+    // Bandmodul: Anschlag öffnet, sobald der Haken den Korb hat und das Band steht, und bleibt offen, bis der fertige Korb abgefahren ist;
+    // der Vereinzeler gibt den nächsten Korb erst frei, wenn der Anschlag wieder zu ist
+    anschlagZu = !(angehaengt && (BAND.anschlagPos > 0.02 || Math.abs(BAND.v) < 1)) && !bandKoerbe.some(k => k.fertig && k.z > -60 && k.z < 125);
+    vereinzelerZu = !!angehaengt || bandKoerbe.some(k => k.z > -40 && k.z < 125) || BAND.anschlagPos > 0.08;
   } else {
     anschlagZu = !wirksam('MB9_Anschlag_auf');                          // Federrückstellung: ohne Spannung zu
     vereinzelerZu = wirksam('MB10_Vereinzeler_zu');                      // Federrückstellung: ohne Spannung offen
   }
-  // Stellung 0 = zu (Kolbenstange aus), 1 = offen; Nennschwenkzeit 1/6 s, je Richtung gedrosselt
-  const fahre = (pos, zu, zf, kurz) => {
-    const ziel = zu && !(pos > HEBEL_FREI && ueberdeckt(zf)) ? 0 : 1;   // Hebel schwenkt nicht in einen Korb hinein
-    const schritt = dt * 6 * st.speed * drosselFaktor(kurz, ziel === 0 ? 1 : -1);
+  // Stellung 0 = zu, 1 = offen (90°); Schwenkantrieb mit Nennschwenkzeit SCHWENKZEIT, je Richtung gedrosselt
+  const fahre = (pos, zu, frei, kurz) => {
+    const ziel = zu && !(pos > STOPPER.FREI && !frei) ? 0 : 1;          // Hebel schwenkt nicht in einen Korb hinein
+    const schritt = dt / STOPPER.SCHWENKZEIT * st.speed * drosselFaktor(kurz, ziel === 0 ? 1 : -1);
     return pos + Math.max(-schritt, Math.min(schritt, ziel - pos));
   };
-  BAND.anschlagPos = fahre(BAND.anschlagPos, anschlagZu, STOPPER.MM5, 'MM5');            // Anschlagleiste −MM5
-  BAND.vereinzelerPos = fahre(BAND.vereinzelerPos, vereinzelerZu, STOPPER.MM6, 'MM6');   // Anschlagleiste −MM6
+  BAND.anschlagPos = fahre(BAND.anschlagPos, anschlagZu, !ueberdeckt(STOPPER.MM5, STOPPER.RUECKEN_MM5) && !korbUnterMM5, 'MM5');
+  BAND.vereinzelerPos = fahre(BAND.vereinzelerPos, vereinzelerZu, !ueberdeckt(STOPPER.MM6, STOPPER.DICKE), 'MM6');
   const grenzen = bandGrenzen(bandKoerbe);
   let vZiel = 0;
   if (st.betriebBand === 'auto' && st.sa2) {
@@ -97,7 +104,7 @@ export function prozess(dt) {
     BAND.vorOrt.r = BAND.vorOrt.l = false; BAND.wende = 0;
     // Bedarf: ein Korb kann weiter, oder ein Korb liegt noch im Übergabebereich am Kurvenanfang (Band 1 muss mitlaufen)
     const bedarf = bandKoerbe.some(k => k.z < grenzen.get(k).max - 0.5) || koerbe.some(k => k.zustand === 'kurve' && k.s < UEBERGABE && KURVE.wende > 0);
-    vZiel = bedarf && st.kf2 ? BAND.vSoll : 0;
+    vZiel = bedarf && st.kf2 && !korbUnterMM5 ? BAND.vSoll : 0;          // Band steht, solange ein Korb am Haken über dem Übergabeplatz hängt
   } else if (amUmrichter('TA2')) {
     // Umrichter −TA2: das Telegramm kommt von der SPS
   } else {
@@ -118,10 +125,9 @@ export function prozess(dt) {
     const g = grenzen.get(k);
     k.z = Math.max(Math.min(k.z, g.min), Math.min(Math.max(k.z, g.max), k.z + vBand1(k) * dt));   // an der Kurve gemeinsam mit −MA6
   }
-  // Anschlagleisten: der Korb vor dem geschlossenen Hebel drückt sie mit der Stirnwand bis zum Resthub ein (Feder drückt zurück)
-  const druck = (pos, za) => pos >= HEBEL_FREI ? 0 : Math.max(0, ...bandKoerbe.filter(k => k.z - 55 < za).map(k => Math.min(STOPPER.HUB, k.z + 55 - za)));
-  BAND.anschlagDruck = druck(BAND.anschlagPos, STOPPER.MM5);
-  BAND.vereinzelerDruck = druck(BAND.vereinzelerPos, STOPPER.MM6);
+  korbAnschlagKollision(dt);
+  // −BG40 in der Anschlagleiste: sieht den Eckstab des Korbs, solange er anliegt (auch am Haken, bis er ca. 25 mm angehoben ist)
+  BAND.bg40 = !BAND.anschlagDefekt && BAND.anschlagPos < 0.03 && (bandKoerbe.some(k => Math.abs(k.z) < 1) || (!!angehaengt && p3 < 0.05 && korbHoehe() < 25));
   uebergabeUndBand2(dt);
   pruefstation(dt);
   spawnSperre -= dt;
@@ -132,7 +138,7 @@ export function prozess(dt) {
   const amBandUnten = p2 > 0.97 && p3 < 0.02;
   if (!angehaengt && ZYL.MM1.pos < 0.5 && amBandUnten) {
     const k = koerbe.find(k => k.zustand === 'band' && Math.abs(k.z) < 3);
-    if (k) { k.zustand = 'haken'; k.z = 0; angehaengt = k; }
+    if (k) { k.zustand = 'haken'; k.z = 0; k.kipp = 0; k.kippV = 0; angehaengt = k; }
   }
   if (angehaengt && ZYL.MM1.pos > 0.5) {
     const k = angehaengt;
@@ -179,26 +185,90 @@ export function korbAuflegen(manuell) {
   spawnSperre = 3;
 }
 // Bewegungsgrenzen je Korb: Endanschlag am Bandanfang, Abstand zu den Nachbarkörben (Kante an Kante),
-// Anschlag- und Vereinzelerfinger (sperren je nach Richtung von der einen oder anderen Seite; von vorn erst, wenn die
-// Anschlagleiste um den Resthub eingedrückt ist, von hinten an Hebel und Bolzenköpfen bei za + 25)
-// Körbe stauen sich über ihre Stoßpuffer: Teilung 150 mm, 40 mm Lücke zwischen den Korbkörpern für den Vereinzelerhebel
-// Der Schwenkhebel gibt den Korb erst ab 80 % Öffnungswinkel frei (dann ist er über Korbrand und Tragbügel)
-const HEBEL_FREI = 0.8;
+// Anschlag- und Vereinzelerhebel (sperren je nach Richtung von der einen oder anderen Seite: von vorn an der
+// Anschlagfläche za, von hinten am Hebel bzw. bei −MM5 an −BG40)
+// Körbe stauen sich über ihre Stoßpuffer: Teilung 150 mm, 40 mm Lücke zwischen den Korbkörpern; der Korb am Vereinzeler
+// wartet 10 mm hinter dem Korb am Übergabeplatz (50 mm Lücke, der Vereinzelerhebel steht nicht über dessen Puffer).
+// Der Schwenkhebel gibt den Korb erst ab FREI (80 %) des Öffnungswinkels frei; ein abgerissener −MM5 hält nichts mehr.
 function bandGrenzen(liste) {
   const m = new Map(), vor = [...liste].sort((a, b) => b.z - a.z);
+  const a5 = !BAND.anschlagDefekt && BAND.anschlagPos < STOPPER.FREI, a6 = BAND.vereinzelerPos < STOPPER.FREI;
+  const z5 = STOPPER.MM5 - 55, z6 = STOPPER.MM6 - 55;                  // Korbmitte am Anschlag / am Vereinzeler
   let vorne = kurveEinlauf() + KORB_TEILUNG;                           // letzter Korb in der Rollenkurve
   for (const k of vor) {
     let max = vorne - KORB_TEILUNG;
-    if (BAND.anschlagPos < HEBEL_FREI && k.z <= 0.5) max = Math.min(max, STOPPER.MM5 + STOPPER.HUB - 55);
-    if (BAND.vereinzelerPos < HEBEL_FREI && k.z <= -149.5) max = Math.min(max, STOPPER.MM6 + STOPPER.HUB - 55);
+    if (a5 && k.z <= z5 + 0.5) max = Math.min(max, z5);
+    if (a6 && k.z <= z6 + 0.5) max = Math.min(max, z6);
     m.set(k, { max, min: -Infinity }); vorne = k.z;
   }
   let hinten = -Infinity;
+  const r5 = STOPPER.MM5 + STOPPER.RUECKEN_MM5 + 55, r6 = STOPPER.MM6 + STOPPER.DICKE + 55;
   for (const k of [...vor].reverse()) {
     let min = Math.max(hinten + KORB_TEILUNG, -BAND_ENDE);
-    if (BAND.anschlagPos < HEBEL_FREI && k.z >= STOPPER.MM5 + 79.5) min = Math.max(min, STOPPER.MM5 + 80);
-    if (BAND.vereinzelerPos < HEBEL_FREI && k.z >= STOPPER.MM6 + 79.5) min = Math.max(min, STOPPER.MM6 + 80);
+    if (a5 && k.z >= r5 - 0.5) min = Math.max(min, r5);
+    if (a6 && k.z >= r6 - 0.5) min = Math.max(min, r6);
     m.get(k).min = min; hinten = k.z;
   }
   return m;
+}
+
+// ----------------------------------------------------------------------------
+// Korbpuffer und Anschlaghebel −MM5
+// Die PU-Puffer sitzen unten am Korb (0…15 mm über der Unterkante, x = ±31…45, bis 20 mm vor der Stirnwand). Am
+// Übergabeplatz liegen sie bei geschlossenem −MM5 unter dem Hebel. Der Hebel überdeckt sie, solange sein Arm über
+// x = 45 hinausreicht (bis ca. 56° Öffnung).
+//  - Anheben bei geschlossenem Anschlag: der vordere Puffer hängt unter dem Hebel, der Korb kippt um den Bügel nach vorn;
+//    ab 10° reißt −MM5 ab (Hebel verbogen hochgeklappt, ohne Funktion bis „Anlage zurücksetzen“), der Korb pendelt frei.
+//  - Absenken auf den geschlossenen Anschlag: der Puffer setzt auf dem Hebel auf, der Korb kippt nach hinten, bis die
+//    Kufen auf dem Gurt stehen – dann kommt −MM2 nicht weiter (bleibt vor −BG4 stehen).
+// Höhen über dem Gurt; Kippwinkel um die Bügelmitte (158 über der Unterkante), + = Stirnseite nach unten.
+// ----------------------------------------------------------------------------
+const BUEGEL = 158, PUFFER_Z = 69, KIPP_RISS = 10 * Math.PI / 180, PENDEL_W = Math.sqrt(9810 / BUEGEL);
+const korbHoehe = () => Math.max(0, (1 - ZYL.MM2.pos) * 300 + 446 - BUEGEL - BAND_Y);   // Unterkante über dem Gurt, ungekippt
+function hebelUeberPuffer() {
+  if (BAND.anschlagDefekt) return null;
+  const w = STOPPER.WINKEL * BAND.anschlagPos, c = Math.cos(w);
+  if (c < 1e-6 || STOPPER.L * c < STOPPER.X - 45) return null;           // Arm endet vor den Puffern
+  const y0 = STOPPER.Y - BAND_Y, tn = Math.tan(w), dick = 8 / c;
+  return { unten: y0 + (STOPPER.X - 45) * tn - dick, oben: y0 + Math.min(STOPPER.X - 31, STOPPER.L * c) * tn + dick };
+}
+// Absenken: Kippwinkel (nach hinten, ≥ 0), mit dem der Puffer auf dem Hebel (oben) liegt, bei Unterkante h
+function kippAufHebel(h, oben) {
+  const R = Math.hypot(157, PUFFER_Z), phi = Math.atan2(PUFFER_Z, 157), c = (h + BUEGEL - oben) / R;
+  return c >= 157 / R ? 0 : Math.acos(Math.max(-1, c)) - phi;
+}
+function korbAnschlagKollision(dt) {
+  const k = angehaengt;
+  korbXMax = Infinity;
+  if (!k) { pufferLage = null; return; }
+  k.kipp ??= 0; k.kippV ??= 0;
+  const h = korbHoehe(), hebel = ZYL.MM3.pos < 0.05 ? hebelUeberPuffer() : null;
+  if (!hebel) pufferLage = null;
+  else if (!pufferLage) pufferLage = h + 1 >= hebel.oben - 0.5 ? 'ueber' : 'unter';
+  let kipp = null;                                                     // erzwungener Kippwinkel (sonst pendelt der Korb)
+  if (pufferLage === 'unter') {
+    const R = Math.hypot(BUEGEL - 14, PUFFER_Z), phi = Math.atan2(PUFFER_Z, BUEGEL - 14);
+    const c = (h + BUEGEL - hebel.unten) / R;
+    if (c * R > BUEGEL - 14) {
+      ereignis(t`Kollision: Puffer von Korb ${k.nr} hängt unter dem geschlossenen Anschlag −MM5, der Korb kippt`, 'err', 'mm5haengt');
+      kipp = c >= 1 ? Infinity : phi - Math.acos(c);
+      if (kipp >= KIPP_RISS) {
+        BAND.anschlagDefekt = true; pufferLage = null; kipp = null; k.kipp = KIPP_RISS; k.kippV = 0;
+        ereignis(t`Anschlag −MM5 abgerissen: Korb ${k.nr} bei geschlossenem Anschlag angehoben. Hebel verbogen, ohne Funktion bis „Anlage zurücksetzen“`, 'err');
+      }
+    }
+  } else if (pufferLage === 'ueber' && h + 1 < hebel.oben + 40) {
+    kipp = -kippAufHebel(h, hebel.oben);
+    // tiefste Unterkante: Puffer auf dem Hebel und Kufen hinten auf dem Gurt (Halbierung)
+    let lo = 0, hi = hebel.oben;
+    const hinten = (hh) => { const s = kippAufHebel(hh, hebel.oben); return hh + BUEGEL - BUEGEL * Math.cos(s) - 63 * Math.sin(s); };
+    if (hinten(lo) < 0) { for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (hinten(m) < 0) lo = m; else hi = m; } korbXMax = 288 - hi; }
+    if (kipp === 0) kipp = null;
+  }
+  if (kipp !== null) { k.kipp = kipp; k.kippV = 0; }
+  else {
+    // frei hängend: gedämpftes Pendel um den Bügel
+    k.kippV += (-PENDEL_W * PENDEL_W * k.kipp - 2 * 0.12 * PENDEL_W * k.kippV) * dt;
+    k.kipp += k.kippV * dt;
+  }
 }

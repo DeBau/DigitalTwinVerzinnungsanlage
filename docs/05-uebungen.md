@@ -43,6 +43,13 @@ eigene Regelungsübung neben einer automatisch laufenden Anlage (Aufgaben 21–2
    „Korb liegt an“ – die Kette auf −BG40 weiterschalten, nicht auf eine Wartezeit nach −BG11
    (die passt nur für eine Bandgeschwindigkeit). Einlaufüberwachung: Kommt nach −BG11 nicht
    innerhalb von 3 s −BG40, Störung „Korb klemmt“ melden und das Band anhalten.
+   Übernahme am Übergabeplatz: **Band stoppen, Anschlag −MM5 öffnen (−BG15), erst dann
+   einhängen und anheben**; der fertige Korb wird bei offenem Anschlag abgesenkt, danach fährt
+   er ab, der Anschlag schließt (−BG14) und erst dann gibt der Vereinzeler den nächsten Korb
+   frei. Wer bei geschlossenem Anschlag anhebt, sieht den Korb mit dem Puffer unter dem Hebel
+   hängen und kippen – und reißt den Anschlag ab (bis „Anlage zurücksetzen“ ohne Funktion, die
+   Endlagen am Schwenkantrieb melden trotzdem „zu“). Wer auf den geschlossenen Anschlag absenkt,
+   setzt den Korb schief auf; −MM2 erreicht −BG4 nicht.
 
 ### Fortgeschritten
 

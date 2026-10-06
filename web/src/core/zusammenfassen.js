@@ -18,7 +18,7 @@ import { t } from './sprache.js';
 // Teile mit eigener Bewegung, Klickfläche, Materialwechsel oder neu berechneter Geometrie bleiben einzeln.
 // ----------------------------------------------------------------------------
 function szeneZusammenfassen() {
-  const wurzeln = [anlage, schlitten, haken, deckel, hakenKoerper, mm1Piv, mm1Stange, BAND.anschlag, BAND.vereinzeler, ...BAND.stopperStangen, ...BAND.stopperLeisten, ...KURVE.rollen, ST.kipper, ST.zylBody, ST.zylStange, ST.rinneGruppe,
+  const wurzeln = [anlage, schlitten, haken, deckel, hakenKoerper, mm1Piv, mm1Stange, BAND.anschlag, BAND.vereinzeler, ...BAND.stopperNocken, ...KURVE.rollen, ST.kipper, ST.zylBody, ST.zylStange, ST.rinneGruppe,
     ...BAND.trommeln, ...BAND2.trommeln, ...SCHRANK.tueren, ...KNEBEL.map(k => k.knebel)];
   const wurzelSet = new Set(wurzeln);
   const einzeln = new Set([bodenMesh, ...PULT_TASTER.map(t => t.kappe), ...SCHRANK.qa]);
