@@ -135,9 +135,10 @@ export function schlauch(pts, mat, r = 3, parent = anlage, seg) {
   m.userData.rohr = { r };
   return m;
 }
-// Fest verlegte Leitung: R ist der gewünschte Biegeradius, mindestens BIEGEFAKTOR × D
-export function leitung(pts, mat, r = 3, R = 35, parent = anlage) {
-  return mesh(rohrGeometrie(mittellinie(pts, Math.max(R, BIEGEFAKTOR * 2 * r), r), r), mat, parent);
+// Fest verlegte Leitung: R ist der gewünschte Biegeradius, mindestens faktor × D (Standard BIEGEFAKTOR; hochflexible
+// PUR-Sensorleitungen dürfen als Ausnahme enger gebogen werden)
+export function leitung(pts, mat, r = 3, R = 35, parent = anlage, faktor = BIEGEFAKTOR) {
+  return mesh(rohrGeometrie(mittellinie(pts, Math.max(R, faktor * 2 * r), r), r), mat, parent);
 }
 // Starres Rohr bzw. Wellschlauch (Blech, Kupfer, Kunststoff-Wellrohr): Bogenradius wie angegeben
 export function rohr(pts, mat, r, R, parent = anlage) {

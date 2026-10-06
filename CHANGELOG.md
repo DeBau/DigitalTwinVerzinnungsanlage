@@ -6,6 +6,34 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.11.0 – 2026-10-06
+
+Bridge neu bauen (`Bridgeuild.bat`): Der Code der Bridge hat sich nicht geändert, aber sie trägt die
+neue Nebenversion. Signalliste und TIA-Variablentabellen bleiben gleich (Port-Belegung von −XD3 unverändert).
+
+**Warum**
+Zwischen Band 1 und Zinnbad lagen Leitungen und Schläuche frei in der Luft und am Boden, Ventilinsel −QM2 und
+Feldverteiler −XD3 saßen hinten schlecht zugänglich, und mehrere Leitungen liefen von oben durch die Abdeckung
+der Kabelbrücke.
+
+**Neu**
+- **Kabelrinne zwischen Band 1 und Zinnbad:** gelochte Kabelrinne (Stahl bandverzinkt) unten am Bandgestell,
+  neben dem Bad 100 × 60, davor über ein Reduzierstück 150 × 60; Wandausleger an den Bandstützen, Bodenstütze
+  vor der Umhausungsrückwand, Endstück, Trennsteg (Motorleitung −MA1 getrennt). Querrinne 60 × 60 mit Anbau-T
+  unter dem Band zur Portalsäule für die Druckluftversorgung von −QM2. Darin liegen die Leitungen −BG14…−BG17/
+  −BG40, die Sammelleitung von −XD3, Multipol und Schläuche von −QM2 und −MA1; keine Leitung kreuzt eine andere.
+- **−QM2 und −XD3 vorn** am Bandgestell (Richtung Umhausungsfront, frei zugänglich).
+- **Biegeradius Sensorleitungen 2 × D** (PUR, hochflexibel); alle übrigen Leitungen weiter mindestens 5 × D.
+
+**Geändert**
+- Sensorleitungen der Schwenkantriebe fallen senkrecht unter ihrem Abgang in ihre Lage der Rinne und steigen
+  an −XD3 senkrecht zum Stecker.
+- Alle Leitungen gehen neben der Kabelbrücke auf den Boden und seitlich unter der Schräge hinein (Kanal am
+  Bandende, Rinne, −BG35 an der Rollenkurve); die Brücke hat 22 statt 20 Lagen.
+
+**Doku**
+- `docs/02-anlage.md`: Kabelrinne, Kabelbrücke, Biegeradien, Lage von −XD3.
+
 ## 1.10.1 – 2026-10-06
 
 Nur der Zwilling (3D-Modell). Bridge, Signalliste und TIA-Variablentabellen bleiben gleich.

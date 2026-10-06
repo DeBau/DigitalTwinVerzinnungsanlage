@@ -41,7 +41,9 @@ BAND.geberStecker = inkrementalgeber(b1g, B1.trommeln[1], -1, '−BG18 Inkrement
 // Lokale z: Anschlagfläche bei z = 0 (Welt za), PE 0…3, Alu-Träger 3…7, Arm 7…19, Nabe 4…20; Antrieb davor bei z −56…−10.
 const H = { x: STOPPER.X, y: STOPPER.Y, zm: 13 };
 BAND.stopperNocken = []; BAND.stopperAnschluss = {};
-function bandAnschlag(za, name, sigZu, sigOffen, txtZu, txtOffen, ventil, abfrage) {
+// versatz: Abgänge der Endlagenleitungen um so viel nach außen versetzt – je Antrieb eigene Lagen in der Kabelrinne
+// darunter, die Leitungen fallen senkrecht hinein
+function bandAnschlag(za, name, sigZu, sigOffen, txtZu, txtOffen, ventil, abfrage, versatz = 0) {
   const fest = new THREE.Group(); fest.position.set(0, 0, za); anlage.add(fest);
   const kurz = name.match(/MM\d/)[0];
   // Konsole (Alu eloxiert anthrazit): Adapterplatte an der Profilnut, Tragplatte unter dem Antrieb mit Rippe
@@ -78,8 +80,10 @@ function bandAnschlag(za, name, sigZu, sigOffen, txtZu, txtOffen, ventil, abfrag
     const mat = sensorLed(fest, lx + (rx ? 0 : 4.4), ly + (rx ? 4.4 : 0), -61.5, sig, rx ? 2.4 : 1, rx ? 1 : 2.4, 3);
     SENSOREN.push({ signal: sig, mat, div: label(txt, fest, lx + 25, ly - (rx ? 0 : 20), -61.5, 'klein') });
     // Leitung an der Konsole vorbei nach unten (dort übernimmt die Verdrahtung)
-    const xa = rx ? H.x + 64 : H.x + 6;                                                       // −BG14/−BG16 innen am Schlauch von −MB9 vorbei
-    const weg = rx ? [[H.x + 58, H.y, -61.5], [H.x + 61, H.y, -61.5], [xa, H.y - 6, -61.5]] : [[H.x, H.y - 58, -61.5], [H.x, H.y - 64, -61.5], [xa, H.y - 72, -61.5]];
+    // beide Leitungen eines Antriebs unter der Konsole nebeneinander (6 mm), die von −MM5 12 mm weiter außen: jede
+    // fällt senkrecht in ihre eigene Lage der Kabelrinne. „zu“ läuft dazu unter dem eigenen Sensor zurück nach innen.
+    const xa = (rx ? H.x + 6 : H.x) + versatz;
+    const weg = rx ? [[H.x + 58, H.y, -61.5], [H.x + 63, H.y - 6, -61.5], [H.x + 64, H.y - 36, -61.5], [xa, H.y - 76, -61.5], [xa, H.y - 90, -61.5]] : [[H.x, H.y - 58, -61.5], [H.x, H.y - 64, -61.5], [xa, H.y - 72, -61.5]];
     schlauch([...weg, [xa, 215, -61.5], [xa, 196, -61.5]], M.kabelGrau, 1.6, fest, 24);
     BAND.sensorAus[sig] = V(xa, 196, za - 61.5);
   });
@@ -114,7 +118,7 @@ function bandAnschlag(za, name, sigZu, sigOffen, txtZu, txtOffen, ventil, abfrag
   return hebel;
 }
 BAND.anschlag = bandAnschlag(STOPPER.MM5, '−MM5 Anschlag', 'BG14_MM5_zu', 'BG15_MM5_offen', '−BG14', '−BG15', 'MB9_Anschlag_auf',
-  { sig: 'BG40_Korb_am_Anschlag', txt: '−BG40 Korb liegt an' });                               // Anschlagfläche z = 55: Korb bei 0
+  { sig: 'BG40_Korb_am_Anschlag', txt: '−BG40 Korb liegt an' }, 12);                               // Anschlagfläche z = 55: Korb bei 0
 BAND.vereinzeler = bandAnschlag(STOPPER.MM6, '−MM6 Vereinzeler', 'BG16_MM6_zu', 'BG17_MM6_offen', '−BG16', '−BG17', 'MB10_Vereinzeler_zu');   // z = −105: nächster Korb bei −160
 
 // Lichtschranken (Sensor auf der Bedienerseite −x, Reflektor gegenüber); −BG13 kurz vor der Umlenktrommel, Haltewinkel vor dem Flanschlager
@@ -138,7 +142,7 @@ export const KANAL1 = { y: 211, oben: 227.5, unten: 196 };
   for (const z of [-600, -250, 250, 600, 900]) box(24, 26, 6, M.anthrazit, -146, KANAL1.y, z);
 }
 // Ventilinsel Band −QM2 (2 x 5/2-Wegeventil monostabil) für Anschlag −MB9 und Vereinzeler −MB10
-export const QM2 = { z: -220, leds: [] };
+export const QM2 = { z: 300, leds: [] };                   // vorn: von der Umhausungsfront aus frei zugänglich
 {
   // Zwei Einzelventile Festo VUVG-L14-M52 (5/2 monostabil, Breite 14 mm) auf Verteilerleiste mit Versorgung 1 unten,
   // Arbeitsanschlüsse 2/4 an der Ventilfront (QS-4), Spule mit LED und Beschriftungsschild, Ventilstecker M8 mit Kabel

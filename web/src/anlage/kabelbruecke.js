@@ -12,12 +12,12 @@ import { label } from '../core/beschriftung.js';
 // Die Deckfläche ist nur ±60 mm breit, von dort fällt die Schräge bis ±110 ab:
 // was weiter außen verlegt wird, schaut seitlich unter der Abdeckung heraus.
 export const BRUECKE = { x: -1250, z: 1060, y: 14 };
-const LAGEN = 20;
+const LAGEN = 22;
 let nLage = 0;
 export function lage() {
   const n = nLage++;
   if (n >= LAGEN) console.warn('Kabelbrücke: mehr Leitungen (' + (n + 1) + ') als Lagen (' + LAGEN + ')');
-  return (n - (LAGEN - 1) / 2) * 6;                     // −57 … +57 mm quer
+  return (n - (LAGEN - 1) / 2) * 6;                     // −63 … +63 mm quer (außen unter der Schräge, dort noch 26 mm hoch)
 }
 {
   const profil = [[-110, 0], [110, 0], [60, 28], [-60, 28]];
