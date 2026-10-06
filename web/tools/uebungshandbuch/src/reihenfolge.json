@@ -1,0 +1,35 @@
+{
+ "css": [
+  "00-schriften",
+  "01-grund",
+  "02-kopf",
+  "03-start",
+  "04-uebung",
+  "05-signale",
+  "06-dialoge",
+  "07-editor",
+  "08-seiten",
+  "09-schmal",
+  "10-druck"
+ ],
+ "js": [
+  "app/daten",
+  "app/basis",
+  "app/fortschritt",
+  "editor/vorlagen-svg",
+  "editor/bausteine",
+  "editor/bauteile",
+  "editor/zeichnen",
+  "editor/blaetter",
+  "app/start",
+  "app/uebung",
+  "app/skizzen-kacheln",
+  "app/variablen",
+  "editor/editor",
+  "app/druck",
+  "app/seiten",
+  "app/ereignisse",
+  "app/tooltip",
+  "app/router"
+ ]
+}

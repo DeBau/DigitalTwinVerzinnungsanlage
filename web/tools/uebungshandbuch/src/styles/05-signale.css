@@ -1,0 +1,8 @@
+/* ---------- Signal-Chips ---------- */
+.sig{display:inline;font:500 .87em var(--mono);padding:0 4px;border-radius:4px;background:var(--blue-soft);color:var(--blue);border:0;cursor:help;white-space:nowrap}
+.sig.nodata{cursor:default}
+.tip{position:fixed;z-index:80;max-width:380px;background:var(--ink);color:var(--panel);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.45;box-shadow:0 6px 24px rgba(0,0,0,.25);pointer-events:none;opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}
+.tip .tn{font:500 12.5px var(--mono)} .tip .ta{font:500 12.5px var(--mono);color:var(--yellow)}
+.tip div+div{margin-top:6px;padding-top:6px;border-top:1px solid rgba(127,127,127,.35)}
+

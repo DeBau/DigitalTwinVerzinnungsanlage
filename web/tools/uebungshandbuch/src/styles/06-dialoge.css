@@ -1,0 +1,12 @@
+/* ---------- Dialoge ---------- */
+dialog{border:0;border-radius:14px;padding:0;background:var(--panel);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35);max-width:min(720px,calc(100vw - 32px));width:100%}
+dialog::backdrop{background:rgba(10,20,30,.55)}
+.dlg{padding:24px 28px}
+.dlg h2{font-size:22px;margin-bottom:6px}
+.dlg .opts{display:grid;gap:8px;margin:16px 0}
+.dlg label.opt{display:flex;gap:12px;align-items:flex-start;padding:11px 14px;border:1px solid var(--line);border-radius:9px;cursor:pointer}
+.dlg label.opt:has(input:checked){border-color:var(--blue);background:var(--blue-soft)}
+.dlg label.opt span{display:block;font-size:13px;color:var(--ink2)}
+.dlg .row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}
+.switch{display:flex;gap:10px;align-items:center;padding:12px 14px;border-radius:9px;background:var(--sunk);font-size:14.5px}
+

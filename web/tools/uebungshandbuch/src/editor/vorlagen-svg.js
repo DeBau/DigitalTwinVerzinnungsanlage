@@ -1,0 +1,170 @@
+/* ---------- Skizzen: Vorlagen als SVG ---------- */
+const G = "#9AA4AD", G2 = "#C9D0D5";
+function grid(step, color, x0=15, y0=15, x1=985, y1=630){
+  let s = "";
+  for (let x = x0; x <= x1 + .1; x += step) s += `M${x.toFixed(1)} ${y0}V${y1}`;
+  for (let y = y0; y <= y1 + .1; y += step) s += `M${x0} ${y.toFixed(1)}H${x1}`;
+  return `<path d="${s}" stroke="${color}" stroke-width=".5" fill="none"/>`;
+}
+function dots(step, x0=15, y0=15, x1=985, y1=630){
+  let s = "";
+  for (let x = x0 + step; x < x1; x += step) for (let y = y0 + step; y < y1; y += step) s += `M${x} ${y}h.01`;
+  return `<path d="${s}" stroke="${G}" stroke-width="2.2" stroke-linecap="round"/>`;
+}
+function frame(meta){
+  const t = (x, y, s, w, txt, f="#333") => `<text x="${x}" y="${y}" font-size="${s}" font-weight="${w}" fill="${f}" font-family="Plex Sans,Segoe UI,sans-serif">${esc(txt)}</text>`;
+  return `<rect x="15" y="15" width="970" height="677" fill="none" stroke="#333" stroke-width="1.4"/>
+  <g><rect x="555" y="632" width="430" height="60" fill="#fff" stroke="#333" stroke-width="1.1"/>
+  <path d="M555 652H985M795 632V692M895 652V692M555 672H795" stroke="#333" stroke-width=".7" fill="none"/>
+  ${t(561,646,9,500,"Übungshandbuch SPS-Technik","#0E4C92")}${t(801,646,9,400,meta.vorlage||"")}
+  ${t(561,666,12,600,meta.title||"")}${t(561,686,8,400,"Name")}${t(590,686,10,500,meta.name||"")}
+  ${t(801,664,8,400,"Datum")}${t(801,684,10,500,meta.datum||"")}${t(901,664,8,400,"Blatt")}${t(901,684,10,500,meta.blatt||"1")}
+  <text x="985" y="701.5" font-size="6.5" fill="#999" text-anchor="end" letter-spacing=".3" font-family="Plex Sans,Segoe UI,sans-serif">© Bauer Automation Solutions · Dennis Bauer</text>
+  <rect data-sf="1" x="555" y="632" width="430" height="60" fill="transparent"><title>Schriftfeld ändern</title></rect></g>`;
+}
+const TX = (x, y, s, txt, a="start", f=G, w=400) => `<text x="${x}" y="${y}" font-size="${s}" text-anchor="${a}" fill="${f}" font-weight="${w}" font-family="Plex Sans,Segoe UI,sans-serif">${esc(txt)}</text>`;
+function tplBody(key, ex, page=0, meta=null){
+  switch (key) {
+    case "raster": return grid(10, G2);
+    case "grafcet": {
+      const lg = `<g><rect x="790" y="25" width="185" height="196" fill="#fff" stroke="${G}"/>${TX(800,43,10,"Symbole","start","#666",600)}
+        <rect x="800" y="54" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/><rect x="803" y="57" width="16" height="16" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832,69,10,"Anfangsschritt")}
+        <rect x="800" y="86" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832,101,10,"Schritt")}
+        <path d="M811 116V140M803 128H819" stroke="${G}" stroke-width="1.3"/>${TX(832,132,10,"Transition + Bedingung")}
+        <path d="M800 160H812" stroke="${G}" stroke-width="1.3"/><rect x="812" y="150" width="40" height="20" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(862,164,10,"Aktion")}
+        <path d="M811 180V206" stroke="${G}" stroke-width="1.3"/>${TX(832,197,10,"Wirkverbindung")}</g>`;
+      return dots(20) + (page ? "" : lg);
+    }
+    case "zustand": {
+      const lg = `<g><rect x="790" y="25" width="185" height="120" fill="#fff" stroke="${G}"/>${TX(800,43,10,"Symbole","start","#666",600)}
+        <circle cx="815" cy="72" r="15" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(840,76,10,"Zustand (Name)")}
+        <path d="M802 112H840" stroke="${G}" stroke-width="1.3"/><path d="M834 107L842 112L834 117" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(850,108,10,"Übergang")}${TX(850,122,9,"Bedingung / Aktion")}</g>`;
+      return dots(20) + (page ? "" : lg);
+    }
+    case "wegschritt": {
+      const rows = CYL[ex?.id] || ["−MM1","−MM2","−MM3","−MM4"];
+      const all = [...rows, "", ""].map((r, i) => meta && meta.rows && meta.rows[i] !== undefined && meta.rows[i] !== null ? meta.rows[i] : r);
+      const x0 = 30, xs = 150, cols = 12, cw = (975 - xs) / cols, y0 = 40, hh = 34, rh = 62;
+      let s = `<rect x="${x0}" y="${y0}" width="${975-x0}" height="${hh + all.length*rh + 3*40}" fill="none" stroke="${G}" stroke-width="1"/>`;
+      s += TX(x0+10, y0+22, 12, "Bauglied", "start", "#666", 600);
+      for (let c = 0; c <= cols; c++) { const x = xs + c*cw; s += `<path d="M${x} ${y0}V${y0 + hh + all.length*rh + 120}" stroke="${G}" stroke-width="${c===0?1:.5}"/>`; if (c < cols) s += TX(x + cw/2, y0+22, 12, String(c+1), "middle", "#666", 600); }
+      s += `<path d="M${x0} ${y0+hh}H975" stroke="${G}"/>`;
+      all.forEach((r, i) => { const y = y0 + hh + i*rh; s += `<path d="M${x0} ${y+rh}H975" stroke="${G}" stroke-width=".8"/><path d="M${xs} ${y+16}H975M${xs} ${y+rh-12}H975" stroke="${G2}" stroke-width=".6" stroke-dasharray="3 3"/>`
+        + TX(x0+10, y+rh/2+5, 13, r, "start", "#555", 600) + TX(xs-8, y+20, 9, "1", "end") + TX(xs-8, y+rh-8, 9, "0", "end"); });
+      const yb = y0 + hh + all.length*rh;
+      s += TX(x0+10, yb+25, 11, "Bedingungen", "start", "#666", 600);
+      for (let i = 1; i <= 3; i++) s += `<path d="M${x0} ${yb + i*40}H975" stroke="${G}" stroke-width=".6"/>`;
+      return s;
+    }
+    case "stromlauf": {
+      let s = `<path d="M40 70H975M40 590H975" stroke="${G}" stroke-width="2"/>` + TX(30,74,12,"L+","end","#555",600) + TX(30,594,12,"M","end","#555",600) + TX(975,62,9,"24 V DC","end");
+      for (let i = 1; i <= 20; i++) { const x = 40 + i*46; s += TX(x, 52, 9, String(i), "middle") + `<path d="M${x} 74V586" stroke="${G2}" stroke-width=".6" stroke-dasharray="2 5"/>`; }
+      return grid(10, "#EEF1F3", 40, 80, 975, 580) + s + TX(40, 615, 9, "Strompfad-Nr. oben, Kontaktspiegel unter den Spulen eintragen");
+    }
+    case "leistung": {
+      let r = "";
+      [["L1",50],["L2",70],["L3",90],["N",110],["PE",130]].forEach(([n, y]) => { r += `<path d="M60 ${y}H975" stroke="${G}" stroke-width="2" ${n === "PE" ? 'stroke-dasharray="10 4"' : ""}/>` + TX(50, y + 4, 12, n, "end", "#555", 600); });
+      return grid(10, "#EEF1F3", 40, 150, 975, 620) + r + TX(975, 38, 9, "3/N/PE AC 400/230 V 50 Hz", "end");
+    }
+    case "pneumatik": return grid(10, "#EEF1F3", 15, 15, 985, 630) + TX(25, 33, 10, "Energiefluss von unten nach oben: Versorgung unten, Ventile in der Mitte, Antriebe oben", "start");
+    case "regelkreis": {
+      const box = (x, y, w, h, lbl) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="#fff" stroke="${G}" stroke-width="1.3"/>` + TX(x + w/2, y - 7, 10, lbl, "middle", "#666", 600);
+      const ar = (d) => `<path d="${d}" fill="none" stroke="${G}" stroke-width="1.3" marker-end="url(#ah)"/>`;
+      let s = `<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="${G}"/></marker></defs>`;
+      s += `<circle cx="140" cy="200" r="16" fill="#fff" stroke="${G}" stroke-width="1.3"/><path d="M129 189L151 211M151 189L129 211" stroke="${G}"/>` + TX(126,190,11,"+","end") + TX(150,232,11,"−","start");
+      s += ar("M60 200H122") + TX(60,190,12,"w","start","#555",600);
+      s += box(200,165,150,70,"Regler") + ar("M156 200H198") + TX(176,190,11,"e","middle","#555");
+      s += box(420,165,150,70,"Stellglied") + ar("M350 200H418") + TX(385,190,11,"y","middle","#555");
+      s += box(640,165,150,70,"Strecke") + ar("M570 200H638");
+      s += ar("M790 200H940") + TX(940,190,12,"x","end","#555",600);
+      s += ar("M715 90V163") + TX(725,100,12,"z  Störgröße","start","#555");
+      s += box(420,310,150,60,"Messglied") + ar("M860 200V340H572") + ar("M418 340H140V218");
+      s += TX(60,440,12,"Größe","start","#666",600) + TX(260,440,12,"Bedeutung in dieser Übung","start","#666",600) + TX(640,440,12,"Signal / Adresse","start","#666",600);
+      ["w Führungsgröße","x Regelgröße","e Regeldifferenz","y Stellgröße","z Störgröße"].forEach((r, i) => { const y = 470 + i*30; s += `<path d="M60 ${y+8}H975" stroke="${G2}" stroke-width=".7"/>` + TX(60, y, 12, r, "start", "#555"); });
+      return s;
+    }
+    case "trend": {
+      let s = "";
+      const ax = (y0, h, lbl, unit) => { let r = `<path d="M80 ${y0}V${y0+h}H965" stroke="${G}" stroke-width="1.3" fill="none"/>`;
+        for (let i = 1; i <= 8; i++) r += `<path d="M80 ${y0 + h - i*h/8}H965" stroke="${G2}" stroke-width=".5"/>`;
+        for (let i = 1; i <= 16; i++) r += `<path d="M${80 + i*885/16} ${y0}V${y0+h}" stroke="${G2}" stroke-width=".5"/>`;
+        return r + TX(70, y0+10, 11, lbl, "end", "#555", 600) + TX(70, y0+26, 9, unit, "end"); };
+      s += ax(40, 380, "x, w", "Einheit:") + TX(965, 440, 11, "t in s", "end", "#555", 600);
+      s += ax(470, 130, "y", "in %");
+      return s;
+    }
+  }
+  return "";
+}
+const snap = ([x, y]) => ED.grid ? [Math.round(x/10)*10, Math.round(y/10)*10] : [Math.round(x), Math.round(y)];
+/* Weg-Schritt-Diagramm: Stellung 1 liegt 16 unter dem Zeilenanfang, Stellung 0 bei 50 (Zeilenhöhe 62, erste Zeile bei 74).
+   "aus" = Richtung aus dem Zeilenbereich heraus (Stellung 1: nach oben, Stellung 0: nach unten), "ein" = in die Zeile hinein. */
+const wsAus = y => (((y - 74) % 62) + 62) % 62 < 33 ? -1 : 1;
+const halo = t => t.replace("<text ", '<text stroke="#fff" stroke-width="4" stroke-linejoin="round" paint-order="stroke" ');
+const sigLoop = st => { const [x, y] = st.p[0], [x2, y2] = st.p[1] || st.p[0]; return Math.abs(x - x2) < .5 && Math.abs(y - y2) < .5; };
+function startGeo(st){ const [x, y] = st.p[0], e = -wsAus(y), cy = y + e * 23; return {x, y, e, cy}; }   // freie Ecke des Schrittfelds unter bzw. über der Bewegungslinie
+function sigMid(st){   // Höhe des Querstücks; auf gleicher Höhe nach außen ausweichen, sonst läge die Signallinie auf der Funktionslinie
+  const [[, y1], [, y2]] = st.p; return Math.abs(y1 - y2) < .5 ? y1 + wsAus(y1) * 20 : Math.round((y1 + y2) / 2);
+}
+function shapeD(st){
+  if (st.k === "st") { const {x, cy} = startGeo(st); return `M${x + 2} ${cy - 9}H${x + 56}V${cy + 9}H${x + 2}Z`; }
+  if (st.k === "eq") { const [x] = st.p[0]; return `M${x} 41H${x + 68}V73H${x}Z`; }
+  if (st.k === "vk") { const [x, y] = st.p[0]; return `M${x - 4} ${y - 4}H${x + 4}V${y + 4}H${x - 4}Z`; }
+  if (st.k === "sig" && sigLoop(st)) { const [x, y] = st.p[0], o = wsAus(y); return `M${x} ${y}C${x - 16} ${y + o*24} ${x + 16} ${y + o*24} ${x + 1.5} ${y + o*2}`; }
+  const [[x1, y1], [x2, y2]] = st.p;
+  if (st.k === "sig") { if (Math.abs(x1 - x2) < .5) return `M${x1} ${y1}V${y2}`; const ym = sigMid(st); return `M${x1} ${y1}V${ym}H${x2}V${y2}`; }
+  return st.k === "l" ? `M${x1} ${y1}L${x2} ${y2}` : `M${x1} ${y1}H${x2}V${y2}H${x1}Z`;
+}
+function srcMark(st, x, y){   // Signalgeber am Auslösepunkt
+  const c = st.c || INK;
+  switch (st.sg || "punkt") {
+    case "kreis": return `<circle cx="${x}" cy="${y}" r="4.5" fill="#fff" stroke="${c}" stroke-width="1.4"/>`;
+    case "balken": return `<path d="M${x - 24} ${y}H${x}" stroke="${c}" stroke-width="6" stroke-linecap="round"/>`;
+    case "hand": return `<path d="M${x} ${y}L${x - 10} ${y - 10}" stroke="${c}" stroke-width="1.2"/><rect x="${x - 24}" y="${y - 24}" width="14" height="14" rx="1.5" fill="#fff" stroke="${c}" stroke-width="1.3"/><path d="M${x - 21} ${y - 20}H${x - 13}M${x - 17} ${y - 20}V${y - 13}" stroke="${c}" stroke-width="1.3" fill="none"/>`;
+    case "extern": return `<path d="M${x - 16} ${y - 7}H${x - 4}L${x} ${y}L${x - 4} ${y + 7}H${x - 16}Z" fill="#fff" stroke="${c}" stroke-width="1.3"/>`;
+  }
+  return `<circle cx="${x}" cy="${y}" r="3" fill="${c}"/>`;
+}
+function sigSVG(st, grp){   // Signallinie, Schleife und Start – im Schrittfeld
+  if (st.k === "vk") { const [x, y] = st.p[0], c = st.c || INK;   // Verknüpfungspunkt: UND = Schrägstrich, ODER = Punkt
+    return st.t === "oder" ? `<circle cx="${x}" cy="${y}" r="4" fill="${c}"/>` : `<circle cx="${x}" cy="${y}" r="1.6" fill="${c}"/><path d="M${x - 8} ${y + 6}L${x + 8} ${y - 6}" stroke="${c}" stroke-width="2" stroke-linecap="round"/>`; }
+  const c = st.c || INK, lab = (x, y, a="start") => st.lbl ? halo(SVGT(x, y, st.lbl, a, 10.5, 600, c)) : "";
+  const timer = (x, y) => { if (!st.tz) return ""; const w = tw(st.tz, 10) + 12; return `<rect x="${(x - w/2).toFixed(1)}" y="${y - 8}" width="${w.toFixed(1)}" height="16" rx="2" fill="#fff" stroke="${c}" stroke-width="1.2"/>` + SVGT(x, y + 3.5, st.tz, "middle", 10, 600, c); };
+  if (st.k === "eq") { const [x] = st.p[0], cw = (975 - 150) / 12, j = Math.round((x - 150) / cw);
+    return `<rect x="${(x + 1).toFixed(1)}" y="41" width="${(cw - 2).toFixed(1)}" height="32" fill="#fff"/>` + SVGT(x + cw/2, 62, `${j + 1} = 1`, "middle", 12, 700, c) + `<path d="M${x} 40V${st.y2 || 446}" stroke="${c}" stroke-width="2.6"/>`; }
+  if (st.k === "st") { const {x, y, e, cy} = startGeo(st);
+    return `<rect x="${x + 4}" y="${cy - 7}" width="14" height="14" rx="1.5" fill="#fff" stroke="${c}" stroke-width="1.3"/><path d="M${x + 7} ${cy - 3}H${x + 15}M${x + 11} ${cy - 3}V${cy + 4}" stroke="${c}" stroke-width="1.3" fill="none"/>`
+      + `<path d="M${x + 6} ${cy - e*7}L${x + 1.5} ${y + e*3}" stroke="${c}" stroke-width="1.2" fill="none"/>` + arrowHead(x + 6, cy - e*7, x + .8, y + e*1.2, 6) + lab(x + 22, cy + 4); }
+  if (sigLoop(st)) { const [x, y] = st.p[0], o = wsAus(y);
+    const tw2 = st.tz ? tw(st.tz, 10) + 12 : 0;
+    return `<path d="${shapeD(st)}" stroke="${c}" stroke-width="1.2" fill="none"/>` + srcMark(st, x, y) + arrowHead(x + 7, y + o*12, x + 1.2, y + o*2, 6) + timer(x + 16 + tw2 / 2, y + o*12) + lab(x - 14, y + o*12 + 4, "end"); }
+  const [[x1, y1], [x2, y2]] = st.p, straight = Math.abs(x1 - x2) < .5, ym = straight ? y1 : sigMid(st), down = y2 > ym, o = wsAus(y1);
+  const jS = grp && grp.jStart, jE = grp && grp.jEnd;   // beginnt bzw. endet an einem Verknüpfungspunkt
+  let r = `<path d="${shapeD(st)}" stroke="${c}" stroke-width="1.2" fill="none"/>` + (jS ? "" : srcMark(st, x1, y1));
+  if (!jE) r += arrowHead(x2, y2 + (down ? -11 : 11), x2, y2, 6.5);
+  r += straight ? timer(x1, Math.round((y1 + y2) / 2)) : timer(x1, Math.round((y1 + ym) / 2));
+  const links = st.sg === "balken" || (grp && grp.ldy);
+  return r + lab(x1 + (st.sg === "balken" ? -26 : links ? -7 : 7), y1 + o * 13 + (o > 0 ? 4 : 0), links ? "end" : "start");
+}
+function strokesSVG(d, edit=false){
+  if (!d) return "";
+  const path = pts => { if (!pts.length) return ""; let s = `M${pts[0][0]} ${pts[0][1]}`; if (pts.length === 1) return s + "l.01 0";
+    for (let i = 1; i < pts.length - 1; i++) { const [x, y] = pts[i], [nx, ny] = pts[i+1]; s += `Q${x} ${y} ${((x+nx)/2).toFixed(1)} ${((y+ny)/2).toFixed(1)}`; }
+    const l = pts[pts.length-1]; return s + `L${l[0]} ${l[1]}`; };
+  const pk = q => q.map(v => Math.round(v)).join(","), jset = new Set((d.s || []).filter(q => q.k === "vk").map(q => pk(q.p[0])));
+  const labs = [], ldy = {};   // Beschriftungen an derselben Stelle gegeneinander versetzen
+  (d.s || []).forEach((st, i) => { if (st.k !== "sig" || sigLoop(st) || !st.lbl || jset.has(pk(st.p[0]))) return; const [x, y] = st.p[0], o = wsAus(y);
+    const ly = y + o * 13 + (o > 0 ? 4 : 0), hit = labs.some(([lx, yy, l]) => !l && Math.abs(lx - x) < 40 && Math.abs(yy - ly) < 12);
+    labs.push([x, ly, hit]); ldy[i] = hit; });   // belegt: links neben die Linie
+  const grpOf = (st, i) => st.k === "sig" && !sigLoop(st) ? {jStart: jset.has(pk(st.p[0])), jEnd: jset.has(pk(st.p[1])), ldy: !!ldy[i]} : null;
+  return (d.s || []).map((st, i) => { const dd = st.k ? shapeD(st) : path(st.p), sel = edit && ED.selS === i;
+    return (sel ? `<path d="${dd}" stroke="#2F80ED" stroke-width="${+st.w + 7}" stroke-opacity=".28" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` : "")
+      + (st.k === "sig" || st.k === "st" || st.k === "eq" || st.k === "vk" ? sigSVG(st, grpOf(st, i)) : `<path data-i="${i}" d="${dd}" stroke="${st.c}" stroke-width="${st.w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`)
+      + (edit ? `<path data-i="${i}" d="${dd}" stroke="transparent" stroke-width="14" fill="none"/>` : "")
+      + (sel && st.k && st.k !== "eq" && st.k !== "vk" ? st.p.map((q, h) => `<circle data-hi="${i}" data-h="${h}" cx="${q[0]}" cy="${q[1]}" r="6.5" fill="#fff" stroke="#2F80ED" stroke-width="2"/>`).join("") : ""); })
+      .map((h, i) => [d.s[i].k === "vk", h]).sort((a, b) => a[0] - b[0]).map(x => x[1]).join("")   // Verknüpfungspunkte oben, damit sie greifbar bleiben
+    + (d.t || []).map((t, i) => { const sz = t.s || 16, sel = edit && ED.selT === i;
+      return (edit ? `<rect data-ti="${i}" x="${t.x - 4}" y="${t.y - sz - 1}" width="${tw(t.v, sz) + 10}" height="${sz * 1.2 * String(t.v).split("\n").length + 6}" rx="3" fill="transparent" ${sel ? 'stroke="#2F80ED" stroke-width="1.3" stroke-dasharray="4 3"' : ""}/>` : "")
+        + `<text data-ti="${i}" x="${t.x}" y="${t.y}" font-size="${sz}" fill="${t.c}" font-family="Plex Sans,Segoe UI,sans-serif" font-weight="500">${String(t.v).split("\n").map((l, j) => j ? `<tspan x="${t.x}" dy="${(1.2 * sz).toFixed(1)}">${esc(l)}</tspan>` : esc(l)).join("")}</text>`; }).join("");
+}
+

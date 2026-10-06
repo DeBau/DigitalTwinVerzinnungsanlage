@@ -1,0 +1,38 @@
+/* ---------- Druck ---------- */
+@page{size:A4 portrait;margin:12mm 13mm 14mm}
+@page land{size:A4 landscape;margin:8mm}
+@media print{
+  body{background:#fff;color:#111;font:10.5pt/1.45 var(--sans)}
+  body>*:not(#print){display:none!important}
+  .pp.land::after{content:none}
+  .pp::after{content:"© Bauer Automation Solutions · Dennis Bauer";display:block;text-align:right;font-size:6.5pt;color:#999;margin-top:3mm;letter-spacing:.02em}
+  #print{display:block}
+  .pp{break-after:page;color:#111}
+  .pp:last-child{break-after:auto}
+  .pp.land{page:land}
+  .pp.land svg{width:100%;height:auto;display:block;max-height:192mm}
+  .ph{display:grid;grid-template-columns:auto 1fr auto;gap:10px 16px;align-items:end;border-bottom:2pt solid #0E4C92;padding-bottom:3mm;margin-bottom:4mm}
+  .ph .c{font:600 26pt/1 var(--cond);color:#0E4C92}
+  .ph .t{font:600 15pt var(--cond)} .ph .u{font-size:8.5pt;color:#555}
+  .ph .r{font-size:8.5pt;color:#555;text-align:right}
+  .who{display:grid;grid-template-columns:2fr 1fr 1fr;gap:6mm;margin:0 0 5mm;font-size:9pt;color:#444}
+  .who div{border-bottom:.6pt solid #888;padding-bottom:1mm;min-height:7mm}
+  .who b{font-weight:500;color:#111;margin-left:2mm}
+  #print h2{font:600 12.5pt var(--cond);color:#0E4C92;margin:5mm 0 2mm}
+  #print h3{font:600 11pt var(--cond);margin:3mm 0 1.5mm}
+  #print p{margin:0 0 2mm}
+  #print table{font-size:9pt}
+  #print th,#print td{padding:1.4mm 2mm;border-bottom:.5pt solid #bbb}
+  #print th{color:#333;border-bottom:.9pt solid #555}
+  #print tr{break-inside:avoid}
+  #print ol{margin:0 0 2mm;padding-left:6mm}
+  .box{display:inline-block;width:3.6mm;height:3.6mm;border:.8pt solid #333;vertical-align:-.6mm;margin-right:1.5mm;text-align:center;font-size:8pt;line-height:3.2mm}
+  .lines{margin:1mm 0 4mm}
+  .lines i{display:block;height:7.5mm;border-bottom:.5pt solid #aaa}
+  .ans{border-left:2pt solid #0E4C92;padding:1mm 3mm;margin:1mm 0 4mm;white-space:pre-wrap;font-size:10pt}
+  .qp{break-inside:avoid}
+  .sig{background:none;padding:0;color:inherit}
+  .foot{margin-top:6mm;font-size:8pt;color:#777;border-top:.5pt solid #bbb;padding-top:1.5mm}
+  .sign{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:10mm;font-size:9pt;color:#444}
+  .sign div{border-top:.6pt solid #333;padding-top:1mm}
+}

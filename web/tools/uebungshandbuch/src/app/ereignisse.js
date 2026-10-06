@@ -1,0 +1,78 @@
+/* ================= Ereignisse ================= */
+function restoreInputs(root){
+  $$("[data-k]", root).forEach(el => { const v = S.get(el.dataset.k); if (el.type === "checkbox") el.checked = !!v; else el.value = v ?? ""; });
+  $$("[data-k='name'],[data-k='klasse']", root).forEach(el => el.value = S.get(el.dataset.k) || "");
+  refreshStatus();
+}
+function refreshStatus(){
+  const m = location.hash.match(/^#\/(L\d\d)\/(\d)/); if (!m) return;
+  const s = BY[m[1]]; if (!s) return;
+  $$(".stepper a[data-step]").forEach(a => { const n = +a.dataset.step, d = phaseDone(s, n); a.classList.toggle("done", d); a.querySelector(".n").textContent = d ? "✓" : n; });
+  $$("[data-state]").forEach(el => el.textContent = (S.get(el.dataset.state) || "").trim() ? "beantwortet" : "");
+  const sum = $("#sum"); if (sum) { const ok = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "ok").length, bad = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "bad").length;
+    const ana = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "bad" && prDone(s.id, i)).length;
+    sum.innerHTML = `<span><b>${ok}</b>bestanden</span><span><b>${bad}</b>nicht bestanden${bad ? `, davon ${ana} analysiert` : ""}</span><span><b>${s.pr.length-ok-bad}</b>offen</span>`; }
+  const fin = $("#finish"); if (fin) { fin.innerHTML = finishInner(s); fin.classList.toggle("done", !!S.get(s.id+":fertig")); }
+}
+document.addEventListener("input", e => {
+  const el = e.target;
+  if (el.dataset.k) {
+    let v = el.type === "checkbox" ? el.checked : el.value;
+    if (el.dataset.max) { const n = Math.max(0, Math.min(+el.dataset.max, parseInt(v, 10) || 0)); v = el.value.trim() === "" ? null : n; }
+    S.set(el.dataset.k, v);
+    if (el.dataset.max) { const id = el.dataset.k.split(":")[0]; paintGrade(BY[id]); }
+    refreshStatus();
+  }
+  if (el.dataset.var !== undefined) { const id = curEx(); const rows = S.get(id+":vars", []); rows[+el.dataset.var][el.dataset.f] = el.value; S.set(id+":vars", rows); }
+});
+document.addEventListener("change", e => { if (e.target.dataset.max) e.target.value = S.get(e.target.dataset.k) ?? ""; });
+const curEx = () => (location.hash.match(/^#\/(L\d\d)/) || [])[1];
+document.addEventListener("click", e => {
+  const set = e.target.closest("[data-set]");
+  if (set) {
+    const k = set.dataset.set, v = set.dataset.val, cur = S.get(k), nv = String(cur) === v ? null : (isNaN(+v) ? v : +v);
+    S.set(k, nv); $$(`[data-set="${k}"]`).forEach(b => b.setAttribute("aria-pressed", String(nv) === b.dataset.val));
+    const cs = set.closest(".case"); if (cs) { cs.classList.remove("ok", "bad"); if (nv) cs.classList.add(nv); }
+    refreshStatus(); return;
+  }
+  const a = e.target.closest("[data-act]"); if (!a) return;
+  const act = a.dataset.act, id = curEx();
+  if (act === "timer") toggleTimer(id);
+  if (act === "print") openPrintDialog(a.dataset.id);
+  if (act === "quiz" || act === "quiz-reset") { const qi = +a.dataset.q, w = a.dataset.w || "ein"; S.set(quizKey(id, w, qi), act === "quiz" ? +a.dataset.i : null); a.closest(".quiz").outerHTML = quizHTML(id, qi, quizSet(id, w)[qi], w); }
+  if (act === "hilfe") { const s = BY[id], i = +a.dataset.i; S.set(`${id}:h${i}`, Math.min(3, hilfeLevel(s, i) + 1)); const el = a.closest(".hilfe"); el.innerHTML = hilfeInner(s, i); }
+  if (act === "sk-open") openEditor(a.dataset.scope, a.dataset.key);
+  if (act === "sk-print") doPrint(sketchPage(a.dataset.scope, a.dataset.key, a.dataset.with === "1"));
+  if (act === "var-add") { const rows = S.get(id+":vars", []); rows.push({n:"",t:"",a:"",k:""}); S.set(id+":vars", rows); paintVars(BY[id]); const ins = $$("#vars input[data-f=n]"); ins[ins.length-1]?.focus(); }
+  if (act === "var-del") { const rows = S.get(id+":vars", []); rows.splice(+a.dataset.i, 1); S.set(id+":vars", rows.length ? rows : null); paintVars(BY[id]); }
+  if (act === "var-import") { const rows = S.get(id+":vars", []); const have = new Set(rows.map(r => r.n)); sigEntries(BY[id]).forEach(e => { if (!have.has(e.n)) rows.push({n:e.n, t:typeOf(e.a), a:e.a, k:e.k}); }); S.set(id+":vars", rows); paintVars(BY[id]); }
+  if (act === "finish") { S.set(id+":fertig", true); refreshStatus(); }
+  if (act === "unfinish") { S.set(id+":fertig", null); refreshStatus(); }
+  if (act === "zoom") { $("#lb").innerHTML = `<form method="dialog"><img src="${a.dataset.src}" alt=""><p>${chips(a.dataset.cap)} <button class="btn small" style="float:right">Schließen</button></p></form>`; $("#lb").showModal(); }
+  if (act === "form") doPrint(formPage(a.dataset.f));
+  if (act === "bew-print") doPrint(bewPage(BY[a.dataset.id]));
+  if (act === "data") openDataDialog();
+});
+document.addEventListener("keydown", e => {
+  if (e.target.closest("input,textarea,select,dialog")) return;
+  const m = location.hash.match(/^#\/(L\d\d)\/(\d)/); if (!m) return;
+  const p = +m[2];
+  if (e.key === "ArrowRight" && p < 6) location.hash = `#/${m[1]}/${p+1}`;
+  if (e.key === "ArrowLeft" && p > 1) location.hash = `#/${m[1]}/${p-1}`;
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches(".th[data-act]")) { e.preventDefault(); e.target.click(); }
+});
+$("#lb").addEventListener("click", e => { if (e.target === $("#lb")) $("#lb").close(); });
+
+function openDataDialog(){
+  $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>Meine Daten</h2><p class="muted">Alle Eingaben, Häkchen und Skizzen bleiben nur in diesem Browser. Sichern Sie sie als Datei, um sie abzugeben oder auf einem anderen Rechner weiterzuarbeiten.</p>
+    <div class="cols2" style="gap:12px"><div><label class="small muted" for="dn">Name</label><input type="text" id="dn" data-k="name"></div><div><label class="small muted" for="dk">Klasse</label><input type="text" id="dk" data-k="klasse"></div></div>
+    <div class="row" style="justify-content:flex-start"><button class="btn" type="button" id="dexp">Als Datei sichern</button><label class="btn">Datei laden<input type="file" id="dimp" accept="application/json" hidden></label><button class="btn" type="button" id="dclr">Alles löschen</button></div>
+    <div class="row"><button class="btn primary" value="ok">Fertig</button></div></form>`;
+  restoreInputs($("#dlg"));
+  $("#dexp").onclick = () => { const blob = new Blob([JSON.stringify({handbuch:"Übungshandbuch SPS-Technik", stand:new Date().toISOString(), eingaben:S.all()}, null, 1)], {type:"application/json"});
+    const l = document.createElement("a"); l.href = URL.createObjectURL(blob); l.download = `uebungshandbuch_${(S.get("name")||"eingaben").replace(/[^\wäöüÄÖÜß-]+/g,"_")}.json`; l.click(); setTimeout(() => URL.revokeObjectURL(l.href), 1000); };
+  $("#dimp").onchange = e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => { const d = JSON.parse(t).eingaben || {}; Object.entries(d).forEach(([k, v]) => S.set(k, v)); $("#dlg").close(); route(); }).catch(() => alert("Diese Datei enthält keine gesicherten Eingaben des Übungshandbuchs.")); };
+  $("#dclr").onclick = () => { if (confirm("Alle Eingaben, Häkchen und Skizzen in diesem Browser löschen?")) { Object.keys(S.all()).forEach(k => S.set(k, null)); $("#dlg").close(); route(); } };
+  $("#dlg").showModal();
+}
+

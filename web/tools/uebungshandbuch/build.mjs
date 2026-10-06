@@ -1,4 +1,4 @@
-// Erzeugt docs/uebungshandbuch.html aus vorlage.html, uebungen.js, quiz.js, texte/*.json und signale.csv.
+// Erzeugt docs/uebungshandbuch.html aus src/ (Seite, Styles, Skripte), uebungen.js, quiz.js, texte/*.json und signale.csv.
 //   node web/tools/uebungshandbuch/build.mjs
 // Prüft dabei die Inhalte und meldet Auffälligkeiten als Warnung (der Build bricht nicht ab).
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
@@ -24,7 +24,12 @@ for (const line of readFileSync(path.join(repo, 'signale.csv'), 'utf8').split(/\
   (sig[n.split('_')[0]] ||= []).push({ n, a, k: umlaut(k.join(';')) });
 }
 
-const vorlage = readFileSync(path.join(hier, 'vorlage.html'), 'utf8');
+// Quelltext: src/seite.html mit den Styles und Skripten aus src/ in fester Reihenfolge (src/reihenfolge.json)
+const src = path.join(hier, 'src'), folge = JSON.parse(readFileSync(path.join(src, 'reihenfolge.json'), 'utf8'));
+const lies = (...t) => readFileSync(path.join(src, ...t), 'utf8');
+const vorlage = lies('seite.html')
+  .replace(/<!--@CSS-->\r?\n/, () => folge.css.map((n) => lies('styles', n + '.css')).join(''))
+  .replace(/<!--@JS-->\r?\n/, () => folge.js.map((n) => lies(n + '.js')).join(''));
 const ohneKopf = (t) => t.replace(/^(\s*\/\/.*\r?\n)+/, '').trim();   // führende Kommentarzeilen weg
 const auswerten = (datei, text, ...arg) => {   // JS-Datenausdruck auswerten, Fehler mit Dateiname melden
   try { return new Function(...arg.map((a) => a[0]), 'return ' + text)(...arg.map((a) => a[1])); }

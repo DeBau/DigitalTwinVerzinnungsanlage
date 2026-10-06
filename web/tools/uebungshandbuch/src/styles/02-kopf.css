@@ -1,0 +1,12 @@
+/* ---------- Kopfleiste ---------- */
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:6px;padding:9px 20px;background:color-mix(in srgb,var(--panel) 94%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .brand{font:600 17px var(--cond);color:var(--ink);text-decoration:none;margin-right:14px;white-space:nowrap;line-height:1.1}
+.top .brand small{display:block;font:500 9.5px var(--sans,sans-serif);letter-spacing:.04em;color:var(--muted,#7a8691)}
+.credit{max-width:1180px;margin:28px auto 18px;padding:0 20px;font-size:11px;letter-spacing:.03em;color:var(--muted,#7a8691);text-align:right}
+.top nav{display:flex;gap:2px;overflow-x:auto}
+.top nav a{padding:6px 11px;border-radius:6px;color:var(--ink2);text-decoration:none;font-size:14.5px;white-space:nowrap}
+.top nav a:hover{background:var(--blue-soft);color:var(--ink)}
+.top nav a[aria-current=page]{color:var(--blue);background:var(--blue-soft);font-weight:500}
+.top .grow{flex:1}
+main{max-width:1380px;margin:0 auto;padding:24px 20px 80px}
+
