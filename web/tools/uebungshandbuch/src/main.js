@@ -18,6 +18,7 @@ import './app/start.js';
 import './app/skizzen-kacheln.js';
 import './app/variablen.js';
 import './app/uebung.js';
+import './editor/signalfeld.js';
 import './editor/eigenschaften.js';
 import './editor/anzeige.js';
 import './editor/verlauf.js';

@@ -5,6 +5,7 @@ import { BLK, PC, PROPS, STRICH, VORL, art } from './registry.js';
 import { gruppeVon } from './bausteine.js';
 import { objById } from './auswahl.js';
 import { deDate, skMeta } from './blaetter.js';
+import { signalFeld } from './signalfeld.js';
 
 export const SYMS = `<div class="syms" aria-label="Zeichen einfügen">${[["·","UND"],["+","ODER"],["¬","NICHT"],["↑","steigende Flanke"],["↓","fallende Flanke"],[":=","Zuweisung"],["≥","größer gleich"]].map(([c, t]) => `<button type="button" class="sym" data-sym="${c}" title="${t}">${c}</button>`).join("")}</div>`;
 export let propsKey = null, lastProp = null;
@@ -93,13 +94,18 @@ export function objektFelder(o){
   let h = "";
   if (a.felder) h += a.felder(o);
   else if (pc) h += bauteilFelder(o, pc);
-  else for (const [f, lbl, ph] of PROPS[o.k] || []) h += textFeld(f, lbl, ph, o[f]);
+  else for (const [f, lbl, ph] of PROPS[o.k] || []) h += f === "v" ? kennzeichenFeld(o, lbl, ph) : textFeld(f, lbl, ph, o[f]);
   if (pc && pc.info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${pc.info}</p>`;
   if (pc && pc.drehbar !== false) h += DREHKNOEPFE;
   return `<div class="props"><div class="palh">${a.titel || BLK[o.k].n}</div>${h}${h ? SYMS : ""}${loeschKnopf()}</div>`;
 }
+// Kennzeichen: mit Vorschlagsliste (signalfeld.js), wenn die Bausteinart kennbuchstaben hat, z. B. ["QA", "KF"]
+export function kennzeichenFeld(o, lbl, ph){
+  const arten = art(o.k).kennbuchstaben;
+  return arten ? signalFeld("v", lbl, o.v, {arten, ph}) : textFeld("v", lbl, ph, o.v);
+}
 export function bauteilFelder(o, pc){
-  let h = textFeld("v", "Kennzeichen", pc.lbl, o.v);
+  let h = kennzeichenFeld(o, "Kennzeichen", pc.lbl);
   for (const [f, lbl, ty, opts] of pc.props || []) {
     if (ty === "select") h += auswahlFeld(f, lbl, opts, o[f] ?? (pc.def || {})[f]);
     else h += textFeld(f, lbl, "", o[f]);

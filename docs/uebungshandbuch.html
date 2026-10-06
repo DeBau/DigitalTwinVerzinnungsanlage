@@ -316,6 +316,17 @@ dialog.editor input,dialog.editor textarea{-webkit-user-select:text;user-select:
 .prop{display:block;font-size:12px;color:var(--ink2);margin-bottom:8px}
 .prop input,.prop select,.prop textarea{margin-top:3px;font-size:14px;padding:6px 8px;border-radius:6px}
 .prop textarea{min-height:0;resize:vertical;line-height:1.4}
+/* Kennzeichen mit Vorschlagsliste (editor/signalfeld.js) */
+.sigfeld{position:relative}
+.sigliste{position:absolute;left:0;right:0;z-index:5;margin:2px 0 0;padding:4px 0;list-style:none;max-height:240px;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+.sigliste li{padding:5px 9px;font-size:13px;color:var(--ink);cursor:pointer}
+.sigliste li.ueb b{color:#0E4C92}
+.sigliste li[aria-selected="true"],.sigliste li:hover{background:var(--sunk)}
+/* Befunde der Prüfung (editor/pruefung.js) */
+.befunde{margin:0;padding:0;list-style:none}
+.befundknopf{display:block;width:100%;text-align:left;margin:0 0 6px;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-size:13px;cursor:pointer}
+.befundknopf.fehler{border-color:#C0392B}
+.befundknopf b{color:#C0392B;margin-right:4px}
 .syms{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 8px}
 .sym{min-width:30px;height:28px;border:1px solid var(--line);border-radius:6px;background:var(--panel);cursor:pointer;font:500 14px var(--sans)}
 .sym:hover{border-color:var(--blue)}
@@ -1928,6 +1939,94 @@ pre.code code{font-size:inherit}
     }
   }
 
+  // web/tools/uebungshandbuch/src/editor/signalfeld.js
+  var VORSCHLAEGE_MAX = 12;
+  var normKennzeichen = (v) => String(v ?? "").replace(/^[-–]/, "−");
+  var ohneMinus = (t) => normKennzeichen(t).replace(/^−/, "").trim().toLowerCase();
+  var kennArt = (tag) => (/^[A-Z]+/.exec(tag) || [""])[0];
+  function signalVorschlaege(scope, { arten = [], text = "" } = {}) {
+    const eigene = new Set((BY[scope] && BY[scope].sig || "").split(" "));
+    const such = ohneMinus(text);
+    const alle = [.../* @__PURE__ */ new Set([...Object.keys(SIG), ...Object.keys(EXTRA)])].map((tag) => ({
+      tag,
+      art: kennArt(tag),
+      uebung: eigene.has(tag),
+      name: SIG[tag] && SIG[tag][0] ? SIG[tag][0].k : EXTRA[tag] || ""
+    }));
+    const passt = (v) => (!arten.length || arten.includes(v.art)) && (!such || v.tag.toLowerCase().includes(such) || v.name.toLowerCase().includes(such));
+    return alle.filter(passt).sort((a, b) => b.uebung - a.uebung || a.tag.localeCompare(b.tag, "de", { numeric: true }));
+  }
+  function signalFeld(feld, beschriftung, wert, { arten = [], ph = "" } = {}) {
+    const liste = `sfl-${feld}`;
+    return `<label class="prop sigfeld">${beschriftung}<input type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${liste}" data-prop="${feld}" data-sigart="${arten.join(" ")}" value="${esc(wert ?? "")}" placeholder="${esc(ph)}" autocomplete="off"><ul class="sigliste" role="listbox" id="${liste}" hidden></ul></label>`;
+  }
+  var istSignalFeld = (el) => !!(el && el.matches && el.matches("input[data-sigart]"));
+  var listeVon = (el) => document.getElementById(el.getAttribute("aria-controls"));
+  function signalEingabe(el) {
+    const v = normKennzeichen(el.value);
+    if (v !== el.value) {
+      const pos = el.selectionStart;
+      el.value = v;
+      el.setSelectionRange(pos, pos);
+    }
+    zeigeListe(el);
+  }
+  function zeigeListe(el) {
+    const ul = listeVon(el);
+    if (!ul) return;
+    const arten = el.dataset.sigart.split(" ").filter(Boolean);
+    const vs = signalVorschlaege(ED.scope, { arten, text: el.value }).slice(0, VORSCHLAEGE_MAX);
+    ul.innerHTML = vs.map((v, i) => `<li role="option" id="${ul.id}-${i}" data-sigwahl="${v.tag}" aria-selected="false"${v.uebung ? ' class="ueb"' : ""}><b>−${v.tag}</b> ${esc(v.name)}</li>`).join("");
+    ul.hidden = !vs.length;
+    el.setAttribute("aria-expanded", String(!!vs.length));
+    el.removeAttribute("aria-activedescendant");
+  }
+  function schliesseListe(el) {
+    const ul = listeVon(el);
+    if (ul) ul.hidden = true;
+    el.setAttribute("aria-expanded", "false");
+    el.removeAttribute("aria-activedescendant");
+  }
+  function uebernimmSignal(el, tag) {
+    el.value = "−" + tag;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    schliesseListe(el);
+  }
+  function bewegeAuswahl(el, schritt) {
+    const ul = listeVon(el), opts = ul ? [...ul.children] : [];
+    if (!opts.length) return;
+    const alt = opts.findIndex((li) => li.getAttribute("aria-selected") === "true");
+    const neu = (alt + schritt + opts.length + (alt < 0 && schritt < 0 ? 1 : 0)) % opts.length;
+    opts.forEach((li, i) => li.setAttribute("aria-selected", String(i === neu)));
+    el.setAttribute("aria-activedescendant", opts[neu].id);
+    opts[neu].scrollIntoView({ block: "nearest" });
+  }
+  function signalTaste(e) {
+    const el = e.target;
+    if (!istSignalFeld(el)) return false;
+    const offen = el.getAttribute("aria-expanded") === "true", aktiv = el.getAttribute("aria-activedescendant");
+    const tasten = {
+      ArrowDown: () => offen ? bewegeAuswahl(el, 1) : zeigeListe(el),
+      ArrowUp: () => offen && bewegeAuswahl(el, -1),
+      Enter: () => offen && aktiv && uebernimmSignal(el, document.getElementById(aktiv).dataset.sigwahl),
+      Escape: () => offen && schliesseListe(el)
+    };
+    const zuTun = tasten[e.key];
+    if (!zuTun || e.key === "Enter" && !(offen && aktiv) || e.key === "Escape" && !offen) return false;
+    e.preventDefault();
+    e.stopPropagation();
+    zuTun();
+    return true;
+  }
+  function signalWahl(e) {
+    const li = e.target.closest && e.target.closest("[data-sigwahl]");
+    if (!li) return false;
+    e.preventDefault();
+    const el = document.querySelector(`[aria-controls="${li.parentElement.id}"]`);
+    if (el) uebernimmSignal(el, li.dataset.sigwahl);
+    return true;
+  }
+
   // web/tools/uebungshandbuch/src/editor/eigenschaften.js
   var SYMS = `<div class="syms" aria-label="Zeichen einfügen">${[["·", "UND"], ["+", "ODER"], ["¬", "NICHT"], ["↑", "steigende Flanke"], ["↓", "fallende Flanke"], [":=", "Zuweisung"], ["≥", "größer gleich"]].map(([c, t]) => `<button type="button" class="sym" data-sym="${c}" title="${t}">${c}</button>`).join("")}</div>`;
   var propsKey = null, lastProp = null;
@@ -2012,13 +2111,17 @@ pre.code code{font-size:inherit}
     let h = "";
     if (a.felder) h += a.felder(o);
     else if (pc) h += bauteilFelder(o, pc);
-    else for (const [f, lbl, ph] of PROPS[o.k] || []) h += textFeld(f, lbl, ph, o[f]);
+    else for (const [f, lbl, ph] of PROPS[o.k] || []) h += f === "v" ? kennzeichenFeld(o, lbl, ph) : textFeld(f, lbl, ph, o[f]);
     if (pc && pc.info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${pc.info}</p>`;
     if (pc && pc.drehbar !== false) h += DREHKNOEPFE;
     return `<div class="props"><div class="palh">${a.titel || BLK[o.k].n}</div>${h}${h ? SYMS : ""}${loeschKnopf()}</div>`;
   }
+  function kennzeichenFeld(o, lbl, ph) {
+    const arten = art(o.k).kennbuchstaben;
+    return arten ? signalFeld("v", lbl, o.v, { arten, ph }) : textFeld("v", lbl, ph, o.v);
+  }
   function bauteilFelder(o, pc) {
-    let h = textFeld("v", "Kennzeichen", pc.lbl, o.v);
+    let h = kennzeichenFeld(o, "Kennzeichen", pc.lbl);
     for (const [f, lbl, ty, opts] of pc.props || []) {
       if (ty === "select") h += auswahlFeld(f, lbl, opts, o[f] ?? (pc.def || {})[f]);
       else h += textFeld(f, lbl, "", o[f]);
@@ -5282,7 +5385,7 @@ END_CASE;`)}
   }
   function taste(e) {
     if (e.target.matches("input,select,textarea")) {
-      tasteImFeld(e);
+      if (!signalTaste(e)) tasteImFeld(e);
       return;
     }
     const strg = e.ctrlKey || e.metaKey;
@@ -5336,11 +5439,16 @@ END_CASE;`)}
     });
     dlg.addEventListener("input", (e) => {
       const f = e.target.dataset && e.target.dataset.prop;
+      if (istSignalFeld(e.target)) signalEingabe(e.target);
       if (f) applyProp(f, e.target.value);
+    });
+    dlg.addEventListener("focusout", (e) => {
+      if (istSignalFeld(e.target)) schliesseListe(e.target);
     });
     dlg.addEventListener("change", feldGeaendert);
     dlg.addEventListener("pointerdown", (e) => {
       if (e.target.closest(".sym")) e.preventDefault();
+      signalWahl(e);
     });
     dlg.addEventListener("keydown", taste);
     dlg.addEventListener("cancel", abbrechen);

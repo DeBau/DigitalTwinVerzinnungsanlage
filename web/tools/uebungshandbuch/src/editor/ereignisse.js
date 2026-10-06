@@ -4,6 +4,7 @@ import { ED } from './status.js';
 import { PAL, PC, VORL, art } from './registry.js';
 import { anySel, clearSel, objById } from './auswahl.js';
 import { deDate } from './blaetter.js';
+import { istSignalFeld, schliesseListe, signalEingabe, signalTaste, signalWahl } from './signalfeld.js';
 import { lastProp, setLastProp, updateProps } from './eigenschaften.js';
 import { renderInk, sizeSVG } from './anzeige.js';
 import { aendere, redo, saveSketch, snapshot, takeMenu, takeSketch, undo } from './verlauf.js';
@@ -128,7 +129,7 @@ export function verschiebeMarkiertes(key){
   else { const t = ED.data.t[ED.selT]; t.x += dx; t.y += dy; }
 }
 export function taste(e){
-  if (e.target.matches("input,select,textarea")) { tasteImFeld(e); return; }
+  if (e.target.matches("input,select,textarea")) { if (!signalTaste(e)) tasteImFeld(e); return; }
   const strg = e.ctrlKey || e.metaKey;
   if ((e.key === "Enter" || e.key === "F2") && anySel() && !ED.selF) { e.preventDefault(); beschrifteMarkiertes(); return; }
   if (strg && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
@@ -151,9 +152,14 @@ export function init(){
   document.addEventListener("pointerup", paletteLoslassen);
   dlg.addEventListener("click", klick);
   dlg.addEventListener("focusin", e => { if (e.target.dataset && e.target.dataset.prop) { snapshot(); setLastProp(e.target); } });
-  dlg.addEventListener("input", e => { const f = e.target.dataset && e.target.dataset.prop; if (f) applyProp(f, e.target.value); });
+  dlg.addEventListener("input", e => {
+    const f = e.target.dataset && e.target.dataset.prop;
+    if (istSignalFeld(e.target)) signalEingabe(e.target);   // Minuszeichen, Vorschlagsliste
+    if (f) applyProp(f, e.target.value);
+  });
+  dlg.addEventListener("focusout", e => { if (istSignalFeld(e.target)) schliesseListe(e.target); });
   dlg.addEventListener("change", feldGeaendert);
-  dlg.addEventListener("pointerdown", e => { if (e.target.closest(".sym")) e.preventDefault(); });   // Fokus im Feld lassen
+  dlg.addEventListener("pointerdown", e => { if (e.target.closest(".sym")) e.preventDefault(); signalWahl(e); });   // Fokus im Feld lassen
   dlg.addEventListener("keydown", taste);
   dlg.addEventListener("cancel", abbrechen);   // Esc im Dialog: erst abbrechen, erst dann schließen
   dlg.addEventListener("close", () => { ED.svg = null; ED.sim = {on: false, st: {}, pos: {}}; route(); });
