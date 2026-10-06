@@ -33,7 +33,7 @@ export function paletteDruecken(e){
 export function paletteZiehen(e){
   if (!palDrag || !ED.svg) return;
   if (!palDrag.on && Math.hypot(e.clientX - palDrag.x, e.clientY - palDrag.y) > 6) {   // erst ab 6 px ist es Ziehen
-    palDrag.on = true; ED.dnd = true; ED.place = palDrag.k; setTool("place"); document.body.classList.add("dnd");
+    palDrag.on = true; ED.ausPalette = true; ED.place = palDrag.k; setTool("place"); document.body.classList.add("dnd");
   }
   if (palDrag.on) { if (overSheet(e)) edMove(e); else $(".ghost", ED.svg).innerHTML = ""; }
 }
@@ -42,9 +42,9 @@ export function paletteLoslassen(e){
   const d = palDrag;
   palDrag = null; document.body.classList.remove("dnd");
   if (!d.on) return;
-  ED.skipClick = true; ED.extraY = 0;
+  ED.klickAuslassen = true; ED.zusatzY = 0;
   if (overSheet(e)) placeObj(d.k, svgPt(ED.svg, e)); else werkzeugNachAbbruch();
-  ED.dnd = false;
+  ED.ausPalette = false;
 }
 
 /* ---------- Klicks ---------- */
@@ -71,7 +71,7 @@ export const AKTIONEN = {
   close: () => $("#editor").close(),
 };
 export function klick(e){
-  if (ED.skipClick) { ED.skipClick = false; if (e.target.closest("[data-place]")) return; }   // Klick nach Ziehen aus der Palette
+  if (ED.klickAuslassen) { ED.klickAuslassen = false; if (e.target.closest("[data-place]")) return; }   // Klick nach Ziehen aus der Palette
   const pb = e.target.closest("[data-place]");
   if (pb) { ED.place = pb.dataset.place; setTool("place"); return; }
   const v = vorlage(ED.key);
@@ -118,11 +118,11 @@ export function beschrifteMarkiertes(){
   else if (ED.selT !== null) editTextItem(ED.selT);
   else if (ED.selC !== null) editConnLabel(ED.selC);
 }
-// Esc: angefangene Linie (ED.pend) verwerfen, sonst Markierung und Werkzeug aufheben; true, wenn etwas zu tun war
+// Esc: angefangene Eingabe der Vorlage (ED.vorlage.angefangen) verwerfen, sonst Markierung und Werkzeug aufheben; true, wenn etwas zu tun war
 export function abbrechen(e){
   if (!ED.svg) return false;
-  if (ED.pend) { e.preventDefault(); ED.pend = null; $(".ghost", ED.svg).innerHTML = ""; updateProps(true); return true; }
-  if (ED.place || ED.from || anySel()) { e.preventDefault(); clearSel(); ED.from = null; werkzeugNachAbbruch(); return true; }
+  if (ED.vorlage.angefangen) { e.preventDefault(); ED.vorlage.angefangen = null; $(".ghost", ED.svg).innerHTML = ""; updateProps(true); return true; }
+  if (ED.place || ED.verbindenVon || anySel()) { e.preventDefault(); clearSel(); ED.verbindenVon = null; werkzeugNachAbbruch(); return true; }
   return false;
 }
 export function verschiebeMarkiertes(key){

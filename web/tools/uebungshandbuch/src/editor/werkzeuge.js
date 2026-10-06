@@ -7,10 +7,10 @@ import { updateProps } from './eigenschaften.js';
 import { renderInk } from './anzeige.js';
 
 export function setTool(t){
-  ED.pend = null;
+  ED.vorlage.angefangen = null;
   const v = vorlage(ED.key);
   if (v.werkzeugWechsel) v.werkzeugWechsel(t);   // Haken werkzeugWechsel: Vorlage räumt eigene Werkzeuge auf
-  ED.tool = t; if (t !== "place") ED.place = null; if (t !== "conn") ED.from = null;
+  ED.tool = t; if (t !== "place") ED.place = null; if (t !== "conn") ED.verbindenVon = null;
   $$("#editor [data-tool]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tool === t && (!b.dataset.color || b.dataset.color === ED.color)));
   $$("#editor [data-place]").forEach(b => b.setAttribute("aria-pressed", b.dataset.place === ED.place));
   if (ED.svg) { ["erase","text","sel","conn","place","sim"].forEach(c => ED.svg.classList.toggle(c, t === c)); $(".ghost", ED.svg).innerHTML = ""; renderInk(); }

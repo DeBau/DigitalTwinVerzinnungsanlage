@@ -38,7 +38,7 @@ export function verbindeKette(A, B, spuren){
 
 // An welchen Baustein hängt sich ein neuer Baustein der Palettenart k? Der markierte, wenn er zur selben Kette gehört.
 export function kettenQuelle(k){
-  const A = !ED.dnd && ED.sel && objById(ED.sel);   // beim Ziehen entscheidet die Ablagestelle (Andocken), nicht die Markierung
+  const A = !ED.ausPalette && ED.sel && objById(ED.sel);   // beim Ziehen entscheidet die Ablagestelle (Andocken), nicht die Markierung
   if (!A || !gruppeVon(A).kette || fam(A) !== BAUSTEIN[k].g) return null;
   const neuSeite = seitenArt(k);
   if (seite(A)) return neuSeite ? A : null;

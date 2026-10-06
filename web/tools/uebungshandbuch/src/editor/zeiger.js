@@ -33,7 +33,7 @@ export function edDown(e){
   if (ED.tool === "place" && ED.place) { e.preventDefault(); placeObj(ED.place, pt); return; }
   if (ED.tool === "sel") { e.preventDefault(); auswahlUnten(e, pt); return; }
   if (ED.tool === "conn") { e.preventDefault(); verbindenUnten(e, pt); return; }
-  if (ED.tool === "erase") { ED.erasing = true; festhalten(e); eraseAt(e); return; }
+  if (ED.tool === "erase") { ED.radiert = true; festhalten(e); eraseAt(e); return; }
   if (ED.tool === "text") { e.preventDefault(); neuerText(pt); return; }
   const q = ED.tool === "pen" ? pt : snapW(pt);
   if (ED.tool === "pen") beginneStrich(e, {c: ED.color, w: ED.w, p: [q]});
@@ -83,8 +83,8 @@ export function mitnehmen(o, e){
 // Zweiter Klick auf dasselbe Element innerhalb von 450 ms (der Browser-Doppelklick kommt nach pointerdown zu spät)
 export function doppelklick(id){
   const now = Date.now();
-  const dbl = id && ED.lastClick && ED.lastClick.id === id && now - ED.lastClick.t < 450;
-  ED.lastClick = dbl ? null : {id, t: now};
+  const dbl = id && ED.letzterKlick && ED.letzterKlick.id === id && now - ED.letzterKlick.t < 450;
+  ED.letzterKlick = dbl ? null : {id, t: now};
   return dbl;
 }
 export function schriftfeldWaehlen(){
@@ -97,14 +97,14 @@ export function verbindenUnten(e, pt){
   const hitO = e.target.closest("[data-o]");
   let id = hitO && hitO.dataset.o;
   if (!id) {   // Klick auf eine virtuelle Schiene der Vorlage
-    const vr = vrails(ED.key, ED.pages || 1).find(r => Math.abs(pt[1] - r.y) < 8 && pt[0] >= r.x && pt[0] <= r.x + r.w);
+    const vr = vrails(ED.key, ED.blattzahl || 1).find(r => Math.abs(pt[1] - r.y) < 8 && pt[0] >= r.x && pt[0] <= r.x + r.w);
     if (vr) id = vr.id;
   }
-  if (!id) { ED.from = null; ED.fromP = null; renderInk(); return; }
+  if (!id) { ED.verbindenVon = null; renderInk(); return; }
   const o = objById(id), pn = portCap(o) ? nearestPort(o, pt) : null;
-  if (!ED.from) { ED.from = id; ED.fromP = pn; renderInk(); return; }
-  const a = ED.from, pa = ED.fromP;
-  ED.from = null; ED.fromP = null;
+  if (!ED.verbindenVon) { ED.verbindenVon = {id, anschluss: pn}; renderInk(); return; }
+  const {id: a, anschluss: pa} = ED.verbindenVon;
+  ED.verbindenVon = null;
   if (portCap(o) && portCap(objById(a))) connectPorts(a, pa, id, pn); else connect(a, id);
   renderInk();
 }
@@ -116,30 +116,30 @@ export function neuerText(pt){
 // Strich cur aufziehen: Zeiger festhalten, Stand merken, Vorschaupfad anlegen. Auch für die Werkzeuge der Vorlagen.
 export function beginneStrich(e, cur){
   festhalten(e); snapshot();
-  ED.cur = cur;
+  ED.strich = cur;
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("stroke", ED.color); path.setAttribute("stroke-width", ED.w); path.setAttribute("fill", "none");
   path.setAttribute("stroke-linecap", "round"); path.setAttribute("stroke-linejoin", "round");
-  ED.svg.querySelector(".ink").appendChild(path); ED.curEl = path; edMove(e);
+  ED.svg.querySelector(".ink").appendChild(path); ED.strichPfad = path; edMove(e);
 }
 
 /* ---------- Ziehen ---------- */
 export function edMove(e){
   const svg = ED.svg; if (!svg) return;
-  if (ED.erasing) { eraseAt(e); return; }
+  if (ED.radiert) { eraseAt(e); return; }
   const pt = svgPt(svg, e);
-  const busy = ED.drag || ED.cur || (ED.tool === "place" && ED.place);
-  ED.extraY = busy ? pt[1] : 0; checkPages();   // beim Ziehen über den Blattrand wächst die Zeichnung
+  const busy = ED.drag || ED.strich || (ED.tool === "place" && ED.place);
+  ED.zusatzY = busy ? pt[1] : 0; checkPages();   // beim Ziehen über den Blattrand wächst die Zeichnung
   if (busy) randScrollen(e);
   if (ED.drag) { ziehen(pt); return; }
   if (ED.tool === "place" && ED.place) { setzVorschau(pt); return; }
   const zeiger = zeigerHaken();
   if (zeiger.bewegen && zeiger.bewegen(e, pt)) return;   // Haken zeiger.bewegen
-  if (!ED.cur) return;
-  if (ED.cur.k) { ED.cur.p[1] = snapW(pt); ED.curEl.setAttribute("d", shapeD(ED.cur)); return; }
-  const l = ED.cur.p[ED.cur.p.length-1];   // Freihand: Punkte sammeln
-  if (Math.hypot(pt[0]-l[0], pt[1]-l[1]) > 1.2) ED.cur.p.push(pt);
-  ED.curEl.setAttribute("d", "M" + ED.cur.p.map(q => q.join(" ")).join("L") + (ED.cur.p.length === 1 ? "l.01 0" : ""));
+  if (!ED.strich) return;
+  if (ED.strich.k) { ED.strich.p[1] = snapW(pt); ED.strichPfad.setAttribute("d", shapeD(ED.strich)); return; }
+  const l = ED.strich.p[ED.strich.p.length-1];   // Freihand: Punkte sammeln
+  if (Math.hypot(pt[0]-l[0], pt[1]-l[1]) > 1.2) ED.strich.p.push(pt);
+  ED.strichPfad.setAttribute("d", "M" + ED.strich.p.map(q => q.join(" ")).join("L") + (ED.strich.p.length === 1 ? "l.01 0" : ""));
 }
 export function randScrollen(e){
   const st = $("#edstage"), r = st.getBoundingClientRect();
@@ -186,18 +186,18 @@ export function setzVorschau(pt){
 
 /* ---------- Loslassen ---------- */
 export function edUp(){
-  ED.erasing = false; ED.extraY = 0;
+  ED.radiert = false; ED.zusatzY = 0;
   if (ED.drag) { ziehenEnde(); return; }
-  if (!ED.cur) return;
-  const zeiger = zeigerHaken(), [p0, p1] = ED.cur.p;
-  if (ED.cur.k && p0[0] === p1[0] && p0[1] === p1[1]) {   // nur geklickt, nicht gezogen: kein Strich
-    const k = ED.cur.k;
-    ED.cur = null; ED.hist.pop();
+  if (!ED.strich) return;
+  const zeiger = zeigerHaken(), [p0, p1] = ED.strich.p;
+  if (ED.strich.k && p0[0] === p1[0] && p0[1] === p1[1]) {   // nur geklickt, nicht gezogen: kein Strich
+    const k = ED.strich.k;
+    ED.strich = null; ED.hist.pop();
     if (zeiger.angeklickt && zeiger.angeklickt(p0, k)) return;   // Haken zeiger.angeklickt
     renderInk(); return;
   }
-  const neu = ED.cur;
-  ED.data.s.push(neu); ED.cur = null; saveSketch();
+  const neu = ED.strich;
+  ED.data.s.push(neu); ED.strich = null; saveSketch();
   if (zeiger.gezogen && zeiger.gezogen(neu)) return;   // Haken zeiger.gezogen
   renderInk();
 }

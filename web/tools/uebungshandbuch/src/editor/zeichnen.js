@@ -111,10 +111,10 @@ export function verbindungSVG(c, i, gm, objs, cs, key, edit){
 export const istRahmen = o => !!art(o.k).rahmen;
 // Baustein mit Markierungsrahmen (im Editor) bzw. greifbarem Rand (Rahmen-Bauteile)
 export function bausteinSVG(o, edit){
-  const b = bbox(o), hi = edit && (ED.sel === o.id || ED.from === o.id), fr = istRahmen(o);
+  const b = bbox(o), von = edit && ED.verbindenVon && ED.verbindenVon.id === o.id, hi = edit && (ED.sel === o.id || von), fr = istRahmen(o);
   let h = "";
   if (edit && fr) h = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? .25 : 0}" stroke-width="12"/>`;
-  if (edit && !fr) h = `<rect x="${b.x-5}" y="${b.y-5}" width="${b.w+10}" height="${b.h+10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${ED.from === o.id ? "2 3" : "5 3"}"` : ""}/>`;
+  if (edit && !fr) h = `<rect x="${b.x-5}" y="${b.y-5}" width="${b.w+10}" height="${b.h+10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${von ? "2 3" : "5 3"}"` : ""}/>`;
   return `<g data-o="${o.id}">${h}${drawObj(o, edit)}</g>`;
 }
 // Abzweigpunkte der Leitungen: auf einer Schiene immer, an einem Anschluss ab zwei Leitungen.
@@ -139,7 +139,7 @@ export function punkteSVG(d, cs, objs, edit){
   let {svg: s, cnt} = abzweigpunkte(cs, objs);
   (d.o || []).forEach(o => { const z = art(o.k).zusatz; if (z) s += z(o, n => !!cnt[o.id + ":" + n]); });
   if (edit && ED.tool === "conn") (d.o || []).forEach(o => portsOf(o).forEach(q => {
-    const f = ED.from === o.id && ED.fromP === q.n;
+    const v = ED.verbindenVon, f = !!v && v.id === o.id && v.anschluss === q.n;
     s += `<circle cx="${q.x}" cy="${q.y}" r="${f ? 5 : 3.6}" fill="${f ? BLUE : "#fff"}" stroke="${BLUE}" stroke-width="1.5" pointer-events="none"/>`;
   }));
   return s;

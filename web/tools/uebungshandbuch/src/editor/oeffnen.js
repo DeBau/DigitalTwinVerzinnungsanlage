@@ -22,7 +22,7 @@ export function openEditor(scope, key){
   const data = S.get(skKey(scope, key)) || {}; data.s ||= []; data.t ||= []; data.o ||= []; data.c ||= [];
   const v = vorlage(key), pal = v.gruppen || [], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
   const keepTool = ["pen","line","rect","text","erase"].includes(ED.tool) ? ED.tool : "pen";
-  Object.assign(ED, {scope, key, data, hist:[], zukunft:[], tx:null, cur:null, sel:null, selC:null, selS:null, selT:null, from:null, place:null, drag:null, tool: pal.length ? "sel" : v.startWerkzeug || keepTool});
+  Object.assign(ED, {scope, key, data, hist:[], zukunft:[], tx:null, strich:null, sel:null, selC:null, selS:null, selT:null, verbindenVon:null, place:null, drag:null, vorlage: {}, tool: pal.length ? "sel" : v.startWerkzeug || keepTool});
   const ex = BY[scope], dlg = $("#editor");
   const colors = [["#17212B","Schwarz"],["#0E4C92","Blau"],["#C0392B","Rot"]];
   dlg.innerHTML = `<div class="ed"><div class="edbar">
@@ -54,7 +54,7 @@ export function paletteHTML(groups){
     + `<div class="palhelp">${GRUPPE[groups[0]].hinweis ? `<p>${GRUPPE[groups[0]].hinweis}</p>` : ""}<p><b>Ziehen:</b> Bausteine direkt aus dieser Leiste aufs Blatt ziehen – oder anklicken und dann aufs Blatt klicken.</p><p><b>Andocken:</b> Ziehen Sie einen Baustein an einen Anschluss – die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p></div>`;
 }
 export function paintEditor(){
-  ED.pages = pageCount(ED.key, ED.data); ED.extraY = 0;
+  ED.blattzahl = pageCount(ED.key, ED.data); ED.zusatzY = 0;
   $("#edstage").innerHTML = sketchSVG(ED.key, BY[ED.scope], ED.data, skMeta(ED.scope, ED.key, ED.data), true);
   const svg = ED.svg = $("#edstage svg"); sizeSVG();
   svg.addEventListener("pointerdown", edDown); svg.addEventListener("pointermove", edMove); svg.addEventListener("pointerup", edUp); svg.addEventListener("pointercancel", edUp);

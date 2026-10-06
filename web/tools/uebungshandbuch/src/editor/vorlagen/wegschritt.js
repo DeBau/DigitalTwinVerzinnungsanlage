@@ -68,15 +68,15 @@ export function wsAnleitung(){
   if (anySel() || !["sig", "line", "start", "eq", "vk"].includes(ED.tool)) return null;
   const step = t => `<li style="margin:0 0 6px">${t}</li>`;
   const how = {
-    sig: ED.pend ? [`Jetzt den <b>Zielpunkt</b> anklicken: den Beginn der Bewegung, die ausgelöst wird.`, `Für eine <b>Schleife</b> denselben Punkt noch einmal anklicken.`, `Esc bricht ab.`]
+    sig: ED.vorlage.angefangen ? [`Jetzt den <b>Zielpunkt</b> anklicken: den Beginn der Bewegung, die ausgelöst wird.`, `Für eine <b>Schleife</b> denselben Punkt noch einmal anklicken.`, `Esc bricht ab.`]
                  : [`Den <b>Auslösepunkt</b> anklicken – meist die Endlage, an der der Sensor schaltet.`, `Dann den <b>Zielpunkt</b> anklicken – den Beginn der ausgelösten Bewegung.`, `Danach den Sensor eintragen, z. B. −BG2.`, `Bei UND/ODER als Zielpunkt den Verknüpfungspunkt anklicken – er fängt die Linie.`],
-    line: ED.pend ? [`Nächsten <b>Eckpunkt</b> anklicken – die Funktionslinie läuft weiter.`, `Den letzten Punkt noch einmal anklicken oder Esc: Linie beenden.`]
+    line: ED.vorlage.angefangen ? [`Nächsten <b>Eckpunkt</b> anklicken – die Funktionslinie läuft weiter.`, `Den letzten Punkt noch einmal anklicken oder Esc: Linie beenden.`]
                   : [`<b>Eckpunkte nacheinander anklicken</b>: waagrecht = Stillstand, schräg = Bewegung, senkrecht = Ventil schaltet.`, `Oder von Ecke zu Ecke ziehen.`],
     start: [`Den <b>Beginn der Bewegung</b> anklicken, die der Taster startet.`, `Taster und Pfeil werden ins Schrittfeld gesetzt; die Bezeichnung (z. B. −SF1) links ändern.`],
     vk: [`Den <b>Zielpunkt</b> anklicken – den Beginn der Bewegung, die erst ausgelöst wird, wenn die Bedingung erfüllt ist.`, `Davor entsteht der Verknüpfungspunkt (UND = Schrägstrich, ODER = Punkt) mit Pfeil zum Ziel.`, `Danach mit <b>Signallinie</b> jeden Signalgeber anklicken und dann den Verknüpfungspunkt – die Linien laufen dort zusammen.`],
     eq: [`Die <b>Spalte nach dem letzten Schritt</b> anklicken – sie wird zu „n = 1“, der Zyklus schließt sich.`]
   }[ED.tool];
-  const titel = {sig: "Signallinie" + (ED.wsPreset && ED.wsPreset.tz ? " mit Zeitglied" : ""), line: "Funktionslinie", start: "Taster / Start", eq: "Zyklusende", vk: ED.wsPreset && ED.wsPreset.t === "oder" ? "ODER-Verknüpfung" : "UND-Verknüpfung"}[ED.tool];
+  const titel = {sig: "Signallinie" + (ED.vorlage.voreinstellung && ED.vorlage.voreinstellung.tz ? " mit Zeitglied" : ""), line: "Funktionslinie", start: "Taster / Start", eq: "Zyklusende", vk: ED.vorlage.voreinstellung && ED.vorlage.voreinstellung.t === "oder" ? "ODER-Verknüpfung" : "UND-Verknüpfung"}[ED.tool];
   return `<div class="props"><div class="palh">${titel}</div><ol style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.45">${how.map(step).join("")}</ol></div>`;
 }
 
@@ -119,9 +119,9 @@ export function zeilennameKlick(e, pt){
 export function setzeVerknuepfung(pt){
   const q = snapW(pt), J = [q[0], q[1] - wsAus(q[1]) * 18];
   aendere(d => {
-    d.s.push({k: "vk", t: (ED.wsPreset && ED.wsPreset.t) || "und", c: ED.color, w: 1.2, p: [J]}, {k: "sig", c: ED.color, w: 1.2, p: [J, q], lbl: ""});
+    d.s.push({k: "vk", t: (ED.vorlage.voreinstellung && ED.vorlage.voreinstellung.t) || "und", c: ED.color, w: 1.2, p: [J]}, {k: "sig", c: ED.color, w: 1.2, p: [J, q], lbl: ""});
   }, {ohneRender: true});
-  setTool("sig"); ED.wsPreset = {}; clearSel(); renderInk(); updateProps(true);
+  setTool("sig"); ED.vorlage.voreinstellung = {}; clearSel(); renderInk(); updateProps(true);
 }
 // Zyklusende: die angeklickte Spalte wird zu „n = 1“, ein früheres Zyklusende entfällt
 export function setzeZyklusende(pt){
@@ -140,15 +140,15 @@ export function setzeStart(pt){
 }
 // Zweiter Klick mit Signallinie bzw. Funktionslinie: Linie vom gemerkten Punkt bis hier
 export function zweiterKlick(pt){
-  const q = snapW(pt), a = ED.pend, same = Math.abs(a[0] - q[0]) < .5 && Math.abs(a[1] - q[1]) < .5;
+  const q = snapW(pt), a = ED.vorlage.angefangen, same = Math.abs(a[0] - q[0]) < .5 && Math.abs(a[1] - q[1]) < .5;
   $(".ghost", ED.svg).innerHTML = "";
   if (ED.tool === "sig") {
-    aendere(d => { d.s.push({k: "sig", c: ED.color, w: 1.2, p: [a, q], lbl: "", ...(ED.wsPreset || {})}); }, {ohneRender: true});
-    ED.pend = null; signalMarkieren();
+    aendere(d => { d.s.push({k: "sig", c: ED.color, w: 1.2, p: [a, q], lbl: "", ...(ED.vorlage.voreinstellung || {})}); }, {ohneRender: true});
+    ED.vorlage.angefangen = null; signalMarkieren();
     return;
   }
-  if (same) { ED.pend = null; renderInk(); updateProps(true); return; }   // gleicher Punkt: Linienzug beenden
-  aendere(d => { d.s.push({k: "l", c: ED.color, w: Math.max(ED.w, 2.8), p: [a, q]}); ED.pend = q; });
+  if (same) { ED.vorlage.angefangen = null; renderInk(); updateProps(true); return; }   // gleicher Punkt: Linienzug beenden
+  aendere(d => { d.s.push({k: "l", c: ED.color, w: Math.max(ED.w, 2.8), p: [a, q]}); ED.vorlage.angefangen = q; });
 }
 export const WS_ZEIGER = {
   unten(e, pt){
@@ -159,19 +159,19 @@ export const WS_ZEIGER = {
     if (t === "vk") setzeVerknuepfung(pt);
     else if (t === "eq") setzeZyklusende(pt);
     else if (t === "start") setzeStart(pt);
-    else if (ED.pend) zweiterKlick(pt);
+    else if (ED.vorlage.angefangen) zweiterKlick(pt);
     else {   // Linie aufziehen; Funktionslinien sind mindestens 2.8 dick
       const q = snapW(pt);
       beginneStrich(e, t === "sig"
-        ? {k: "sig", c: ED.color, w: 1.2, p: [q, q], lbl: "", ...(ED.wsPreset || {})}
+        ? {k: "sig", c: ED.color, w: 1.2, p: [q, q], lbl: "", ...(ED.vorlage.voreinstellung || {})}
         : {k: "l", c: ED.color, w: Math.max(ED.w, 2.8), p: [q, q]});
     }
     return true;
   },
   // Vorschau der Linie vom gemerkten Punkt zum Mauszeiger
   bewegen(e, pt){
-    if (!ED.pend || ED.cur || (ED.tool !== "sig" && ED.tool !== "line")) return false;
-    const q = snapW(pt), a = ED.pend;
+    if (!ED.vorlage.angefangen || ED.strich || (ED.tool !== "sig" && ED.tool !== "line")) return false;
+    const q = snapW(pt), a = ED.vorlage.angefangen;
     const d = ED.tool === "sig" ? shapeD({k: "sig", p: [a, q]}) : `M${a[0]} ${a[1]}L${q[0]} ${q[1]}`;
     $(".ghost", ED.svg).innerHTML = `<path d="${d}" stroke="#2F80ED" stroke-width="${ED.tool === "sig" ? 1.4 : 2.8}" stroke-dasharray="5 4" fill="none"/>${punktMarke(a)}<circle cx="${q[0]}" cy="${q[1]}" r="4" fill="none" stroke="#2F80ED"/>`;
     return true;
@@ -179,7 +179,7 @@ export const WS_ZEIGER = {
   // Nur geklickt statt gezogen: Punkt merken, der nächste Klick setzt das Ende
   angeklickt(p0, k){
     if (k !== "sig" && k !== "l") return false;
-    ED.pend = p0; renderInk(); updateProps(true);
+    ED.vorlage.angefangen = p0; renderInk(); updateProps(true);
     $(".ghost", ED.svg).innerHTML = punktMarke(p0);
     return true;
   },
@@ -206,13 +206,13 @@ registriereVorlage("wegschritt", {
     const wb = e.target.closest("[data-ws]");
     if (!wb) return false;
     const it = wsItem(+wb.dataset.ws);
-    setTool(it[0]); ED.wsPreset = it[2]; clearSel();
+    setTool(it[0]); ED.vorlage.voreinstellung = it[2]; clearSel();
     $$("#editor [data-ws]").forEach(x => x.setAttribute("aria-pressed", x === wb));
     renderInk(); updateProps(true);
     return true;
   },
   werkzeugWechsel(){
-    ED.wsPreset = null;
+    ED.vorlage.voreinstellung = null;
     $$("#editor [data-ws]").forEach(x => x.setAttribute("aria-pressed", "false"));
   },
   fangPunkt: wsFang,
