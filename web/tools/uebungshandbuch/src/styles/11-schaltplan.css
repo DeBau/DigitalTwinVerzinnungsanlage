@@ -4,11 +4,12 @@
 .sp-seitenleiste h1{font-size:22px}
 .sp-treffer:empty{display:none}
 .sp-treffer,.sp-inhalt{display:flex;flex-direction:column;gap:1px}
-.sp-treffer{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:6px;max-height:34vh;overflow:auto}
+.sp-treffer{flex:none;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:6px;max-height:34vh;overflow:auto}
 .sp-treffer a,.sp-inhalt a{display:flex;gap:10px;align-items:baseline;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13.5px;line-height:1.35}
 .sp-treffer a span{margin-left:auto;color:var(--ink2);font-size:12px;white-space:nowrap}
 .sp-treffer a:hover,.sp-inhalt a:hover{background:var(--blue-soft)}
-.sp-inhalt{overflow:auto;padding-right:4px}
+.sp-inhalt{flex:1;min-height:0;overflow:auto;padding-right:4px}
+.sp-seitenleiste input{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%}
 .sp-inhalt .nr{font:600 12px var(--mono);color:var(--ink2);min-width:2.2em;text-align:right}
 .sp-inhalt a[aria-current]{background:var(--blue);color:var(--onblue)}
 .sp-inhalt a[aria-current] .nr{color:var(--onblue)}

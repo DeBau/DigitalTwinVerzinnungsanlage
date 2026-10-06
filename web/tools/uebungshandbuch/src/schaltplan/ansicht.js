@@ -43,7 +43,8 @@ export function viewSchaltplan(seite, spalte){
       <div class="sp-blatt" id="sp-blatt">${s.svg}</div>
       <p class="sp-tipp muted">Pfeiltasten blättern. Ein Klick auf einen blauen Verweis wie /12.3 springt zu Seite 12, Spalte 3.
       Ein Klick auf ein Kennzeichen zeigt alle Stellen, an denen es vorkommt.</p></div></section>`;
-  $(".sp-inhalt [aria-current]")?.scrollIntoView({block: "nearest"});
+  const liste = $(".sp-inhalt"), eintrag = $(".sp-inhalt [aria-current]");
+  if (eintrag) liste.scrollTop = eintrag.offsetTop - liste.offsetTop - liste.clientHeight / 2;
   if (spalte !== undefined && spalte !== "") markiereSpalte(+spalte);
 }
 
