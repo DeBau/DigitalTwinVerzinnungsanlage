@@ -1,7 +1,7 @@
+/* ---------- Fortschritt ---------- */
 import { SHEETS } from './daten.js';
 import { S } from './basis.js';
 
-/* ---------- Fortschritt ---------- */
 export const filled = key => String(S.get(key) ?? "").trim().length > 0;
 // Prüfpunkt erledigt: bestanden, oder nicht bestanden mit Ursache, Änderung und Nachtest
 export const prDone = (k, i) => { const v = S.get(k+":p"+i); return v === "ok" || (v === "bad" && ["u","m","n"].every(x => filled(`${k}:p${i}${x}`))); };

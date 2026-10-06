@@ -1,8 +1,8 @@
+/* ================= Ansichten ================= */
 import { PHASES, SHEETS, STUFEN } from './daten.js';
 import { $, $$, esc } from './basis.js';
 import { doneCount, nextSheet, phaseDone } from './fortschritt.js';
 
-/* ================= Ansichten ================= */
 export const app = $("#app");
 export function setNav(r){ $$("#nav a").forEach(a => a.toggleAttribute("aria-current", false)); const m = {"":"#/", vorlagen:"#/vorlagen", signale:"#/signale", anlage:"#/anlage", richtlinien:"#/richtlinien", konzept:"#/konzept", bewertung:"#/bewertung"}[r];
   const a = m && $(`#nav a[href="${m}"]`); if (a) a.setAttribute("aria-current", "page"); }

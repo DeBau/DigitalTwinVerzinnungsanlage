@@ -1,6 +1,6 @@
+/* ---------- Variablenliste ---------- */
 import { $, IC, S, esc } from './basis.js';
 
-/* ---------- Variablenliste ---------- */
 export const typeOf = a => /^%[IQEA]W/.test(a) ? "Int" : (/^%[IQEA]/.test(a) ? "Bool" : "");
 export function paintVars(s){
   const el = $("#vars"); if (!el) return;

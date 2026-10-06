@@ -1,3 +1,4 @@
+/* ---------- Übungsansicht ---------- */
 import { PHASES, SHEETS, STUFEN, STYLECHECK } from './daten.js';
 import { $, $$, BY, HAS_ERG, HSTUFE, IC, S, artPill, chip, chips, chipsQuiet, esc, hilfeLevel, hilfeText, mitbringen, plain, qt, quelle, quizKey, quizSet, sigEntries, tableHTML, typOf, vorIds, zielTag } from './basis.js';
 import { phaseDone, prDone } from './fortschritt.js';
@@ -5,7 +6,6 @@ import { app, setNav, viewHome } from './start.js';
 import { paintSketches } from './skizzen-kacheln.js';
 import { paintVars } from './variablen.js';
 
-/* ---------- Übungsansicht ---------- */
 export let timerId = null, timerEx = null, timerStart = 0;
 export function fmtTime(sec){ const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60; return `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`; }
 export function curTime(id){ let t = S.get(id+":zeit", 0); if (timerEx === id) t += Math.floor((Date.now() - timerStart)/1000); return t; }

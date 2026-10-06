@@ -1,18 +1,7 @@
 import { tw } from './svg.js';
-import { PC, xform } from './bauteile.js';
+import { BLK, PC } from './registry.js';
+import { xform } from './bauteile.js';
 
-export const BLK = {
-  init:{g:"grafcet", n:"Anfangsschritt"}, step:{g:"grafcet", n:"Schritt"}, macro:{g:"grafcet", n:"Makroschritt"}, trans:{g:"grafcet", n:"Transition"},
-  action:{g:"grafcet", n:"Aktion kontinuierlich", mk:{t:"kont"}}, actc:{g:"grafcet", n:"Aktion mit Zuweisungsbedingung", mk:{k:"action", t:"kont", b:"", hb:true}},
-  acta:{g:"grafcet", n:"Aktion bei Aktivierung ↑", mk:{k:"action", t:"akt"}}, actd:{g:"grafcet", n:"Aktion bei Deaktivierung ↓", mk:{k:"action", t:"deakt"}},
-  acte:{g:"grafcet", n:"Aktion bei Ereignis", mk:{k:"action", t:"ereig", b:""}}, actionq:{g:"grafcet", n:"Aktion mit Bestimmungszeichen", mk:{k:"action", t:"q", q:"S"}},
-  alt:{g:"grafcet", n:"ODER-Verzweigung"}, par:{g:"grafcet", n:"UND-Verzweigung"}, ref:{g:"grafcet", n:"Verweis / Sprung"},
-  sinit:{g:"zustand", n:"Anfangszustand"}, state:{g:"zustand", n:"Zustand"}, start:{g:"zustand", n:"Startpunkt"},
-  no:{g:"elektro", n:"Schließer"}, nc:{g:"elektro", n:"Öffner"}, coil:{g:"elektro", n:"Spule / Schütz"}, lamp:{g:"elektro", n:"Meldeleuchte"},
-  box:{g:"regel", n:"Block"}, sum:{g:"regel", n:"Summierstelle"}
-};
-export const PAL = {grafcet:["grafcet"], zustand:["zustand"], stromlauf:["elektro","geraete","leistung"], leistung:["leistung","geraete","elektro"], pneumatik:["pneu"], regelkreis:["regel"], raster:["grafcet","zustand","elektro","geraete","leistung","pneu","regel"]};
-export const GN = {grafcet:"GRAFCET", zustand:"Zustandsdiagramm", elektro:"Steuerstromkreis", geraete:"Geräte und SPS", leistung:"Hauptstromkreis", pneu:"Pneumatik nach ISO 1219", regel:"Regelkreis"};
 export const R = {state:36, sinit:36, start:8, sum:15};
 export const isAct = o => !!o && (o.k === "action" || o.k === "actionq");
 export const atype = o => o.k === "actionq" ? "q" : (o.t || "kont");

@@ -1,7 +1,7 @@
+/* ---------- Signal-Tooltip ---------- */
 import { EXTRA, SIG } from './daten.js';
 import { $, esc } from './basis.js';
 
-/* ---------- Signal-Tooltip ---------- */
 export const tip = $("#tip");
 export function showTip(el){
   const t = el.dataset.tag, list = SIG[t], ex = EXTRA[t]; if (!list && !ex) return;

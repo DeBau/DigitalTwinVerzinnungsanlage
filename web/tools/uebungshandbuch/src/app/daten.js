@@ -19,17 +19,6 @@ SHEETS.forEach(s => Object.assign(s, TEXTE[s.id] || {}));
 
 export const QUIZ = __QUIZ__;   // Kurz-Checks je Übung (quiz.js): {Lxx:{ein:[…], aus:[…]}}
 
-export const VORL = {
-  grafcet:{n:"GRAFCET", d:"Ablauf nach DIN EN 60848 mit Symbollegende"},
-  zustand:{n:"Zustandsdiagramm", d:"Zustände und Übergänge, z. B. für Übergaben und Antriebe"},
-  wegschritt:{n:"Weg-Schritt-Diagramm", d:"Zylinderbewegungen über die Schritte"},
-  stromlauf:{n:"Stromlaufplan", d:"Steuerstromkreis zwischen L+ und M – Taster, Not-Halt, SPS, Sicherheitsrelais"},
-  leistung:{n:"Hauptstromkreis", d:"L1, L2, L3, N, PE – Schütze, Wendeschützschaltung, Motorschutz, Motoren, Umrichter"},
-  pneumatik:{n:"Pneumatikschaltplan", d:"Zylinder, Wegeventile, Drosseln nach ISO 1219 – mit Simulation"},
-  regelkreis:{n:"Regelkreis", d:"Blockschaltbild Regler, Stellglied, Strecke, Messglied"},
-  trend:{n:"Trendaufzeichnung", d:"Istwert, Sollwert und Stellgröße über der Zeit"},
-  raster:{n:"Kästchenraster", d:"5-mm-Raster für alles Weitere"}
-};
 export const EXVORL = {L01:["raster"],L02:["raster"],L03:["raster"],L04:["trend","raster"],L05:["raster"],L06:["raster"],L07:["stromlauf","raster"],L12:["grafcet","wegschritt","pneumatik"],L13:["grafcet","zustand"],L08:["pneumatik","raster"],L09:["zustand","raster"],L10:["zustand","raster"],L11:["stromlauf","raster"],L14:["zustand","stromlauf"],L15:["stromlauf","leistung"],
   L16:["grafcet","wegschritt","pneumatik"],L17:["wegschritt","pneumatik"],L18:["zustand"],L19:["raster"],L20:["grafcet"],L21:["zustand","pneumatik"],L22:["regelkreis"],L23:["regelkreis","trend"],
   L24:["regelkreis","trend"],L25:["regelkreis","trend"],L26:["zustand"],L27:["zustand","leistung"],L28:["zustand"],L29:["raster"],L30:["zustand","leistung"],L31:["raster"],L32:["grafcet","zustand","stromlauf","leistung","pneumatik"]};

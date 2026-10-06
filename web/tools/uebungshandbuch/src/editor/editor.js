@@ -1,35 +1,14 @@
-import { CYL, SHEETS, VORL } from '../app/daten.js';
+import { CYL, SHEETS } from '../app/daten.js';
 import { $, $$, BY, IC, S, esc } from '../app/basis.js';
-import { FIXED, INK, PH, SVGT, arrowHead } from './svg.js';
+import { INK, PH, SVGT, arrowHead } from './svg.js';
 import { ED } from './status.js';
+import { BLK, FIXED, GN, HINT, LABEL_HINT, PAL, PC, PROPS, SAMPLE, VORL } from './registry.js';
 import { shapeD, snap, wsAus } from './vorlagen-svg.js';
-import { PC, nearestPort, portCap, simOn, vrails } from './bauteile.js';
-import { ACT_T, BLK, GN, PAL, atype, aw, bbox, ctr, fam, hasMark, isAct, isActKey } from './bausteine.js';
+import { nearestPort, portCap, simOn, vrails } from './bauteile.js';
+import { ACT_T, atype, aw, bbox, ctr, fam, hasMark, isAct, isActKey } from './bausteine.js';
 import { connGeom, drawObj, inPt, inkSVG, outPt, pageCount, pcSample, simClick, simCompute, simStep } from './zeichnen.js';
 import { deDate, pagesSVG, skKey, skMeta, sketchSVG } from './blaetter.js';
 
-export const SAMPLE = {
-  init:[{k:"init", x:4, y:4, v:"1"}, "0 0 48 48"], step:[{k:"step", x:4, y:4, v:"2"}, "0 0 48 48"],
-  trans:[{k:"trans", x:24, y:24}, "0 0 48 48", `<path d="M24 4V44" stroke="${INK}" stroke-width="1.6"/>`],
-  macro:[{k:"macro", x:4, y:4, v:"M1"}, "0 0 48 48"], ref:[{k:"ref", x:16, y:8, v:"1"}, "0 0 48 48"],
-  action:[{k:"action", t:"kont", x:4, y:9, v:"MB1"}, "0 0 98 48"], actionq:[{k:"action", t:"q", x:4, y:9, q:"S", v:"MB9"}, "0 0 98 48"],
-  actc:[{k:"action", t:"kont", x:4, y:22, v:"MB1", b:"BG9"}, "0 0 98 56"], acta:[{k:"action", t:"akt", x:4, y:22, v:"Z := 0"}, "0 0 98 56"],
-  actd:[{k:"action", t:"deakt", x:4, y:22, v:"Z := 0"}, "0 0 98 56"], acte:[{k:"action", t:"ereig", x:4, y:22, v:"Z := Z+1", b:"↑BG1"}, "0 0 98 56"],
-  alt:[{k:"alt", x:8, y:24, w:72}, "0 0 88 48", `<path d="M44 4V24M18 24V44M70 24V44" stroke="${INK}" stroke-width="1.6"/>`],
-  par:[{k:"par", x:8, y:22, w:72}, "0 0 88 48", `<path d="M44 4V22M18 27V44M70 27V44" stroke="${INK}" stroke-width="1.6"/>`],
-  sinit:[{k:"sinit", x:38, y:38, v:"Z0"}, "0 0 76 76"], state:[{k:"state", x:38, y:38, v:"Z1"}, "0 0 76 76"], start:[{k:"start", x:24, y:24}, "0 0 48 48"],
-  no:[{k:"no", x:34, y:2}, "0 0 56 64"], nc:[{k:"nc", x:30, y:2}, "0 0 56 64"], coil:[{k:"coil", x:28, y:2}, "0 0 56 64"], lamp:[{k:"lamp", x:28, y:2}, "0 0 56 64"],
-  box:[{k:"box", x:2, y:2, v:"Regler"}, "0 0 114 54"], sum:[{k:"sum", x:24, y:24}, "0 0 48 48"]
-};
-export const HINT = {
-  grafcet:"Anfangsschritt setzen, dann Transition, Schritt, Transition … anklicken: Jeder neue Baustein hängt sich unter den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken.",
-  zustand:"Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. Die Bedingung schreiben Sie direkt an den Pfeil.",
-  elektro:"Kontakte und Spule untereinander setzen – sie verbinden sich zum Strompfad und docken oben an L+ und unten an M an. Kennzeichen per Doppelklick ändern.",
-  regel:"Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn.",
-  leistung:"Bauteile setzen und mit Verbinden Anschluss für Anschluss verdrahten: erst den Anschluss am einen, dann am anderen Bauteil anklicken – auch direkt auf die Schienen L1, L2, L3, N, PE. Wendeschützschaltung: zwei Schütze, beim zweiten L1 und L3 tauschen.",
-  pneu:"Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken.",
-  geraete:"Geräte setzen und mit Verbinden verdrahten – z. B. den Sensorausgang BK auf einen Eingang der DI-Baugruppe."
-};
 export const objById = id => ED.data.o.find(o => o.id === id) || (String(id).startsWith("_") ? vrails(ED.key, ED.pages || 1).find(r => r.id === id) : undefined);
 export const uid = () => "o" + Math.random().toString(36).slice(2, 9);
 export function openEditor(scope, key){
@@ -110,9 +89,6 @@ export function checkPages(){
   refreshTpl(); sizeSVG();
 }
 export function renderInk(){ if (ED.svg) { ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key); checkPages(); } updateProps(); }
-export const PROPS = {init:[["v","Schrittnummer"]], step:[["v","Schrittnummer"]], macro:[["v","Bezeichnung","z. B. M1"]], ref:[["v","Ziel","z. B. 1 oder Schritt 5"]],
-  trans:[["v","Übergangsbedingung","z. B. BG1 · BG15, 5s/X3, ↑BG40"]], alt:[["w","Breite"]], par:[["w","Breite"]],
-  state:[["v","Name"]], sinit:[["v","Name"]], no:[["v","Kennzeichen"]], nc:[["v","Kennzeichen"]], coil:[["v","Kennzeichen"]], lamp:[["v","Kennzeichen"]], box:[["v","Bezeichnung"]]};
 export const SYMS = `<div class="syms" aria-label="Zeichen einfügen">${[["·","UND"],["+","ODER"],["¬","NICHT"],["↑","steigende Flanke"],["↓","fallende Flanke"],[":=","Zuweisung"],["≥","größer gleich"]].map(([c, t]) => `<button type="button" class="sym" data-sym="${c}" title="${t}">${c}</button>`).join("")}</div>`;
 export let propsKey = null, lastProp = null;
 export const setLastProp = (el) => { lastProp = el; };   // für den focusin-Listener in ereignisse.js
@@ -541,8 +517,6 @@ export function edDbl(e){
   const hitO = e.target.closest("[data-o]"), hitC = e.target.closest("[data-c]");
   if (hitO) editObjLabel(objById(hitO.dataset.o)); else if (hitC) editConnLabel(+hitC.dataset.c);
 }
-export const LABEL_HINT = {trans:"Bedingung, z. B. BG1 · BG40", action:"Aktion, z. B. MB1", actionq:"Bestimmungszeichen und Aktion, z. B. S MB9", macro:"Bezeichnung, z. B. M1", ref:"Ziel, z. B. 1", step:"Schrittnummer", init:"Schrittnummer",
-  state:"Name des Zustands", sinit:"Name des Zustands", box:"Bezeichnung, z. B. Regler", alt:"Breite (Standard 200)", par:"Breite (Standard 200)", no:"Kennzeichen, z. B. -SF1", nc:"Kennzeichen, z. B. -SF2", coil:"Kennzeichen, z. B. -QA1", lamp:"Kennzeichen, z. B. -PF1"};
 export function editObjLabel(o){
   if (!o || o.k === "start" || o.k === "sum") return;
   const b = bbox(o);

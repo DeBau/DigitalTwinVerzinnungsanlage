@@ -1,6 +1,6 @@
+/* ---------- Bausteine: GRAFCET, Zustandsdiagramm, Stromlauf, Regelkreis ---------- */
 import { esc } from '../app/basis.js';
 
-/* ---------- Bausteine: GRAFCET, Zustandsdiagramm, Stromlauf, Regelkreis ---------- */
 export const INK = "#17212B", MUTE = "#9AA4AD";
 export const tw = (s, px=13) => Math.max(...String(s ?? "").split("\n").map(l => l.length)) * px * .58;
 export const SVGT = (x, y, t, a="middle", sz=13, w=500, f=INK) => {   // mehrzeilig: Zeilen getrennt durch Zeilenumbruch, zentrierte Beschriftungen bleiben mittig
@@ -13,5 +13,5 @@ export function arrowHead(x1, y1, x2, y2, h=6.5, w=.42){
   return `<path d="M${f(x2)} ${f(y2)}L${f(x2 - h*Math.cos(a - w))} ${f(y2 - h*Math.sin(a - w))}L${f(x2 - h*Math.cos(a + w))} ${f(y2 - h*Math.sin(a + w))}Z" fill="${INK}"/>`;
 }
 /* Blätter: Die Zeichnung wächst nach unten; jedes Blatt hat Rahmen und Schriftfeld. Formulare (Weg-Schritt, Trend) bleiben einblättrig. */
-export const PH = 707, FIXED = {wegschritt: true, trend: true};
+export const PH = 707;   // Blatthöhe in Zeichnungseinheiten
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));

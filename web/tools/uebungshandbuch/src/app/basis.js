@@ -1,6 +1,6 @@
+/* ================= Grundlagen ================= */
 import { EXTRA, QUIZ, SHEETS, SIG } from './daten.js';
 
-/* ================= Grundlagen ================= */
 export const $ = (s, r=document) => r.querySelector(s);
 export const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 export const BY = Object.fromEntries(SHEETS.map(s => [s.id, s]));

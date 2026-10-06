@@ -1,12 +1,13 @@
-import { CRIT, SHEETS, SIG, STYLECHECK, VORL, gradeOf } from './daten.js';
+/* ================= Weitere Seiten ================= */
+import { CRIT, SHEETS, SIG, STYLECHECK, gradeOf } from './daten.js';
 import { $, $$, BY, IC, S, USES, chips, esc, plain, tableHTML } from './basis.js';
 import { doneCount } from './fortschritt.js';
+import { VORL } from '../editor/registry.js';
 import { app, setNav } from './start.js';
 import { sketchCards } from './skizzen-kacheln.js';
 import { restoreInputs } from './uebung.js';
 import { pageHead, whoRow } from './druck.js';
 
-/* ================= Weitere Seiten ================= */
 export function viewVorlagen(){
   setNav("vorlagen");
   app.innerHTML = `<div class="page"><h1>Vorlagen</h1><p class="lead">Alle Skizzenvorlagen mit Schriftfeld. Zeichnen Sie direkt darin oder drucken Sie sie leer für die Arbeit auf Papier. Was Sie hier zeichnen, gehört zu keiner Übung.</p>

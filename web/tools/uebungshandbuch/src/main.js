@@ -1,12 +1,15 @@
-// Einstieg für esbuild: lädt die Module in fester Reihenfolge (src/reihenfolge.json) und startet danach die Seiteneffekte.
+// Einstieg für esbuild. Die Importe legen die Ladereihenfolge fest (Schichten): Ein Modul darf nur aus Modulen
+// importieren, die hier vor ihm stehen. Danach starten die Seiteneffekte (Listener, Migrationen, route()).
 import './app/daten.js';
 import './app/basis.js';
 import './app/fortschritt.js';
 import './editor/svg.js';
 import './editor/status.js';
+import './editor/registry.js';
 import './editor/vorlagen-svg.js';
 import './editor/bauteile.js';
 import './editor/bausteine.js';
+import './editor/vorlagen/alt.js';
 import './editor/zeichnen.js';
 import './editor/blaetter.js';
 import './app/start.js';

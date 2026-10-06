@@ -11,34 +11,5 @@
   "08-seiten",
   "09-schmal",
   "10-druck"
- ],
- "js": [
-  "app/daten",
-  "app/basis",
-  "app/fortschritt",
-  "editor/svg",
-  "editor/status",
-  "editor/vorlagen-svg",
-  "editor/bauteile",
-  "editor/bausteine",
-  "editor/zeichnen",
-  "editor/blaetter",
-  "app/start",
-  "app/skizzen-kacheln",
-  "app/variablen",
-  "app/uebung",
-  "editor/editor",
-  "app/druck",
-  "app/seiten",
-  "app/tooltip",
-  "app/router",
-  "app/ereignisse",
-  "editor/ereignisse"
- ],
- "init": [
-  "editor/ereignisse",
-  "app/ereignisse",
-  "app/tooltip",
-  "app/router"
  ]
 }

@@ -1,7 +1,6 @@
 import { $, $$ } from '../app/basis.js';
 import { ED } from './status.js';
-import { PC } from './bauteile.js';
-import { PAL } from './bausteine.js';
+import { PAL, PC } from './registry.js';
 import { deDate } from './blaetter.js';
 import { anySel, applyProp, clearSel, delSel, edMove, editConnLabel, editObjLabel, editTextItem, lastProp, newline, objById, placeObj, renderInk, saveSketch, setLastProp, setTool, sizeSVG, snapshot, svgPt, takeMenu, takeSketch, turnSel, undo, updateProps, wsItem } from './editor.js';
 import { doPrint, sketchPage } from '../app/druck.js';

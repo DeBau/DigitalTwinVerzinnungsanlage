@@ -1,10 +1,11 @@
-import { FIXED, INK, MUTE, PH, SVGT, clamp } from './svg.js';
-import { ED } from './status.js';
-import { strokesSVG } from './vorlagen-svg.js';
-import { BLUE, DIRV, PC, PCPAL, PORTS2, SK, VALVE, portsOf, pressed, simOn, vrails, vstate, wireD, wireEnds, xform } from './bauteile.js';
-import { BLK, R, atype, aw, bbox, bw, ctr, fam, hasMark, isAct } from './bausteine.js';
-
 /* Pneumatik-Simulation */
+import { INK, MUTE, PH, SVGT, clamp } from './svg.js';
+import { ED } from './status.js';
+import { BLK, FIXED, PC, PORTS2 } from './registry.js';
+import { strokesSVG } from './vorlagen-svg.js';
+import { BLUE, DIRV, SK, VALVE, portsOf, pressed, simOn, vrails, vstate, wireD, wireEnds, xform } from './bauteile.js';
+import { R, atype, aw, bbox, bw, ctr, fam, hasMark, isAct } from './bausteine.js';
+
 export function simCompute(){
   const d = ED.data, adj = new Map(), add = (a, b) => { if (!adj.has(a)) adj.set(a, []); if (!adj.has(b)) adj.set(b, []); adj.get(a).push(b); adj.get(b).push(a); };
   d.c.forEach(c => { if (c.pa !== undefined && c.pb !== undefined) add(c.a + ":" + c.pa, c.b + ":" + c.pb); });
@@ -44,7 +45,6 @@ export function simClick(o, pt){
   ED.sim.st[o.id] = ns; simCompute(); ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
 }
 
-Object.entries(PC).forEach(([k, pc]) => { if (k === "zyl2") Object.assign(BLK, PCPAL); if (!BLK[k]) BLK[k] = {g: pc.g, n: pc.n, hide: pc.hide}; });
 export function drawObj(o, edit){
   if (PC[o.k]) {
     const svg = PC[o.k].draw(o, edit), X = xform(o); if (!X) return svg;

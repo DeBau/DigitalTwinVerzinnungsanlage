@@ -1,9 +1,8 @@
-import { CYL } from '../app/daten.js';
+/* ---------- Skizzen: Vorlagen als SVG ---------- */
 import { esc } from '../app/basis.js';
 import { INK, SVGT, arrowHead, tw } from './svg.js';
 import { ED } from './status.js';
 
-/* ---------- Skizzen: Vorlagen als SVG ---------- */
 export const G = "#9AA4AD", G2 = "#C9D0D5";
 export function grid(step, color, x0=15, y0=15, x1=985, y1=630){
   let s = "";
@@ -28,79 +27,6 @@ export function frame(meta){
   <rect data-sf="1" x="555" y="632" width="430" height="60" fill="transparent"><title>Schriftfeld ändern</title></rect></g>`;
 }
 export const TX = (x, y, s, txt, a="start", f=G, w=400) => `<text x="${x}" y="${y}" font-size="${s}" text-anchor="${a}" fill="${f}" font-weight="${w}" font-family="Plex Sans,Segoe UI,sans-serif">${esc(txt)}</text>`;
-export function tplBody(key, ex, page=0, meta=null){
-  switch (key) {
-    case "raster": return grid(10, G2);
-    case "grafcet": {
-      const lg = `<g><rect x="790" y="25" width="185" height="196" fill="#fff" stroke="${G}"/>${TX(800,43,10,"Symbole","start","#666",600)}
-        <rect x="800" y="54" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/><rect x="803" y="57" width="16" height="16" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832,69,10,"Anfangsschritt")}
-        <rect x="800" y="86" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832,101,10,"Schritt")}
-        <path d="M811 116V140M803 128H819" stroke="${G}" stroke-width="1.3"/>${TX(832,132,10,"Transition + Bedingung")}
-        <path d="M800 160H812" stroke="${G}" stroke-width="1.3"/><rect x="812" y="150" width="40" height="20" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(862,164,10,"Aktion")}
-        <path d="M811 180V206" stroke="${G}" stroke-width="1.3"/>${TX(832,197,10,"Wirkverbindung")}</g>`;
-      return dots(20) + (page ? "" : lg);
-    }
-    case "zustand": {
-      const lg = `<g><rect x="790" y="25" width="185" height="120" fill="#fff" stroke="${G}"/>${TX(800,43,10,"Symbole","start","#666",600)}
-        <circle cx="815" cy="72" r="15" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(840,76,10,"Zustand (Name)")}
-        <path d="M802 112H840" stroke="${G}" stroke-width="1.3"/><path d="M834 107L842 112L834 117" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(850,108,10,"Übergang")}${TX(850,122,9,"Bedingung / Aktion")}</g>`;
-      return dots(20) + (page ? "" : lg);
-    }
-    case "wegschritt": {
-      const rows = CYL[ex?.id] || ["−MM1","−MM2","−MM3","−MM4"];
-      const all = [...rows, "", ""].map((r, i) => meta && meta.rows && meta.rows[i] !== undefined && meta.rows[i] !== null ? meta.rows[i] : r);
-      const x0 = 30, xs = 150, cols = 12, cw = (975 - xs) / cols, y0 = 40, hh = 34, rh = 62;
-      let s = `<rect x="${x0}" y="${y0}" width="${975-x0}" height="${hh + all.length*rh + 3*40}" fill="none" stroke="${G}" stroke-width="1"/>`;
-      s += TX(x0+10, y0+22, 12, "Bauglied", "start", "#666", 600);
-      for (let c = 0; c <= cols; c++) { const x = xs + c*cw; s += `<path d="M${x} ${y0}V${y0 + hh + all.length*rh + 120}" stroke="${G}" stroke-width="${c===0?1:.5}"/>`; if (c < cols) s += TX(x + cw/2, y0+22, 12, String(c+1), "middle", "#666", 600); }
-      s += `<path d="M${x0} ${y0+hh}H975" stroke="${G}"/>`;
-      all.forEach((r, i) => { const y = y0 + hh + i*rh; s += `<path d="M${x0} ${y+rh}H975" stroke="${G}" stroke-width=".8"/><path d="M${xs} ${y+16}H975M${xs} ${y+rh-12}H975" stroke="${G2}" stroke-width=".6" stroke-dasharray="3 3"/>`
-        + TX(x0+10, y+rh/2+5, 13, r, "start", "#555", 600) + TX(xs-8, y+20, 9, "1", "end") + TX(xs-8, y+rh-8, 9, "0", "end"); });
-      const yb = y0 + hh + all.length*rh;
-      s += TX(x0+10, yb+25, 11, "Bedingungen", "start", "#666", 600);
-      for (let i = 1; i <= 3; i++) s += `<path d="M${x0} ${yb + i*40}H975" stroke="${G}" stroke-width=".6"/>`;
-      return s;
-    }
-    case "stromlauf": {
-      let s = `<path d="M40 70H975M40 590H975" stroke="${G}" stroke-width="2"/>` + TX(30,74,12,"L+","end","#555",600) + TX(30,594,12,"M","end","#555",600) + TX(975,62,9,"24 V DC","end");
-      for (let i = 1; i <= 20; i++) { const x = 40 + i*46; s += TX(x, 52, 9, String(i), "middle") + `<path d="M${x} 74V586" stroke="${G2}" stroke-width=".6" stroke-dasharray="2 5"/>`; }
-      return grid(10, "#EEF1F3", 40, 80, 975, 580) + s + TX(40, 615, 9, "Strompfad-Nr. oben, Kontaktspiegel unter den Spulen eintragen");
-    }
-    case "leistung": {
-      let r = "";
-      [["L1",50],["L2",70],["L3",90],["N",110],["PE",130]].forEach(([n, y]) => { r += `<path d="M60 ${y}H975" stroke="${G}" stroke-width="2" ${n === "PE" ? 'stroke-dasharray="10 4"' : ""}/>` + TX(50, y + 4, 12, n, "end", "#555", 600); });
-      return grid(10, "#EEF1F3", 40, 150, 975, 620) + r + TX(975, 38, 9, "3/N/PE AC 400/230 V 50 Hz", "end");
-    }
-    case "pneumatik": return grid(10, "#EEF1F3", 15, 15, 985, 630) + TX(25, 33, 10, "Energiefluss von unten nach oben: Versorgung unten, Ventile in der Mitte, Antriebe oben", "start");
-    case "regelkreis": {
-      const box = (x, y, w, h, lbl) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="#fff" stroke="${G}" stroke-width="1.3"/>` + TX(x + w/2, y - 7, 10, lbl, "middle", "#666", 600);
-      const ar = (d) => `<path d="${d}" fill="none" stroke="${G}" stroke-width="1.3" marker-end="url(#ah)"/>`;
-      let s = `<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="${G}"/></marker></defs>`;
-      s += `<circle cx="140" cy="200" r="16" fill="#fff" stroke="${G}" stroke-width="1.3"/><path d="M129 189L151 211M151 189L129 211" stroke="${G}"/>` + TX(126,190,11,"+","end") + TX(150,232,11,"−","start");
-      s += ar("M60 200H122") + TX(60,190,12,"w","start","#555",600);
-      s += box(200,165,150,70,"Regler") + ar("M156 200H198") + TX(176,190,11,"e","middle","#555");
-      s += box(420,165,150,70,"Stellglied") + ar("M350 200H418") + TX(385,190,11,"y","middle","#555");
-      s += box(640,165,150,70,"Strecke") + ar("M570 200H638");
-      s += ar("M790 200H940") + TX(940,190,12,"x","end","#555",600);
-      s += ar("M715 90V163") + TX(725,100,12,"z  Störgröße","start","#555");
-      s += box(420,310,150,60,"Messglied") + ar("M860 200V340H572") + ar("M418 340H140V218");
-      s += TX(60,440,12,"Größe","start","#666",600) + TX(260,440,12,"Bedeutung in dieser Übung","start","#666",600) + TX(640,440,12,"Signal / Adresse","start","#666",600);
-      ["w Führungsgröße","x Regelgröße","e Regeldifferenz","y Stellgröße","z Störgröße"].forEach((r, i) => { const y = 470 + i*30; s += `<path d="M60 ${y+8}H975" stroke="${G2}" stroke-width=".7"/>` + TX(60, y, 12, r, "start", "#555"); });
-      return s;
-    }
-    case "trend": {
-      let s = "";
-      const ax = (y0, h, lbl, unit) => { let r = `<path d="M80 ${y0}V${y0+h}H965" stroke="${G}" stroke-width="1.3" fill="none"/>`;
-        for (let i = 1; i <= 8; i++) r += `<path d="M80 ${y0 + h - i*h/8}H965" stroke="${G2}" stroke-width=".5"/>`;
-        for (let i = 1; i <= 16; i++) r += `<path d="M${80 + i*885/16} ${y0}V${y0+h}" stroke="${G2}" stroke-width=".5"/>`;
-        return r + TX(70, y0+10, 11, lbl, "end", "#555", 600) + TX(70, y0+26, 9, unit, "end"); };
-      s += ax(40, 380, "x, w", "Einheit:") + TX(965, 440, 11, "t in s", "end", "#555", 600);
-      s += ax(470, 130, "y", "in %");
-      return s;
-    }
-  }
-  return "";
-}
 export const snap = ([x, y]) => ED.grid ? [Math.round(x/10)*10, Math.round(y/10)*10] : [Math.round(x), Math.round(y)];
 /* Weg-Schritt-Diagramm: Stellung 1 liegt 16 unter dem Zeilenanfang, Stellung 0 bei 50 (Zeilenhöhe 62, erste Zeile bei 74).
    "aus" = Richtung aus dem Zeilenbereich heraus (Stellung 1: nach oben, Stellung 0: nach unten), "ein" = in die Zeile hinein. */

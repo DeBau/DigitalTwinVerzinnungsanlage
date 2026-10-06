@@ -1,9 +1,10 @@
-import { EXVORL, VORL } from './daten.js';
+/* ---------- Skizzen-Kacheln ---------- */
+import { EXVORL } from './daten.js';
 import { $, IC, S } from './basis.js';
+import { VORL } from '../editor/registry.js';
 import { pageCount } from '../editor/zeichnen.js';
 import { skKey, skMeta, sketchSVG } from '../editor/blaetter.js';
 
-/* ---------- Skizzen-Kacheln ---------- */
 export function sketchCards(scope, keys, ex){
   return keys.map(key => { const d = S.get(skKey(scope, key)); const n = d ? (d.s||[]).length + (d.t||[]).length + (d.o||[]).length : 0;
     return `<div class="sk"><div class="th" data-act="sk-open" data-scope="${scope}" data-key="${key}" role="button" tabindex="0" aria-label="${VORL[key].n} öffnen">${sketchSVG(key, ex, d, skMeta(scope, key))}</div>

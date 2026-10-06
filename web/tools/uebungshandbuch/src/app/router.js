@@ -1,10 +1,10 @@
+/* ---------- Router ---------- */
 import { S } from './basis.js';
 import { viewHome } from './start.js';
 import { curTime, timerEx, viewExercise } from './uebung.js';
 import { viewAnlage, viewBewertung, viewKonzept, viewRichtlinien, viewSignale, viewVorlagen } from './seiten.js';
 import { hideTip } from './tooltip.js';
 
-/* ---------- Router ---------- */
 export function route(){
   hideTip();
   const h = location.hash.replace(/^#\/?/, "").split("/");

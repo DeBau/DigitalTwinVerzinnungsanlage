@@ -1,11 +1,12 @@
-import { EXVORL, STUFEN, STYLECHECK, TYPN, VORL, critOf, gradeOf } from './daten.js';
+/* ================= Drucken ================= */
+import { EXVORL, STUFEN, STYLECHECK, TYPN, critOf, gradeOf } from './daten.js';
 import { $, $$, ART, BY, IC, S, chips, esc, hilfeLevel, hilfeText, mitbringen, qt, quelle, sigEntries, tableHTML, typOf, zielTag } from './basis.js';
 import { filled } from './fortschritt.js';
+import { VORL } from '../editor/registry.js';
 import { pageCount } from '../editor/zeichnen.js';
 import { skKey, skMeta, sketchSVG } from '../editor/blaetter.js';
 import { curTime, fmtTime } from './uebung.js';
 
-/* ================= Drucken ================= */
 export function pageHead(ex, what){
   const st = ex ? STUFEN[ex.st] : null;
   return `<div class="ph"><div class="c">${ex ? ex.id : "SPS"}</div><div><div class="t">${ex ? esc(ex.t) : what}</div><div class="u">${ex ? `${what}, Stufe ${ex.st} ${st.n}, ${ex.ue} UE` : "Übungshandbuch SPS-Technik"}</div></div><div class="r">Übungshandbuch<br>SPS-Technik</div></div>`;
