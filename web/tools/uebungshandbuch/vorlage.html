@@ -235,6 +235,23 @@ main{max-width:1380px;margin:0 auto;padding:24px 20px 80px}
 .finish.done{background:var(--ok-soft)}
 
 .tplt input{border:0;border-bottom:1px solid var(--line);border-radius:0;padding:4px 2px;background:transparent}
+.zt{display:inline-block;font:500 11.5px var(--sans);color:var(--ink2);border:1px solid var(--line);border-radius:999px;padding:0 7px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.quelle{font-size:12.5px;color:var(--ink2);border-top:1px solid var(--line2);padding-top:6px;margin-top:8px}
+.case .fa{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-top:4px;border-top:1px dashed var(--bad)}
+.case .fa b{grid-column:1/-1;color:var(--bad)}
+.case .fa label{display:block;color:var(--ink2)}.case .fa input{font-size:14px;padding:6px 9px;margin-top:2px}
+.case:not(.bad) .fa{display:none}
+.hilfe{grid-column:3;display:grid;gap:6px;justify-items:start;margin-top:6px}
+.hilfe details{width:100%;border:1px solid var(--line);border-left:3px solid var(--yellow);border-radius:7px;background:var(--yellow-soft);font-size:14.5px}
+.hilfe summary{cursor:pointer;padding:6px 10px;font-weight:500}
+.hilfe .prose{padding:0 12px 8px}
+ul.erg{list-style:none;padding:0;margin:8px 0 4px;display:grid;gap:6px}
+ul.erg li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align-items:start}
+.art{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:5px;font:600 12.5px var(--cond);color:#fff;background:var(--ink2);cursor:help}
+.art-N{background:var(--blue);color:var(--onblue)}.art-E{background:var(--ok)}.art-U{background:var(--yellow);color:#17212B}.art-Ü{background:transparent;color:var(--ink2);border:1.5px solid var(--ink2)}
+.ergmx th.vx{writing-mode:vertical-rl;transform:rotate(180deg);font:600 13px var(--cond);padding:6px 2px;text-align:left}
+.ergmx td,.ergmx th{text-align:center;padding:5px 4px}.ergmx td:first-child,.ergmx th:first-child{text-align:left;padding-left:10px}
+.ergmx td.on{background:var(--sunk)}
 
 /* ---------- Signal-Chips ---------- */
 .sig{display:inline;font:500 .87em var(--mono);padding:0 4px;border-radius:4px;background:var(--blue-soft);color:var(--blue);border:0;cursor:help;white-space:nowrap}
@@ -345,7 +362,7 @@ pre.code code{font-size:inherit}
   .exhead{grid-template-columns:auto minmax(0,1fr)}.exhead .tools{grid-column:1/-1;justify-content:flex-start}
   .top .brand{display:none}
 }
-@media screen and (max-width:600px){main{padding:16px 16px 60px}.work{padding:20px 18px}.panel{padding:20px 18px}.home-hero .txt{padding:28px 22px}.quick{grid-template-columns:1fr}.exhead .code{font-size:36px}.exhead h1{font-size:22px}.case{grid-template-columns:1fr}.rate{grid-template-columns:1fr}}
+@media screen and (max-width:600px){.case .fa{grid-template-columns:1fr}.hilfe{grid-column:1/-1}main{padding:16px 16px 60px}.work{padding:20px 18px}.panel{padding:20px 18px}.home-hero .txt{padding:28px 22px}.quick{grid-template-columns:1fr}.exhead .code{font-size:36px}.exhead h1{font-size:22px}.case{grid-template-columns:1fr}.rate{grid-template-columns:1fr}}
 
 /* ---------- Druck ---------- */
 @page{size:A4 portrait;margin:12mm 13mm 14mm}
@@ -424,74 +441,7 @@ const SHEETS = __SHEETS__;
 const TEXTE = __TEXTE__;   // ausführliche Aufgabenbeschreibung und Fachwissen je Übung (texte/Lxx.json)
 SHEETS.forEach(s => Object.assign(s, TEXTE[s.id] || {}));
 
-const QUIZ = {
-L02:[["−PF2 soll leuchten, wenn −BG9 UND −BG10 melden. Welche Verknüpfung in KOP?",["zwei Schließer in Reihe","zwei Schließer parallel","ein Öffner und ein Schließer parallel"],0,"Reihenschaltung = UND, Parallelschaltung = ODER."],
-     ["−BG14 und −BG15 melden beide 1. Was zeigt XOR an?",["1 – alles in Ordnung","0 – unplausibel, ein Sensor stimmt nicht","1 – Zylinder fährt"],1,"Ein Zylinder kann nicht gleichzeitig in beiden Endlagen stehen."]],
-L03:[["START und STOP werden gleichzeitig gedrückt. Was muss die Anlage tun?",["einschalten","ausgeschaltet bleiben – rücksetzdominant","den letzten Zustand halten"],1,"Bei Maschinen hat Aus immer Vorrang: rücksetzdominanter Speicher (in TIA die Box SR mit R1) bzw. STOP in Reihe vor der Selbsthaltung."],
-     ["Wo speichern Sie die Betriebsbereitschaft in einem modernen TIA-Programm?",["in einem globalen Merker","als statische Variable im FB (Instanz-DB)","in einer temporären Variable"],1,"Statische Variablen behalten ihren Wert über Zyklen und gehören zur Instanz – der FB bleibt wiederverwendbar. Temporäre Variablen verlieren ihren Wert nach jedem Aufruf."]],
-L04:[["Welche Zeit verzögert das Einschalten, z. B. die Tauchzeit?",["TON","TOF","TP"],0,"TON: Q wird erst nach PT 1, solange IN 1 bleibt."],
-     ["−SF1 wird 5 s gehalten, TP hat PT = 2 s. Wie lange ist Q = 1?",["5 s","2 s","7 s"],1,"Der Impuls ist immer PT lang, unabhängig von der Dauer des Eingangs."]],
-L05:[["Sie zählen Körbe selbst: #statKoerbe := #statKoerbe + 1. Warum brauchen Sie dafür eine Flanke an −BG40?",["Sonst zählt das Programm in jedem Zyklus weiter, solange der Korb anliegt.","Weil −BG40 ein Öffner ist.","Weil Int-Variablen nur Flanken zählen."],0,"Ohne Flanke wird die Addition jeden Zyklus ausgeführt. Der IEC-Zähler CTU wertet CU bereits selbst flankengesteuert aus."],
-     ["Welcher Zähler eignet sich für die Zahl der Körbe im Puffer?",["CTU","CTD","CTUD"],2,"Körbe kommen hinzu und gehen ab – vorwärts und rückwärts."]],
-L06:[["27648 × 400 wird in Int gerechnet. Was passiert?",["Das Ergebnis stimmt.","Überlauf – der Bereich von Int endet bei 32767.","Es wird automatisch Real."],1,"11 059 200 passt nur in DInt oder Real."],
-     ["Welcher Rohwert entspricht 200 °C bei 0 … 27648 = 0 … 400 °C?",["13824","20000","27648"],0,"Die Hälfte des Bereichs."]],
-L01:[["STOP −SF2 ist als Öffner verdrahtet. Welchen Pegel sieht die SPS, solange niemand drückt?",["0","1","hängt von der Betriebsart ab"],1,"Öffner sind unbetätigt geschlossen: 1 = nicht betätigt. Ein Drahtbruch wirkt wie Drücken – das ist die sichere Seite."],
-     ["Was bewirkt das Forcen eines Eingangs im Signalmonitor des Zwillings?",["Der Eingang wird unabhängig vom Prozess fest auf 0 oder 1 gesetzt.","Die SPS geht in STOP.","Der zugehörige Ausgang wird gesperrt."],0,"Mit „A“ geben Sie das Signal wieder an das Modell zurück."]],
-L07:[["Wie benennen Sie nach Siemens-Styleguide die statische Variable für die aktuelle Schrittnummer?",["#statStep","#M_Schritt","#Schritt_Akt"],0,"Präfix stat für Static, englisch, camelCase, ohne Unterstrich."],
-     ["−PF3 soll leuchten, wenn …",["die Füllhöhe ausreicht.","die Füllhöhe unterschritten ist.","die Temperatur erreicht ist."],1,"−BG10 meldet 1 = in Ordnung. Die Leuchte zeigt den Mangel, also die Negation."],
-     ["Welche Endlagen bilden die Grundstellung des Portals?",["−BG1, −BG3, −BG5, −BG7","−BG2, −BG4, −BG5, −BG8","−BG2, −BG3, −BG6, −BG8"],1,"−MM1 gelöst, −MM2 unten, −MM3 über dem Band, −MM4 abgedeckt."]],
-L12:[["Was gehört laut Siemens-Styleguide in jede CASE-Anweisung?",["ein ELSE-Zweig, der unerwartete Werte meldet","ein EXIT","ein Kommentar in jeder Zeile"],0,"Nur so fällt ein ungültiger Schrittwert auf, statt dass die Kette stillschweigend hängt."],
-     ["Ab wann läuft die Tauchzeit in Schritt 6?",["mit dem Schrittwechsel","ab Erreichen von −BG4","ab dem Öffnen des Bades"],1,"Sonst frisst die Fahrzeit des Zylinders die Tauchzeit auf – der Zwilling meldet dann „Korb mangelhaft“."],
-     ["Was ist in GRAFCET eine Transition?",["eine Aktion, die im Schritt ausgeführt wird","die Bedingung für den Übergang zum nächsten Schritt","ein Speicherbaustein"],1,"Schritt, Transition, Schritt – immer im Wechsel."]],
-L13:[["Warum wird START als Flanke ausgewertet?",["Damit ein gehaltenes START im Einzelzyklus nicht mehrere Zyklen auslöst.","Weil START ein Öffner ist.","Damit der Not-Halt schneller wirkt."],0,"Die Flanke ist genau einen Zyklus lang 1 – egal, wie lange jemand drückt."],
-     ["STOP im Dauerbetrieb während Schritt 6 – was soll passieren?",["sofortiger Halt aller Zylinder","Der laufende Korb wird fertig, dann Halt in Schritt 1.","Wechsel in den Handbetrieb"],1,"Ein halb verzinnter Korb wäre Ausschuss. Das sofortige Stillsetzen ist Aufgabe des Not-Halts."]],
-L08:[["Warum braucht der Handtaster für −MM5 eine Selbsthaltung?",["Das 5/2-Ventil ist monostabil und fällt ohne Signal zurück.","Der Zylinder ist doppeltwirkend.","Wegen des Not-Halts."],0,"Bistabile Ventile (−MM1 bis −MM4) halten ihre Stellung auch ohne Signal."],
-     ["−SF13 senken und −SF14 anheben werden gleichzeitig gedrückt. Was soll passieren?",["Keine Spule wird angesteuert.","Senken hat Vorrang.","Die zuletzt gedrückte Taste gewinnt."],0,"Gegenbefehle heben sich auf. Ein bistabiles Ventil bleibt dann einfach in seiner Stellung."]],
-L09:[["Wann darf −MM3 verfahren werden?",["nur mit angehobenem Korb (−BG3)","nur bei offenem Bad","in HAND immer"],0,"Ein abgesenkter Korb würde gegen Band oder Badrand fahren."],
-     ["Warum verriegeln Sie auf die Endlage −BG3 statt auf den letzten Befehl „anheben“?",["Der Befehl sagt nur, was gewollt war – die Endlage meldet, was wirklich ist.","Weil Befehle nur einen Zyklus lang anstehen.","Das ist gleichwertig."],0,"Klemmt der Zylinder oder fehlt Druck, steht der Befehl an, aber der Korb ist nicht oben."]],
-L10:[["−SA3 steht auf HAND. Wer darf Ventile bewegen?",["nur der Handbetrieb – über die Befehlsausgabe","Handbetrieb und Schrittkette","nur die Schrittkette"],0,"Betriebsarten schließen sich aus. In HAND ruht die Automatik."],
-     ["Sie schalten von HAND auf AUTO. Was darf dabei passieren?",["Die Anlage startet sofort den Zyklus.","Nichts bewegt sich – AUTO wartet auf Grundstellung und START.","Alle Zylinder fahren sofort in Grundstellung."],1,"Ein Betriebsartenwechsel ist kein Startbefehl."]],
-L11:[["Derselbe Ausgang wird im Handbetrieb und in der Schrittkette zugewiesen. Was passiert?",["Die SPS meldet einen Fehler.","Die letzte Zuweisung im Zyklus gewinnt – die andere ist wirkungslos.","Beide werden ODER-verknüpft."],1,"Die SPS arbeitet das Programm von oben nach unten ab. Erst am Zyklusende wird das Prozessabbild ausgegeben – mit dem zuletzt geschriebenen Wert."],
-     ["Wo gehört die Verriegelung „−MM3 nur mit angehobenem Korb“ hin?",["in die Befehlsausgabe – dann gilt sie für HAND und AUTO","nur in den Handbetrieb","in jeden Schritt der Kette"],0,"An einer Stelle gepflegt, wirkt sie für jede Betriebsart."]],
-L14:[["Was schaltet die Anlage bei Not-Halt ab?",["das SPS-Programm über die Meldekontakte","das Sicherheitsrelais −KF2, unabhängig vom Programm","der Umrichter"],1,"Die Meldekontakte dienen nur der Diagnose. Abgeschaltet wird hart über −KF2."],
-     ["Was ist ein Erstwert?",["die zuerst aufgetretene von mehreren Störungen","der erste Wert einer Messreihe","der Startwert eines Zählers"],0,"Folgemeldungen verdecken sonst die eigentliche Ursache."]],
-L15:[["Warum eine programmierte Verriegelung, obwohl die Schütze mechanisch verriegelt sind?",["Die SPS soll nie beide Richtungen gleichzeitig ansteuern; die elektrische Verriegelung ergänzt die mechanische.","Die mechanische Verriegelung wirkt nur in HAND.","Sie ist überflüssig."],0,"Mehrere unabhängige Ebenen – ein Grundsatz jeder Wendeschaltung."],
-     ["Was meldet −FA1 = 0?",["Der Motorschutz hat ausgelöst – oder die Leitung ist unterbrochen.","Das Band läuft.","Die Vor-Ort-Steuerstelle ist aktiv."],0,"Hilfskontakte melden 1 = OK, also auch hier drahtbruchsicher."]],
-L16:[["Worauf schaltet die Kette am Übergabeplatz weiter?",["auf eine Wartezeit nach −BG11","auf −BG40 „Korb liegt an“","auf −BG12"],1,"Eine Wartezeit passt nur für genau eine Bandgeschwindigkeit."],
-     ["Wann darf der Vereinzeler den nächsten Korb freigeben?",["sobald −BG11 frei ist","erst wenn der Anschlag geschlossen ist (−BG14)","sofort nach dem Anheben"],1,"Sonst läuft der nächste Korb durch den offenen Anschlag."]],
-L17:[["Eine Drossel steht auf 0 %. Was passiert?",["Der Zylinder fährt doppelt so schnell.","Der Zylinder steht.","Nichts."],1,"Ideal, um Überwachungszeiten zu testen. 50 % ist die Nennzeit."],
-     ["Eine zu knapp gewählte Überwachungszeit führt zu …",["Fehlalarmen bei normalen Schwankungen.","späterer Fehlererkennung.","höherer Taktzeit."],0,"Zu lang dagegen erkennt Fehler spät – deshalb Fahrzeit mal Sicherheitsfaktor."]],
-L18:[["Wann bewegt sich ein Korb an einer Übergabe?",["wenn der aufnehmende Förderer läuft","nur wenn beide Förderer in dieselbe Richtung laufen","wenn die Lichtschranke frei ist"],1,"Der Korb liegt an der Stoßstelle auf beiden Förderern."],
-     ["Wie überbrücken Sie die Lücke zwischen zwei Lichtschranken am robustesten?",["mit einem gespeicherten Übergabe-Zustand: gesetzt am abgebenden, zurückgesetzt am aufnehmenden Sensor","mit einer längeren Bandlaufzeit","gar nicht"],0,"Ein gespeicherter Zustand ist unabhängig von der Geschwindigkeit."]],
-L19:[["Wie viel Bandweg entspricht ein Impuls von −BG18?",["10 mm","24,5 mm","245 mm"],1,"10 Impulse je Umdrehung, 245 mm je Umdrehung."],
-     ["Woran erkennen Sie die Drehrichtung?",["an der Pulsfrequenz","am Pegel von Spur B bei steigender Flanke von A","am Nullimpuls"],1,"Vorwärts: B = 1 bei steigender Flanke A."]],
-L20:[["Warum läuft die Pumpe vor dem Sprühventil an?",["Das Ventil wirkt nur bei laufender Pumpe – so steht Druck an, wenn es öffnet.","Um Strom zu sparen.","Wegen des Luftmessers."],0,"Reihenfolge der Aggregate: erst Versorgung, dann Verbraucher."],
-     ["27648 am Analogeingang −BT2 entspricht …",["100 °C","400 °C","27,6 °C"],1,"0 bis 27648 = 0 bis 400 °C."]],
-L21:[["Wie lange ist das Prüfergebnis −BG28 / −BG29 gültig?",["0,3 s","3 s","bis zum nächsten Trigger"],0,"Wer zu spät liest, verliert das Ergebnis."],
-     ["Wozu ein FIFO für die Ausblaszeitpunkte?",["Mehrere Teile können gleichzeitig zwischen Kamera und Düse liegen.","Die Kamera ist langsam.","Die Düse ist monostabil."],0,"Jedes Teil braucht seinen eigenen Ausblaszeitpunkt."]],
-L22:[["−BG39 meldet 0. Was kann das bedeuten?",["Tank voll – oder Drahtbruch","Tank leer","Pumpe läuft"],0,"Ruhestromprinzip: Beides führt zur sicheren Seite – nicht nachspeisen."],
-     ["Wozu gibt −BG38 die Pumpe frei?",["Trockenlaufschutz","Überlaufschutz","Frostschutz"],0,"Unter 8 % zieht die Pumpe Luft."]],
-L23:[["Was verhindert die Hysterese beim Zweipunktregler?",["ständiges Ein- und Ausschalten um einen Schaltpunkt","eine bleibende Regelabweichung","einen Überlauf"],0,"Ohne Hysterese flattert das Ventil."],
-     ["Welche Bausteine rechnen 0 bis 27648 in Prozent um?",["NORM_X und SCALE_X","TON und TOF","MOVE und CONV"],0,"NORM_X normiert auf 0,0 bis 1,0, SCALE_X skaliert auf den Bereich."]],
-L24:[["Wie viel Heizleistung braucht das Bad ungefähr für 280 °C?",["50 %","76 %","100 %"],1,"100 % ergeben 360 °C im Beharrungszustand."],
-     ["Was beschreibt ein PT1-Glied?",["eine Strecke erster Ordnung mit Verzögerung","eine reine Totzeit","eine integrierende Strecke"],0,"Hier hintereinander: Heizelement 6 s, Bad 150 s."]],
-L25:[["Der Kühlwassertank ist eine … Strecke.",["integrierende (ohne Ausgleich)","PT1-","PT2-"],0,"Der Pegel ändert sich, solange Zu- und Abfluss ungleich sind."],
-     ["Warum bleibt beim P-Regler mit offenem Ablasshahn eine Abweichung?",["Er braucht eine Regelabweichung, um den Zulauf für den Abfluss zu liefern.","Der Sensor ist ungenau.","Die Stellzeit ist zu lang."],0,"Der I-Anteil liefert diesen Zulauf auch bei Abweichung null."]],
-L26:[["Wie lange braucht −MB18 für 0 bis 100 %?",["1 s","8 s","15 s"],1,"Daraus folgt eine Überwachungszeit deutlich über 8 s."],
-     ["Wozu dient die Stellungsrückmeldung %IW74?",["zum Vergleich mit dem Stellwert, um ein klemmendes Ventil zu erkennen","als Istwert der Regelung","zur Füllstandsmessung"],0,"Stellwert und Rückmeldung müssen nach der Stellzeit übereinstimmen."]],
-L27:[["Was darf im TO_SpeedAxis für den Zwilling nicht aktiviert sein?",["Simulation / virtuelle Achse","Rampen","MC_Reset"],0,"Sonst schreibt das Technologieobjekt kein Telegramm."],
-     ["16#4000 im NSOLL_A von −TA2 entspricht …",["100 % = 1500 1/min = 100 mm/s","50 %","der Maximaldrehzahl 2250 1/min"],0,"Bezugsdrehzahl p2000 = 1500 1/min."]],
-L28:[["Welches Steuerwort holt den Antrieb aus der Einschaltsperre?",["16#047F","16#047E (AUS1 = 0)","16#0000"],1,"Erst danach führt 16#047F in den Betrieb."],
-     ["Was bewirkt AUS2?",["Halt mit Rampe","Impulssperre, der Antrieb trudelt aus","Schnellhalt"],1,"AUS1 = Rampe, AUS3 = Schnellhalt."]],
-L29:[["Das Poti −SF47 steht auf 27648. Welcher NSOLL_A?",["16#2000","16#4000","27648"],1,"27648 = 100 %, und 100 % sind beim Telegramm 16#4000 = 16384."],
-     ["Warum NIST_A für die Ausblaszeit?",["Die tatsächliche Geschwindigkeit bestimmt die Laufzeit – auch während der Rampen.","NSOLL_A ist nicht lesbar.","NIST_A ist genauer skaliert."],0,"Sollwert und Istwert unterscheiden sich beim Hoch- und Rücklauf."]],
-L30:[["Welches ZSW1-Bit meldet eine Störung?",["Bit 3","Bit 6","Bit 9"],0,"Bit 6 = Einschaltsperre, Bit 9 = Führung gefordert."],
-     ["Warum lässt sich F07011 nicht sofort quittieren?",["Der Motor muss erst abkühlen.","STO ist aktiv.","Das Telegramm fehlt."],0,"Eine thermische Störung bleibt, bis die Ursache weg ist."]],
-L31:[["Welche Reihenfolge entspricht systematischer Fehlersuche?",["Symptom → Hypothese → Test → Ursache","Ursache → Test → Symptom","Tauschen, bis es geht"],0,"Jeder Test soll eine Hypothese bestätigen oder ausschließen."],
-     ["Womit belegen Sie eine kürzere Taktzeit?",["mit den Messlinien von Schrittwechsel 2 bis Schrittwechsel 1","mit dem Eindruck beim Zuschauen","mit der CPU-Zykluszeit"],0,"Messen statt schätzen."]],
-L32:[["Wohin gehören globale Daten im Abschlussprojekt?",["in einen Schnittstellen-DB","als globale Merker quer durchs Programm","in den OB1"],0,"So bleiben die Bausteine austauschbar und testbar."],
-     ["Wer macht die Anlage sicher?",["das SPS-Programm","die Sicherheitstechnik (−KF2, STO)","das HMI"],1,"Das Programm macht sie bedienbar und diagnostizierbar."]]
-};
+const QUIZ = __QUIZ__;   // Kurz-Checks je Übung (quiz.js): {Lxx:{ein:[…], aus:[…]}}
 
 const VORL = {
   grafcet:{n:"GRAFCET", d:"Ablauf nach DIN EN 60848 mit Symbollegende"},
@@ -530,6 +480,25 @@ const chip = tag => `<span class="sig${SIG[tag]||EXTRA[tag] ? "" : " nodata"}" t
 const chipsQuiet = html => chips(html).replace(/ tabindex="0"/g, "");
 const chips = html => String(html).replace(/−([A-Z]{1,3}\d{1,2})(?![\d_])/g, (m, t) => chip(t));
 const plain = html => String(html).replace(/<[^>]+>/g, "");
+// Leitfrage, Prüfpunkt: Text oder [Text, [Zielindex, …]]
+const qt = e => Array.isArray(e) ? e[0] : e;
+const zielTag = e => { const z = Array.isArray(e) && Array.isArray(e[1]) ? e[1] : []; return z.length ? ` <span class="zt" title="gehört zu Lernziel ${z.map(i => i+1).join(", ")}">Ziel ${z.map(i => i+1).join(", ")}</span>` : ""; };
+const extLinks = h => String(h ?? "").replace(/<a (?![^>]*\btarget=)/g, '<a target="_blank" rel="noopener" ');
+const quelle = w => w.q ? `<p class="quelle">Quelle: ${extLinks(w.q)}</p>` : "";
+const typOf = s => (s && s.typ) || "programmieren";
+// Kurz-Checks: ein = Eingangs-Check (Phase 1, Schlüssel q{i}), aus = Abschluss-Check (Phase 6, Schlüssel qa{i})
+const quizSet = (id, w) => { const q = QUIZ[id]; return !q ? [] : Array.isArray(q) ? (w === "ein" ? q : []) : (q[w] || []); };
+const quizKey = (id, w, qi) => `${id}:${w === "aus" ? "qa" : "q"}${qi}`;
+// Arbeitsergebnisse: was eine Übung aus ihren vor-Übungen mitbringt
+const vorIds = s => (String(s.vor || "").match(/L\d\d/g) || []).filter(v => BY[v]);
+const mitbringen = s => vorIds(s).flatMap(v => (BY[v].ergebnis || []).map(e => ({...e, von: v})));
+const ART = {neu:["N","neu angelegt"], erweitert:["E","erweitert"], "übernommen":["Ü","unverändert übernommen"], umgebaut:["U","umgebaut"]};
+const artPill = a => ART[a] ? `<span class="art art-${ART[a][0]}" title="${ART[a][1]}">${ART[a][0]}</span>` : "";
+const HAS_ERG = SHEETS.some(s => s.ergebnis && s.ergebnis.length);
+const HSTUFE = ["Denkanstoß", "Vorgehen", "Lösungsskizze"];
+const hilfeLevel = (s, i) => +S.get(`${s.id}:h${i}`) || 0;
+const hilfeUsed = s => Object.keys(s.hilfe || {}).map(i => [+i, hilfeLevel(s, i)]).filter(([, l]) => l > 0).sort((a, b) => a[0] - b[0]);
+const hilfeText = s => { const u = hilfeUsed(s); return u.length ? u.map(([i, l]) => `Schritt ${i+1} mit Hilfe ${l} (${HSTUFE[l-1]}) gelöst`).join(", ") + "." : "Ohne Hilfen gelöst."; };
 const tableHTML = (head, rows) => `<div class="tw"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${chips(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 const IC = {
   print:'<svg class="ic" viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><path d="M6 14h12v7H6z"/></svg>',
@@ -553,14 +522,17 @@ const USES = {};
 SHEETS.forEach(s => s.sig.split(" ").forEach(t => (USES[t] ||= []).push(s.id)));
 
 /* ---------- Fortschritt ---------- */
+const filled = key => String(S.get(key) ?? "").trim().length > 0;
+// Prüfpunkt erledigt: bestanden, oder nicht bestanden mit Ursache, Änderung und Nachtest
+const prDone = (k, i) => { const v = S.get(k+":p"+i); return v === "ok" || (v === "bad" && ["u","m","n"].every(x => filled(`${k}:p${i}${x}`))); };
 function phaseDone(s, p){
   const k = s.id;
   switch (p) {
     case 1: return !!S.get(k+":einst");
-    case 2: return s.lf.every((_, i) => (S.get(k+":lf"+i) || "").trim().length > 0);
+    case 2: return s.lf.every((_, i) => filled(k+":lf"+i)) && (s.plan || []).every((_, i) => S.get(k+":plan"+i));
     case 3: return !!S.get(k+":frei");
     case 4: return s.auf.every((_, i) => S.get(k+":a"+i));
-    case 5: return s.pr.every((_, i) => S.get(k+":p"+i) === "ok");
+    case 5: return s.pr.every((_, i) => prDone(k, i)) && (s.lfk || []).every((_, i) => filled(k+":lfk"+i));
     case 6: return s.ziele.every((_, i) => S.get(k+":z"+i)) && !!S.get(k+":fertig");
   }
   return false;
@@ -1432,40 +1404,64 @@ function viewExercise(id, p){
 function ctxHTML(s){
   return `<div class="box"><h4>Bearbeitet von</h4><div style="display:grid;gap:8px"><input type="text" data-k="name" placeholder="Name" aria-label="Name"><input type="text" data-k="${s.id}:datum" placeholder="Datum" aria-label="Datum"></div></div>`
     + (s.bild ? `<div class="box"><figure><img src="bilder/${s.bild[0]}" alt="${esc(plain(s.bild[1]))}" data-act="zoom" data-src="bilder/${s.bild[0]}" data-cap="${esc(s.bild[1])}"><figcaption>${chips(s.bild[1])}</figcaption></figure></div>` : "")
-    + `<div class="box"><h4>Lernziele – Sie können …</h4><ul class="goals">${s.ziele.map(z => `<li>${z}</li>`).join("")}</ul></div>`
+    + `<div class="box"><h4>Lernziele: Du kannst …</h4><ol class="goals">${s.ziele.map(z => `<li>${z}</li>`).join("")}</ol></div>`
     + `<div class="box"><h4>Einstellung im Zwilling</h4><div class="small">${s.einst}</div></div>`
     + `<div class="box"><h4>Beteiligte Signale</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${s.sig.split(" ").map(chip).join("")}</div></div>`;
 }
+const ergList = (list, von) => `<ul class="erg">${list.map(e => `<li>${artPill(e.a)}<span><b>${esc(e.n)}</b>${von && e.von ? ` <a class="muted small" href="#/${e.von}/6">aus ${e.von}</a>` : ""}${e.h ? `<br><span class="muted small">${chips(e.h)}</span>` : ""}</span></li>`).join("")}</ul>`;
+function tplHTML(s){
+  const k = s.id;
+  return `<h3>${s.tpl.cap}</h3><div class="tw"><table class="tplt"><thead><tr>${s.tpl.head.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${
+    s.tpl.rows.map((r, ri) => `<tr>${r.map(x => `<td>${chips(x)}</td>`).join("")}${Array.from({length: s.tpl.inputs}, (_, ci) => `<td><input type="text" data-k="${k}:t${ri}_${ci}" aria-label="${esc(s.tpl.head[r.length+ci])}, Zeile ${ri+1}"></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+// gestufte Hilfen zu Aufgabenschritt i: Stufe n lässt sich erst nach Stufe n−1 öffnen, die höchste geöffnete Stufe wird gespeichert (k:h{i})
+function hilfeInner(s, i){
+  const h = (s.hilfe || {})[i]; if (!h || !h.length) return "";
+  const l = hilfeLevel(s, i);
+  return h.slice(0, l).map((t, n) => `<details open><summary>Hilfe ${n+1} · ${HSTUFE[n]}</summary><div class="prose">${chips(t)}</div></details>`).join("")
+    + (l < Math.min(3, h.length) ? `<button class="btn ghost small" type="button" data-act="hilfe" data-i="${i}">Hilfe ${l+1} · ${HSTUFE[l]} öffnen</button>` : "");
+}
+const lfHTML = (k, list, pre) => list.map((q, i) => `<div class="qa"><label for="${pre}${i}">${chips(qt(q))}${zielTag(q)}<span class="state" data-state="${k}:${pre}${i}"></span></label><textarea id="${pre}${i}" data-k="${k}:${pre}${i}" rows="3"></textarea></div>`).join("");
 
 function phaseHTML(s, p){
-  const k = s.id, H = (t, intro) => `<h2><span class="pn">${p}</span>${t}</h2><p class="intro">${intro}</p>`;
+  const k = s.id, erk = typOf(s) === "erkunden", H = (t, intro) => `<h2><span class="pn">${p}</span>${t}</h2><p class="intro">${intro}</p>`;
   if (p === 1) {
-    let h = H("Informieren", "Verschaffen Sie sich ein Bild von der Aufgabe, stellen Sie den Zwilling ein und suchen Sie jedes beteiligte Signal in der Anlage.");
+    let h = H("Informieren", "Verschaffe dir ein Bild von der Aufgabe, stelle den Zwilling ein und suche jedes beteiligte Signal in der Anlage.");
     h += `<div class="callout"><div class="prose">${chips(s.sit)}</div></div>`;
+    const mit = mitbringen(s);
+    if (mit.length) h += `<div class="callout" style="--c:var(--ok)"><b>Das bringst du mit</b><span class="muted small"> (Ergebnisse aus ${vorIds(s).join(", ")})</span>${ergList(mit, true)}</div>`;
     if (s.beschr) h += `<h3>Aufgabenbeschreibung</h3><div class="prose beschr">${chips(s.beschr)}</div>`;
     if (s.tab) h += `<h3>${s.tab.cap}</h3>` + tableHTML(s.tab.head, s.tab.rows);
-    if (s.wissen && s.wissen.length) h += `<h3>Fachwissen – warum, wieso, weshalb</h3><div class="fw">${s.wissen.map((w, i) => `<details${i ? "" : " open"}><summary>${w.t}</summary><div class="prose">${chips(w.h)}</div></details>`).join("")}</div>`;
+    if (s.wissen && s.wissen.length) h += `<h3>Fachwissen: warum, wieso, weshalb</h3><div class="fw">${s.wissen.map((w, i) => `<details${i ? "" : " open"}><summary>${w.t}</summary><div class="prose">${chips(w.h)}${quelle(w)}</div></details>`).join("")}</div>`;
     if (s.list) h += `<h3>${s.list.cap}</h3><ol class="prose">${s.list.items.map(x => `<li>${chips(x)}</li>`).join("")}</ol>`;
-    h += `<h3>Zwilling einstellen</h3><label class="confirm"><input type="checkbox" data-k="${k}:einst"><span>${s.einst}<br><span class="muted small">Haken setzen, sobald der Übungsumfang in der Seitenleiste so eingestellt ist.</span></span></label>`;
+    h += `<h3>Zwilling einstellen</h3><label class="confirm"><input type="checkbox" data-k="${k}:einst"><span>${s.einst}<br><span class="muted small">Setze den Haken, sobald der Übungsumfang in der Seitenleiste so eingestellt ist.</span></span></label>`;
     const se = sigEntries(s);
-    if (se.length) h += `<h3>Signal-Rallye</h3><p class="muted small">Suchen Sie jedes Signal im Zwilling (Signalmonitor oder 3D-Ansicht) und haken Sie es ab. So kennen Sie Ihre Anlage, bevor Sie programmieren.</p>
+    if (se.length) h += `<h3>Signal-Rallye</h3><p class="muted small">Suche jedes Signal im Zwilling (Signalmonitor oder 3D-Ansicht) und hake es ab. So kennst du deine Anlage, bevor du programmierst.</p>
       <div class="siglist">${se.map(e => `<label class="sigcard"><input type="checkbox" data-k="${k}:sr:${e.n}"><span><b>${e.n}</b><span class="ad">${e.a}</span><br>${esc(e.k)}</span></label>`).join("")}</div>`;
-    const qz = QUIZ[k] || [];
-    if (qz.length) h += `<h3>Kurz-Check</h3>` + qz.map((q, qi) => quizHTML(k, qi, q)).join("");
+    const qz = quizSet(k, "ein");
+    if (qz.length) h += `<h3>Eingangs-Check</h3><p class="muted small">Prüfe kurz, ob dein Vorwissen aus den vorigen Übungen sitzt.</p>` + qz.map((q, qi) => quizHTML(k, qi, q, "ein")).join("");
     return h;
   }
   if (p === 2) {
-    let h = H("Planen", "Beantworten Sie die Leitfragen schriftlich, skizzieren Sie den Ablauf und legen Sie Ihre Variablen fest. Erst planen, dann programmieren.");
-    h += `<h3>Leitfragen</h3>` + s.lf.map((q, i) => `<div class="qa"><label for="lf${i}">${chips(q)}<span class="state" data-state="${k}:lf${i}"></span></label><textarea id="lf${i}" data-k="${k}:lf${i}" rows="3"></textarea></div>`).join("");
-    h += `<h3>Skizzen</h3><p class="muted small">Zeichnen Sie mit Maus, Stift oder Finger direkt in die Vorlage. Jede Skizze wird gespeichert und lässt sich einzeln drucken – leer oder mit Ihrer Zeichnung.</p><div class="sketches" id="sketches"></div>`;
-    h += `<h3>Variablenliste</h3><p class="muted small">Übernehmen Sie die Signale dieser Übung und ergänzen Sie eigene statische Variablen, Zeiten und Zähler Ihres FB.</p>
+    let h = H("Planen", "Beantworte die Leitfragen schriftlich, plane den Ablauf und lege deine Variablen fest. Erst planen, dann programmieren.");
+    h += `<h3>Leitfragen</h3>` + lfHTML(k, s.lf, "lf");
+    if (s.plan && s.plan.length) h += `<h3>Planungsaufträge</h3><p class="muted small">Erstelle jede Unterlage (z. B. in den Skizzen unten) und hake sie ab.</p><ol class="tasks">${s.plan.map((a, i) => `<li><input type="checkbox" data-k="${k}:plan${i}" aria-label="Planungsauftrag ${i+1} erledigt"><span class="tx">${chips(a)}</span></li>`).join("")}</ol>`;
+    if (s.tpl && s.tplPhase === 2) h += tplHTML(s);
+    h += `<h3>Skizzen</h3><p class="muted small">Zeichne mit Maus, Stift oder Finger direkt in die Vorlage. Jede Skizze wird gespeichert und lässt sich einzeln drucken, leer oder mit deiner Zeichnung.</p><div class="sketches" id="sketches"></div>`;
+    h += `<h3>Variablenliste</h3><p class="muted small">Übernimm die Signale dieser Übung und ergänze eigene statische Variablen, Zeiten und Zähler deines FB.</p>
       <div class="tw"><table class="vars"><thead><tr><th style="width:28%">Name</th><th style="width:13%">Datentyp</th><th style="width:15%">Adresse</th><th>Kommentar</th><th></th></tr></thead><tbody id="vars"></tbody></table></div>
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn small" type="button" data-act="var-add">Zeile hinzufügen</button><button class="btn small" type="button" data-act="var-import">Signale dieser Übung übernehmen</button></div>`;
     setTimeout(() => paintVars(s), 0);
     return h;
   }
   if (p === 3) {
-    return H("Entscheiden", "Stellen Sie Ihren Lösungsweg im Fachgespräch kurz vor. Die Lehrkraft gibt ihn frei – erst dann wird programmiert.")
+    if (erk) return H("Entscheiden", "Du programmierst hier noch nicht. Stelle dein Vorgehen für die Untersuchung kurz im Fachgespräch vor. Freigabe heißt hier: Vorgehen mit der Lehrkraft abgestimmt.")
+      + `<div class="qa"><label for="d1">Mein Vorgehen in drei Sätzen</label><textarea id="d1" data-k="${k}:weg" rows="4"></textarea></div>
+         <div class="qa"><label for="d2">Was beobachte oder messe ich, und woran erkenne ich das Ergebnis?</label><textarea id="d2" data-k="${k}:alt" rows="3"></textarea></div>
+         <div class="qa"><label for="d3">Welche Fragen kläre ich mit der Lehrkraft?</label><textarea id="d3" data-k="${k}:fragen" rows="2"></textarea></div>
+         <h3>Freigabe</h3><label class="confirm"><input type="checkbox" data-k="${k}:frei"><span>Vorgehen mit der Lehrkraft abgestimmt</span></label>
+         <div style="max-width:260px"><label class="small muted" for="d4">Kürzel der Lehrkraft</label><input type="text" id="d4" data-k="${k}:kuerzel"></div>`;
+    return H("Entscheiden", "Stelle deinen Lösungsweg im Fachgespräch kurz vor. Die Lehrkraft gibt ihn frei. Erst dann wird programmiert.")
       + `<div class="qa"><label for="d1">Mein Lösungsweg in drei Sätzen</label><textarea id="d1" data-k="${k}:weg" rows="4"></textarea></div>
          <div class="qa"><label for="d2">Welche Alternative habe ich verworfen, und warum?</label><textarea id="d2" data-k="${k}:alt" rows="3"></textarea></div>
          <div class="qa"><label for="d3">Welche Fragen kläre ich mit der Lehrkraft?</label><textarea id="d3" data-k="${k}:fragen" rows="2"></textarea></div>
@@ -1473,29 +1469,36 @@ function phaseHTML(s, p){
          <div style="max-width:260px"><label class="small muted" for="d4">Kürzel der Lehrkraft</label><input type="text" id="d4" data-k="${k}:kuerzel"></div>`;
   }
   if (p === 4) {
-    let h = H("Ausführen", "Programmieren Sie in TIA, laden Sie in PLCSIM Advanced und nehmen Sie am Zwilling in Betrieb. Haken Sie jeden Arbeitsschritt ab.");
-    h += `<div class="callout" style="--c:var(--s3)"><b>Programmierrichtlinien</b> (Siemens-Styleguide): Zustände als <code>stat</code>-Variablen im FB, keine Merker · Zeiten und Zähler als Multiinstanz <code>inst…</code> · Konstanten statt Zahlen · CASE mit ELSE · Bausteinkopf. <a href="#/richtlinien">Alle Regeln</a></div>`;
-    h += `<ol class="tasks">${s.auf.map((a, i) => `<li><input type="checkbox" data-k="${k}:a${i}" aria-label="Schritt ${i+1} erledigt"><span class="tx">${chips(a)}</span></li>`).join("")}</ol>`;
-    if (s.tpl) h += `<h3>${s.tpl.cap}</h3><div class="tw"><table class="tplt"><thead><tr>${s.tpl.head.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${
-      s.tpl.rows.map((r, ri) => `<tr>${r.map(x => `<td>${chips(x)}</td>`).join("")}${Array.from({length: s.tpl.inputs}, (_, ci) => `<td><input type="text" data-k="${k}:t${ri}_${ci}" aria-label="${esc(s.tpl.head[r.length+ci])}, Zeile ${ri+1}"></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
-    h += `<h3>Notizen zur Inbetriebnahme</h3><textarea data-k="${k}:ibn" rows="4" aria-label="Notizen zur Inbetriebnahme"></textarea>`;
+    let h = erk ? H("Ausführen", "Du programmierst hier noch nicht. Führe die Untersuchung am Zwilling durch, notiere deine Beobachtungen und hake jeden Arbeitsschritt ab.")
+      : H("Ausführen", "Programmiere in TIA, lade in PLCSIM Advanced und nimm am Zwilling in Betrieb. Hake jeden Arbeitsschritt ab.");
+    if (!erk) h += `<div class="callout" style="--c:var(--s3)"><b>Programmierrichtlinien</b> (Siemens-Styleguide): Zustände als <code>stat</code>-Variablen im FB, keine Merker · Zeiten und Zähler als Multiinstanz <code>inst…</code> · Konstanten statt Zahlen · CASE mit ELSE · Bausteinkopf. <a href="#/richtlinien">Alle Regeln</a></div>`;
+    if (s.hilfe && Object.keys(s.hilfe).length) h += `<p class="muted small">Zu einzelnen Schritten gibt es gestufte Hilfen. Du darfst sie nutzen. Öffne nur so viel, wie du brauchst: Die App hält ehrlich fest, welche Stufe du geöffnet hast, und zeigt das in der Selbsteinschätzung und im Ausdruck.</p>`;
+    h += `<ol class="tasks">${s.auf.map((a, i) => `<li><input type="checkbox" data-k="${k}:a${i}" aria-label="Schritt ${i+1} erledigt"><span class="tx">${chips(a)}</span>${(s.hilfe || {})[i] ? `<div class="hilfe" data-hilfe="${i}">${hilfeInner(s, i)}</div>` : ""}</li>`).join("")}</ol>`;
+    if (s.tpl && s.tplPhase !== 2) h += tplHTML(s);
+    h += `<h3>${erk ? "Notizen zur Untersuchung" : "Notizen zur Inbetriebnahme"}</h3><textarea data-k="${k}:ibn" rows="4" aria-label="Notizen"></textarea>`;
     return h;
   }
   if (p === 5) {
-    return H("Kontrollieren", "Arbeiten Sie das Prüfprotokoll Fall für Fall ab. Provozieren Sie Fehler gezielt durch Forcen im Signalmonitor und notieren Sie, was Sie beobachten.")
-      + `<div class="summary" id="sum"></div><div class="checks">${s.pr.map((c, i) => { const v = S.get(k+":p"+i); return `<div class="case ${v||""}" data-case="${k}:p${i}"><div class="ct">${chips(c)}</div>
+    let h = H("Kontrollieren", "Arbeite das Prüfprotokoll Fall für Fall ab. Provoziere Fehler gezielt durch Forcen im Signalmonitor und notiere, was du beobachtest. Ist ein Fall nicht bestanden, halte Ursache, Änderung und Nachtest fest.")
+      + `<div class="summary" id="sum"></div><div class="checks">${s.pr.map((c, i) => { const v = S.get(k+":p"+i); return `<div class="case ${v||""}" data-case="${k}:p${i}"><div class="ct">${chips(qt(c))}${zielTag(c)}</div>
         <div class="segbtn" role="group" aria-label="Ergebnis Prüffall ${i+1}"><button type="button" data-set="${k}:p${i}" data-val="ok" aria-pressed="${v==="ok"}">bestanden</button><button type="button" data-set="${k}:p${i}" data-val="bad" aria-pressed="${v==="bad"}">nicht bestanden</button></div>
-        <div class="obs"><input type="text" data-k="${k}:b${i}" placeholder="Beobachtung" aria-label="Beobachtung zu Prüffall ${i+1}"></div></div>`; }).join("")}</div>
-        <h3>Stil-Check nach Siemens-Styleguide</h3><ol class="tasks">${STYLECHECK.map((c, i) => `<li><input type="checkbox" data-k="${k}:stil${i}" aria-label="erfüllt"><span class="tx">${c}</span></li>`).join("")}</ol>
-        <h3>Ereignisliste des Zwillings</h3><textarea data-k="${k}:ereig" rows="3" aria-label="Meldungen der Ereignisliste" placeholder="Meldungen, die während der Prüfung erschienen sind"></textarea>`;
+        <div class="obs"><input type="text" data-k="${k}:b${i}" placeholder="Beobachtung" aria-label="Beobachtung zu Prüffall ${i+1}"></div>
+        <div class="fa"><b class="small">Fehleranalyse</b>${[["u","Ursache","Warum hat es nicht funktioniert?"],["m","Änderung","Was hast du geändert?"],["n","Nachtest","Wie hast du erneut geprüft, mit welchem Ergebnis?"]].map(([x, l, ph]) => `<label class="small">${l}<input type="text" data-k="${k}:p${i}${x}" placeholder="${ph}"></label>`).join("")}</div></div>`; }).join("")}</div>`;
+    if (s.lfk && s.lfk.length) h += `<h3>Kontrollfragen</h3><p class="muted small">Diese Fragen kannst du erst nach Versuch oder Messung beantworten.</p>` + lfHTML(k, s.lfk, "lfk");
+    if (!erk) h += `<h3>Stil-Check nach Siemens-Styleguide</h3><ol class="tasks">${STYLECHECK.map((c, i) => `<li><input type="checkbox" data-k="${k}:stil${i}" aria-label="erfüllt"><span class="tx">${c}</span></li>`).join("")}</ol>`;
+    return h + `<h3>Ereignisliste des Zwillings</h3><textarea data-k="${k}:ereig" rows="3" aria-label="Meldungen der Ereignisliste" placeholder="Meldungen, die während der Prüfung erschienen sind"></textarea>
+        <div class="qa" style="margin-top:20px"><label for="fl">Welcher Fehler hat dich am meisten gelehrt? <span class="muted small">(freiwillig)</span></label><textarea id="fl" data-k="${k}:lehre" rows="3"></textarea></div>`;
   }
-  const done = !!S.get(k+":fertig");
-  return H("Bewerten", "Schätzen Sie ein, wie sicher Sie jedes Lernziel beherrschen, und halten Sie fest, was Sie mitnehmen.")
+  const done = !!S.get(k+":fertig"), qa = quizSet(k, "aus");
+  return H("Bewerten", "Schätze ein, wie sicher du jedes Lernziel beherrschst, und halte fest, was du mitnimmst.")
     + `<h3>Selbsteinschätzung</h3><p class="muted small">1 = noch nicht, 2 = mit Hilfe, 3 = selbstständig, 4 = sicher und kann es erklären</p>`
     + s.ziele.map((z, i) => { const v = S.get(k+":z"+i); return `<div class="rate"><span>${z}</span><span class="scale" role="group" aria-label="Einschätzung">${[1,2,3,4].map(n => `<button type="button" data-set="${k}:z${i}" data-val="${n}" aria-pressed="${v==n}">${n}</button>`).join("")}</span></div>`; }).join("")
+    + (s.hilfe && Object.keys(s.hilfe).length ? `<p class="small" style="margin-top:12px"><b>Genutzte Hilfen:</b> ${hilfeText(s)}</p>` : "")
+    + (qa.length ? `<h3>Abschluss-Check</h3><p class="muted small">Übertrage, was du in dieser Übung gelernt hast.</p>` + qa.map((q, qi) => quizHTML(k, qi, q, "aus")).join("") : "")
     + `<div class="qa" style="margin-top:22px"><label for="r1">Was lief gut, was war schwierig?</label><textarea id="r1" data-k="${k}:refl1" rows="3"></textarea></div>
        <div class="qa"><label for="r2">Was würde ich an einer realen Anlage anders absichern?</label><textarea id="r2" data-k="${k}:refl2" rows="3"></textarea></div>`
-    + (s.plus ? `<div class="plus"><b>Plus</b> – für alle, die früher fertig sind<br>${chips(s.plus)}<label class="confirm" style="margin-bottom:0"><input type="checkbox" data-k="${k}:plus"><span>Plus-Aufgabe erledigt</span></label></div>` : "")
+    + (s.ergebnis && s.ergebnis.length ? `<div class="callout" style="--c:var(--ok)"><b>Das nimmst du mit</b>${ergList(s.ergebnis)}${HAS_ERG ? `<a class="small" href="#/projekt">Dein Projekt im Überblick</a>` : ""}</div>` : "")
+    + (s.plus ? `<div class="plus"><b>Plus-Aufgabe</b> (für alle, die früher fertig sind)<br>${chips(s.plus)}<label class="confirm" style="margin-bottom:0"><input type="checkbox" data-k="${k}:plus"><span>Plus-Aufgabe erledigt</span></label></div>` : "")
     + `<div class="finish ${done?"done":""}" id="finish">${finishInner(s)}</div>`;
 }
 function finishInner(s){
@@ -1504,10 +1507,10 @@ function finishInner(s){
   const hint = open.length ? `Noch offen: ${open.map(p => `<a href="#/${k}/${p}">${PHASES[p].n}</a>`).join(", ")}${rated ? "" : ", Selbsteinschätzung"}.` : (rated ? "Alle Schritte erledigt." : "Noch offen: Selbsteinschätzung.");
   return `<span>${hint}</span><button class="btn primary" type="button" data-act="finish" ${open.length || !rated ? "disabled" : ""}>Übung abschließen</button>`;
 }
-function quizHTML(k, qi, q){
-  const a = S.get(`${k}:q${qi}`);
-  const fb = a === null ? "" : `<div class="fb">${a === q[2] ? `<b class="ok">Richtig.</b>` : `<b class="no">Nicht ganz.</b> Richtig ist: ${chips(q[1][q[2]])}.`} ${chips(q[3])} <button class="btn ghost small" type="button" data-act="quiz-reset" data-q="${qi}">Noch einmal</button></div>`;
-  return `<div class="quiz" data-quiz="${qi}"><div class="qq">${chips(q[0])}</div><div class="opts">${q[1].map((o, i) => `<button type="button" class="opt ${a===null?"":(i===q[2]?"right":(i===a?"wrong":""))}" data-act="quiz" data-q="${qi}" data-i="${i}" ${a===null?"":"disabled"}>${chipsQuiet(o)}</button>`).join("")}</div>${fb}</div>`;
+function quizHTML(k, qi, q, w="ein"){
+  const a = S.get(quizKey(k, w, qi));
+  const fb = a === null ? "" : `<div class="fb">${a === q[2] ? `<b class="ok">Richtig.</b>` : `<b class="no">Nicht ganz.</b> Richtig ist: ${chips(q[1][q[2]])}.`} ${chips(q[3])} <button class="btn ghost small" type="button" data-act="quiz-reset" data-q="${qi}" data-w="${w}">Noch einmal</button></div>`;
+  return `<div class="quiz" data-quiz="${qi}"><div class="qq">${chips(q[0])}</div><div class="opts">${q[1].map((o, i) => `<button type="button" class="opt ${a===null?"":(i===q[2]?"right":(i===a?"wrong":""))}" data-act="quiz" data-q="${qi}" data-w="${w}" data-i="${i}" ${a===null?"":"disabled"}>${chipsQuiet(o)}</button>`).join("")}</div>${fb}</div>`;
 }
 
 /* ---------- Skizzen-Kacheln ---------- */
@@ -2188,28 +2191,39 @@ function pageHead(ex, what){
 const whoRow = (ex, filled) => `<div class="who"><div>Name<b>${filled ? esc(S.get("name")||"") : ""}</b></div><div>Klasse<b>${filled ? esc(S.get("klasse")||"") : ""}</b></div><div>Datum<b>${filled && ex ? esc(S.get(ex.id+":datum")||"") : ""}</b></div></div>`;
 const lines = n => `<div class="lines">${"<i></i>".repeat(n)}</div>`;
 const ansOr = (v, n) => v && String(v).trim() ? `<div class="ans">${esc(v)}</div>` : lines(n);
+const tplPrint = (ex, f) => `<h3>${ex.tpl.cap}</h3><table><thead><tr>${ex.tpl.head.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${ex.tpl.rows.map((r, ri) => `<tr>${r.map(x => `<td>${chips(x)}</td>`).join("")}${Array.from({length: ex.tpl.inputs}, (_, ci) => `<td>${f ? esc(S.get(`${ex.id}:t${ri}_${ci}`)||"") : "&nbsp;"}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+const ergPrint = list => `<ul>${list.map(e => `<li><b>${esc(e.n)}</b> (${ART[e.a] ? ART[e.a][1] : esc(e.a)}${e.von ? `, aus ${e.von}` : ""})${e.h ? `: ${chips(e.h)}` : ""}</li>`).join("")}</ul>`;
 function sheetPage(ex, f){
-  const k = ex.id, sig = sigEntries(ex);
+  const k = ex.id, sig = sigEntries(ex), mit = mitbringen(ex);
   let h = `<section class="pp">${pageHead(ex, "Arbeitsblatt")}${whoRow(ex, f)}
     <h2>Ausgangssituation</h2><p>${chips(ex.sit)}</p><p><b>Einstellung im Zwilling:</b> ${ex.einst}</p>${ex.beschr ? `<h2>Aufgabenbeschreibung</h2>${chips(ex.beschr)}` : ""}
-    <h2>Lernziele – Sie können …</h2><ol>${ex.ziele.map(z => `<li>${z}</li>`).join("")}</ol>`;
+    <h2>Lernziele: Du kannst …</h2><ol>${ex.ziele.map(z => `<li>${z}</li>`).join("")}</ol>`;
+  if (mit.length) h += `<h3>Das bringst du mit</h3>` + ergPrint(mit);
   if (ex.tab) h += `<h3>${ex.tab.cap}</h3>` + tableHTML(ex.tab.head, ex.tab.rows);
   if (ex.list) h += `<h3>${ex.list.cap}</h3><ol>${ex.list.items.map(x => `<li>${chips(x)}</li>`).join("")}</ol>`;
   if (sig.length) h += `<h2>Signale</h2><table><thead><tr><th>Signal</th><th>Adresse</th><th>Bedeutung</th></tr></thead><tbody>${sig.map(e => `<tr><td>${e.n}</td><td>${e.a}</td><td>${esc(e.k)}</td></tr>`).join("")}</tbody></table>`;
-  h += `<h2>Auftrag</h2><div>${ex.auf.map((a, i) => `<p><span class="box">${f && S.get(k+":a"+i) ? "✓" : ""}</span>${i+1}. ${chips(a)}</p>`).join("")}</div>`;
-  if (ex.tpl) h += `<h3>${ex.tpl.cap}</h3><table><thead><tr>${ex.tpl.head.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${ex.tpl.rows.map((r, ri) => `<tr>${r.map(x => `<td>${chips(x)}</td>`).join("")}${Array.from({length: ex.tpl.inputs}, (_, ci) => `<td>${f ? esc(S.get(`${k}:t${ri}_${ci}`)||"") : "&nbsp;"}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
-  h += `<h2>Leitfragen</h2>` + ex.lf.map((q, i) => `<div class="qp"><p><b>${i+1}. ${chips(q)}</b></p>${f ? ansOr(S.get(k+":lf"+i), 4) : lines(4)}</div>`).join("");
-  if (ex.plus) h += `<h3>Plus</h3><p>${chips(ex.plus)}</p>`;
-  return h + `<div class="foot">${ex.id} ${esc(ex.t)} – Übungshandbuch SPS-Technik, Aufgabe im Repository: ${ex.repo}</div></section>`;
+  h += `<h2>Leitfragen</h2>` + ex.lf.map((q, i) => `<div class="qp"><p><b>${i+1}. ${chips(qt(q))}</b>${zielTag(q)}</p>${f ? ansOr(S.get(k+":lf"+i), 4) : lines(4)}</div>`).join("");
+  if (ex.plan && ex.plan.length) h += `<h2>Planungsaufträge</h2><div>${ex.plan.map((a, i) => `<p><span class="box">${f && S.get(k+":plan"+i) ? "✓" : ""}</span>${i+1}. ${chips(a)}</p>`).join("")}</div>`;
+  if (ex.tpl && ex.tplPhase === 2) h += tplPrint(ex, f);
+  h += `<h2>Auftrag</h2><div>${ex.auf.map((a, i) => { const l = f ? hilfeLevel(ex, i) : 0; return `<p><span class="box">${f && S.get(k+":a"+i) ? "✓" : ""}</span>${i+1}. ${chips(a)}${l ? ` <i>(mit Hilfe ${l} gelöst)</i>` : ""}</p>`; }).join("")}</div>`;
+  if (ex.tpl && ex.tplPhase !== 2) h += tplPrint(ex, f);
+  if (ex.plus) h += `<h3>Plus-Aufgabe</h3><p>${chips(ex.plus)}</p>`;
+  return h + `<div class="foot">${ex.id} ${esc(ex.t)}, Übungshandbuch SPS-Technik, Aufgabe im Repository: ${ex.repo}</div></section>`;
 }
 function checkPage(ex, f){
-  const k = ex.id;
+  const k = ex.id, erk = typOf(ex) === "erkunden";
+  const bad = ex.pr.map((_, i) => i).filter(i => f && S.get(k+":p"+i) === "bad");
+  const fa = f ? (bad.length ? `<table><thead><tr><th style="width:6%">Nr.</th><th>Ursache</th><th>Änderung</th><th>Nachtest</th></tr></thead><tbody>${bad.map(i => `<tr><td>${i+1}</td>${["u","m","n"].map(x => `<td>${esc(S.get(`${k}:p${i}${x}`)||"")}</td>`).join("")}</tr>`).join("")}</tbody></table>` : `<p>Keine nicht bestandenen Prüffälle.</p>`)
+    : `<table><thead><tr><th style="width:6%">Nr.</th><th>Ursache</th><th>Änderung</th><th>Nachtest</th></tr></thead><tbody>${"<tr><td style='height:10mm'></td><td></td><td></td><td></td></tr>".repeat(3)}</tbody></table>`;
   return `<section class="pp">${pageHead(ex, "Prüfprotokoll")}${whoRow(ex, f)}
-    <p>Jeden Fall am Zwilling prüfen. Fehler durch Forcen im Signalmonitor provozieren. Beobachtung eintragen und das Ergebnis ankreuzen.</p>
+    <p>Prüfe jeden Fall am Zwilling. Provoziere Fehler durch Forcen im Signalmonitor. Trage deine Beobachtung ein und kreuze das Ergebnis an.</p>
     <table><thead><tr><th style="width:5%">Nr.</th><th style="width:45%">Prüffall</th><th>Beobachtet</th><th style="width:8%">i.O.</th><th style="width:8%">n.i.O.</th></tr></thead><tbody>${
-      ex.pr.map((c, i) => { const v = f ? S.get(k+":p"+i) : null; return `<tr><td>${i+1}</td><td>${chips(c)}</td><td style="height:14mm">${f ? esc(S.get(k+":b"+i)||"") : ""}</td><td><span class="box">${v==="ok"?"✓":""}</span></td><td><span class="box">${v==="bad"?"✗":""}</span></td></tr>`; }).join("")}</tbody></table>
-    <h2>Programmierstil nach Siemens-Styleguide</h2><table><tbody>${STYLECHECK.map((c, i) => `<tr><td style="width:6%"><span class="box">${f && S.get(k+":stil"+i) ? "✓" : ""}</span></td><td>${c}</td></tr>`).join("")}</tbody></table>
+      ex.pr.map((c, i) => { const v = f ? S.get(k+":p"+i) : null; return `<tr><td>${i+1}</td><td>${chips(qt(c))}${zielTag(c)}</td><td style="height:14mm">${f ? esc(S.get(k+":b"+i)||"") : ""}</td><td><span class="box">${v==="ok"?"✓":""}</span></td><td><span class="box">${v==="bad"?"✗":""}</span></td></tr>`; }).join("")}</tbody></table>
+    <h2>Fehleranalyse (nicht bestandene Prüffälle)</h2>${fa}
+    ${ex.lfk && ex.lfk.length ? `<h2>Kontrollfragen</h2>` + ex.lfk.map((q, i) => `<div class="qp"><p><b>${i+1}. ${chips(qt(q))}</b></p>${f ? ansOr(S.get(k+":lfk"+i), 3) : lines(3)}</div>`).join("") : ""}
+    ${erk ? "" : `<h2>Programmierstil nach Siemens-Styleguide</h2><table><tbody>${STYLECHECK.map((c, i) => `<tr><td style="width:6%"><span class="box">${f && S.get(k+":stil"+i) ? "✓" : ""}</span></td><td>${c}</td></tr>`).join("")}</tbody></table>`}
     <h2>Meldungen der Ereignisliste</h2>${f ? ansOr(S.get(k+":ereig"), 3) : lines(3)}
+    <h2>Welcher Fehler hat dich am meisten gelehrt?</h2>${f ? ansOr(S.get(k+":lehre"), 2) : lines(2)}
     <div class="sign"><div>Geprüft (Lernende)</div><div>Abgenommen (Lehrkraft), Datum</div></div></section>`;
 }
 function varsPage(ex, f){
@@ -2220,26 +2234,32 @@ function varsPage(ex, f){
       rows.map(r => `<tr><td>${esc(r.n)}</td><td>${esc(r.t)}</td><td>${esc(r.a)}</td><td>${esc(r.k)}</td></tr>`).join("")}${"<tr><td style='height:8mm'></td><td></td><td></td><td></td></tr>".repeat(blank)}</tbody></table></section>`;
 }
 function ratePage(ex, f){
-  const k = ex.id;
+  const k = ex.id, hasH = ex.hilfe && Object.keys(ex.hilfe).length;
   return `<section class="pp">${pageHead(ex, "Selbsteinschätzung und Reflexion")}${whoRow(ex, f)}
     <p>1 = noch nicht, 2 = mit Hilfe, 3 = selbstständig, 4 = sicher und kann es erklären</p>
-    <table><thead><tr><th>Lernziel – ich kann …</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead><tbody>${ex.ziele.map((z, i) => { const v = f ? S.get(k+":z"+i) : null; return `<tr><td>${z}</td>${[1,2,3,4].map(n => `<td><span class="box">${v==n?"✓":""}</span></td>`).join("")}</tr>`; }).join("")}</tbody></table>
+    <table><thead><tr><th>Lernziel: Ich kann …</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead><tbody>${ex.ziele.map((z, i) => { const v = f ? S.get(k+":z"+i) : null; return `<tr><td>${z}</td>${[1,2,3,4].map(n => `<td><span class="box">${v==n?"✓":""}</span></td>`).join("")}</tr>`; }).join("")}</tbody></table>
+    ${hasH ? `<p style="margin-top:3mm"><b>Genutzte Hilfen:</b> ${f ? hilfeText(ex) : "________________________________"}</p>` : ""}
     <h2>Mein Lösungsweg</h2>${f ? ansOr(S.get(k+":weg"), 4) : lines(4)}
     <h2>Was lief gut, was war schwierig?</h2>${f ? ansOr(S.get(k+":refl1"), 4) : lines(4)}
     <h2>Was würde ich an einer realen Anlage anders absichern?</h2>${f ? ansOr(S.get(k+":refl2"), 4) : lines(4)}
+    ${ex.ergebnis && ex.ergebnis.length ? `<h2>Das nimmst du mit</h2>` + ergPrint(ex.ergebnis) : ""}
     <div class="sign"><div>Freigabe Fachgespräch (Kürzel)${f && S.get(k+":kuerzel") ? ": " + esc(S.get(k+":kuerzel")) : ""}</div><div>Arbeitszeit${f ? ": " + fmtTime(curTime(k)) : ""}</div></div></section>`;
 }
 function sketchPage(scope, key, f){
   const ex = BY[scope], d = f ? S.get(skKey(scope, key)) : null, meta = f ? skMeta(scope, key) : {title: ex ? `${ex.id} ${ex.t}` : VORL[key].n, vorlage: VORL[key].n};
   return Array.from({length: pageCount(key, d)}, (_, i) => `<section class="pp land">${sketchSVG(key, ex, d, meta, false, i)}</section>`).join("");
 }
+const nivTable = crit => `<h2>Niveaustufen</h2><p>Passend zur Selbsteinschätzung: 1 = noch nicht, 2 = mit Hilfe, 3 = selbstständig, 4 = sicher und kann es erklären. Richtwert für die Punkte: Stufe 1 bis 25 %, Stufe 2 bis 50 %, Stufe 3 bis 75 %, Stufe 4 bis 100 % des Höchstwerts.</p>
+  <table><thead><tr><th style="width:16%">Kriterium</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead><tbody>${crit.map(c => `<tr><td><b>${c[0]}</b></td>${(c[3] || []).map(n => `<td>${n}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
 function bewPage(ex){
-  const k = ex.id, pts = CRIT.map((c, i) => S.get(`${k}:bew${i}`)), sum = pts.reduce((a, v) => a + (+v || 0), 0);
+  const k = ex.id, crit = critOf(ex), pts = crit.map((c, i) => S.get(`${k}:bew${i}`)), sum = pts.reduce((a, v) => a + (+v || 0), 0);
   return `<section class="pp">${pageHead(ex, "Bewertungsbogen")}${whoRow(ex, true)}
-    <table><thead><tr><th>Kriterium</th><th>Erfüllt, wenn</th><th>max.</th><th>Punkte</th></tr></thead><tbody>${CRIT.map((c, i) => `<tr><td>${c[0]}</td><td>${c[2]}</td><td>${c[1]}</td><td>${pts[i] ?? ""}</td></tr>`).join("")}
+    <p>Bewertungsraster: <b>${TYPN[typOf(ex)]}</b></p>
+    <table><thead><tr><th>Kriterium</th><th>Erfüllt, wenn</th><th>max.</th><th>Punkte</th></tr></thead><tbody>${crit.map((c, i) => `<tr><td>${c[0]}</td><td>${c[2]}</td><td>${c[1]}</td><td>${pts[i] ?? ""}</td></tr>`).join("")}
     <tr><td colspan="2"><b>Summe</b></td><td>100</td><td><b>${pts.some(v => v !== null) ? sum : ""}</b></td></tr></tbody></table>
     <p style="margin-top:4mm"><b>Note nach IHK-Schlüssel:</b> ${pts.some(v => v !== null) ? gradeOf(sum) : ""}</p>
-    <h2>Bemerkungen</h2>${ansOr(S.get(k+":bewnote"), 5)}<div class="sign"><div>Lehrkraft</div><div>Datum</div></div></section>`;
+    ${ex.hilfe && Object.keys(ex.hilfe).length ? `<p><b>Genutzte Hilfen:</b> ${hilfeText(ex)}</p>` : ""}
+    <h2>Bemerkungen</h2>${ansOr(S.get(k+":bewnote"), 4)}<div class="sign"><div>Lehrkraft</div><div>Datum</div></div>${nivTable(crit)}</section>`;
 }
 function doPrint(html){
   $("#print").innerHTML = html;
@@ -2250,16 +2270,16 @@ function doPrint(html){
 function openPrintDialog(id){
   const ex = BY[id], sk = EXVORL[id] || [];
   const opt = (v, t, d, on) => `<label class="opt"><input type="checkbox" name="pp" value="${v}" ${on?"checked":""}><span><b>${t}</b><span>${d}</span></span></label>`;
-  $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>${ex.id} drucken</h2><p class="muted">Wählen Sie die Seiten. Jede Seite ist ein eigenes Blatt A4; Skizzen kommen quer.</p>
-    <div class="opts">${opt("sheet","Arbeitsblatt","Situation, Signale, Auftrag, Leitfragen mit Schreiblinien",true)}${ex.wissen ? opt("wissen","Fachwissen","Hintergründe und Begründungen zur Übung",false) : ""}${opt("check","Prüfprotokoll","Prüffälle zum Ankreuzen mit Unterschriftsfeldern",true)}
-    ${opt("vars","Variablenliste","Name, Datentyp, Adresse, Kommentar",false)}${opt("rate","Selbsteinschätzung und Reflexion","Lernziele 1 bis 4, Lösungsweg, Reflexion",false)}
+  $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>${ex.id} drucken</h2><p class="muted">Wähle die Seiten. Jede Seite ist ein eigenes Blatt A4; Skizzen kommen quer.</p>
+    <div class="opts">${opt("sheet","Arbeitsblatt","Situation, Signale, Leitfragen mit Schreiblinien, Planungsaufträge, Auftrag",true)}${ex.wissen ? opt("wissen","Fachwissen","Hintergründe und Begründungen zur Übung, mit Quellen",false) : ""}${opt("check","Prüfprotokoll","Prüffälle zum Ankreuzen, Fehleranalyse, Unterschriftsfelder",true)}
+    ${opt("vars","Variablenliste","Name, Datentyp, Adresse, Kommentar",false)}${opt("rate","Selbsteinschätzung und Reflexion","Lernziele 1 bis 4, genutzte Hilfen, Lösungsweg, Reflexion",false)}
     ${sk.map(key => opt("sk:"+key, "Skizze: "+VORL[key].n, VORL[key].d+", mit Schriftfeld", false)).join("")}
     ${opt("bew","Bewertungsbogen","für die Lehrkraft",false)}</div>
-    <label class="switch"><input type="checkbox" id="pfill"> Meine Eingaben eintragen – sonst werden leere Vorlagen gedruckt</label>
+    <label class="switch"><input type="checkbox" id="pfill"> Meine Eingaben eintragen (sonst werden leere Vorlagen gedruckt)</label>
     <div class="row"><button class="btn" value="cancel">Abbrechen</button><button class="btn primary" type="button" id="pgo">${IC.print}Drucken</button></div></form>`;
   $("#pgo").onclick = () => {
     const f = $("#pfill").checked, sel = $$('#dlg input[name=pp]:checked').map(x => x.value);
-    const html = sel.map(v => v === "sheet" ? sheetPage(ex, f) : v === "check" ? checkPage(ex, f) : v === "wissen" ? `<section class="pp">${pageHead(ex, "Fachwissen")}${ex.wissen.map(w => `<h2>${w.t}</h2>${chips(w.h)}`).join("")}</section>` : v === "vars" ? varsPage(ex, f) : v === "rate" ? ratePage(ex, f) : v === "bew" ? bewPage(ex) : sketchPage(id, v.slice(3), f)).join("");
+    const html = sel.map(v => v === "sheet" ? sheetPage(ex, f) : v === "check" ? checkPage(ex, f) : v === "wissen" ? `<section class="pp">${pageHead(ex, "Fachwissen")}${ex.wissen.map(w => `<h2>${w.t}</h2>${chips(w.h)}${quelle(w)}`).join("")}</section>` : v === "vars" ? varsPage(ex, f) : v === "rate" ? ratePage(ex, f) : v === "bew" ? bewPage(ex) : sketchPage(id, v.slice(3), f)).join("");
     $("#dlg").close(); if (html) doPrint(html);
   };
   $("#dlg").showModal();
@@ -2435,6 +2455,7 @@ function viewKonzept(){
 }
 
 const CRIT = [["Planung",15,"Skizze vollständig, Leitfragen fachlich richtig"],["Funktion",30,"alle Prüffälle bestanden, Ereignisliste ohne Meldungen"],["Fehlerverhalten",20,"geforcte Fehler erkannt, gemeldet, sicher behandelt; kein selbstständiger Wiederanlauf"],["Programmstruktur",15,"nach Siemens-Programmierstyleguide: FB/FC-Aufteilung, Bezeichner und Präfixe, keine Merker, Multiinstanzen, Konstanten, Bausteinkopf"],["Dokumentation",10,"Prüfprotokoll ausgefüllt, Änderungen nachvollziehbar"],["Fachgespräch",10,"Lösung begründet, Alternativen benannt, Transfer auf reale Anlage"]];
+const critOf = () => CRIT, TYPN = {erkunden:"Erkunden", programmieren:"Programmieren", auslegen:"Auslegen", projekt:"Projekt"};
 const gradeOf = p => p >= 92 ? "1 sehr gut" : p >= 81 ? "2 gut" : p >= 67 ? "3 befriedigend" : p >= 50 ? "4 ausreichend" : p >= 30 ? "5 mangelhaft" : "6 ungenügend";
 function viewBewertung(sel){
   setNav("bewertung");
@@ -2465,7 +2486,8 @@ function refreshStatus(){
   $$(".stepper a[data-step]").forEach(a => { const n = +a.dataset.step, d = phaseDone(s, n); a.classList.toggle("done", d); a.querySelector(".n").textContent = d ? "✓" : n; });
   $$("[data-state]").forEach(el => el.textContent = (S.get(el.dataset.state) || "").trim() ? "beantwortet" : "");
   const sum = $("#sum"); if (sum) { const ok = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "ok").length, bad = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "bad").length;
-    sum.innerHTML = `<span><b>${ok}</b>bestanden</span><span><b>${bad}</b>nicht bestanden</span><span><b>${s.pr.length-ok-bad}</b>offen</span>`; }
+    const ana = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "bad" && prDone(s.id, i)).length;
+    sum.innerHTML = `<span><b>${ok}</b>bestanden</span><span><b>${bad}</b>nicht bestanden${bad ? `, davon ${ana} analysiert` : ""}</span><span><b>${s.pr.length-ok-bad}</b>offen</span>`; }
   const fin = $("#finish"); if (fin) { fin.innerHTML = finishInner(s); fin.classList.toggle("done", !!S.get(s.id+":fertig")); }
 }
 document.addEventListener("input", e => {
@@ -2493,8 +2515,8 @@ document.addEventListener("click", e => {
   const act = a.dataset.act, id = curEx();
   if (act === "timer") toggleTimer(id);
   if (act === "print") openPrintDialog(a.dataset.id);
-  if (act === "quiz") { const s = BY[id], qi = +a.dataset.q; S.set(`${id}:q${qi}`, +a.dataset.i); a.closest(".quiz").outerHTML = quizHTML(id, qi, QUIZ[id][qi]); }
-  if (act === "quiz-reset") { const qi = +a.dataset.q; S.set(`${id}:q${qi}`, null); a.closest(".quiz").outerHTML = quizHTML(id, qi, QUIZ[id][qi]); }
+  if (act === "quiz" || act === "quiz-reset") { const qi = +a.dataset.q, w = a.dataset.w || "ein"; S.set(quizKey(id, w, qi), act === "quiz" ? +a.dataset.i : null); a.closest(".quiz").outerHTML = quizHTML(id, qi, quizSet(id, w)[qi], w); }
+  if (act === "hilfe") { const s = BY[id], i = +a.dataset.i; S.set(`${id}:h${i}`, Math.min(3, hilfeLevel(s, i) + 1)); const el = a.closest(".hilfe"); el.innerHTML = hilfeInner(s, i); }
   if (act === "sk-open") openEditor(a.dataset.scope, a.dataset.key);
   if (act === "sk-print") doPrint(sketchPage(a.dataset.scope, a.dataset.key, a.dataset.with === "1"));
   if (act === "var-add") { const rows = S.get(id+":vars", []); rows.push({n:"",t:"",a:"",k:""}); S.set(id+":vars", rows); paintVars(BY[id]); const ins = $$("#vars input[data-f=n]"); ins[ins.length-1]?.focus(); }
