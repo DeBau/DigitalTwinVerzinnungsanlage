@@ -21,6 +21,7 @@ import './app/uebung.js';
 import './editor/signalfeld.js';
 import './editor/eigenschaften.js';
 import './editor/anzeige.js';
+import './editor/pruefung.js';
 import './editor/verlauf.js';
 import './editor/beschriften.js';
 import './editor/werkzeuge.js';

@@ -2157,6 +2157,65 @@ pre.code code{font-size:inherit}
     updateProps();
   }
 
+  // web/tools/uebungshandbuch/src/editor/pruefung.js
+  var ROT = "#C0392B";
+  var befunde = [];
+  var hatPruefung = (key) => !!(VORL[key] && VORL[key].pruefe);
+  function pruefeSkizze() {
+    const v = VORL[ED.key];
+    return v && v.pruefe ? v.pruefe(ED.data, { scope: ED.scope, key: ED.key }) : [];
+  }
+  function befundSVG(b, i) {
+    const o = b.o && objById(b.o), weg = b.c !== void 0 && ED.svg.querySelector(`.ink [data-c="${b.c}"] path`);
+    const nr = (x, y) => SVGT(x, y, String(i + 1), "middle", 11, 700, ROT);
+    if (o) {
+      const r = bbox(o);
+      return `<rect x="${r.x - 7}" y="${r.y - 7}" width="${r.w + 14}" height="${r.h + 14}" rx="5" fill="none" stroke="${ROT}" stroke-width="2"/>` + nr(r.x - 12, r.y - 10);
+    }
+    if (weg) {
+      const p = weg.getPointAtLength(weg.getTotalLength() / 2);
+      return `<path d="${weg.getAttribute("d")}" fill="none" stroke="${ROT}" stroke-width="3" stroke-opacity=".6"/>` + nr(p.x + 10, p.y - 6);
+    }
+    if (b.pt) return `<circle cx="${b.pt[0]}" cy="${b.pt[1]}" r="10" fill="none" stroke="${ROT}" stroke-width="2"/>` + nr(b.pt[0] + 16, b.pt[1] - 10);
+    return "";
+  }
+  function befundEbene() {
+    let g = ED.svg.querySelector(".befund");
+    if (!g) {
+      g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", "befund");
+      g.setAttribute("pointer-events", "none");
+      ED.svg.appendChild(g);
+    }
+    return g;
+  }
+  function befundListe(liste) {
+    if (!liste.length) return `<div class="props"><div class="palh">Prüfung</div><p>Keine Auffälligkeiten gefunden.</p></div>`;
+    const eintrag = (b, i) => `<li><button type="button" class="befundknopf ${b.stufe}" data-ed="befund" data-n="${i}"><b>${i + 1}</b> ${b.stufe === "fehler" ? "Fehler" : "Hinweis"}: ${esc(b.text)}</button></li>`;
+    return `<div class="props"><div class="palh">Prüfung</div><ol class="befunde">${liste.map(eintrag).join("")}</ol></div>`;
+  }
+  function zeigeBefunde(liste) {
+    befunde = liste;
+    if (!ED.svg) return;
+    befundEbene().innerHTML = liste.map(befundSVG).join("");
+    const el = $("#props");
+    if (el) el.innerHTML = befundListe(liste);
+  }
+  function befundeWeg() {
+    befunde = [];
+    const g = ED.svg && ED.svg.querySelector(".befund");
+    if (g) g.innerHTML = "";
+  }
+  function waehleBefund(i) {
+    const b = befunde[i];
+    if (!b) return;
+    clearSel();
+    if (b.o) ED.sel = b.o;
+    else if (b.c !== void 0) ED.selC = b.c;
+    renderInk();
+    updateProps(true);
+  }
+
   // web/tools/uebungshandbuch/src/editor/verlauf.js
   function ablegen(stand) {
     ED.hist.push(stand);
@@ -2172,6 +2231,7 @@ pre.code code{font-size:inherit}
     if (neu) ED.data = neu;
     if (JSON.stringify(ED.data) === vorher) return false;
     if (!ED.tx) ablegen(vorher);
+    befundeWeg();
     saveSketch();
     if (JSON.stringify(ED.data.meta) !== metaVorher) refreshTpl();
     if (!ohneRender) renderInk();
@@ -2199,6 +2259,7 @@ pre.code code{font-size:inherit}
     if (!von.length) return;
     nach.push(JSON.stringify(ED.data));
     ED.data = JSON.parse(von.pop());
+    befundeWeg();
     clearSel();
     saveSketch();
     renderInk();
@@ -2943,6 +3004,7 @@ pre.code code{font-size:inherit}
 
   // web/tools/uebungshandbuch/src/editor/oeffnen.js
   var IC_REDO = '<svg class="ic" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>';
+  var PRUEFKNOPF = (key) => hatPruefung(key) ? `<button type="button" class="tool" data-ed="pruefen" title="Zeichnung auf typische Fehler prüfen">Prüfen</button>` : "";
   var LINIE_STANDARD = { titel: "Gerade Linie, rastet im 10er-Raster", name: "Linie" };
   function openEditor(scope, key) {
     const data = S.get(skKey(scope, key)) || {};
@@ -2971,7 +3033,7 @@ pre.code code{font-size:inherit}
     <span class="sep"></span>
     <button type="button" class="tool" data-w="1.4">dünn</button><button type="button" class="tool" data-w="2.2">mittel</button><button type="button" class="tool" data-w="4">dick</button>
     <span class="sep"></span>
-    <span class="takewrap"><button type="button" class="tool" data-ed="take" aria-haspopup="true" title="Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren">${IC.copy}Aus früherer Übung</button></span><button type="button" class="tool" data-ed="undo" title="Strg+Z">${IC.undo}Rückgängig</button><button type="button" class="tool" data-ed="redo" title="Strg+Y" disabled>${IC_REDO}Wiederholen</button><button type="button" class="tool" data-ed="del" title="Entf">${IC.trash}Markiertes löschen</button><button type="button" class="tool" data-ed="clear">Alles leeren</button>
+    <span class="takewrap"><button type="button" class="tool" data-ed="take" aria-haspopup="true" title="Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren">${IC.copy}Aus früherer Übung</button></span><button type="button" class="tool" data-ed="undo" title="Strg+Z">${IC.undo}Rückgängig</button><button type="button" class="tool" data-ed="redo" title="Strg+Y" disabled>${IC_REDO}Wiederholen</button><button type="button" class="tool" data-ed="del" title="Entf">${IC.trash}Markiertes löschen</button><button type="button" class="tool" data-ed="clear">Alles leeren</button>${PRUEFKNOPF(key)}
     <span style="flex:1"></span>
     <button type="button" class="btn small" data-ed="print">${IC.print}Drucken</button><button type="button" class="btn primary small" data-ed="close">Fertig</button>
   </div><div class="edbody"><aside class="pal" aria-label="Bausteine und Eigenschaften"><div id="props"></div>${pal.length ? paletteHTML(pal) : (v.seitenleiste ? v.seitenleiste() : "") + `<div class="palhelp">${v.hilfe || ""}<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p></div>`}</aside><div class="edstage" id="edstage" tabindex="-1"></div></div></div>`;
@@ -5249,6 +5311,8 @@ END_CASE;`)}
   var AKTIONEN = {
     undo: () => undo(),
     redo: () => redo(),
+    pruefen: () => zeigeBefunde(pruefeSkizze()),
+    befund: (t) => waehleBefund(+t.dataset.n),
     take: (t) => takeMenu(t),
     takeit: (t) => takeSketch(t.dataset.from),
     rot: () => {

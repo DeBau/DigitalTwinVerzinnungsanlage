@@ -7,6 +7,7 @@ import { clearSel } from './auswahl.js';
 import { deDate, skKey } from './blaetter.js';
 import { updateProps } from './eigenschaften.js';
 import { refreshTpl, renderInk } from './anzeige.js';
+import { befundeWeg } from './pruefung.js';
 
 /* ---------- Verlauf: ED.hist (Rückgängig) und ED.zukunft (Wiederholen), je ein JSON-Stand ---------- */
 // Stand vor einer Änderung ablegen. Eine neue Änderung leert ED.zukunft.
@@ -27,6 +28,7 @@ export function aendere(aenderung, {ohneRender = false} = {}){
   if (neu) ED.data = neu;
   if (JSON.stringify(ED.data) === vorher) return false;
   if (!ED.tx) ablegen(vorher);
+  befundeWeg();   // Markierungen der Prüfung gelten nur für den geprüften Stand
   saveSketch();
   if (JSON.stringify(ED.data.meta) !== metaVorher) refreshTpl();
   if (!ohneRender) renderInk();
@@ -53,7 +55,7 @@ export function holeStand(von, nach){
   if (!von.length) return;
   nach.push(JSON.stringify(ED.data));
   ED.data = JSON.parse(von.pop());
-  clearSel(); saveSketch(); renderInk();
+  befundeWeg(); clearSel(); saveSketch(); renderInk();
 }
 export const undo = () => holeStand(ED.hist, ED.zukunft);
 export const redo = () => holeStand(ED.zukunft, ED.hist);

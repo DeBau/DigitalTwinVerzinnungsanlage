@@ -5,11 +5,15 @@ import { BLK, GN, HINT, PAL, SAMPLE, VORL } from './registry.js';
 import { drawObj, pageCount, pcSample } from './zeichnen.js';
 import { skKey, skMeta, sketchSVG } from './blaetter.js';
 import { sizeSVG } from './anzeige.js';
+import { hatPruefung } from './pruefung.js';
 import { setTool } from './werkzeuge.js';
 import { edDown, edMove, edUp } from './zeiger.js';
 
 // Bild für Wiederholen: gespiegeltes Rückgängig (IC.undo). Der Knopf bleibt aus, bis KERN K2 ihn schaltet.
 export const IC_REDO = '<svg class="ic" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>';
+// Knopf „Prüfen“ nur für Vorlagen mit dem Haken pruefe (pruefung.js)
+export const PRUEFKNOPF = key => hatPruefung(key)
+  ? `<button type="button" class="tool" data-ed="pruefen" title="Zeichnung auf typische Fehler prüfen">Prüfen</button>` : "";
 // Linien-Werkzeug, solange eine Vorlage es nicht über werkzeugleiste.linie umbenennt
 export const LINIE_STANDARD = {titel: "Gerade Linie, rastet im 10er-Raster", name: "Linie"};
 // Editor für die Zeichnung der Vorlage key im Bereich scope (Übung oder „frei“) öffnen.
@@ -37,7 +41,7 @@ export function openEditor(scope, key){
     <span class="sep"></span>
     <button type="button" class="tool" data-w="1.4">dünn</button><button type="button" class="tool" data-w="2.2">mittel</button><button type="button" class="tool" data-w="4">dick</button>
     <span class="sep"></span>
-    <span class="takewrap"><button type="button" class="tool" data-ed="take" aria-haspopup="true" title="Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren">${IC.copy}Aus früherer Übung</button></span><button type="button" class="tool" data-ed="undo" title="Strg+Z">${IC.undo}Rückgängig</button><button type="button" class="tool" data-ed="redo" title="Strg+Y" disabled>${IC_REDO}Wiederholen</button><button type="button" class="tool" data-ed="del" title="Entf">${IC.trash}Markiertes löschen</button><button type="button" class="tool" data-ed="clear">Alles leeren</button>
+    <span class="takewrap"><button type="button" class="tool" data-ed="take" aria-haspopup="true" title="Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren">${IC.copy}Aus früherer Übung</button></span><button type="button" class="tool" data-ed="undo" title="Strg+Z">${IC.undo}Rückgängig</button><button type="button" class="tool" data-ed="redo" title="Strg+Y" disabled>${IC_REDO}Wiederholen</button><button type="button" class="tool" data-ed="del" title="Entf">${IC.trash}Markiertes löschen</button><button type="button" class="tool" data-ed="clear">Alles leeren</button>${PRUEFKNOPF(key)}
     <span style="flex:1"></span>
     <button type="button" class="btn small" data-ed="print">${IC.print}Drucken</button><button type="button" class="btn primary small" data-ed="close">Fertig</button>
   </div><div class="edbody"><aside class="pal" aria-label="Bausteine und Eigenschaften"><div id="props"></div>${pal.length ? paletteHTML(pal) : (v.seitenleiste ? v.seitenleiste() : "") + `<div class="palhelp">${v.hilfe || ""}<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p></div>`}</aside><div class="edstage" id="edstage" tabindex="-1"></div></div></div>`;

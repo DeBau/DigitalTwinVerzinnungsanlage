@@ -7,6 +7,7 @@ import { deDate } from './blaetter.js';
 import { istSignalFeld, schliesseListe, signalEingabe, signalTaste, signalWahl } from './signalfeld.js';
 import { lastProp, setLastProp, updateProps } from './eigenschaften.js';
 import { renderInk, sizeSVG } from './anzeige.js';
+import { pruefeSkizze, waehleBefund, zeigeBefunde } from './pruefung.js';
 import { aendere, redo, saveSketch, snapshot, takeMenu, takeSketch, undo } from './verlauf.js';
 import { editConnLabel, editObjLabel, editTextItem, newline } from './beschriften.js';
 import { setTool, svgPt } from './werkzeuge.js';
@@ -51,6 +52,8 @@ export function paletteLoslassen(e){
 export const AKTIONEN = {
   undo: () => undo(),
   redo: () => redo(),
+  pruefen: () => zeigeBefunde(pruefeSkizze()),
+  befund: t => waehleBefund(+t.dataset.n),
   take: t => takeMenu(t),
   takeit: t => takeSketch(t.dataset.from),
   rot: () => { if (ED.sel && PC[objById(ED.sel).k]) turnSel("rot"); },
