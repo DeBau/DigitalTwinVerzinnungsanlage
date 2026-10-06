@@ -64,6 +64,8 @@ export function visual(dt) {
   pruefstationZeichnen();
   BAND.anschlag.userData.stellen(BAND.anschlagPos);           // Schwenkhebel und Kolbenstange
   BAND.vereinzeler.userData.stellen(BAND.vereinzelerPos);
+  BAND.anschlag.userData.druecken(BAND.anschlagDruck);       // Anschlagleisten (Korb drückt gegen den Dämpfer)
+  BAND.vereinzeler.userData.druecken(BAND.vereinzelerDruck);
 
   for (const k of koerbe) {
     if (k.zustand === 'kipper') { /* Position in pruefstationZeichnen */ }

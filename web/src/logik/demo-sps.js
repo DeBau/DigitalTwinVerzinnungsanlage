@@ -5,7 +5,7 @@ import { eingang } from './eingaenge.js';
 // Demo-SPS – Schrittkette im Browser, wenn keine SPS gekoppelt ist
 // ----------------------------------------------------------------------------
 export const demo = { hand8: false, kurve: { rechts: false, links: false, nachlauf: 0 }, ps: { kip: false, kt: 0, gekippt: false, nachlauf: 0, bg32Alt: false, niOAlt: false, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false, voPb: false }, nh: { aktiv: [], erst: null, quittiertAn: null, freiAlt: true }, b2: { mulde: false, rechts: false, links: false, nachlauf: 0, trig: false, tt: 0, geprueft: false }, hand5: false, hand6: false, schritt: 1, auto: false, t: 0, korbFertig: false, mitKorb: false, sf1Alt: false, warten: false,
-  band: { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Zeit: 0, bg11Aus: 0, uebNach: 0 }, bad: { heiz: false, fuell: false }, kw: { i: 0 } };
+  band: { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Aus: 0, uebNach: 0 }, bad: { heiz: false, fuell: false }, kw: { i: 0 } };
 // Telegramm 1: 16#047F = Betrieb, 16#047E = AUS1, aus der Einschaltsperre (ZSW1.6) erst mit AUS1 = 0;
 // Störungen quittiert ein Quittiertaster über STW1.7
 function telegramm(A, name, vor, zurueck, nsoll = 0x4000) {
@@ -36,7 +36,7 @@ export function demoSps(dt) {
   if (!E('BG11_Korb')) demo.korbFertig = false;
 
   const grund = E('BG2_MM1_geloest') && E('BG4_MM2_unten') && E('BG5_MM3_Band') && E('BG8_MM4_zu');
-  const bed = grund && E('BG9_Temperatur') && E('BG10_Fuellhoehe') && E('BG11_Korb') && !demo.korbFertig;
+  const bed = grund && E('BG9_Temperatur') && E('BG10_Fuellhoehe') && E('BG40_Korb_am_Anschlag') && !demo.korbFertig;   // −BG40: Korb liegt am Anschlag an
   const weiter = frei && !demo.warten && !hand;
 
   const alt = demo.schritt;
@@ -94,14 +94,13 @@ export function demoSps(dt) {
   A.PF1_Automatik = demo.auto;
   A.PF2_Temperatur = E('BG9_Temperatur');
   A.PF3_Fuellhoehe = !E('BG10_Fuellhoehe');
-  A.PF4_Korb = E('BG11_Korb') && !demo.auto;
+  A.PF4_Korb = E('BG40_Korb_am_Anschlag') && !demo.auto;
   A.PF5_Quittieren = !frei && (performance.now() % 1000 < 500);
   for (const q of QUITT) A[q.pf] = A.PF5_Quittieren;                  // Leuchttaster −SF41…−SF44: eigene Ausgänge, gleiche Blinklogik
   A.PF6_VorOrt = E('SA2_VorOrt');
 
   // Band (wirkt nur bei Übungsumfang „SPS steuert“)
-  const b = demo.band, bg11 = E('BG11_Korb'), bg12 = E('BG12_Bandanfang');
-  b.bg11Zeit = bg11 ? b.bg11Zeit + dt : 0;
+  const b = demo.band, bg11 = E('BG11_Korb'), bg12 = E('BG12_Bandanfang'), bg40 = E('BG40_Korb_am_Anschlag');
   b.bg11Aus = bg11 ? 0 : b.bg11Aus + dt;
   const motorOk = frei && E('FA1_Motorschutz');
   if (E('SA2_VorOrt')) {
@@ -118,13 +117,14 @@ export function demoSps(dt) {
     if (b.anschlagAuf) b.abgabe = 18;                                          // Abgabe: fertigen Korb bis ans Bandende (Rollenkurve) bringen
     b.nachlauf = Math.max(0, b.nachlauf - dt);
     b.abgabe = Math.max(0, b.abgabe - dt);
-    const korbWartet = bg11 && !demo.korbFertig && b.bg11Zeit > 1.5 && !bg12;  // neuer Korb steht am Anschlag
+    const korbWartet = bg40 && !demo.korbFertig && !bg12;                     // neuer Korb liegt am Anschlag an (−BG40, unabhängig von der Bandgeschwindigkeit)
     // Übergabe Band 1 → Rollenkurve: Band 1 läuft mit, solange die Kurve den Korb übernimmt (−BG13 oder −BG35 belegt);
     // 1 s Nachlauf überbrückt die Lücke zwischen den Strahlen (Korb zwischen −BG13 und −BG35)
     if (E('BG13_Bandende') || E('BG35_Kurve_Anfang')) b.uebNach = 1;
     b.uebNach = Math.max(0, b.uebNach - dt);
     const uebergabe1 = demo.kurve.rechts && b.uebNach > 0;
-    b.rechts = motorOk && (b.abgabe > 0 || (b.nachlauf > 0 && !korbWartet) || uebergabe1);   // Stauband: wartender Korb rutscht am Anschlag
+    const einlauf = bg11 && !bg40 && !demo.korbFertig;                       // Korb unter −BG11, liegt noch nicht an: weiterfördern
+    b.rechts = motorOk && (b.abgabe > 0 || (b.nachlauf > 0 && !korbWartet) || einlauf || uebergabe1);   // Stauband: wartender Korb rutscht am Anschlag
   }
   A.QA1_Band_Rechts = b.rechts;
   A.QA2_Band_Links = b.links;

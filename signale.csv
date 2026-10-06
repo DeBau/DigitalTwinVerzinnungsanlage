@@ -69,7 +69,7 @@ BG7_MM4_offen;%I0.6;Endlage -MM4 eingefahren = Bad offen
 BG8_MM4_zu;%I0.7;Endlage -MM4 ausgefahren = Bad abgedeckt (Grundstellung)
 BG9_Temperatur;%I1.0;Betriebstemperatur Zinn erreicht (1 = ok, ab 250 Grad C)
 BG10_Fuellhoehe;%I1.1;Fuellhoehe Zinnbad ausreichend (1 = ok, ab 40 %)
-BG11_Korb;%I1.2;Lichtschranke Materialkorb am Uebergabeplatz
+BG11_Korb;%I1.2;Lichtschranke Einlauf Uebergabeplatz (Korb kommt, liegt aber noch nicht am Anschlag)
 SF1_Start;%I1.3;Taster START (Schliesser)
 SF2_Stop;%I1.4;Taster STOP (Oeffner: 1 = nicht betaetigt)
 SA3_Handbetrieb;%I1.5;Wahlschalter Schaltschranktuer (1 = Hand, 0 = Auto)
@@ -127,7 +127,9 @@ BG30_MM8_unten;%I7.4;Kipper -MM8 unten (Grundstellung)
 BG31_MM8_gekippt;%I7.5;Kipper -MM8 gekippt
 BG33_Kipper_Korb;%I7.6;Korb am Endanschlag der Kippmulde
 BG34_KLT_voll;%I7.7;KLT i.O.-Teile voll (104 Teile)
-# --- Handbetrieb MM8 (3. DI-Baugruppe ab %I8.0, %I8.0/%I8.1 Reserve) ---
+# --- 3. DI-Baugruppe ab %I8.0 (%I8.1 Reserve): Abfrage Anschlagleiste -MM5 ---
+BG40_Korb_am_Anschlag;%I8.0;Korb liegt am Anschlag -MM5 an (induktiver Sensor M8 an der gefederten Anschlagleiste)
+# --- Handbetrieb MM8 ---
 SF28_MM8_Kippen;%I8.2;Handtaster -MM8 Kipper kippen
 SF29_MM8_Zurueck;%I8.3;Handtaster -MM8 Kipper zurueck
 # --- Rollenkurve: Vor-Ort-Steuerstelle -S30, Motorschutz -FA7 ---

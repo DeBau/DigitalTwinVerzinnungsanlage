@@ -6,6 +6,38 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.8.0 – 2026-10-06
+
+Bridge neu bauen (`Bridge\build.bat`) und mit der neuen `signale.csv` starten: Der Code der Bridge
+hat sich nicht geändert, aber sie trägt die neue Nebenversion, und erst mit der neuen Signalliste
+kennt sie −BG40. Die TIA-Variablentabellen neu importieren (162 Signale).
+
+**Neu**
+- **Abfrage „Korb liegt am Anschlag an“ −BG40** (`BG40_Korb_am_Anschlag` %I8.0): Die Lichtschranke
+  −BG11 meldet einen Korb schon 55 mm vor dem Anschlag −MM5. Wie lange er bis zum Anschlag braucht,
+  hängt von der Bandgeschwindigkeit ab – eine Wartezeit nach −BG11 passt deshalb nie für alle
+  Geschwindigkeiten. Jetzt ist die Anschlagleiste gefedert: Der Korb drückt sie um den Resthub von
+  3 mm gegen den Stoßdämpfer, eine Schaltfahne auf dem Alu-Träger kommt vor einen induktiven Sensor
+  M8 (bündig, sn 1,5 mm) im Haltewinkel auf dem Hebel. −BG40 meldet erst, wenn der Korb wirklich
+  anliegt.
+- Die Leiste von Anschlag −MM5 und Vereinzeler −MM6 bewegt sich sichtbar mit, die Muttern der
+  Führungsbolzen heben dabei vom Hebel ab. Leitung von −BG40 auf dem Hebel zur Drehachse und von dort
+  zum Feldverteiler −XD3, Port X4.
+- HMI-Bild im Schaltschrank: Lampe −BG40 neben −BG11, „Korb am Übergabeplatz“ zeigt jetzt −BG40.
+
+**Geändert**
+- −BG11 heißt in der Signalliste „Lichtschranke Einlauf Übergabeplatz (Korb kommt)“. Adresse und Name
+  bleiben gleich.
+- Die Demo-SPS startet den Zyklus und hält das Band mit −BG40 statt 1,5 s nach −BG11. Solange
+  −BG11 belegt ist und −BG40 noch nicht meldet, fördert das Band weiter. Die Leuchte −PF4 zeigt −BG40.
+- **TIA-Programme, die mit −BG11 den Zyklus starten**, laufen weiter, das Portal kann dabei aber
+  einen Korb anfahren, der noch rollt. Auf −BG40 umstellen.
+
+**Doku**
+- `docs/02-anlage.md`: Anschlagleiste mit −BG40, Sensortabelle, Belegung von −XD3.
+- `docs/05-uebungen.md`: Aufgabe 7 um −BG11/−BG40 und eine Einlaufüberwachung ergänzt.
+- `docs/01-inbetriebnahme.md`, `docs/04-signale.md`, `README.md`: −BG40, 162 Signale.
+
 ## 1.7.0 – 2026-10-06
 
 Bridge neu bauen (`Bridge\build.bat`) und mit der neuen `signale.csv` starten: Der Code der Bridge

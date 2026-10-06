@@ -11,7 +11,7 @@ import { LOCALE, t } from '../core/sprache.js';
 import { label, platte, schildPlatte, tafel } from '../core/beschriftung.js';
 import { sensorLed } from '../core/leds.js';
 import { buendel, leitung, rohr } from '../bauteile/leitungen.js';
-import { BAND, BAND2, KURVE, LS_POS } from './baender.js';
+import { BAND, BAND2, KURVE, LS_POS, STOPPER } from './baender.js';
 import { MULDE, ST } from './pruefstation.js';
 import { dummy, rohrNeu } from './pneumatik.js';
 import { drucktaster, meldeleuchte, tafelText, wahlschalter } from './befehlsgeraete.js';
@@ -782,7 +782,7 @@ function hmiZeichnen() {
   const hand = E('SA3_Handbetrieb'), auto = E('SA1_Dauerbetrieb');
   txt(t(hand ? 'HAND (Schaltschrank)' : auto ? 'AUTOMATIK' : 'EINZELZYKLUS'), 40, 160, 34, hand ? '#c27a00' : '#1f3b57', 700);
   lampe(55, 210, A('PF1_Automatik')); txt(t('Anlage läuft'), 85, 219);
-  lampe(55, 255, E('BG11_Korb')); txt(t('Korb am Übergabeplatz'), 85, 264);
+  lampe(55, 255, E('BG40_Korb_am_Anschlag')); txt(t('Korb am Übergabeplatz'), 85, 264);
   txt(st.modus === 'demo' ? t`Schritt ${demo.schritt}: ${t(SCHRITT_TEXT[demo.schritt] || '')}` : t('Schritt: siehe SPS'), 40, 315, 26, '#1b232c', 600);
   txt(t`Verzinnt: ${st.verzinnt}`, 40, 360, 26);
   // Zinnbad
@@ -807,7 +807,11 @@ function hmiZeichnen() {
   feld(20, 410, 1240, 250, 'Förderband');
   x.fillStyle = '#3a4047'; x.fillRect(80, 530, 1120, 34);
   for (const k of koerbe) if (k.zustand === 'band') { const px = 640 + (k.z - 150) / 950 * 560; x.fillStyle = k.fertig ? '#c9cfd5' : '#b8743f'; x.fillRect(px - 36, 480, 72, 50); x.strokeStyle = '#4a5866'; x.strokeRect(px - 36, 480, 72, 50); }
-  for (const [sig, t] of [['BG12_Bandanfang', 'BG12'], ['BG11_Korb', 'BG11'], ['BG13_Bandende', 'BG13']]) { const z = LS_POS[sig], px = 640 + (z - 150) / 950 * 560; lampe(px, 588, E(sig), '#e3a100'); txt(t, px, 620, 18, '#1b232c', 600, 'center'); }
+  // −BG40 sitzt an der Anschlagleiste −MM5 (33 px neben −BG11): Beschriftungen der beiden nach außen ausgerichtet
+  for (const [sig, t, z, ausr] of [['BG12_Bandanfang', 'BG12'], ['BG11_Korb', 'BG11', LS_POS.BG11_Korb, 'right'], ['BG40_Korb_am_Anschlag', 'BG40', STOPPER.MM5 + STOPPER.HUB, 'left'], ['BG13_Bandende', 'BG13']]) {
+    const px = 640 + ((z ?? LS_POS[sig]) - 150) / 950 * 560, dx = ausr === 'right' ? 8 : ausr === 'left' ? -8 : 0;
+    lampe(px, 588, E(sig), '#e3a100'); txt(t, px + dx, 620, 18, '#1b232c', 600, ausr || 'center');
+  }
   const pfeil = t(BAND.v > 1 ? '→  vorwärts' : BAND.v < -1 ? '←  rückwärts' : 'Halt');
   txt(t`Band: ${pfeil}   ${Math.abs(BAND.v).toFixed(0)} mm/s   Weg ${(BAND.weg / 1000).toFixed(2)} m`, 40, 465, 24, '#1b232c', 600);
   lampe(860, 456, E('SA2_VorOrt'), '#2f7fd0'); txt(t('Vor-Ort aktiv'), 885, 465, 22);

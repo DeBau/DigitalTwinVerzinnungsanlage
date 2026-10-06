@@ -38,7 +38,7 @@ Zum Anschauen ohne Bridge reicht auch ein Doppelklick auf `web\index.html`. Ohne
 
 1. `Bridge\start.bat` starten. In der Konsole erscheint *Mit PLCSIM-Advanced-Instanz 'Zinnbad' verbunden*.
 2. Der Zwilling schaltet automatisch auf **PLCSIM Advanced** (zwei grüne Punkte).
-3. −SA1 auf AUTO, **START −SF1** drücken. Liegt ein Korb an −BG11 und sind Temperatur und Füllhöhe in Ordnung, läuft der Zyklus.
+3. −SA1 auf AUTO, **START −SF1** drücken. Liegt ein Korb am Anschlag an (−BG40) und sind Temperatur und Füllhöhe in Ordnung, läuft der Zyklus.
 4. Testideen:
    - **NOT-HALT** während der Fahrt → alles steht, −PF5 und die Leuchttaster der Vor-Ort-Stellen blinken, HMI und Ereignisliste nennen den Taster. Entriegeln, an einer beliebigen Stelle quittieren, START → weiter.
    - **STOP** im Automatikbetrieb → der laufende Korb wird fertig, danach Stopp. **EINZEL** → ein Zyklus pro START.
@@ -61,7 +61,7 @@ Zum Anschauen ohne Bridge reicht auch ein Doppelklick auf `web\index.html`. Ohne
 | *Instanz 'Zinnbad' nicht gefunden* | Instanzname im Control Panel prüfen oder in `start.bat` anpassen. |
 | Webserver startet nicht | Port belegt → `PORT` in `start.bat` ändern. Bei „Zugriff verweigert“ einmalig als Administrator: `netsh http add urlacl url=http://localhost:8181/ user=%USERNAME%` |
 | Zwilling meldet „Namen nicht gefunden“ | Namen in `signale.csv` wurden geändert. Die Namen müssen wie geliefert bleiben, nur die Adressen sind frei. |
-| Anlage bewegt sich nicht | Not-Halt verriegelt oder nicht quittiert (−KF2_NotHalt_OK = 0)? −SA3 auf HAND? Im Signalmonitor prüfen, ob MB1–MB8 ankommen und ob die Grundstellung (BG2, BG4, BG5, BG8) sowie BG9–BG11 anliegen. |
+| Anlage bewegt sich nicht | Not-Halt verriegelt oder nicht quittiert (−KF2_NotHalt_OK = 0)? −SA3 auf HAND? Im Signalmonitor prüfen, ob MB1–MB8 ankommen und ob die Grundstellung (BG2, BG4, BG5, BG8) sowie BG9, BG10 und BG40 anliegen. |
 | Seite per Doppelklick geöffnet, aber keine Verbindung | Die Bridge muss laufen (`start.bat`). Die Seite verbindet sich dann von selbst mit `localhost:8181`, egal ob per Doppelklick oder über `http://localhost:8181` geöffnet. |
 
 [◀ Zurück zur Übersicht](../README.md)

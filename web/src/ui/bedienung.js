@@ -167,7 +167,7 @@ function bedienSync() {
   $('btn-heizung').disabled = st.betriebBad === 'sps';
   $('btn-fuellen').disabled = st.betriebBad === 'sps';
   $('betrieb-hint').textContent = [
-    st.betriebBand === 'sps' ? 'Band: −QA1/−QA2 (Rechts/Links), −MB9 Anschlag, −MB10 Vereinzeler, Rollenkurve −QA10/−QA11, Band 2, Muldenrollen −QA12/−QA13 und Prüfstation aus deinem Programm; −BG11…−BG13, −BG35/−BG36, −BG21…−BG24, −BG37/−BG33 (Einlauf/Endanschlag Kippmulde) und die Vor-Ort-Steuerstellen sind Eingänge.' : 'Band: Das Bandmodul fördert, stoppt, vereinzelt und übergibt über die Rollenkurve selbstständig.',
+    st.betriebBand === 'sps' ? 'Band: −QA1/−QA2 (Rechts/Links), −MB9 Anschlag, −MB10 Vereinzeler, Rollenkurve −QA10/−QA11, Band 2, Muldenrollen −QA12/−QA13 und Prüfstation aus deinem Programm; −BG11…−BG13, −BG40 (Korb liegt am Anschlag an), −BG35/−BG36, −BG21…−BG24, −BG37/−BG33 (Einlauf/Endanschlag Kippmulde) und die Vor-Ort-Steuerstellen sind Eingänge.' : 'Band: Das Bandmodul fördert, stoppt, vereinzelt und übergibt über die Rollenkurve selbstständig.',
     UMRICHTER_LISTE.some(fu => st.antrieb[fu.name] === 'fu') ? t`Am Umrichter: ${UMRICHTER_LISTE.filter(fu => st.antrieb[fu.name] === 'fu').map(fu => '−' + fu.name).join(', ')}. ${t(st.betriebBand === 'sps' ? 'Dein Programm führt sie über Standardtelegramm 1 (STW1/NSOLL_A → ZSW1/NIST_A), z. B. mit TO_SpeedAxis; die zugehörigen Schütze sind ohne Wirkung.' : 'Das Bandmodul führt sie selbst. Mit „SPS steuert“ übernimmt dein Programm die Telegramme.')}` : '',
     st.betriebBad === 'sps' ? 'Zinnbad: −TB1 Heizung (2-Punkt, Impuls/PWM oder PID) und −MB11 Nachfüllen aus deinem Programm, Istwerte −BT1/−BL1 analog.' : 'Zinnbad: Der Regler am Bad hält 280 °C, nachfüllen per Knopf.',
     st.betriebWasser === 'sps' ? 'Kühlwasser: −MB17 Magnetventil und −MB18 Regelventil (%QW80, 0…27648) aus deinem Programm – Zweipunkt mit den Grenzschaltern −BG38/−BG39, mit Hysterese auf den Radar −BL2 (%IW72) oder stetig mit PID_Compact. Den Trockenlaufschutz der Pumpe −MA3 übernimmt dein Programm.' : 'Kühlwasser: Der Niveauregler am Tank speist zwischen 55 und 75 % nach und sperrt die Pumpe unter −BG38.',
@@ -231,7 +231,7 @@ function anlageZuruecksetzen() {
   Object.assign(demo.kurve, { rechts: false, links: false, nachlauf: 0 });
   Object.assign(demo.band, { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Zeit: 0, bg11Aus: 0, uebNach: 0 });
   demo.b2.mulde = false;
-  Object.assign(BAND, { v: 0, wende: 0, anschlagPos: 1, vereinzelerPos: 0 });
+  Object.assign(BAND, { v: 0, wende: 0, anschlagPos: 1, vereinzelerPos: 0, anschlagDruck: 0, vereinzelerDruck: 0 });
   bedienSync();
   $('btn-heizung').setAttribute('aria-pressed', true);
   $('btn-heizung').textContent = t('Heizung ein');

@@ -58,6 +58,7 @@ export default {
   BG9_Temperatur: 'BG9_Temperature',
   BG10_Fuellhoehe: 'BG10_FillLevel',
   BG11_Korb: 'BG11_Basket',
+  BG40_Korb_am_Anschlag: 'BG40_Basket_at_Stop',
   SF1_Start: 'SF1_Start',
   SF2_Stop: 'SF2_Stop',
   SA3_Handbetrieb: 'SA3_ManualMode',

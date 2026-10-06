@@ -39,7 +39,10 @@ eigene Regelungsübung neben einer automatisch laufenden Anlage (Aufgaben 21–2
 6. **Band mit Vor-Ort-Steuerstelle.** −SA2 schaltet auf Vor-Ort um, Rechts/Links/Halt mit
    Selbsthaltung und gegenseitiger Verriegelung, Leuchte −PF6, Motorschutz −FA1 auswerten.
 7. **Anschlag und Vereinzeler.** Körbe stauen, einzeln freigeben, nächsten Korb an den
-   Übergabeplatz fördern.
+   Übergabeplatz fördern. −BG11 meldet nur „Korb kommt“ (55 mm vor dem Anschlag), erst −BG40
+   „Korb liegt an“ – die Kette auf −BG40 weiterschalten, nicht auf eine Wartezeit nach −BG11
+   (die passt nur für eine Bandgeschwindigkeit). Einlaufüberwachung: Kommt nach −BG11 nicht
+   innerhalb von 3 s −BG40, Störung „Korb klemmt“ melden und das Band anhalten.
 
 ### Fortgeschritten
 

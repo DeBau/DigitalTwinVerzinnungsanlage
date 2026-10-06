@@ -1,7 +1,7 @@
 import { NOT_HALT, QUITT, TAUCH_SOLL, TROPF_SOLL, ZYL, notHaltText, st } from './zustand.js';
 import { anlage } from '../core/szene.js';
 import { fmt1 } from '../core/format.js';
-import { BAND, BAND_ENDE, BAND_Y, KORB_TEILUNG, KURVE } from '../anlage/baender.js';
+import { BAND, BAND_ENDE, BAND_Y, KORB_TEILUNG, KURVE, STOPPER } from '../anlage/baender.js';
 import { BAD_X, RAND_Y, zinnY } from '../anlage/zinnbad.js';
 import { koerbe, korbEntfernen, korbErzeugen, tropfen, tropfenErzeugen } from '../anlage/koerbe.js';
 import { ereignis } from '../ui/ereignisse.js';
@@ -65,7 +65,7 @@ export function prozess(dt) {
 
   // Band: Antrieb, Anschlag und Vereinzeler – je nach Übungsumfang vom Bandmodul oder von der SPS gesteuert
   const bandKoerbe = koerbe.filter(k => k.zustand === 'band');
-  // Schwenkhebel −MM5/−MM6: Anschlagfläche za, Leiste/Hebel/Bolzenköpfe bis za + 25 (Dämpfer liegt neben dem Korb)
+  // Schwenkhebel −MM5/−MM6: Anschlagleiste in Ruhe ab za, Leiste/Hebel/Bolzenköpfe bis za + 25 (Dämpfer liegt neben dem Korb)
   const ueberdeckt = (za) => bandKoerbe.some(k => k.z + 55 > za + 0.5 && k.z - 55 < za + 25);   // Korbkörper ±55
   let anschlagZu, vereinzelerZu;
   if (st.betriebBand === 'auto' && !st.sa3) {
@@ -81,8 +81,8 @@ export function prozess(dt) {
     const schritt = dt * 6 * st.speed * drosselFaktor(kurz, ziel === 0 ? 1 : -1);
     return pos + Math.max(-schritt, Math.min(schritt, ziel - pos));
   };
-  BAND.anschlagPos = fahre(BAND.anschlagPos, anschlagZu, 55, 'MM5');            // Anschlagfläche −MM5
-  BAND.vereinzelerPos = fahre(BAND.vereinzelerPos, vereinzelerZu, -95, 'MM6');   // Anschlagfläche −MM6
+  BAND.anschlagPos = fahre(BAND.anschlagPos, anschlagZu, STOPPER.MM5, 'MM5');            // Anschlagleiste −MM5
+  BAND.vereinzelerPos = fahre(BAND.vereinzelerPos, vereinzelerZu, STOPPER.MM6, 'MM6');   // Anschlagleiste −MM6
   const grenzen = bandGrenzen(bandKoerbe);
   let vZiel = 0;
   if (st.betriebBand === 'auto' && st.sa2) {
@@ -118,6 +118,10 @@ export function prozess(dt) {
     const g = grenzen.get(k);
     k.z = Math.max(Math.min(k.z, g.min), Math.min(Math.max(k.z, g.max), k.z + vBand1(k) * dt));   // an der Kurve gemeinsam mit −MA6
   }
+  // Anschlagleisten: der Korb vor dem geschlossenen Hebel drückt sie mit der Stirnwand bis zum Resthub ein (Feder drückt zurück)
+  const druck = (pos, za) => pos >= HEBEL_FREI ? 0 : Math.max(0, ...bandKoerbe.filter(k => k.z - 55 < za).map(k => Math.min(STOPPER.HUB, k.z + 55 - za)));
+  BAND.anschlagDruck = druck(BAND.anschlagPos, STOPPER.MM5);
+  BAND.vereinzelerDruck = druck(BAND.vereinzelerPos, STOPPER.MM6);
   uebergabeUndBand2(dt);
   pruefstation(dt);
   spawnSperre -= dt;
@@ -175,7 +179,8 @@ export function korbAuflegen(manuell) {
   spawnSperre = 3;
 }
 // Bewegungsgrenzen je Korb: Endanschlag am Bandanfang, Abstand zu den Nachbarkörben (Kante an Kante),
-// Anschlag- und Vereinzelerfinger (sperren je nach Richtung von der einen oder anderen Seite)
+// Anschlag- und Vereinzelerfinger (sperren je nach Richtung von der einen oder anderen Seite; von vorn erst, wenn die
+// Anschlagleiste um den Resthub eingedrückt ist, von hinten an Hebel und Bolzenköpfen bei za + 25)
 // Körbe stauen sich über ihre Stoßpuffer: Teilung 150 mm, 40 mm Lücke zwischen den Korbkörpern für den Vereinzelerhebel
 // Der Schwenkhebel gibt den Korb erst ab 80 % Öffnungswinkel frei (dann ist er über Korbrand und Tragbügel)
 const HEBEL_FREI = 0.8;
@@ -184,15 +189,15 @@ function bandGrenzen(liste) {
   let vorne = kurveEinlauf() + KORB_TEILUNG;                           // letzter Korb in der Rollenkurve
   for (const k of vor) {
     let max = vorne - KORB_TEILUNG;
-    if (BAND.anschlagPos < HEBEL_FREI && k.z <= 0.5) max = Math.min(max, 0);
-    if (BAND.vereinzelerPos < HEBEL_FREI && k.z <= -149.5) max = Math.min(max, -150);
+    if (BAND.anschlagPos < HEBEL_FREI && k.z <= 0.5) max = Math.min(max, STOPPER.MM5 + STOPPER.HUB - 55);
+    if (BAND.vereinzelerPos < HEBEL_FREI && k.z <= -149.5) max = Math.min(max, STOPPER.MM6 + STOPPER.HUB - 55);
     m.set(k, { max, min: -Infinity }); vorne = k.z;
   }
   let hinten = -Infinity;
   for (const k of [...vor].reverse()) {
     let min = Math.max(hinten + KORB_TEILUNG, -BAND_ENDE);
-    if (BAND.anschlagPos < HEBEL_FREI && k.z >= 134.5) min = Math.max(min, 135);
-    if (BAND.vereinzelerPos < HEBEL_FREI && k.z >= -15.5) min = Math.max(min, -15);
+    if (BAND.anschlagPos < HEBEL_FREI && k.z >= STOPPER.MM5 + 79.5) min = Math.max(min, STOPPER.MM5 + 80);
+    if (BAND.vereinzelerPos < HEBEL_FREI && k.z >= STOPPER.MM6 + 79.5) min = Math.max(min, STOPPER.MM6 + 80);
     m.get(k).min = min; hinten = k.z;
   }
   return m;

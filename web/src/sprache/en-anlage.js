@@ -19,6 +19,8 @@ export default {
   'Antrieb Band 2 −MA2': 'Drive conveyor 2 −MA2',
   'Antrieb Rollenkurve −MA6': 'Drive roller curve −MA6',
   '−BG12 Bandanfang': '−BG12 Conveyor start',
+  '−BG40 Korb liegt an': '−BG40 Basket in position',
+  'Korb liegt an': 'Basket in position',
   '−BG13 Band 1 Ende': '−BG13 Conveyor 1 end',
   '−BG18 Inkrementalgeber 10 Imp/U': '−BG18 Incremental encoder 10 ppr',
   '−BG27 Inkrementalgeber Band 2': '−BG27 Incremental encoder conveyor 2',

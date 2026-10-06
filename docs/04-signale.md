@@ -1,6 +1,6 @@
 # Signale und TIA-Anbindung
 
-Der Zwilling kennt **161 Signale**: 108 Eingänge (davon 6 Analogwerte und 8 Telegrammwörter) und
+Der Zwilling kennt **162 Signale**: 109 Eingänge (davon 6 Analogwerte und 8 Telegrammwörter) und
 53 Ausgänge (davon 1 Analogwert und 8 Telegrammwörter). Sie sind die
 einzige Schnittstelle zwischen deinem Programm und dem Modell – kein proprietäres Protokoll, keine
 Bausteinbibliothek, keine Lizenzdatei.
@@ -222,7 +222,7 @@ fahren zum Band und schließen das Bad, senken und lösen. Ein dabei abgelegter 
 
 ## Variablentabelle
 
-Zwei Variablentabellen mit denselben 161 Signalen und denselben Adressen, zum Import in TIA
+Zwei Variablentabellen mit denselben 162 Signalen und denselben Adressen, zum Import in TIA
 (PLC-Variablen → Rechtsklick → *Importieren*):
 
 | Datei | Namen und Kommentare | Beispiel |
