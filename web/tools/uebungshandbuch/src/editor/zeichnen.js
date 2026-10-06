@@ -4,7 +4,7 @@ import { ED } from './status.js';
 import { BLK, FIXED, GRUPPE, PC, VORL, art } from './registry.js';
 import { G, strokesSVG } from './vorlagen-svg.js';
 import { BLUE, istSchiene, portsOf, simOn, vrails, wireD, wireEnds, xform } from './bauteile.js';
-import { bbox, bw, ctr, fam, gruppeVon } from './bausteine.js';
+import { bbox, ctr, fam, gruppeVon } from './bausteine.js';
 import { verbindeKette } from './kette.js';
 
 export function drawObj(o, edit){
@@ -17,14 +17,6 @@ export function drawObj(o, edit){
   }
   const a = BLK[o.k];
   if (a && a.zeichne) return a.zeichne(o, edit);
-  const x = o.x, y = o.y, st = `stroke="${INK}" stroke-width="1.6"`, ph = (t, xx, yy, a="middle") => edit ? SVGT(xx, yy, t, a, 12, 400, MUTE) : "";
-  switch (o.k) {
-    case "state": return `<circle cx="${x}" cy="${y}" r="36" fill="#fff" ${st}/>` + SVGT(x, y+5, o.v);
-    case "sinit": return `<circle cx="${x}" cy="${y}" r="36" fill="#fff" ${st}/><circle cx="${x}" cy="${y}" r="31" fill="none" ${st}/>` + SVGT(x, y+5, o.v);
-    case "start": return `<circle cx="${x}" cy="${y}" r="8" fill="${INK}"/>`;
-    case "box": { const w = bw(o); return `<rect x="${x}" y="${y}" width="${w}" height="50" rx="3" fill="#fff" ${st}/>` + (o.v ? SVGT(x+w/2, y+30, o.v) : ph("Block", x+w/2, y+30)); }
-    case "sum": return `<circle cx="${x}" cy="${y}" r="15" fill="#fff" ${st}/><path d="M${x-10.6} ${y-10.6}L${x+10.6} ${y+10.6}M${x+10.6} ${y-10.6}L${x-10.6} ${y+10.6}" stroke="${INK}" stroke-width="1"/>`;
-  }
   return "";
 }
 // Name eines Bausteins im Verweis an einer Abbruchstelle, z. B. „Schritt 7“ (Haken verweisName der Bausteinart)

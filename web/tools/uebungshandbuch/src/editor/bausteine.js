@@ -1,10 +1,8 @@
 // Editor-Kern: Geometrie der Bausteine (Umriss, Mitte, Kettenanschlüsse) und Hilfen zum Zeichnen einfacher Bausteine.
 // Die Einzelheiten je Bausteinart kommen über die Haken umriss, mitte, aus, ein aus den Vorlagen (registry.js).
-import { INK, MUTE, SVGT, tw } from './svg.js';
+import { INK, MUTE, SVGT } from './svg.js';
 import { BLK, GRUPPE, PC, art } from './registry.js';
 import { xform } from './bauteile.js';
-
-export const bw = o => Math.max(110, Math.round((tw(o.v || "Block") + 30) / 10) * 10);
 
 // Strichart einfacher Bausteine und Platzhaltertext, der nur im Editor erscheint
 export const LINIE = `stroke="${INK}" stroke-width="1.6"`;
@@ -26,9 +24,6 @@ export function bbox(o){
   }
   const a = BLK[o.k];
   if (a && a.umriss) return a.umriss(o);
-  switch (o.k) {
-    case "box": return {x:o.x, y:o.y, w:bw(o), h:50};
-  }
   return {x:o.x, y:o.y, w:20, h:20};
 }
 export function ctr(o){

@@ -24,7 +24,6 @@ export function makeObj(k, [px, py]){
   if (PC[k]) return neuesBauteil(k, mk, px, py);
   const o = {id: uid(), k}, a = BLK[k];
   if (a && a.neu) a.neu(o, [px, py], mk);
-  else if (k === "box") { o.x = px - 55; o.y = py - 25; o.v = ""; }
   else { o.x = px; o.y = py; }
   [o.x, o.y] = snap([o.x, o.y]);
   return o;
@@ -76,7 +75,7 @@ export function placeObj(k, pt){
   else if (dock && !linked(dock.a, dock.b)) ED.data.c.push({a: dock.a, b: dock.b, v: ""});
   ED.sel = o.id; ED.selC = null; saveSketch(); setTool("sel");
   const b = art(o.k).beschriftung;
-  if ((b && b.sofort) || o.k === "box") editObjLabel(o);   // z. B. Transition: Bedingung gleich eintragen
+  if (b && b.sofort) editObjLabel(o);   // z. B. Transition: Bedingung gleich eintragen
 }
 export function connectPorts(a, pa, b, pb){
   if (a === b && pa === pb) return;
