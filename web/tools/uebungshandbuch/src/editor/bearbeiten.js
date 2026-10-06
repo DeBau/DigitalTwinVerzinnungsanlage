@@ -6,17 +6,38 @@ import { inkSVG } from './zeichnen.js';
 import { refreshTpl, renderInk } from './anzeige.js';
 import { saveSketch, snapshot } from './verlauf.js';
 
+// Eingabe im Eigenschaftsfeld übernehmen. f ist das Feld (data-prop), v der neue Wert.
 export function applyProp(f, v){
-  if (f === "cst") { const c = ED.data.c[ED.selC]; if (c) { c.st = v; saveSketch(); renderInk(); } return; }
-  if (f === "mt" || f === "mn" || f === "md") { const m = ED.data.meta = ED.data.meta || {}; m[{mt: "title", mn: "name", md: "datum"}[f]] = v;
-    Object.keys(m).forEach(k => { if (!m[k]) delete m[k]; }); if (!Object.keys(m).length) delete ED.data.meta; saveSketch(); refreshTpl(); return; }
-  if (f === "cv") { const c = ED.data.c[ED.selC]; if (c) c.v = v; }
-  else if (ED.selT !== null && ED.data.t[ED.selT] && ["tv","ts","sc"].includes(f)) { const t = ED.data.t[ED.selT]; if (f === "tv") t.v = v; if (f === "ts") t.s = +v; if (f === "sc") t.c = v; }
-  else if (ED.selS !== null && ED.data.s[ED.selS] && STRICHFELD[f]) { const st = ED.data.s[ED.selS]; st[STRICHFELD[f]] = f === "sw" ? +v : v; }
-  else { const o = objById(ED.sel); if (!o) return;
-    if (f === "w") { const w = parseInt(v, 10); if (w >= 40) o.w = Math.round(w/10)*10; }
-    else if (!(art(o.k).setze && art(o.k).setze(o, f, v))) o[f] = v; }   // Haken setze: Feld mit eigener Wirkung
+  if (f === "cst") { leitungsart(v); return; }
+  if (SCHRIFTFELD[f]) { setzeSchriftfeld(f, v); return; }
+  if (!setzeFeld(f, v)) return;
   saveSketch(); ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+}
+export const SCHRIFTFELD = {mt: "title", mn: "name", md: "datum"};   // Feld → Eintrag in data.meta
+export const TEXTFELD = {tv: "v", ts: "s", sc: "c"};                  // Feld → Eigenschaft des markierten Texts
+export function leitungsart(v){
+  const c = ED.data.c[ED.selC];
+  if (c) { c.st = v; saveSketch(); renderInk(); }
+}
+// Leere Einträge entfallen, damit wieder Name aus „Meine Daten“ und Änderungsdatum gelten
+export function setzeSchriftfeld(f, v){
+  const m = ED.data.meta = ED.data.meta || {};
+  m[SCHRIFTFELD[f]] = v;
+  Object.keys(m).forEach(k => { if (!m[k]) delete m[k]; });
+  if (!Object.keys(m).length) delete ED.data.meta;
+  saveSketch(); refreshTpl();
+}
+// Feld am markierten Element setzen; false, wenn nichts Passendes markiert ist
+export function setzeFeld(f, v){
+  const t = ED.selT !== null && ED.data.t[ED.selT], st = ED.selS !== null && ED.data.s[ED.selS];
+  if (f === "cv") { const c = ED.data.c[ED.selC]; if (c) c.v = v; return true; }
+  if (t && TEXTFELD[f]) { t[TEXTFELD[f]] = f === "ts" ? +v : v; return true; }
+  if (st && STRICHFELD[f]) { st[STRICHFELD[f]] = f === "sw" ? +v : v; return true; }
+  const o = objById(ED.sel);
+  if (!o) return false;
+  if (f === "w") { const w = parseInt(v, 10); if (w >= 40) o.w = Math.round(w/10)*10; }   // Breite im 10er-Raster
+  else if (!(art(o.k).setze && art(o.k).setze(o, f, v))) o[f] = v;   // Haken setze: Feld mit eigener Wirkung
+  return true;
 }
 export function removeObj(id){ ED.data.o = ED.data.o.filter(o => o.id !== id); ED.data.c = ED.data.c.filter(c => c.a !== id && c.b !== id); if (ED.sel === id) ED.sel = null; }
 export function delSel(){

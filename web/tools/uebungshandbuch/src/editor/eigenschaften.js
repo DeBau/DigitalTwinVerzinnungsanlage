@@ -24,23 +24,45 @@ export function auswahlFeld(f, lbl, opts, cur){
 }
 export const FARBEN = [["#17212B","Schwarz"],["#0E4C92","Blau"],["#C0392B","Rot"]];
 export const loeschKnopf = () => `<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div>`;
+// Inhalt des Eigenschaftsfelds für die aktuelle Markierung (oder die Anleitung der Vorlage zum gewählten Werkzeug)
 export function propsHTML(){
   const v = VORL[ED.key], anleitung = v && v.anleitung && v.anleitung();   // Haken anleitung: Hilfe zum gewählten Werkzeug
   if (anleitung) return anleitung;
-  const inp = textFeld, sel = auswahlFeld, COL = FARBEN, del = loeschKnopf();
-  if (ED.selT !== null && ED.data.t[ED.selT]) { const t = ED.data.t[ED.selT];
-    return `<div class="props"><div class="palh">Text</div>${inp("tv", "Text", "", t.v)}${SYMS}${sel("ts", "Größe", [[12,"klein"],[16,"normal"],[20,"groß"],[26,"sehr groß"]], t.s || 16)}${sel("sc", "Farbe", COL, t.c)}${del}</div>`; }
-  if (ED.selS !== null && ED.data.s[ED.selS]) { const st = ED.data.s[ED.selS];
-    const a = STRICH[st.k];
-    if (a && a.felder) return `<div class="props"><div class="palh">${a.titel}</div>${a.felder(st)}${del}</div>`;
-    return `<div class="props"><div class="palh">${st.k === "l" ? "Linie" : st.k === "r" ? "Kasten" : "Freihandstrich"}</div>${sel("sc", "Farbe", COL, st.c)}${sel("sw", "Strichstärke", [[1.4,"dünn"],[2.2,"mittel"],[4,"dick"]], st.w)}${st.k ? `<p class="small muted" style="margin:0 0 8px">Die runden Griffe an den Enden ziehen.</p>` : ""}${del}</div>`; }
+  if (ED.selT !== null && ED.data.t[ED.selT]) return textFelder(ED.data.t[ED.selT]);
+  if (ED.selS !== null && ED.data.s[ED.selS]) return strichFelder(ED.data.s[ED.selS]);
   const o = ED.sel && objById(ED.sel);
   if (o) return objektFelder(o);
   const c = ED.selC !== null && ED.data.c[ED.selC];
-  if (c && (c.pa !== undefined || c.pb !== undefined)) return `<div class="props"><div class="palh">Leitung</div>${inp("cv", "Beschriftung (optional)", "z. B. Aderfarbe oder Querschnitt", c.v)}${sel("cst", "Leitungsart", [["", "Arbeits-/Hauptleitung"], ["st", "Steuerleitung (gestrichelt)"]], c.st || "")}${del}</div>`;
-  if (c) { const beschriftbar = gruppeVon(objById(c.a)).pfeiltext;
-    return `<div class="props"><div class="palh">Verbindung</div>${beschriftbar ? inp("cv", "Beschriftung", "z. B. BG13 / QA1", c.v) + SYMS : `<p class="small muted" style="margin:0 0 8px">GRAFCET-Verbindungen tragen keine Beschriftung – die Bedingung steht an der Transition.</p>`}<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div></div>`; }
+  if (c) return verbindungFelder(c);
   if (!ED.selF) return `<div class="props quiet"><p>Element anklicken zum Ändern, Doppelklick beschriftet. Name und Datum: aufs Schriftfeld klicken.</p></div>`;
+  return schriftfeldFelder();
+}
+export const GROESSEN = [[12,"klein"],[16,"normal"],[20,"groß"],[26,"sehr groß"]];
+export const STAERKEN = [[1.4,"dünn"],[2.2,"mittel"],[4,"dick"]];
+export function textFelder(t){
+  return `<div class="props"><div class="palh">Text</div>${textFeld("tv", "Text", "", t.v)}${SYMS}${auswahlFeld("ts", "Größe", GROESSEN, t.s || 16)}${auswahlFeld("sc", "Farbe", FARBEN, t.c)}${loeschKnopf()}</div>`;
+}
+// Striche: Stricharten aus STRICH bringen Titel und Felder mit, sonst Linie, Kasten oder Freihandstrich
+export function strichFelder(st){
+  const a = STRICH[st.k];
+  if (a && a.felder) return `<div class="props"><div class="palh">${a.titel}</div>${a.felder(st)}${loeschKnopf()}</div>`;
+  const titel = st.k === "l" ? "Linie" : st.k === "r" ? "Kasten" : "Freihandstrich";
+  const griffe = st.k ? `<p class="small muted" style="margin:0 0 8px">Die runden Griffe an den Enden ziehen.</p>` : "";
+  return `<div class="props"><div class="palh">${titel}</div>${auswahlFeld("sc", "Farbe", FARBEN, st.c)}${auswahlFeld("sw", "Strichstärke", STAERKEN, st.w)}${griffe}${loeschKnopf()}</div>`;
+}
+// Leitung (zwischen Anschlüssen) oder Verbindung; beschriftbar sind Verbindungen einer Gruppe mit pfeiltext: true
+export function verbindungFelder(c){
+  if (c.pa !== undefined || c.pb !== undefined) {
+    return `<div class="props"><div class="palh">Leitung</div>${textFeld("cv", "Beschriftung (optional)", "z. B. Aderfarbe oder Querschnitt", c.v)}${auswahlFeld("cst", "Leitungsart", [["", "Arbeits-/Hauptleitung"], ["st", "Steuerleitung (gestrichelt)"]], c.st || "")}${loeschKnopf()}</div>`;
+  }
+  const beschriftung = gruppeVon(objById(c.a)).pfeiltext
+    ? textFeld("cv", "Beschriftung", "z. B. BG13 / QA1", c.v) + SYMS
+    : `<p class="small muted" style="margin:0 0 8px">GRAFCET-Verbindungen tragen keine Beschriftung – die Bedingung steht an der Transition.</p>`;
+  return `<div class="props"><div class="palh">Verbindung</div>${beschriftung}${loeschKnopf()}</div>`;
+}
+// Schriftfeld: leere Felder zeigen als Platzhalter, was ohne Eintrag gilt
+export function schriftfeldFelder(){
+  const inp = textFeld;
   const m = ED.data.meta || {}, auto = skMeta(ED.scope, ED.key, {...ED.data, meta: {}});
   return `<div class="props"><div class="palh">Schriftfeld</div>${inp("mt", "Titel", auto.title, m.title)}${inp("mn", "Name", auto.name || "Name eintragen", m.name)}
     <label class="prop">Datum<span style="display:flex;gap:6px"><input type="text" data-prop="md" value="${esc(m.datum || "")}" placeholder="${esc(auto.datum || deDate(Date.now()))}" autocomplete="off"><button type="button" class="tool" data-ed="heute" style="margin-top:3px">Heute</button></span></label>

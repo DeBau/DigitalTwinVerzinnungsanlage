@@ -1,3 +1,5 @@
+// Editor-Kern: Blätter einer Skizze mit Rahmen und Schriftfeld, ganze Skizze als SVG (sketchSVG), Schriftfeld-Daten.
+// Benutzt von Editor, Skizzen-Kacheln und Druck.
 import { BY, S } from '../app/basis.js';
 import { INK, PH, SVGT } from './svg.js';
 import { TPL, VORL } from './registry.js';

@@ -37,27 +37,46 @@ export function neuesBauteil(k, mk, px, py){
   [o.x, o.y] = snap([o.x, o.y]);
   return o;
 }
+// Gestrichelte Vorschau einer Verbindung beim Setzen und Andocken
+export const VORSCHAU = d => `<path d="${d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`;
+/* Hilfslinien und Andocken beim Setzen und Ziehen: o wird verschoben, marks ist die blaue Vorschau */
 export function smartPos(o){
   const v = VORL[ED.key];
   if (v.fangBaustein) v.fangBaustein(o);   // Haken fangBaustein, z. B. Strompfad-Spalten
   const dock = andockStelle(o), marks = [];
   if (dock) { o.x += dock.sx; o.y += dock.sy; }
-  if (ED.dock && !dock) {
-    const c = ctr(o); let gx = null, gy = null, bx = 12, by = 12;
-    for (const p of ED.data.o) { if (p.id === o.id) continue; const q = ctr(p), dx = q[0] - c[0], dy = q[1] - c[1];
-      if (Math.abs(dx) < bx && Math.abs(dx) > 0) { bx = Math.abs(dx); gx = [dx, q]; } else if (dx === 0) { bx = 0; gx = [0, q]; }
-      if (Math.abs(dy) < by && Math.abs(dy) > 0) { by = Math.abs(dy); gy = [dy, q]; } else if (dy === 0) { by = 0; gy = [0, q]; } }
-    if (gx && !(dock && dock.sx)) { o.x += gx[0]; const c2 = ctr(o); marks.push(`<path d="M${c2[0]} ${Math.min(c2[1], gx[1][1]) - 30}V${Math.max(c2[1], gx[1][1]) + 30}" stroke="#2F80ED" stroke-width="1" stroke-dasharray="4 4"/>`); }
-    if (gy && !(dock && dock.sy)) { o.y += gy[0]; const c2 = ctr(o); marks.push(`<path d="M${Math.min(c2[0], gy[1][0]) - 30} ${c2[1]}H${Math.max(c2[0], gy[1][0]) + 30}" stroke="#2F80ED" stroke-width="1" stroke-dasharray="4 4"/>`); }
-  }
-  if (dock) {
-    const map = Object.fromEntries(ED.data.o.map(p => [p.id, p])); map[o.id] = o;
-    const gm = connGeom({a: dock.a, b: dock.b}, map, []);
-    if (gm) marks.push(`<path d="${gm.d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`);
-    const p = andockPunkt(map[dock.a], map[dock.b]);
-    marks.push(`<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`);
-  }
+  if (ED.dock && !dock) hilfslinien(o, marks);
+  if (dock) marks.push(andockVorschau(o, dock));
   return {dock, marks: marks.join("")};
+}
+export const HILFSLINIE = d => `<path d="${d}" stroke="#2F80ED" stroke-width="1" stroke-dasharray="4 4"/>`;
+// Mitte auf die Mitte eines Nachbarn ziehen, wenn sie weniger als 12 daneben liegt
+export function hilfslinien(o, marks){
+  const c = ctr(o);
+  let gx = null, gy = null, bx = 12, by = 12;
+  for (const p of ED.data.o) {
+    if (p.id === o.id) continue;
+    const q = ctr(p), dx = q[0] - c[0], dy = q[1] - c[1];
+    if (Math.abs(dx) < bx && Math.abs(dx) > 0) { bx = Math.abs(dx); gx = [dx, q]; } else if (dx === 0) { bx = 0; gx = [0, q]; }
+    if (Math.abs(dy) < by && Math.abs(dy) > 0) { by = Math.abs(dy); gy = [dy, q]; } else if (dy === 0) { by = 0; gy = [0, q]; }
+  }
+  if (gx) {
+    o.x += gx[0];
+    const c2 = ctr(o);
+    marks.push(HILFSLINIE(`M${c2[0]} ${Math.min(c2[1], gx[1][1]) - 30}V${Math.max(c2[1], gx[1][1]) + 30}`));
+  }
+  if (gy) {
+    o.y += gy[0];
+    const c2 = ctr(o);
+    marks.push(HILFSLINIE(`M${Math.min(c2[0], gy[1][0]) - 30} ${c2[1]}H${Math.max(c2[0], gy[1][0]) + 30}`));
+  }
+}
+// Vorschau der Verbindung, die beim Loslassen entsteht, und Kreis um den Anschluss
+export function andockVorschau(o, dock){
+  const map = Object.fromEntries(ED.data.o.map(p => [p.id, p])); map[o.id] = o;
+  const gm = connGeom({a: dock.a, b: dock.b}, map, []);
+  const p = andockPunkt(map[dock.a], map[dock.b]);
+  return (gm ? VORSCHAU(gm.d) : "") + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
 }
 export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blattende legen – sonst auf das nächste Blatt
   if (FIXED[ED.key]) return;

@@ -1,4 +1,4 @@
-/* ---------- Bausteine: GRAFCET, Zustandsdiagramm, Stromlauf, Regelkreis ---------- */
+// Editor-Kern: SVG-Grundlagen für alle Zeichnungen (Farben, Text, Pfeilspitze, Blatthöhe).
 import { esc } from '../app/basis.js';
 
 export const INK = "#17212B", MUTE = "#9AA4AD";

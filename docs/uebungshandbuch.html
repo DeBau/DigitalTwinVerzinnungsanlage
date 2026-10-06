@@ -1225,7 +1225,8 @@ pre.code code{font-size:inherit}
     if (!pc || pc.drehbar === false) return null;
     const r = ((o.rot || 0) % 360 + 360) % 360, f = o.flip ? -1 : 1;
     if (!r && f === 1) return null;
-    const x0 = o.x + (pc.bx || 0), cx = x0 + pc.w / 2, cy = o.y + pc.h / 2, c = Math.round(Math.cos(r * Math.PI / 180)), sn = Math.round(Math.sin(r * Math.PI / 180));
+    const x0 = o.x + (pc.bx || 0), cx = x0 + pc.w / 2, cy = o.y + pc.h / 2;
+    const c = Math.round(Math.cos(r * Math.PI / 180)), sn = Math.round(Math.sin(r * Math.PI / 180));
     const pt = (x, y) => {
       const dx = (x - cx) * f, dy = y - cy;
       return [cx + dx * c - dy * sn, cy + dx * sn + dy * c];
@@ -1902,26 +1903,36 @@ pre.code code{font-size:inherit}
   function propsHTML() {
     const v = VORL[ED.key], anleitung = v && v.anleitung && v.anleitung();
     if (anleitung) return anleitung;
-    const inp = textFeld, sel = auswahlFeld, COL = FARBEN, del = loeschKnopf();
-    if (ED.selT !== null && ED.data.t[ED.selT]) {
-      const t = ED.data.t[ED.selT];
-      return `<div class="props"><div class="palh">Text</div>${inp("tv", "Text", "", t.v)}${SYMS}${sel("ts", "Größe", [[12, "klein"], [16, "normal"], [20, "groß"], [26, "sehr groß"]], t.s || 16)}${sel("sc", "Farbe", COL, t.c)}${del}</div>`;
-    }
-    if (ED.selS !== null && ED.data.s[ED.selS]) {
-      const st = ED.data.s[ED.selS];
-      const a = STRICH[st.k];
-      if (a && a.felder) return `<div class="props"><div class="palh">${a.titel}</div>${a.felder(st)}${del}</div>`;
-      return `<div class="props"><div class="palh">${st.k === "l" ? "Linie" : st.k === "r" ? "Kasten" : "Freihandstrich"}</div>${sel("sc", "Farbe", COL, st.c)}${sel("sw", "Strichstärke", [[1.4, "dünn"], [2.2, "mittel"], [4, "dick"]], st.w)}${st.k ? `<p class="small muted" style="margin:0 0 8px">Die runden Griffe an den Enden ziehen.</p>` : ""}${del}</div>`;
-    }
+    if (ED.selT !== null && ED.data.t[ED.selT]) return textFelder(ED.data.t[ED.selT]);
+    if (ED.selS !== null && ED.data.s[ED.selS]) return strichFelder(ED.data.s[ED.selS]);
     const o = ED.sel && objById(ED.sel);
     if (o) return objektFelder(o);
     const c = ED.selC !== null && ED.data.c[ED.selC];
-    if (c && (c.pa !== void 0 || c.pb !== void 0)) return `<div class="props"><div class="palh">Leitung</div>${inp("cv", "Beschriftung (optional)", "z. B. Aderfarbe oder Querschnitt", c.v)}${sel("cst", "Leitungsart", [["", "Arbeits-/Hauptleitung"], ["st", "Steuerleitung (gestrichelt)"]], c.st || "")}${del}</div>`;
-    if (c) {
-      const beschriftbar = gruppeVon(objById(c.a)).pfeiltext;
-      return `<div class="props"><div class="palh">Verbindung</div>${beschriftbar ? inp("cv", "Beschriftung", "z. B. BG13 / QA1", c.v) + SYMS : `<p class="small muted" style="margin:0 0 8px">GRAFCET-Verbindungen tragen keine Beschriftung – die Bedingung steht an der Transition.</p>`}<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div></div>`;
-    }
+    if (c) return verbindungFelder(c);
     if (!ED.selF) return `<div class="props quiet"><p>Element anklicken zum Ändern, Doppelklick beschriftet. Name und Datum: aufs Schriftfeld klicken.</p></div>`;
+    return schriftfeldFelder();
+  }
+  var GROESSEN = [[12, "klein"], [16, "normal"], [20, "groß"], [26, "sehr groß"]];
+  var STAERKEN = [[1.4, "dünn"], [2.2, "mittel"], [4, "dick"]];
+  function textFelder(t) {
+    return `<div class="props"><div class="palh">Text</div>${textFeld("tv", "Text", "", t.v)}${SYMS}${auswahlFeld("ts", "Größe", GROESSEN, t.s || 16)}${auswahlFeld("sc", "Farbe", FARBEN, t.c)}${loeschKnopf()}</div>`;
+  }
+  function strichFelder(st) {
+    const a = STRICH[st.k];
+    if (a && a.felder) return `<div class="props"><div class="palh">${a.titel}</div>${a.felder(st)}${loeschKnopf()}</div>`;
+    const titel = st.k === "l" ? "Linie" : st.k === "r" ? "Kasten" : "Freihandstrich";
+    const griffe = st.k ? `<p class="small muted" style="margin:0 0 8px">Die runden Griffe an den Enden ziehen.</p>` : "";
+    return `<div class="props"><div class="palh">${titel}</div>${auswahlFeld("sc", "Farbe", FARBEN, st.c)}${auswahlFeld("sw", "Strichstärke", STAERKEN, st.w)}${griffe}${loeschKnopf()}</div>`;
+  }
+  function verbindungFelder(c) {
+    if (c.pa !== void 0 || c.pb !== void 0) {
+      return `<div class="props"><div class="palh">Leitung</div>${textFeld("cv", "Beschriftung (optional)", "z. B. Aderfarbe oder Querschnitt", c.v)}${auswahlFeld("cst", "Leitungsart", [["", "Arbeits-/Hauptleitung"], ["st", "Steuerleitung (gestrichelt)"]], c.st || "")}${loeschKnopf()}</div>`;
+    }
+    const beschriftung = gruppeVon(objById(c.a)).pfeiltext ? textFeld("cv", "Beschriftung", "z. B. BG13 / QA1", c.v) + SYMS : `<p class="small muted" style="margin:0 0 8px">GRAFCET-Verbindungen tragen keine Beschriftung – die Bedingung steht an der Transition.</p>`;
+    return `<div class="props"><div class="palh">Verbindung</div>${beschriftung}${loeschKnopf()}</div>`;
+  }
+  function schriftfeldFelder() {
+    const inp = textFeld;
     const m = ED.data.meta || {}, auto = skMeta(ED.scope, ED.key, { ...ED.data, meta: {} });
     return `<div class="props"><div class="palh">Schriftfeld</div>${inp("mt", "Titel", auto.title, m.title)}${inp("mn", "Name", auto.name || "Name eintragen", m.name)}
     <label class="prop">Datum<span style="display:flex;gap:6px"><input type="text" data-prop="md" value="${esc(m.datum || "")}" placeholder="${esc(auto.datum || deDate(Date.now()))}" autocomplete="off"><button type="button" class="tool" data-ed="heute" style="margin-top:3px">Heute</button></span></label>
@@ -2194,46 +2205,59 @@ pre.code code{font-size:inherit}
   // web/tools/uebungshandbuch/src/editor/bearbeiten.js
   function applyProp(f, v) {
     if (f === "cst") {
-      const c = ED.data.c[ED.selC];
-      if (c) {
-        c.st = v;
-        saveSketch();
-        renderInk();
-      }
+      leitungsart(v);
       return;
     }
-    if (f === "mt" || f === "mn" || f === "md") {
-      const m = ED.data.meta = ED.data.meta || {};
-      m[{ mt: "title", mn: "name", md: "datum" }[f]] = v;
-      Object.keys(m).forEach((k) => {
-        if (!m[k]) delete m[k];
-      });
-      if (!Object.keys(m).length) delete ED.data.meta;
+    if (SCHRIFTFELD[f]) {
+      setzeSchriftfeld(f, v);
+      return;
+    }
+    if (!setzeFeld(f, v)) return;
+    saveSketch();
+    ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+  }
+  var SCHRIFTFELD = { mt: "title", mn: "name", md: "datum" };
+  var TEXTFELD = { tv: "v", ts: "s", sc: "c" };
+  function leitungsart(v) {
+    const c = ED.data.c[ED.selC];
+    if (c) {
+      c.st = v;
       saveSketch();
-      refreshTpl();
-      return;
+      renderInk();
     }
+  }
+  function setzeSchriftfeld(f, v) {
+    const m = ED.data.meta = ED.data.meta || {};
+    m[SCHRIFTFELD[f]] = v;
+    Object.keys(m).forEach((k) => {
+      if (!m[k]) delete m[k];
+    });
+    if (!Object.keys(m).length) delete ED.data.meta;
+    saveSketch();
+    refreshTpl();
+  }
+  function setzeFeld(f, v) {
+    const t = ED.selT !== null && ED.data.t[ED.selT], st = ED.selS !== null && ED.data.s[ED.selS];
     if (f === "cv") {
       const c = ED.data.c[ED.selC];
       if (c) c.v = v;
-    } else if (ED.selT !== null && ED.data.t[ED.selT] && ["tv", "ts", "sc"].includes(f)) {
-      const t = ED.data.t[ED.selT];
-      if (f === "tv") t.v = v;
-      if (f === "ts") t.s = +v;
-      if (f === "sc") t.c = v;
-    } else if (ED.selS !== null && ED.data.s[ED.selS] && STRICHFELD[f]) {
-      const st = ED.data.s[ED.selS];
-      st[STRICHFELD[f]] = f === "sw" ? +v : v;
-    } else {
-      const o = objById(ED.sel);
-      if (!o) return;
-      if (f === "w") {
-        const w = parseInt(v, 10);
-        if (w >= 40) o.w = Math.round(w / 10) * 10;
-      } else if (!(art(o.k).setze && art(o.k).setze(o, f, v))) o[f] = v;
+      return true;
     }
-    saveSketch();
-    ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+    if (t && TEXTFELD[f]) {
+      t[TEXTFELD[f]] = f === "ts" ? +v : v;
+      return true;
+    }
+    if (st && STRICHFELD[f]) {
+      st[STRICHFELD[f]] = f === "sw" ? +v : v;
+      return true;
+    }
+    const o = objById(ED.sel);
+    if (!o) return false;
+    if (f === "w") {
+      const w = parseInt(v, 10);
+      if (w >= 40) o.w = Math.round(w / 10) * 10;
+    } else if (!(art(o.k).setze && art(o.k).setze(o, f, v))) o[f] = v;
+    return true;
   }
   function removeObj(id) {
     ED.data.o = ED.data.o.filter((o) => o.id !== id);
@@ -2322,6 +2346,7 @@ pre.code code{font-size:inherit}
     [o.x, o.y] = snap([o.x, o.y]);
     return o;
   }
+  var VORSCHAU = (d) => `<path d="${d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`;
   function smartPos(o) {
     const v = VORL[ED.key];
     if (v.fangBaustein) v.fangBaustein(o);
@@ -2330,47 +2355,49 @@ pre.code code{font-size:inherit}
       o.x += dock.sx;
       o.y += dock.sy;
     }
-    if (ED.dock && !dock) {
-      const c = ctr(o);
-      let gx = null, gy = null, bx = 12, by = 12;
-      for (const p of ED.data.o) {
-        if (p.id === o.id) continue;
-        const q = ctr(p), dx = q[0] - c[0], dy = q[1] - c[1];
-        if (Math.abs(dx) < bx && Math.abs(dx) > 0) {
-          bx = Math.abs(dx);
-          gx = [dx, q];
-        } else if (dx === 0) {
-          bx = 0;
-          gx = [0, q];
-        }
-        if (Math.abs(dy) < by && Math.abs(dy) > 0) {
-          by = Math.abs(dy);
-          gy = [dy, q];
-        } else if (dy === 0) {
-          by = 0;
-          gy = [0, q];
-        }
-      }
-      if (gx && !(dock && dock.sx)) {
-        o.x += gx[0];
-        const c2 = ctr(o);
-        marks.push(`<path d="M${c2[0]} ${Math.min(c2[1], gx[1][1]) - 30}V${Math.max(c2[1], gx[1][1]) + 30}" stroke="#2F80ED" stroke-width="1" stroke-dasharray="4 4"/>`);
-      }
-      if (gy && !(dock && dock.sy)) {
-        o.y += gy[0];
-        const c2 = ctr(o);
-        marks.push(`<path d="M${Math.min(c2[0], gy[1][0]) - 30} ${c2[1]}H${Math.max(c2[0], gy[1][0]) + 30}" stroke="#2F80ED" stroke-width="1" stroke-dasharray="4 4"/>`);
-      }
-    }
-    if (dock) {
-      const map = Object.fromEntries(ED.data.o.map((p2) => [p2.id, p2]));
-      map[o.id] = o;
-      const gm = connGeom({ a: dock.a, b: dock.b }, map, []);
-      if (gm) marks.push(`<path d="${gm.d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`);
-      const p = andockPunkt(map[dock.a], map[dock.b]);
-      marks.push(`<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`);
-    }
+    if (ED.dock && !dock) hilfslinien(o, marks);
+    if (dock) marks.push(andockVorschau(o, dock));
     return { dock, marks: marks.join("") };
+  }
+  var HILFSLINIE = (d) => `<path d="${d}" stroke="#2F80ED" stroke-width="1" stroke-dasharray="4 4"/>`;
+  function hilfslinien(o, marks) {
+    const c = ctr(o);
+    let gx = null, gy = null, bx = 12, by = 12;
+    for (const p of ED.data.o) {
+      if (p.id === o.id) continue;
+      const q = ctr(p), dx = q[0] - c[0], dy = q[1] - c[1];
+      if (Math.abs(dx) < bx && Math.abs(dx) > 0) {
+        bx = Math.abs(dx);
+        gx = [dx, q];
+      } else if (dx === 0) {
+        bx = 0;
+        gx = [0, q];
+      }
+      if (Math.abs(dy) < by && Math.abs(dy) > 0) {
+        by = Math.abs(dy);
+        gy = [dy, q];
+      } else if (dy === 0) {
+        by = 0;
+        gy = [0, q];
+      }
+    }
+    if (gx) {
+      o.x += gx[0];
+      const c2 = ctr(o);
+      marks.push(HILFSLINIE(`M${c2[0]} ${Math.min(c2[1], gx[1][1]) - 30}V${Math.max(c2[1], gx[1][1]) + 30}`));
+    }
+    if (gy) {
+      o.y += gy[0];
+      const c2 = ctr(o);
+      marks.push(HILFSLINIE(`M${Math.min(c2[0], gy[1][0]) - 30} ${c2[1]}H${Math.max(c2[0], gy[1][0]) + 30}`));
+    }
+  }
+  function andockVorschau(o, dock) {
+    const map = Object.fromEntries(ED.data.o.map((p2) => [p2.id, p2]));
+    map[o.id] = o;
+    const gm = connGeom({ a: dock.a, b: dock.b }, map, []);
+    const p = andockPunkt(map[dock.a], map[dock.b]);
+    return (gm ? VORSCHAU(gm.d) : "") + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
   }
   function avoidBreak(o) {
     if (FIXED[ED.key]) return;
@@ -2423,7 +2450,6 @@ pre.code code{font-size:inherit}
   }
 
   // web/tools/uebungshandbuch/src/editor/zeiger.js
-  var VORSCHAU = (d) => `<path d="${d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`;
   var zeigerHaken = () => VORL[ED.key] && VORL[ED.key].zeiger || {};
   var festhalten = (e) => ED.svg.setPointerCapture(e.pointerId);
   function edDown(e) {
@@ -4982,225 +5008,244 @@ END_CASE;`)}
     const r = ED.svg && $("#edstage").getBoundingClientRect();
     return r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
   };
+  var werkzeugNachAbbruch = () => setTool(PAL[ED.key] ? "sel" : ED.tool);
+  function paletteDruecken(e) {
+    const pb = e.target.closest("[data-place]");
+    if (pb && e.button === 0) {
+      e.preventDefault();
+      palDrag = { k: pb.dataset.place, x: e.clientX, y: e.clientY, on: false };
+    }
+  }
+  function paletteZiehen(e) {
+    if (!palDrag || !ED.svg) return;
+    if (!palDrag.on && Math.hypot(e.clientX - palDrag.x, e.clientY - palDrag.y) > 6) {
+      palDrag.on = true;
+      ED.dnd = true;
+      ED.place = palDrag.k;
+      setTool("place");
+      document.body.classList.add("dnd");
+    }
+    if (palDrag.on) {
+      if (overSheet(e)) edMove(e);
+      else $(".ghost", ED.svg).innerHTML = "";
+    }
+  }
+  function paletteLoslassen(e) {
+    if (!palDrag) return;
+    const d = palDrag;
+    palDrag = null;
+    document.body.classList.remove("dnd");
+    if (!d.on) return;
+    ED.skipClick = true;
+    ED.extraY = 0;
+    if (overSheet(e)) placeObj(d.k, svgPt(ED.svg, e));
+    else werkzeugNachAbbruch();
+    ED.dnd = false;
+  }
+  var AKTIONEN = {
+    undo: () => undo(),
+    take: (t) => takeMenu(t),
+    takeit: (t) => takeSketch(t.dataset.from),
+    rot: () => {
+      if (ED.sel && PC[objById(ED.sel).k]) turnSel("rot");
+    },
+    flip: () => {
+      if (ED.sel && PC[objById(ED.sel).k]) turnSel("flip");
+    },
+    sfzu: () => {
+      ED.selF = false;
+      updateProps("neu");
+    },
+    heute: () => {
+      const f = $('#props [data-prop="md"]');
+      if (f) {
+        snapshot();
+        f.value = deDate(Date.now());
+        applyProp("md", f.value);
+      }
+    },
+    del: () => delSel(),
+    grid: (t) => {
+      ED.grid = !ED.grid;
+      t.setAttribute("aria-pressed", ED.grid);
+    },
+    dock: (t) => {
+      ED.dock = !ED.dock;
+      t.setAttribute("aria-pressed", ED.dock);
+    },
+    clear: () => {
+      if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
+      snapshot();
+      ED.data = { s: [], t: [], o: [], c: [] };
+      clearSel();
+      saveSketch();
+      renderInk();
+    },
+    print: () => doPrint(sketchPage(ED.scope, ED.key, true)),
+    close: () => $("#editor").close()
+  };
+  function klick(e) {
+    if (ED.skipClick) {
+      ED.skipClick = false;
+      if (e.target.closest("[data-place]")) return;
+    }
+    const pb = e.target.closest("[data-place]");
+    if (pb) {
+      ED.place = pb.dataset.place;
+      setTool("place");
+      return;
+    }
+    const v = VORL[ED.key];
+    if (v && v.klick && v.klick(e)) return;
+    const sy = e.target.closest("[data-sym]");
+    if (sy) {
+      zeichenEinfuegen(sy.dataset.sym);
+      return;
+    }
+    const t = e.target.closest("[data-tool],[data-w],[data-ed]");
+    if (!t) return;
+    if (t.dataset.tool) {
+      if (t.dataset.color) ED.color = t.dataset.color;
+      setTool(t.dataset.tool);
+    }
+    if (t.dataset.w) {
+      ED.w = +t.dataset.w;
+      $$("#editor [data-w]").forEach((b) => b.setAttribute("aria-pressed", b === t));
+    }
+    const a = AKTIONEN[t.dataset.ed];
+    if (a) a(t);
+  }
+  function zeichenEinfuegen(zeichen) {
+    const el = lastProp;
+    if (!el || !el.isConnected || el.tagName !== "INPUT" && el.tagName !== "TEXTAREA") return;
+    const a = el.selectionStart ?? el.value.length, b = el.selectionEnd ?? a;
+    el.value = el.value.slice(0, a) + zeichen + el.value.slice(b);
+    el.focus();
+    el.setSelectionRange(a + zeichen.length, a + zeichen.length);
+    applyProp(el.dataset.prop, el.value);
+  }
+  function feldGeaendert(e) {
+    const f = e.target.dataset && e.target.dataset.prop, o = ED.sel && objById(ED.sel);
+    if (!f || !o || !(art(o.k).umbau || []).includes(f)) return;
+    applyProp(f, e.target.value);
+    updateProps("neu");
+    const again = $(`#props [data-prop="${f}"]`);
+    if (again) again.focus();
+  }
+  function tasteImFeld(e) {
+    if (e.key !== "Enter" || !e.target.dataset.prop) return;
+    e.preventDefault();
+    if (e.target.tagName === "TEXTAREA" && (e.altKey || e.shiftKey || e.ctrlKey)) {
+      newline(e.target);
+      e.target.rows = e.target.value.split("\n").length;
+      applyProp(e.target.dataset.prop, e.target.value);
+    } else $("#edstage").focus({ preventScroll: true });
+  }
+  function beschrifteMarkiertes() {
+    const o = ED.sel && objById(ED.sel);
+    if (o) editObjLabel(o);
+    else if (ED.selT !== null) editTextItem(ED.selT);
+    else if (ED.selC !== null) editConnLabel(ED.selC);
+  }
+  function abbrechen(e) {
+    if (!ED.svg) return false;
+    if (ED.pend) {
+      e.preventDefault();
+      ED.pend = null;
+      $(".ghost", ED.svg).innerHTML = "";
+      updateProps(true);
+      return true;
+    }
+    if (ED.place || ED.from || anySel()) {
+      e.preventDefault();
+      clearSel();
+      ED.from = null;
+      werkzeugNachAbbruch();
+      return true;
+    }
+    return false;
+  }
+  function verschiebeMarkiertes(key) {
+    const dx = { ArrowLeft: -10, ArrowRight: 10 }[key] || 0, dy = { ArrowUp: -10, ArrowDown: 10 }[key] || 0;
+    if (ED.sel) {
+      const o = objById(ED.sel);
+      o.x += dx;
+      o.y += dy;
+    } else if (ED.selS !== null) ED.data.s[ED.selS].p = ED.data.s[ED.selS].p.map(([x, y]) => [x + dx, y + dy]);
+    else {
+      const t = ED.data.t[ED.selT];
+      t.x += dx;
+      t.y += dy;
+    }
+  }
+  function taste(e) {
+    if (e.target.matches("input,select,textarea")) {
+      tasteImFeld(e);
+      return;
+    }
+    const strg = e.ctrlKey || e.metaKey;
+    if ((e.key === "Enter" || e.key === "F2") && anySel() && !ED.selF) {
+      e.preventDefault();
+      beschrifteMarkiertes();
+      return;
+    }
+    if (strg && e.key.toLowerCase() === "z") {
+      e.preventDefault();
+      undo();
+      return;
+    }
+    if (strg && e.key.toLowerCase() === "a") {
+      e.preventDefault();
+      return;
+    }
+    if (!strg && !e.altKey && ED.sel && ["r", "m"].includes(e.key.toLowerCase())) {
+      e.preventDefault();
+      turnSel(e.key.toLowerCase() === "r" ? "rot" : "flip");
+      return;
+    }
+    if (e.key === "Escape" && abbrechen(e)) return;
+    if ((e.key === "Delete" || e.key === "Backspace") && anySel()) {
+      e.preventDefault();
+      delSel();
+      return;
+    }
+    if (e.key.startsWith("Arrow") && (ED.sel || ED.selS !== null || ED.selT !== null)) {
+      e.preventDefault();
+      snapshot();
+      verschiebeMarkiertes(e.key);
+      saveSketch();
+      renderInk();
+    }
+  }
   function init4() {
+    const dlg = $("#editor");
     addEventListener("resize", () => {
       if (ED.svg) sizeSVG();
     });
-    $("#editor").addEventListener("pointerdown", (e) => {
-      const pb = e.target.closest("[data-place]");
-      if (pb && e.button === 0) {
-        e.preventDefault();
-        palDrag = { k: pb.dataset.place, x: e.clientX, y: e.clientY, on: false };
-      }
-    });
-    $("#editor").addEventListener("selectstart", (e) => {
+    dlg.addEventListener("pointerdown", paletteDruecken);
+    dlg.addEventListener("selectstart", (e) => {
       if (!e.target.closest || !e.target.closest("input,textarea")) e.preventDefault();
     });
-    document.addEventListener("pointermove", (e) => {
-      if (!palDrag || !ED.svg) return;
-      if (!palDrag.on && Math.hypot(e.clientX - palDrag.x, e.clientY - palDrag.y) > 6) {
-        palDrag.on = true;
-        ED.dnd = true;
-        ED.place = palDrag.k;
-        setTool("place");
-        document.body.classList.add("dnd");
-      }
-      if (palDrag.on) {
-        if (overSheet(e)) edMove(e);
-        else $(".ghost", ED.svg).innerHTML = "";
-      }
-    });
-    document.addEventListener("pointerup", (e) => {
-      if (!palDrag) return;
-      const d = palDrag;
-      palDrag = null;
-      document.body.classList.remove("dnd");
-      if (!d.on) return;
-      ED.skipClick = true;
-      ED.extraY = 0;
-      if (overSheet(e)) placeObj(d.k, svgPt(ED.svg, e));
-      else setTool(PAL[ED.key] ? "sel" : ED.tool);
-      ED.dnd = false;
-    });
-    $("#editor").addEventListener("click", (e) => {
-      if (ED.skipClick) {
-        ED.skipClick = false;
-        if (e.target.closest("[data-place]")) return;
-      }
-      const pb = e.target.closest("[data-place]");
-      if (pb) {
-        ED.place = pb.dataset.place;
-        setTool("place");
-        return;
-      }
-      const v = VORL[ED.key];
-      if (v && v.klick && v.klick(e)) return;
-      const sy = e.target.closest("[data-sym]");
-      if (sy) {
-        const el = lastProp;
-        if (el && el.isConnected && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) {
-          const a2 = el.selectionStart ?? el.value.length, b = el.selectionEnd ?? a2;
-          el.value = el.value.slice(0, a2) + sy.dataset.sym + el.value.slice(b);
-          el.focus();
-          el.setSelectionRange(a2 + sy.dataset.sym.length, a2 + sy.dataset.sym.length);
-          applyProp(el.dataset.prop, el.value);
-        }
-        return;
-      }
-      const t = e.target.closest("[data-tool],[data-w],[data-ed]");
-      if (!t) return;
-      if (t.dataset.tool) {
-        if (t.dataset.color) ED.color = t.dataset.color;
-        setTool(t.dataset.tool);
-      }
-      if (t.dataset.w) {
-        ED.w = +t.dataset.w;
-        $$("#editor [data-w]").forEach((b) => b.setAttribute("aria-pressed", b === t));
-      }
-      const a = t.dataset.ed;
-      if (a === "undo") undo();
-      if (a === "take") takeMenu(t);
-      if (a === "takeit") takeSketch(t.dataset.from);
-      if ((a === "rot" || a === "flip") && ED.sel && PC[objById(ED.sel).k]) turnSel(a);
-      if (a === "sfzu") {
-        ED.selF = false;
-        updateProps("neu");
-      }
-      if (a === "heute") {
-        const f = $('#props [data-prop="md"]');
-        if (f) {
-          snapshot();
-          f.value = deDate(Date.now());
-          applyProp("md", f.value);
-        }
-      }
-      if (a === "del") delSel();
-      if (a === "grid") {
-        ED.grid = !ED.grid;
-        t.setAttribute("aria-pressed", ED.grid);
-      }
-      if (a === "dock") {
-        ED.dock = !ED.dock;
-        t.setAttribute("aria-pressed", ED.dock);
-      }
-      if (a === "clear" && (ED.data.s.length || ED.data.t.length || ED.data.o.length) && confirm("Die ganze Skizze löschen?")) {
-        snapshot();
-        ED.data = { s: [], t: [], o: [], c: [] };
-        clearSel();
-        saveSketch();
-        renderInk();
-      }
-      if (a === "print") doPrint(sketchPage(ED.scope, ED.key, true));
-      if (a === "close") $("#editor").close();
-    });
-    $("#editor").addEventListener("focusin", (e) => {
+    document.addEventListener("pointermove", paletteZiehen);
+    document.addEventListener("pointerup", paletteLoslassen);
+    dlg.addEventListener("click", klick);
+    dlg.addEventListener("focusin", (e) => {
       if (e.target.dataset && e.target.dataset.prop) {
         snapshot();
         setLastProp(e.target);
       }
     });
-    $("#editor").addEventListener("input", (e) => {
+    dlg.addEventListener("input", (e) => {
       const f = e.target.dataset && e.target.dataset.prop;
       if (f) applyProp(f, e.target.value);
     });
-    $("#editor").addEventListener("change", (e) => {
-      const f = e.target.dataset && e.target.dataset.prop, o = ED.sel && objById(ED.sel);
-      if (!f || !o || !(art(o.k).umbau || []).includes(f)) return;
-      applyProp(f, e.target.value);
-      updateProps("neu");
-      const again = $(`#props [data-prop="${f}"]`);
-      if (again) again.focus();
-    });
-    $("#editor").addEventListener("pointerdown", (e) => {
+    dlg.addEventListener("change", feldGeaendert);
+    dlg.addEventListener("pointerdown", (e) => {
       if (e.target.closest(".sym")) e.preventDefault();
     });
-    $("#editor").addEventListener("keydown", (e) => {
-      if (e.target.matches("input,select,textarea")) {
-        if (e.key === "Enter" && e.target.dataset.prop) {
-          e.preventDefault();
-          if (e.target.tagName === "TEXTAREA" && (e.altKey || e.shiftKey || e.ctrlKey)) {
-            newline(e.target);
-            e.target.rows = e.target.value.split("\n").length;
-            applyProp(e.target.dataset.prop, e.target.value);
-          } else $("#edstage").focus({ preventScroll: true });
-        }
-        return;
-      }
-      if ((e.key === "Enter" || e.key === "F2") && anySel() && !ED.selF) {
-        e.preventDefault();
-        const o = ED.sel && objById(ED.sel);
-        if (o) editObjLabel(o);
-        else if (ED.selT !== null) editTextItem(ED.selT);
-        else if (ED.selC !== null) editConnLabel(ED.selC);
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
-        e.preventDefault();
-        undo();
-        return;
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") {
-        e.preventDefault();
-        return;
-      }
-      if (!e.ctrlKey && !e.metaKey && !e.altKey && ED.sel && (e.key === "r" || e.key === "R" || e.key === "m" || e.key === "M")) {
-        e.preventDefault();
-        turnSel(e.key.toLowerCase() === "r" ? "rot" : "flip");
-        return;
-      }
-      if (e.key === "Escape" && ED.pend) {
-        e.preventDefault();
-        ED.pend = null;
-        $(".ghost", ED.svg).innerHTML = "";
-        updateProps(true);
-        return;
-      }
-      if (e.key === "Escape" && (ED.place || ED.from || anySel())) {
-        e.preventDefault();
-        clearSel();
-        ED.from = null;
-        setTool(PAL[ED.key] ? "sel" : ED.tool);
-        return;
-      }
-      if ((e.key === "Delete" || e.key === "Backspace") && anySel()) {
-        e.preventDefault();
-        delSel();
-        return;
-      }
-      if (e.key.startsWith("Arrow") && (ED.sel || ED.selS !== null || ED.selT !== null)) {
-        e.preventDefault();
-        snapshot();
-        const dx = e.key === "ArrowLeft" ? -10 : e.key === "ArrowRight" ? 10 : 0, dy = e.key === "ArrowUp" ? -10 : e.key === "ArrowDown" ? 10 : 0;
-        if (ED.sel) {
-          const o = objById(ED.sel);
-          o.x += dx;
-          o.y += dy;
-        } else if (ED.selS !== null) ED.data.s[ED.selS].p = ED.data.s[ED.selS].p.map(([x, y]) => [x + dx, y + dy]);
-        else {
-          const t = ED.data.t[ED.selT];
-          t.x += dx;
-          t.y += dy;
-        }
-        saveSketch();
-        renderInk();
-      }
-    });
-    $("#editor").addEventListener("cancel", (e) => {
-      if (ED.svg && ED.pend) {
-        e.preventDefault();
-        ED.pend = null;
-        $(".ghost", ED.svg).innerHTML = "";
-        updateProps(true);
-        return;
-      }
-      if (ED.svg && (ED.place || ED.from || anySel())) {
-        e.preventDefault();
-        clearSel();
-        ED.from = null;
-        setTool(PAL[ED.key] ? "sel" : ED.tool);
-      }
-    });
-    $("#editor").addEventListener("close", () => {
+    dlg.addEventListener("keydown", taste);
+    dlg.addEventListener("cancel", abbrechen);
+    dlg.addEventListener("close", () => {
       ED.svg = null;
       ED.sim = { on: false, st: {}, pos: {} };
       route();

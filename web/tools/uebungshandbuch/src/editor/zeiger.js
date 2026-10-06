@@ -15,9 +15,8 @@ import { saveSketch, snapshot } from './verlauf.js';
 import { editConnLabel, editLabel, editObjLabel, editTextItem } from './beschriften.js';
 import { snapW, svgPt } from './werkzeuge.js';
 import { eraseAt } from './bearbeiten.js';
-import { avoidBreak, connect, connectPorts, linked, makeObj, placeObj, smartPos } from './andocken.js';
+import { VORSCHAU, avoidBreak, connect, connectPorts, linked, makeObj, placeObj, smartPos } from './andocken.js';
 
-export const VORSCHAU = d => `<path d="${d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`;
 export const zeigerHaken = () => (VORL[ED.key] && VORL[ED.key].zeiger) || {};
 export const festhalten = e => ED.svg.setPointerCapture(e.pointerId);
 

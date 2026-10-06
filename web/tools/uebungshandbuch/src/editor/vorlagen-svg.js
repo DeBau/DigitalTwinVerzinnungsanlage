@@ -1,4 +1,4 @@
-/* ---------- Skizzen: Vorlagen als SVG ---------- */
+// Editor-Kern: Vorgedrucktes der Blätter (Raster, Punkte, Rahmen, Schriftfeld) und Striche und Texte als SVG.
 import { esc } from '../app/basis.js';
 import { tw } from './svg.js';
 import { ED } from './status.js';
