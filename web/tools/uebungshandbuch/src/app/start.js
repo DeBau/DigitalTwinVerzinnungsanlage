@@ -1,9 +1,13 @@
+import { PHASES, SHEETS, STUFEN } from './daten.js';
+import { $, $$, esc } from './basis.js';
+import { doneCount, nextSheet, phaseDone } from './fortschritt.js';
+
 /* ================= Ansichten ================= */
-const app = $("#app");
-function setNav(r){ $$("#nav a").forEach(a => a.toggleAttribute("aria-current", false)); const m = {"":"#/", vorlagen:"#/vorlagen", signale:"#/signale", anlage:"#/anlage", richtlinien:"#/richtlinien", konzept:"#/konzept", bewertung:"#/bewertung"}[r];
+export const app = $("#app");
+export function setNav(r){ $$("#nav a").forEach(a => a.toggleAttribute("aria-current", false)); const m = {"":"#/", vorlagen:"#/vorlagen", signale:"#/signale", anlage:"#/anlage", richtlinien:"#/richtlinien", konzept:"#/konzept", bewertung:"#/bewertung"}[r];
   const a = m && $(`#nav a[href="${m}"]`); if (a) a.setAttribute("aria-current", "page"); }
 
-function viewHome(){
+export function viewHome(){
   setNav("");
   const nx = nextSheet(), done = SHEETS.filter(s => doneCount(s) === 6).length;
   const phases = SHEETS.reduce((a, s) => a + doneCount(s), 0);
@@ -35,5 +39,5 @@ function viewHome(){
     <a href="#/bewertung"><b>Bewertung</b><span>Bewertungsbogen mit Punkten und IHK-Note</span></a>
   </div>`;
 }
-function firstOpenPhase(s){ for (let p = 1; p <= 6; p++) if (!phaseDone(s, p)) return p; return 6; }
+export function firstOpenPhase(s){ for (let p = 1; p <= 6; p++) if (!phaseDone(s, p)) return p; return 6; }
 

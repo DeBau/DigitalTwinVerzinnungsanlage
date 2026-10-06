@@ -1,12 +1,20 @@
+import { CRIT, SHEETS, SIG, STYLECHECK, VORL, gradeOf } from './daten.js';
+import { $, $$, BY, IC, S, USES, chips, esc, plain, tableHTML } from './basis.js';
+import { doneCount } from './fortschritt.js';
+import { app, setNav } from './start.js';
+import { sketchCards } from './skizzen-kacheln.js';
+import { restoreInputs } from './uebung.js';
+import { pageHead, whoRow } from './druck.js';
+
 /* ================= Weitere Seiten ================= */
-function viewVorlagen(){
+export function viewVorlagen(){
   setNav("vorlagen");
   app.innerHTML = `<div class="page"><h1>Vorlagen</h1><p class="lead">Alle Skizzenvorlagen mit Schriftfeld. Zeichnen Sie direkt darin oder drucken Sie sie leer für die Arbeit auf Papier. Was Sie hier zeichnen, gehört zu keiner Übung.</p>
     <div class="tplgrid">${sketchCards("frei", Object.keys(VORL), null)}</div>
     <section class="panel"><h2>Formulare für alle Übungen</h2><p class="lead">Leere Formulare als einzelne Seite drucken.</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-act="form" data-f="vars">${IC.print}Variablenliste</button><button class="btn" data-act="form" data-f="fehler">${IC.print}Fehlerprotokoll</button><button class="btn" data-act="form" data-f="fahr">${IC.print}Fahrzeitentabelle</button><button class="btn" data-act="form" data-f="bew">${IC.print}Bewertungsbogen</button></div></section></div>`;
 }
-function formPage(f){
+export function formPage(f){
   const head = what => `<section class="pp">${pageHead(null, what)}${whoRow(null, false)}`;
   const tbl = (h, n, rows) => `<table><thead><tr>${h.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${(rows || Array.from({length:n}, () => [])).map(r => `<tr>${h.map((_, i) => `<td style="height:9mm">${r[i] ? chips(r[i]) : ""}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
   if (f === "vars") return head("Variablenliste") + tbl(["Name","Datentyp","Adresse","Kommentar"], 24) + "</section>";
@@ -15,7 +23,7 @@ function formPage(f){
   return head("Bewertungsbogen") + `<p>Lernsituation: ____________________</p><table><thead><tr><th>Kriterium</th><th>Erfüllt, wenn</th><th>max.</th><th>Punkte</th></tr></thead><tbody>${CRIT.map(c => `<tr><td>${c[0]}</td><td>${c[2]}</td><td>${c[1]}</td><td></td></tr>`).join("")}<tr><td colspan="2"><b>Summe</b></td><td>100</td><td></td></tr></tbody></table><p style="margin-top:4mm">Note: ________</p><div class="sign"><div>Lehrkraft</div><div>Datum</div></div></section>`;
 }
 
-function viewSignale(){
+export function viewSignale(){
   setNav("signale");
   const all = Object.entries(SIG).flatMap(([t, l]) => l.map(e => ({tag:t, ...e})));
   app.innerHTML = `<div class="page"><h1>Signale</h1><p class="lead">${all.length} Signale aus <code>signale.csv</code> mit Adresse, Bedeutung und den Übungen, in denen sie vorkommen.</p>
@@ -27,10 +35,10 @@ function viewSignale(){
   $("#sq").oninput = f;
   $$("[data-styp]").forEach(b => b.onclick = () => { typF = b.dataset.styp; $$("[data-styp]").forEach(x => x.setAttribute("aria-pressed", x === b)); f(); });
 }
-const typ = a => /^%[IE]W/.test(a) ? "AI" : /^%[QA]W/.test(a) ? "AQ" : /^%[IE]/.test(a) ? "DI" : "DQ";
+export const typ = a => /^%[IE]W/.test(a) ? "AI" : /^%[QA]W/.test(a) ? "AQ" : /^%[IE]/.test(a) ? "DI" : "DQ";
 
-const IMGS = [["01-gesamtanlage.jpg","Gesamtanlage"],["02-bedienpult.jpg","Bedienpult"],["03-schaltschrank.jpg","Schaltschrank −A1"],["04-zinnbad.jpg","Portal und Zinnbad"],["05-rollenkurve.jpg","Rollenkurve −MA6"],["06-pruefstation.jpg","Entleer- und Prüfstation"],["07-spruehkuehlung.jpg","Sprühkühlung"],["08-signalmonitor.jpg","Signalmonitor"],["09-weg-zeit-diagramm.jpg","Weg-Zeit-Diagramm"],["10-drosselventile.jpg","Drosselrückschlagventile"],["11-umrichter.jpg","Fenster Umrichter"],["12-umrichter-schrank.jpg","Umrichter im Schaltschrank"],["13-vorort-pruefband.jpg","Vor-Ort-Steuerstelle −S50"],["14-kuehlwassertank.jpg","Kühlwassertank"]];
-function viewAnlage(){
+export const IMGS = [["01-gesamtanlage.jpg","Gesamtanlage"],["02-bedienpult.jpg","Bedienpult"],["03-schaltschrank.jpg","Schaltschrank −A1"],["04-zinnbad.jpg","Portal und Zinnbad"],["05-rollenkurve.jpg","Rollenkurve −MA6"],["06-pruefstation.jpg","Entleer- und Prüfstation"],["07-spruehkuehlung.jpg","Sprühkühlung"],["08-signalmonitor.jpg","Signalmonitor"],["09-weg-zeit-diagramm.jpg","Weg-Zeit-Diagramm"],["10-drosselventile.jpg","Drosselrückschlagventile"],["11-umrichter.jpg","Fenster Umrichter"],["12-umrichter-schrank.jpg","Umrichter im Schaltschrank"],["13-vorort-pruefband.jpg","Vor-Ort-Steuerstelle −S50"],["14-kuehlwassertank.jpg","Kühlwassertank"]];
+export function viewAnlage(){
   setNav("anlage");
   app.innerHTML = `<div class="page"><h1>Die Anlage</h1><p class="lead">Die Anlage verzinnt Kupfer-Rohrkabelschuhe: 36 Teile je Korb werden in flüssiges Zinn getaucht, abgeschreckt, abgeblasen, ausgekippt und einzeln per Kamera geprüft. Alle Kennzeichen folgen EN 81346 und heißen in <code>signale.csv</code>, im TIA-Projekt und im Zwilling gleich.</p>
   <section class="panel"><h2>Prozesskette</h2><ol class="prose" style="margin-top:12px">${[
@@ -55,17 +63,8 @@ function viewAnlage(){
     <div class="callout warn"><b>Merksatz:</b> Das SPS-Programm macht die Anlage bedienbar und diagnostizierbar. Sicher macht sie die Sicherheitstechnik nach EN ISO 13849-1.</div></section>
   <section class="panel"><h2>Bilder</h2><div class="gallery" style="margin-top:14px">${IMGS.map(([f, c]) => `<figure data-act="zoom" data-src="bilder/${f}" data-cap="${esc(c)}"><img src="bilder/${f}" alt="${esc(plain(c))}" loading="lazy"><figcaption>${chips(c)}</figcaption></figure>`).join("")}</div></section></div>`;
 }
-/* ---------- Programmierrichtlinien nach Siemens (Programmierleitfaden und Programmierstyleguide S7-1200/S7-1500, Beitrags-ID 81318674) ---------- */
-const STYLECHECK = [
-  "Keine Merker und keine absoluten Adressen – Zustände als stat-Variablen im FB, gemeinsame Daten in einem globalen DB",
-  "Im Baustein nur lokale Variablen und Schnittstellen – kein direkter Zugriff auf globale DBs, PLC-Variablen oder fremde Instanzen",
-  "Bezeichner nach Styleguide: Bausteine mit Großbuchstaben, camelCase, Präfixe stat / temp / inst / type, keine Umlaute",
-  "Zeiten und Zähler als Multiinstanz (instTimer…), keine Einzelinstanzen",
-  "Zahlenwerte ≠ 0 als lokale Konstante in GROSSSCHRIFT (z. B. DIP_TIME)",
-  "CASE immer mit ELSE-Zweig, Bausteinkopf ausgefüllt, nur //-Kommentare"
-];
-const CODE = s => `<pre class="code"><code>${esc(s)}</code></pre>`;
-function viewRichtlinien(){
+export const CODE = s => `<pre class="code"><code>${esc(s)}</code></pre>`;
+export function viewRichtlinien(){
   setNav("richtlinien");
   const ok = `<span class="pill" style="--c:var(--ok)">richtig</span>`, bad = `<span class="pill" style="--c:var(--bad)">falsch</span>`;
   app.innerHTML = `<div class="page"><h1>Programmierrichtlinien</h1>
@@ -157,7 +156,7 @@ END_CASE;`)}
   restoreInputs(app);
 }
 
-function viewKonzept(){
+export function viewKonzept(){
   setNav("konzept");
   app.innerHTML = `<div class="page"><h1>Didaktisches Konzept</h1><p class="lead">${SHEETS.length} Übungen führen von der ersten Grundstellungsabfrage bis zur Anlage, die vollständig am Programm der Lernenden hängt. Der Zwilling übernimmt jeweils den Teil, der noch nicht selbst programmiert wird.</p>
   <section class="panel"><h2>Sechs Schritte in jeder Übung</h2><ol class="phases6">${[["Informieren","Situation lesen, Zwilling einstellen, Signal-Rallye und Kurz-Check"],["Planen","Leitfragen beantworten, Ablauf skizzieren, Variablen festlegen"],["Entscheiden","Lösungsweg im Fachgespräch abstimmen, Freigabe durch die Lehrkraft"],["Ausführen","in TIA programmieren, in PLCSIM Advanced laden, in Betrieb nehmen"],["Kontrollieren","Prüfprotokoll Fall für Fall, Fehler durch Forcen provozieren"],["Bewerten","Selbsteinschätzung je Lernziel, Reflexion, Plus-Aufgabe"]].map(([b, s]) => `<li><b>${b}</b><span>${s}</span></li>`).join("")}</ol></section>
@@ -167,10 +166,7 @@ function viewKonzept(){
   <section class="panel"><h2>Glossar</h2>${tableHTML(["Begriff","Bedeutung"],[["AUS1 / AUS2 / AUS3","Stopp mit Rampe / austrudeln (Impulssperre) / Schnellhalt"],["Erstwert","die zuerst aufgetretene von mehreren Störungen"],["Forcen","ein Signal unabhängig vom Prozess fest auf 0 oder 1 setzen"],["Handshake","gegenseitige Quittung zweier Teilsysteme vor einer Übergabe"],["Hysterese","Abstand zwischen Ein- und Ausschaltpunkt eines Zweipunktreglers"],["Integrierende Strecke","Istwert ändert sich, solange Zu- und Abfluss ungleich sind"],["Öffner","unbetätigt geschlossener Kontakt (1 = nicht betätigt)"],["PT1","Strecke erster Ordnung mit Zeitkonstante"],["Ruhestromprinzip","Gutzustand = Strom fließt, Drahtbruch wirkt wie Auslösung"],["Selbsthaltung","Ausgang hält sich über seinen eigenen Zustand"],["STO","Safe Torque Off, sichere Impulssperre im Umrichter"],["Transition","Übergangsbedingung zwischen zwei Schritten"]])}</section></div>`;
 }
 
-const CRIT = [["Planung",15,"Skizze vollständig, Leitfragen fachlich richtig"],["Funktion",30,"alle Prüffälle bestanden, Ereignisliste ohne Meldungen"],["Fehlerverhalten",20,"geforcte Fehler erkannt, gemeldet, sicher behandelt; kein selbstständiger Wiederanlauf"],["Programmstruktur",15,"nach Siemens-Programmierstyleguide: FB/FC-Aufteilung, Bezeichner und Präfixe, keine Merker, Multiinstanzen, Konstanten, Bausteinkopf"],["Dokumentation",10,"Prüfprotokoll ausgefüllt, Änderungen nachvollziehbar"],["Fachgespräch",10,"Lösung begründet, Alternativen benannt, Transfer auf reale Anlage"]];
-const critOf = () => CRIT, TYPN = {erkunden:"Erkunden", programmieren:"Programmieren", auslegen:"Auslegen", projekt:"Projekt"};
-const gradeOf = p => p >= 92 ? "1 sehr gut" : p >= 81 ? "2 gut" : p >= 67 ? "3 befriedigend" : p >= 50 ? "4 ausreichend" : p >= 30 ? "5 mangelhaft" : "6 ungenügend";
-function viewBewertung(sel){
+export function viewBewertung(sel){
   setNav("bewertung");
   const ex = BY[sel] || SHEETS[0];
   const sumOf = s => { const v = CRIT.map((_, i) => S.get(`${s.id}:bew${i}`)); return v.some(x => x !== null) ? v.reduce((a, x) => a + (+x || 0), 0) : null; };
@@ -185,5 +181,5 @@ function viewBewertung(sel){
   $("#bsel").onchange = e => location.hash = "#/bewertung/" + e.target.value;
   restoreInputs(app); paintGrade(ex);
 }
-function paintGrade(ex){ const el = $("#grade"); if (!el) return; const v = CRIT.map((_, i) => S.get(`${ex.id}:bew${i}`)); const any = v.some(x => x !== null); const s = v.reduce((a, x) => a + (+x || 0), 0); el.textContent = any ? `${s} Punkte, ${gradeOf(s)}` : "noch keine Punkte"; }
+export function paintGrade(ex){ const el = $("#grade"); if (!el) return; const v = CRIT.map((_, i) => S.get(`${ex.id}:bew${i}`)); const any = v.some(x => x !== null); const s = v.reduce((a, x) => a + (+x || 0), 0); el.textContent = any ? `${s} Punkte, ${gradeOf(s)}` : "noch keine Punkte"; }
 

@@ -1,8 +1,11 @@
+import { SHEETS } from './daten.js';
+import { S } from './basis.js';
+
 /* ---------- Fortschritt ---------- */
-const filled = key => String(S.get(key) ?? "").trim().length > 0;
+export const filled = key => String(S.get(key) ?? "").trim().length > 0;
 // Prüfpunkt erledigt: bestanden, oder nicht bestanden mit Ursache, Änderung und Nachtest
-const prDone = (k, i) => { const v = S.get(k+":p"+i); return v === "ok" || (v === "bad" && ["u","m","n"].every(x => filled(`${k}:p${i}${x}`))); };
-function phaseDone(s, p){
+export const prDone = (k, i) => { const v = S.get(k+":p"+i); return v === "ok" || (v === "bad" && ["u","m","n"].every(x => filled(`${k}:p${i}${x}`))); };
+export function phaseDone(s, p){
   const k = s.id;
   switch (p) {
     case 1: return !!S.get(k+":einst");
@@ -14,6 +17,6 @@ function phaseDone(s, p){
   }
   return false;
 }
-const doneCount = s => [1,2,3,4,5,6].filter(p => phaseDone(s, p)).length;
-const nextSheet = () => SHEETS.find(s => doneCount(s) < 6);
+export const doneCount = s => [1,2,3,4,5,6].filter(p => phaseDone(s, p)).length;
+export const nextSheet = () => SHEETS.find(s => doneCount(s) < 6);
 

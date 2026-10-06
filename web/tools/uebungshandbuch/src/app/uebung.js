@@ -1,14 +1,21 @@
+import { PHASES, SHEETS, STUFEN, STYLECHECK } from './daten.js';
+import { $, $$, BY, HAS_ERG, HSTUFE, IC, S, artPill, chip, chips, chipsQuiet, esc, hilfeLevel, hilfeText, mitbringen, plain, qt, quelle, quizKey, quizSet, sigEntries, tableHTML, typOf, vorIds, zielTag } from './basis.js';
+import { phaseDone, prDone } from './fortschritt.js';
+import { app, setNav, viewHome } from './start.js';
+import { paintSketches } from './skizzen-kacheln.js';
+import { paintVars } from './variablen.js';
+
 /* ---------- Übungsansicht ---------- */
-let timerId = null, timerEx = null, timerStart = 0;
-function fmtTime(sec){ const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60; return `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`; }
-function curTime(id){ let t = S.get(id+":zeit", 0); if (timerEx === id) t += Math.floor((Date.now() - timerStart)/1000); return t; }
-function toggleTimer(id){
+export let timerId = null, timerEx = null, timerStart = 0;
+export function fmtTime(sec){ const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60; return `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`; }
+export function curTime(id){ let t = S.get(id+":zeit", 0); if (timerEx === id) t += Math.floor((Date.now() - timerStart)/1000); return t; }
+export function toggleTimer(id){
   if (timerEx) { S.set(timerEx+":zeit", curTime(timerEx)); clearInterval(timerId); const was = timerEx; timerEx = null; if (was === id) return paintTimer(id); }
   timerEx = id; timerStart = Date.now(); timerId = setInterval(() => paintTimer(id), 1000); paintTimer(id);
 }
-function paintTimer(id){ const el = $("#tv"); if (!el) return; el.textContent = fmtTime(curTime(id)); const b = $("#tbtn"); if (b) { b.innerHTML = timerEx === id ? IC.pause : IC.play; b.setAttribute("aria-label", timerEx === id ? "Arbeitszeit anhalten" : "Arbeitszeit starten"); } }
+export function paintTimer(id){ const el = $("#tv"); if (!el) return; el.textContent = fmtTime(curTime(id)); const b = $("#tbtn"); if (b) { b.innerHTML = timerEx === id ? IC.pause : IC.play; b.setAttribute("aria-label", timerEx === id ? "Arbeitszeit anhalten" : "Arbeitszeit starten"); } }
 
-function viewExercise(id, p){
+export function viewExercise(id, p){
   const s = BY[id]; if (!s) return viewHome();
   setNav(null);
   p = Math.min(6, Math.max(1, +p || 1));
@@ -39,29 +46,29 @@ function viewExercise(id, p){
   window.scrollTo(0, 0);
   const cur = $(".stepper a[aria-current]"), ol = $(".stepper ol"); if (cur && ol.scrollWidth > ol.clientWidth) ol.scrollLeft = cur.offsetLeft - 16;
 }
-function ctxHTML(s){
+export function ctxHTML(s){
   return `<div class="box"><h4>Bearbeitet von</h4><div style="display:grid;gap:8px"><input type="text" data-k="name" placeholder="Name" aria-label="Name"><input type="text" data-k="${s.id}:datum" placeholder="Datum" aria-label="Datum"></div></div>`
     + (s.bild ? `<div class="box"><figure><img src="bilder/${s.bild[0]}" alt="${esc(plain(s.bild[1]))}" data-act="zoom" data-src="bilder/${s.bild[0]}" data-cap="${esc(s.bild[1])}"><figcaption>${chips(s.bild[1])}</figcaption></figure></div>` : "")
     + `<div class="box"><h4>Lernziele: Du kannst …</h4><ol class="goals">${s.ziele.map(z => `<li>${z}</li>`).join("")}</ol></div>`
     + `<div class="box"><h4>Einstellung im Zwilling</h4><div class="small">${s.einst}</div></div>`
     + `<div class="box"><h4>Beteiligte Signale</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${s.sig.split(" ").map(chip).join("")}</div></div>`;
 }
-const ergList = (list, von) => `<ul class="erg">${list.map(e => `<li>${artPill(e.a)}<span><b>${esc(e.n)}</b>${von && e.von ? ` <a class="muted small" href="#/${e.von}/6">aus ${e.von}</a>` : ""}${e.h ? `<br><span class="muted small">${chips(e.h)}</span>` : ""}</span></li>`).join("")}</ul>`;
-function tplHTML(s){
+export const ergList = (list, von) => `<ul class="erg">${list.map(e => `<li>${artPill(e.a)}<span><b>${esc(e.n)}</b>${von && e.von ? ` <a class="muted small" href="#/${e.von}/6">aus ${e.von}</a>` : ""}${e.h ? `<br><span class="muted small">${chips(e.h)}</span>` : ""}</span></li>`).join("")}</ul>`;
+export function tplHTML(s){
   const k = s.id;
   return `<h3>${s.tpl.cap}</h3><div class="tw"><table class="tplt"><thead><tr>${s.tpl.head.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${
     s.tpl.rows.map((r, ri) => `<tr>${r.map(x => `<td>${chips(x)}</td>`).join("")}${Array.from({length: s.tpl.inputs}, (_, ci) => `<td><input type="text" data-k="${k}:t${ri}_${ci}" aria-label="${esc(s.tpl.head[r.length+ci])}, Zeile ${ri+1}"></td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
 }
 // gestufte Hilfen zu Aufgabenschritt i: Stufe n lässt sich erst nach Stufe n−1 öffnen, die höchste geöffnete Stufe wird gespeichert (k:h{i})
-function hilfeInner(s, i){
+export function hilfeInner(s, i){
   const h = (s.hilfe || {})[i]; if (!h || !h.length) return "";
   const l = hilfeLevel(s, i);
   return h.slice(0, l).map((t, n) => `<details open><summary>Hilfe ${n+1} · ${HSTUFE[n]}</summary><div class="prose">${chips(t)}</div></details>`).join("")
     + (l < Math.min(3, h.length) ? `<button class="btn ghost small" type="button" data-act="hilfe" data-i="${i}">Hilfe ${l+1} · ${HSTUFE[l]} öffnen</button>` : "");
 }
-const lfHTML = (k, list, pre) => list.map((q, i) => `<div class="qa"><label for="${pre}${i}">${chips(qt(q))}${zielTag(q)}<span class="state" data-state="${k}:${pre}${i}"></span></label><textarea id="${pre}${i}" data-k="${k}:${pre}${i}" rows="3"></textarea></div>`).join("");
+export const lfHTML = (k, list, pre) => list.map((q, i) => `<div class="qa"><label for="${pre}${i}">${chips(qt(q))}${zielTag(q)}<span class="state" data-state="${k}:${pre}${i}"></span></label><textarea id="${pre}${i}" data-k="${k}:${pre}${i}" rows="3"></textarea></div>`).join("");
 
-function phaseHTML(s, p){
+export function phaseHTML(s, p){
   const k = s.id, erk = typOf(s) === "erkunden", H = (t, intro) => `<h2><span class="pn">${p}</span>${t}</h2><p class="intro">${intro}</p>`;
   if (p === 1) {
     let h = H("Informieren", "Verschaffe dir ein Bild von der Aufgabe, stelle den Zwilling ein und suche jedes beteiligte Signal in der Anlage.");
@@ -139,15 +146,31 @@ function phaseHTML(s, p){
     + (s.plus ? `<div class="plus"><b>Plus-Aufgabe</b> (für alle, die früher fertig sind)<br>${chips(s.plus)}<label class="confirm" style="margin-bottom:0"><input type="checkbox" data-k="${k}:plus"><span>Plus-Aufgabe erledigt</span></label></div>` : "")
     + `<div class="finish ${done?"done":""}" id="finish">${finishInner(s)}</div>`;
 }
-function finishInner(s){
+export function finishInner(s){
   const k = s.id, done = !!S.get(k+":fertig"), open = [1,2,3,4,5].filter(p => !phaseDone(s, p)), rated = s.ziele.every((_, i) => S.get(k+":z"+i));
   if (done) return `<span><b>${k} ist abgeschlossen.</b> Der Korb im Lernpfad ist voll.</span><button class="btn small" type="button" data-act="unfinish">Wieder öffnen</button>`;
   const hint = open.length ? `Noch offen: ${open.map(p => `<a href="#/${k}/${p}">${PHASES[p].n}</a>`).join(", ")}${rated ? "" : ", Selbsteinschätzung"}.` : (rated ? "Alle Schritte erledigt." : "Noch offen: Selbsteinschätzung.");
   return `<span>${hint}</span><button class="btn primary" type="button" data-act="finish" ${open.length || !rated ? "disabled" : ""}>Übung abschließen</button>`;
 }
-function quizHTML(k, qi, q, w="ein"){
+export function quizHTML(k, qi, q, w="ein"){
   const a = S.get(quizKey(k, w, qi));
   const fb = a === null ? "" : `<div class="fb">${a === q[2] ? `<b class="ok">Richtig.</b>` : `<b class="no">Nicht ganz.</b> Richtig ist: ${chips(q[1][q[2]])}.`} ${chips(q[3])} <button class="btn ghost small" type="button" data-act="quiz-reset" data-q="${qi}" data-w="${w}">Noch einmal</button></div>`;
   return `<div class="quiz" data-quiz="${qi}"><div class="qq">${chips(q[0])}</div><div class="opts">${q[1].map((o, i) => `<button type="button" class="opt ${a===null?"":(i===q[2]?"right":(i===a?"wrong":""))}" data-act="quiz" data-q="${qi}" data-w="${w}" data-i="${i}" ${a===null?"":"disabled"}>${chipsQuiet(o)}</button>`).join("")}</div>${fb}</div>`;
 }
 
+/* ================= Ereignisse ================= */
+export function restoreInputs(root){
+  $$("[data-k]", root).forEach(el => { const v = S.get(el.dataset.k); if (el.type === "checkbox") el.checked = !!v; else el.value = v ?? ""; });
+  $$("[data-k='name'],[data-k='klasse']", root).forEach(el => el.value = S.get(el.dataset.k) || "");
+  refreshStatus();
+}
+export function refreshStatus(){
+  const m = location.hash.match(/^#\/(L\d\d)\/(\d)/); if (!m) return;
+  const s = BY[m[1]]; if (!s) return;
+  $$(".stepper a[data-step]").forEach(a => { const n = +a.dataset.step, d = phaseDone(s, n); a.classList.toggle("done", d); a.querySelector(".n").textContent = d ? "✓" : n; });
+  $$("[data-state]").forEach(el => el.textContent = (S.get(el.dataset.state) || "").trim() ? "beantwortet" : "");
+  const sum = $("#sum"); if (sum) { const ok = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "ok").length, bad = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "bad").length;
+    const ana = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "bad" && prDone(s.id, i)).length;
+    sum.innerHTML = `<span><b>${ok}</b>bestanden</span><span><b>${bad}</b>nicht bestanden${bad ? `, davon ${ana} analysiert` : ""}</span><span><b>${s.pr.length-ok-bad}</b>offen</span>`; }
+  const fin = $("#finish"); if (fin) { fin.innerHTML = finishInner(s); fin.classList.toggle("done", !!S.get(s.id+":fertig")); }
+}

@@ -1,14 +1,21 @@
+import { EXVORL, STUFEN, STYLECHECK, TYPN, VORL, critOf, gradeOf } from './daten.js';
+import { $, $$, ART, BY, IC, S, chips, esc, hilfeLevel, hilfeText, mitbringen, qt, quelle, sigEntries, tableHTML, typOf, zielTag } from './basis.js';
+import { filled } from './fortschritt.js';
+import { pageCount } from '../editor/zeichnen.js';
+import { skKey, skMeta, sketchSVG } from '../editor/blaetter.js';
+import { curTime, fmtTime } from './uebung.js';
+
 /* ================= Drucken ================= */
-function pageHead(ex, what){
+export function pageHead(ex, what){
   const st = ex ? STUFEN[ex.st] : null;
   return `<div class="ph"><div class="c">${ex ? ex.id : "SPS"}</div><div><div class="t">${ex ? esc(ex.t) : what}</div><div class="u">${ex ? `${what}, Stufe ${ex.st} ${st.n}, ${ex.ue} UE` : "Übungshandbuch SPS-Technik"}</div></div><div class="r">Übungshandbuch<br>SPS-Technik</div></div>`;
 }
-const whoRow = (ex, filled) => `<div class="who"><div>Name<b>${filled ? esc(S.get("name")||"") : ""}</b></div><div>Klasse<b>${filled ? esc(S.get("klasse")||"") : ""}</b></div><div>Datum<b>${filled && ex ? esc(S.get(ex.id+":datum")||"") : ""}</b></div></div>`;
-const lines = n => `<div class="lines">${"<i></i>".repeat(n)}</div>`;
-const ansOr = (v, n) => v && String(v).trim() ? `<div class="ans">${esc(v)}</div>` : lines(n);
-const tplPrint = (ex, f) => `<h3>${ex.tpl.cap}</h3><table><thead><tr>${ex.tpl.head.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${ex.tpl.rows.map((r, ri) => `<tr>${r.map(x => `<td>${chips(x)}</td>`).join("")}${Array.from({length: ex.tpl.inputs}, (_, ci) => `<td>${f ? esc(S.get(`${ex.id}:t${ri}_${ci}`)||"") : "&nbsp;"}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
-const ergPrint = list => `<ul>${list.map(e => `<li><b>${esc(e.n)}</b> (${ART[e.a] ? ART[e.a][1] : esc(e.a)}${e.von ? `, aus ${e.von}` : ""})${e.h ? `: ${chips(e.h)}` : ""}</li>`).join("")}</ul>`;
-function sheetPage(ex, f){
+export const whoRow = (ex, filled) => `<div class="who"><div>Name<b>${filled ? esc(S.get("name")||"") : ""}</b></div><div>Klasse<b>${filled ? esc(S.get("klasse")||"") : ""}</b></div><div>Datum<b>${filled && ex ? esc(S.get(ex.id+":datum")||"") : ""}</b></div></div>`;
+export const lines = n => `<div class="lines">${"<i></i>".repeat(n)}</div>`;
+export const ansOr = (v, n) => v && String(v).trim() ? `<div class="ans">${esc(v)}</div>` : lines(n);
+export const tplPrint = (ex, f) => `<h3>${ex.tpl.cap}</h3><table><thead><tr>${ex.tpl.head.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${ex.tpl.rows.map((r, ri) => `<tr>${r.map(x => `<td>${chips(x)}</td>`).join("")}${Array.from({length: ex.tpl.inputs}, (_, ci) => `<td>${f ? esc(S.get(`${ex.id}:t${ri}_${ci}`)||"") : "&nbsp;"}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+export const ergPrint = list => `<ul>${list.map(e => `<li><b>${esc(e.n)}</b> (${ART[e.a] ? ART[e.a][1] : esc(e.a)}${e.von ? `, aus ${e.von}` : ""})${e.h ? `: ${chips(e.h)}` : ""}</li>`).join("")}</ul>`;
+export function sheetPage(ex, f){
   const k = ex.id, sig = sigEntries(ex), mit = mitbringen(ex);
   let h = `<section class="pp">${pageHead(ex, "Arbeitsblatt")}${whoRow(ex, f)}
     <h2>Ausgangssituation</h2><p>${chips(ex.sit)}</p><p><b>Einstellung im Zwilling:</b> ${ex.einst}</p>${ex.beschr ? `<h2>Aufgabenbeschreibung</h2>${chips(ex.beschr)}` : ""}
@@ -25,7 +32,7 @@ function sheetPage(ex, f){
   if (ex.plus) h += `<h3>Plus-Aufgabe</h3><p>${chips(ex.plus)}</p>`;
   return h + `<div class="foot">${ex.id} ${esc(ex.t)}, Übungshandbuch SPS-Technik, Aufgabe im Repository: ${ex.repo}</div></section>`;
 }
-function checkPage(ex, f){
+export function checkPage(ex, f){
   const k = ex.id, erk = typOf(ex) === "erkunden";
   const bad = ex.pr.map((_, i) => i).filter(i => f && S.get(k+":p"+i) === "bad");
   const fa = f ? (bad.length ? `<table><thead><tr><th style="width:6%">Nr.</th><th>Ursache</th><th>Änderung</th><th>Nachtest</th></tr></thead><tbody>${bad.map(i => `<tr><td>${i+1}</td>${["u","m","n"].map(x => `<td>${esc(S.get(`${k}:p${i}${x}`)||"")}</td>`).join("")}</tr>`).join("")}</tbody></table>` : `<p>Keine nicht bestandenen Prüffälle.</p>`)
@@ -41,14 +48,14 @@ function checkPage(ex, f){
     <h2>Welcher Fehler hat dich am meisten gelehrt?</h2>${f ? ansOr(S.get(k+":lehre"), 2) : lines(2)}
     <div class="sign"><div>Geprüft (Lernende)</div><div>Abgenommen (Lehrkraft), Datum</div></div></section>`;
 }
-function varsPage(ex, f){
+export function varsPage(ex, f){
   const rows = f ? S.get(ex.id+":vars", []) : [];
   const blank = Math.max(0, (f ? 6 : 22) - rows.length);
   return `<section class="pp">${pageHead(ex, "Variablenliste")}${whoRow(ex, f)}
     <table><thead><tr><th style="width:28%">Name</th><th style="width:12%">Datentyp</th><th style="width:14%">Adresse</th><th>Kommentar</th></tr></thead><tbody>${
       rows.map(r => `<tr><td>${esc(r.n)}</td><td>${esc(r.t)}</td><td>${esc(r.a)}</td><td>${esc(r.k)}</td></tr>`).join("")}${"<tr><td style='height:8mm'></td><td></td><td></td><td></td></tr>".repeat(blank)}</tbody></table></section>`;
 }
-function ratePage(ex, f){
+export function ratePage(ex, f){
   const k = ex.id, hasH = ex.hilfe && Object.keys(ex.hilfe).length;
   return `<section class="pp">${pageHead(ex, "Selbsteinschätzung und Reflexion")}${whoRow(ex, f)}
     <p>1 = noch nicht, 2 = mit Hilfe, 3 = selbstständig, 4 = sicher und kann es erklären</p>
@@ -60,13 +67,13 @@ function ratePage(ex, f){
     ${ex.ergebnis && ex.ergebnis.length ? `<h2>Das nimmst du mit</h2>` + ergPrint(ex.ergebnis) : ""}
     <div class="sign"><div>Freigabe Fachgespräch (Kürzel)${f && S.get(k+":kuerzel") ? ": " + esc(S.get(k+":kuerzel")) : ""}</div><div>Arbeitszeit${f ? ": " + fmtTime(curTime(k)) : ""}</div></div></section>`;
 }
-function sketchPage(scope, key, f){
+export function sketchPage(scope, key, f){
   const ex = BY[scope], d = f ? S.get(skKey(scope, key)) : null, meta = f ? skMeta(scope, key) : {title: ex ? `${ex.id} ${ex.t}` : VORL[key].n, vorlage: VORL[key].n};
   return Array.from({length: pageCount(key, d)}, (_, i) => `<section class="pp land">${sketchSVG(key, ex, d, meta, false, i)}</section>`).join("");
 }
-const nivTable = crit => `<h2>Niveaustufen</h2><p>Passend zur Selbsteinschätzung: 1 = noch nicht, 2 = mit Hilfe, 3 = selbstständig, 4 = sicher und kann es erklären. Richtwert für die Punkte: Stufe 1 bis 25 %, Stufe 2 bis 50 %, Stufe 3 bis 75 %, Stufe 4 bis 100 % des Höchstwerts.</p>
+export const nivTable = crit => `<h2>Niveaustufen</h2><p>Passend zur Selbsteinschätzung: 1 = noch nicht, 2 = mit Hilfe, 3 = selbstständig, 4 = sicher und kann es erklären. Richtwert für die Punkte: Stufe 1 bis 25 %, Stufe 2 bis 50 %, Stufe 3 bis 75 %, Stufe 4 bis 100 % des Höchstwerts.</p>
   <table><thead><tr><th style="width:16%">Kriterium</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead><tbody>${crit.map(c => `<tr><td><b>${c[0]}</b></td>${(c[3] || []).map(n => `<td>${n}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
-function bewPage(ex){
+export function bewPage(ex){
   const k = ex.id, crit = critOf(ex), pts = crit.map((c, i) => S.get(`${k}:bew${i}`)), sum = pts.reduce((a, v) => a + (+v || 0), 0);
   return `<section class="pp">${pageHead(ex, "Bewertungsbogen")}${whoRow(ex, true)}
     <p>Bewertungsraster: <b>${TYPN[typOf(ex)]}</b></p>
@@ -76,13 +83,13 @@ function bewPage(ex){
     ${ex.hilfe && Object.keys(ex.hilfe).length ? `<p><b>Genutzte Hilfen:</b> ${hilfeText(ex)}</p>` : ""}
     <h2>Bemerkungen</h2>${ansOr(S.get(k+":bewnote"), 4)}<div class="sign"><div>Lehrkraft</div><div>Datum</div></div>${nivTable(crit)}</section>`;
 }
-function doPrint(html){
+export function doPrint(html){
   $("#print").innerHTML = html;
   const fin = () => { $("#print").innerHTML = ""; removeEventListener("afterprint", fin); };
   addEventListener("afterprint", fin);
   setTimeout(() => window.print(), 50);
 }
-function openPrintDialog(id){
+export function openPrintDialog(id){
   const ex = BY[id], sk = EXVORL[id] || [];
   const opt = (v, t, d, on) => `<label class="opt"><input type="checkbox" name="pp" value="${v}" ${on?"checked":""}><span><b>${t}</b><span>${d}</span></span></label>`;
   $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>${ex.id} drucken</h2><p class="muted">Wähle die Seiten. Jede Seite ist ein eigenes Blatt A4; Skizzen kommen quer.</p>

@@ -1,5 +1,11 @@
+import { S } from './basis.js';
+import { viewHome } from './start.js';
+import { curTime, timerEx, viewExercise } from './uebung.js';
+import { viewAnlage, viewBewertung, viewKonzept, viewRichtlinien, viewSignale, viewVorlagen } from './seiten.js';
+import { hideTip } from './tooltip.js';
+
 /* ---------- Router ---------- */
-function route(){
+export function route(){
   hideTip();
   const h = location.hash.replace(/^#\/?/, "").split("/");
   if (/^L\d\d$/.test(h[0])) return viewExercise(h[0], h[1]);
@@ -11,6 +17,8 @@ function route(){
   if (h[0] === "bewertung") return viewBewertung(h[1]);
   viewHome();
 }
+// Seiteneffekte: Listener, Migrationen, Start. main.js ruft init() in der ursprünglichen Reihenfolge auf.
+export function init(){
 (function umziehen(){
   if (S.get("ver") >= 2) return;
   const alt = S.all(), rx = /^L(\d\d)(?=:)/;
@@ -28,3 +36,4 @@ function route(){
 addEventListener("hashchange", route);
 addEventListener("beforeunload", () => { if (timerEx) S.set(timerEx+":zeit", curTime(timerEx)); });
 route();
+}

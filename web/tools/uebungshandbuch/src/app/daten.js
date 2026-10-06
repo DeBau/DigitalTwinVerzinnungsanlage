@@ -1,5 +1,5 @@
-const SIG = __SIG__;
-const EXTRA = {
+export const SIG = __SIG__;
+export const EXTRA = {
   MM1:"Einhängezylinder: Korb einhängen / lösen", MM2:"Tauchzylinder: heben / senken", MM3:"Verschiebezylinder: Band / Zinnbad",
   MM4:"Abstreifzylinder: Bad abdecken / öffnen", MM5:"Anschlag Übergabeplatz, Schwenkantrieb 90°", MM6:"Vereinzeler, Schwenkantrieb 90°",
   MM8:"Korbkipper, ISO 15552 Ø50/200", MA1:"Bandmotor Band 1", MA2:"Bandmotor Band 2", MA3:"Umwälzpumpe Sprühkühlung", MA4:"Vibrorinne",
@@ -7,19 +7,19 @@ const EXTRA = {
   S20:"Vor-Ort-Steuerstelle Band 2", S30:"Vor-Ort-Steuerstelle Rollenkurve", S40:"Vor-Ort-Steuerstelle Prüfstation", S50:"Vor-Ort-Steuerstelle Prüfband",
   QM2:"Ventilinsel Band", QM4:"Ventilinsel Prüfstation", A1:"Schaltschrank"
 };
-const STUFEN = [null,
+export const STUFEN = [null,
   {n:"Grundlagen", c:"var(--s1)", ue:27, sub:"Verknüpfungen, Zeiten, Zähler an Signalen der Anlage – dann fahren Sie das Portal von Hand, sicher verriegelt."},
   {n:"Aufbau", c:"var(--s2)", ue:31, sub:"Betriebsarten, Befehlsausgabe, Automatik – dann Not-Halt, Band 1 und Übergabeplatz."},
   {n:"Vertiefung", c:"var(--s3)", ue:29, sub:"Förderstrecke, Prüfstation und erste Regelkreise."},
   {n:"Experte", c:"var(--s4)", ue:52, sub:"Stetige Regelung, Antriebe und die ganze Anlage."}];
-const T = (head, rows) => ({head, rows});
-const SHEETS = __SHEETS__;
-const TEXTE = __TEXTE__;   // ausführliche Aufgabenbeschreibung und Fachwissen je Übung (texte/Lxx.json)
+export const T = (head, rows) => ({head, rows});
+export const SHEETS = __SHEETS__;
+export const TEXTE = __TEXTE__;   // ausführliche Aufgabenbeschreibung und Fachwissen je Übung (texte/Lxx.json)
 SHEETS.forEach(s => Object.assign(s, TEXTE[s.id] || {}));
 
-const QUIZ = __QUIZ__;   // Kurz-Checks je Übung (quiz.js): {Lxx:{ein:[…], aus:[…]}}
+export const QUIZ = __QUIZ__;   // Kurz-Checks je Übung (quiz.js): {Lxx:{ein:[…], aus:[…]}}
 
-const VORL = {
+export const VORL = {
   grafcet:{n:"GRAFCET", d:"Ablauf nach DIN EN 60848 mit Symbollegende"},
   zustand:{n:"Zustandsdiagramm", d:"Zustände und Übergänge, z. B. für Übergaben und Antriebe"},
   wegschritt:{n:"Weg-Schritt-Diagramm", d:"Zylinderbewegungen über die Schritte"},
@@ -30,11 +30,11 @@ const VORL = {
   trend:{n:"Trendaufzeichnung", d:"Istwert, Sollwert und Stellgröße über der Zeit"},
   raster:{n:"Kästchenraster", d:"5-mm-Raster für alles Weitere"}
 };
-const EXVORL = {L01:["raster"],L02:["raster"],L03:["raster"],L04:["trend","raster"],L05:["raster"],L06:["raster"],L07:["stromlauf","raster"],L12:["grafcet","wegschritt","pneumatik"],L13:["grafcet","zustand"],L08:["pneumatik","raster"],L09:["zustand","raster"],L10:["zustand","raster"],L11:["stromlauf","raster"],L14:["zustand","stromlauf"],L15:["stromlauf","leistung"],
+export const EXVORL = {L01:["raster"],L02:["raster"],L03:["raster"],L04:["trend","raster"],L05:["raster"],L06:["raster"],L07:["stromlauf","raster"],L12:["grafcet","wegschritt","pneumatik"],L13:["grafcet","zustand"],L08:["pneumatik","raster"],L09:["zustand","raster"],L10:["zustand","raster"],L11:["stromlauf","raster"],L14:["zustand","stromlauf"],L15:["stromlauf","leistung"],
   L16:["grafcet","wegschritt","pneumatik"],L17:["wegschritt","pneumatik"],L18:["zustand"],L19:["raster"],L20:["grafcet"],L21:["zustand","pneumatik"],L22:["regelkreis"],L23:["regelkreis","trend"],
   L24:["regelkreis","trend"],L25:["regelkreis","trend"],L26:["zustand"],L27:["zustand","leistung"],L28:["zustand"],L29:["raster"],L30:["zustand","leistung"],L31:["raster"],L32:["grafcet","zustand","stromlauf","leistung","pneumatik"]};
-const CYL = {L16:["−MM5","−MM6","−MM1","−MM2"]};
-const PHASES = [null,
+export const CYL = {L16:["−MM5","−MM6","−MM1","−MM2"]};
+export const PHASES = [null,
   {n:"Informieren", s:"Situation und Signale"},
   {n:"Planen", s:"Leitfragen, Skizzen, Variablen"},
   {n:"Entscheiden", s:"Fachgespräch und Freigabe"},
@@ -42,3 +42,16 @@ const PHASES = [null,
   {n:"Kontrollieren", s:"Prüfprotokoll"},
   {n:"Bewerten", s:"Selbsteinschätzung"}];
 
+/* ---------- Programmierrichtlinien nach Siemens (Programmierleitfaden und Programmierstyleguide S7-1200/S7-1500, Beitrags-ID 81318674) ---------- */
+export const STIL = __STIL__;   // Programmierrichtlinien einzeln, je mit Übung ab der sie gelten (stil.js): [{ab, t, w, q}]
+export const STYLECHECK = [
+  "Keine Merker und keine absoluten Adressen – Zustände als stat-Variablen im FB, gemeinsame Daten in einem globalen DB",
+  "Im Baustein nur lokale Variablen und Schnittstellen – kein direkter Zugriff auf globale DBs, PLC-Variablen oder fremde Instanzen",
+  "Bezeichner nach Styleguide: Bausteine mit Großbuchstaben, camelCase, Präfixe stat / temp / inst / type, keine Umlaute",
+  "Zeiten und Zähler als Multiinstanz (instTimer…), keine Einzelinstanzen",
+  "Zahlenwerte ≠ 0 als lokale Konstante in GROSSSCHRIFT (z. B. DIP_TIME)",
+  "CASE immer mit ELSE-Zweig, Bausteinkopf ausgefüllt, nur //-Kommentare"
+];
+export const CRIT = [["Planung",15,"Skizze vollständig, Leitfragen fachlich richtig"],["Funktion",30,"alle Prüffälle bestanden, Ereignisliste ohne Meldungen"],["Fehlerverhalten",20,"geforcte Fehler erkannt, gemeldet, sicher behandelt; kein selbstständiger Wiederanlauf"],["Programmstruktur",15,"nach Siemens-Programmierstyleguide: FB/FC-Aufteilung, Bezeichner und Präfixe, keine Merker, Multiinstanzen, Konstanten, Bausteinkopf"],["Dokumentation",10,"Prüfprotokoll ausgefüllt, Änderungen nachvollziehbar"],["Fachgespräch",10,"Lösung begründet, Alternativen benannt, Transfer auf reale Anlage"]];
+export const critOf = () => CRIT, TYPN = {erkunden:"Erkunden", programmieren:"Programmieren", auslegen:"Auslegen", projekt:"Projekt"};
+export const gradeOf = p => p >= 92 ? "1 sehr gut" : p >= 81 ? "2 gut" : p >= 67 ? "3 befriedigend" : p >= 50 ? "4 ausreichend" : p >= 30 ? "5 mangelhaft" : "6 ungenügend";

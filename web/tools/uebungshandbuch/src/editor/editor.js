@@ -1,6 +1,14 @@
-/* ---------- Skizzen-Editor ---------- */
-const ED = {scope:null, key:null, data:null, tool:"pen", color:"#17212B", w:2.2, hist:[], cur:null, sel:null, selC:null, from:null, place:null, drag:null, svg:null, grid:true, dock:true, selS:null, selT:null, sim:{on:false, st:{}, pos:{}}};
-const SAMPLE = {
+import { CYL, SHEETS, VORL } from '../app/daten.js';
+import { $, $$, BY, IC, S, esc } from '../app/basis.js';
+import { FIXED, INK, PH, SVGT, arrowHead } from './svg.js';
+import { ED } from './status.js';
+import { shapeD, snap, wsAus } from './vorlagen-svg.js';
+import { PC, nearestPort, portCap, simOn, vrails } from './bauteile.js';
+import { ACT_T, BLK, GN, PAL, atype, aw, bbox, ctr, fam, hasMark, isAct, isActKey } from './bausteine.js';
+import { connGeom, drawObj, inPt, inkSVG, outPt, pageCount, pcSample, simClick, simCompute, simStep } from './zeichnen.js';
+import { deDate, pagesSVG, skKey, skMeta, sketchSVG } from './blaetter.js';
+
+export const SAMPLE = {
   init:[{k:"init", x:4, y:4, v:"1"}, "0 0 48 48"], step:[{k:"step", x:4, y:4, v:"2"}, "0 0 48 48"],
   trans:[{k:"trans", x:24, y:24}, "0 0 48 48", `<path d="M24 4V44" stroke="${INK}" stroke-width="1.6"/>`],
   macro:[{k:"macro", x:4, y:4, v:"M1"}, "0 0 48 48"], ref:[{k:"ref", x:16, y:8, v:"1"}, "0 0 48 48"],
@@ -13,7 +21,7 @@ const SAMPLE = {
   no:[{k:"no", x:34, y:2}, "0 0 56 64"], nc:[{k:"nc", x:30, y:2}, "0 0 56 64"], coil:[{k:"coil", x:28, y:2}, "0 0 56 64"], lamp:[{k:"lamp", x:28, y:2}, "0 0 56 64"],
   box:[{k:"box", x:2, y:2, v:"Regler"}, "0 0 114 54"], sum:[{k:"sum", x:24, y:24}, "0 0 48 48"]
 };
-const HINT = {
+export const HINT = {
   grafcet:"Anfangsschritt setzen, dann Transition, Schritt, Transition … anklicken: Jeder neue Baustein hängt sich unter den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken.",
   zustand:"Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. Die Bedingung schreiben Sie direkt an den Pfeil.",
   elektro:"Kontakte und Spule untereinander setzen – sie verbinden sich zum Strompfad und docken oben an L+ und unten an M an. Kennzeichen per Doppelklick ändern.",
@@ -22,9 +30,9 @@ const HINT = {
   pneu:"Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken.",
   geraete:"Geräte setzen und mit Verbinden verdrahten – z. B. den Sensorausgang BK auf einen Eingang der DI-Baugruppe."
 };
-const objById = id => ED.data.o.find(o => o.id === id) || (String(id).startsWith("_") ? vrails(ED.key, ED.pages || 1).find(r => r.id === id) : undefined);
-const uid = () => "o" + Math.random().toString(36).slice(2, 9);
-function openEditor(scope, key){
+export const objById = id => ED.data.o.find(o => o.id === id) || (String(id).startsWith("_") ? vrails(ED.key, ED.pages || 1).find(r => r.id === id) : undefined);
+export const uid = () => "o" + Math.random().toString(36).slice(2, 9);
+export function openEditor(scope, key){
   const data = S.get(skKey(scope, key)) || {}; data.s ||= []; data.t ||= []; data.o ||= []; data.c ||= [];
   const pal = PAL[key] || [];
   const keepTool = ["pen","line","rect","text","erase"].includes(ED.tool) ? ED.tool : "pen";
@@ -54,10 +62,10 @@ function openEditor(scope, key){
   dlg.showModal(); paintEditor(); setTool(ED.tool);
   $$("#editor [data-w]").forEach(b => b.setAttribute("aria-pressed", +b.dataset.w === ED.w));
 }
-const WSI = (inner) => `<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M4 8H60M4 32H60" stroke="#C9D0D5" stroke-width="1" stroke-dasharray="2 2"/>${inner}</svg>`;
-const WSP = (d, w=1.2) => `<path d="${d}" stroke="${INK}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
-const WSA = (x, y1, y2) => WSP(`M${x} ${y1}V${y2}`) + arrowHead(x, y2 + (y2 > y1 ? -7 : 7), x, y2, 5);
-const WSPAL = [
+export const WSI = (inner) => `<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M4 8H60M4 32H60" stroke="#C9D0D5" stroke-width="1" stroke-dasharray="2 2"/>${inner}</svg>`;
+export const WSP = (d, w=1.2) => `<path d="${d}" stroke="${INK}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+export const WSA = (x, y1, y2) => WSP(`M${x} ${y1}V${y2}`) + arrowHead(x, y2 + (y2 > y1 ? -7 : 7), x, y2, 5);
+export const WSPAL = [
   ["Funktionslinien", [["line", "Funktionslinie", {}, WSI(WSP("M6 8H20L40 32H58", 3))], ["line", "Ventil schaltet (senkrecht)", {}, WSI(WSP("M6 32H30V8H58", 3))]]],
   ["Signallinien und Signalgeber", [
     ["sig", "Grenztaster – Punkt", {sg: "punkt"}, WSI(WSP("M6 8H24L44 32", 2.4) + `<circle cx="24" cy="8" r="3" fill="${INK}"/>` + WSA(24, 8, 34))],
@@ -73,42 +81,42 @@ const WSPAL = [
     ["start", "Taster / Start", {}, WSI(`<rect x="12" y="16" width="12" height="12" rx="1" fill="#fff" stroke="${INK}" stroke-width="1.2"/>` + WSP("M15 19H21M18 19V25M24 20L32 10") + WSP("M32 8L58 32", 2.4))],
     ["eq", "Zyklusende n = 1", {}, WSI(WSP("M32 2V38", 2.6) + SVGT(46, 24, "n=1", "middle", 9, 700))]]]
 ];
-function wsPaletteHTML(){
+export function wsPaletteHTML(){
   let n = 0;
   return WSPAL.map(([g, items]) => `<div class="palg"><div class="palh">${g}</div>${items.map(([tool, name, pre, icon]) => `<button type="button" class="palb" data-ws="${n++}" title="${name}">${icon}<span>${name}</span></button>`).join("")}</div>`).join("");
 }
-const wsItem = i => WSPAL.flatMap(g => g[1])[i];
-function paletteHTML(groups){
+export const wsItem = i => WSPAL.flatMap(g => g[1])[i];
+export function paletteHTML(groups){
   return groups.map(g => `<div class="palg"><div class="palh">${GN[g]}</div>${Object.entries(BLK).filter(([, b]) => b.g === g && !b.hide).map(([k, b]) => { const [o, vb, extra] = SAMPLE[k] || pcSample(k);
     return `<button type="button" class="palb" data-place="${k}" title="${b.n} setzen"><svg viewBox="${vb}" aria-hidden="true">${extra || ""}${drawObj(o, false)}</svg><span>${b.n}</span></button>`; }).join("")}</div>`).join("")
     + `<div class="palhelp">${HINT[groups[0]] ? `<p>${HINT[groups[0]]}</p>` : ""}<p><b>Ziehen:</b> Bausteine direkt aus dieser Leiste aufs Blatt ziehen – oder anklicken und dann aufs Blatt klicken.</p><p><b>Andocken:</b> Ziehen Sie einen Baustein an einen Anschluss – die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p></div>`;
 }
-function paintEditor(){
+export function paintEditor(){
   ED.pages = pageCount(ED.key, ED.data); ED.extraY = 0;
   $("#edstage").innerHTML = sketchSVG(ED.key, BY[ED.scope], ED.data, skMeta(ED.scope, ED.key, ED.data), true);
   const svg = ED.svg = $("#edstage svg"); sizeSVG();
   svg.addEventListener("pointerdown", edDown); svg.addEventListener("pointermove", edMove); svg.addEventListener("pointerup", edUp); svg.addEventListener("pointercancel", edUp);
   svg.addEventListener("pointerleave", () => { $(".ghost", svg).innerHTML = ""; });
 }
-function sizeSVG(){
+export function sizeSVG(){
   const st = $("#edstage"), svg = ED.svg; if (!st || !svg) return;
   const w = Math.max(320, Math.min(st.clientWidth - 28, (st.clientHeight - 28) * 1000 / PH));
   svg.style.width = w + "px"; svg.style.height = (w * PH * ED.pages / 1000) + "px";
 }
-addEventListener("resize", () => { if (ED.svg) sizeSVG(); });
-function checkPages(){
+export function checkPages(){
   const n = pageCount(ED.key, ED.data, ED.extraY || 0);
   if (!ED.svg || n === ED.pages) return;
   ED.pages = n; ED.svg.setAttribute("viewBox", `0 0 1000 ${PH*n}`);
   refreshTpl(); sizeSVG();
 }
-function renderInk(){ if (ED.svg) { ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key); checkPages(); } updateProps(); }
-const PROPS = {init:[["v","Schrittnummer"]], step:[["v","Schrittnummer"]], macro:[["v","Bezeichnung","z. B. M1"]], ref:[["v","Ziel","z. B. 1 oder Schritt 5"]],
+export function renderInk(){ if (ED.svg) { ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key); checkPages(); } updateProps(); }
+export const PROPS = {init:[["v","Schrittnummer"]], step:[["v","Schrittnummer"]], macro:[["v","Bezeichnung","z. B. M1"]], ref:[["v","Ziel","z. B. 1 oder Schritt 5"]],
   trans:[["v","Übergangsbedingung","z. B. BG1 · BG15, 5s/X3, ↑BG40"]], alt:[["w","Breite"]], par:[["w","Breite"]],
   state:[["v","Name"]], sinit:[["v","Name"]], no:[["v","Kennzeichen"]], nc:[["v","Kennzeichen"]], coil:[["v","Kennzeichen"]], lamp:[["v","Kennzeichen"]], box:[["v","Bezeichnung"]]};
-const SYMS = `<div class="syms" aria-label="Zeichen einfügen">${[["·","UND"],["+","ODER"],["¬","NICHT"],["↑","steigende Flanke"],["↓","fallende Flanke"],[":=","Zuweisung"],["≥","größer gleich"]].map(([c, t]) => `<button type="button" class="sym" data-sym="${c}" title="${t}">${c}</button>`).join("")}</div>`;
-let propsKey = null, lastProp = null;
-function propsHTML(){
+export const SYMS = `<div class="syms" aria-label="Zeichen einfügen">${[["·","UND"],["+","ODER"],["¬","NICHT"],["↑","steigende Flanke"],["↓","fallende Flanke"],[":=","Zuweisung"],["≥","größer gleich"]].map(([c, t]) => `<button type="button" class="sym" data-sym="${c}" title="${t}">${c}</button>`).join("")}</div>`;
+export let propsKey = null, lastProp = null;
+export const setLastProp = (el) => { lastProp = el; };   // für den focusin-Listener in ereignisse.js
+export function propsHTML(){
   if (ED.key === "wegschritt" && !anySel() && ["sig", "line", "start", "eq", "vk"].includes(ED.tool)) {
     const step = t => `<li style="margin:0 0 6px">${t}</li>`;
     const how = {
@@ -166,7 +174,7 @@ function propsHTML(){
     <p class="small muted" style="margin:0 0 8px">Leer gelassen gelten der Name aus „Meine Daten“ und das Datum der letzten Änderung.</p>
     <div class="propact"><button type="button" class="tool" data-ed="sfzu">Fertig</button></div></div>`;
 }
-function updateProps(force){
+export function updateProps(force){
   const el = $("#props"); if (!el) return;
   const k = [ED.sel, ED.selC, ED.selS, ED.selT, ED.selF].join("|");
   if (!force && k === propsKey) return;
@@ -177,7 +185,7 @@ function updateProps(force){
   }
   propsKey = k; el.innerHTML = propsHTML();
 }
-function applyProp(f, v){
+export function applyProp(f, v){
   if (f === "cst") { const c = ED.data.c[ED.selC]; if (c) { c.st = v; saveSketch(); renderInk(); } return; }
   if (f === "mt" || f === "mn" || f === "md") { const m = ED.data.meta = ED.data.meta || {}; m[{mt: "title", mn: "name", md: "datum"}[f]] = v;
     Object.keys(m).forEach(k => { if (!m[k]) delete m[k]; }); if (!Object.keys(m).length) delete ED.data.meta; saveSketch(); refreshTpl(); return; }
@@ -190,7 +198,7 @@ function applyProp(f, v){
     else o[f] = v; }
   saveSketch(); ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
 }
-function setTool(t){
+export function setTool(t){
   ED.pend = null;
   ED.wsPreset = null; $$("#editor [data-ws]").forEach(x => x.setAttribute("aria-pressed", "false"));
   if (t === "sim" && !simOn()) { clearSel(); ED.sim = {on: true, st: {}, pos: {}, t: 0}; simCompute(); requestAnimationFrame(simStep); }
@@ -201,9 +209,9 @@ function setTool(t){
   if (ED.svg) { ["erase","text","sel","conn","place","sim"].forEach(c => ED.svg.classList.toggle(c, t === c)); $(".ghost", ED.svg).innerHTML = ""; renderInk(); }
   updateProps(true);
 }
-function svgPt(svg, e){ const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [Math.round(q.x*10)/10, Math.round(q.y*10)/10]; }
-const wsRows = () => (CYL[ED.scope] || ["","","",""]).length + 2;
-function snapW(pt){
+export function svgPt(svg, e){ const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [Math.round(q.x*10)/10, Math.round(q.y*10)/10]; }
+export const wsRows = () => (CYL[ED.scope] || ["","","",""]).length + 2;
+export function snapW(pt){
   if (!ED.grid) return [Math.round(pt[0]), Math.round(pt[1])];
   if (ED.key === "wegschritt") { const j = ED.data.s.find(q => q.k === "vk" && Math.hypot(q.p[0][0] - pt[0], q.p[0][1] - pt[1]) < 12); if (j) return [...j.p[0]]; }
   if (ED.key === "wegschritt") {   // im Diagramm immer auf einen Eckpunkt: Schrittgrenze × Stellung 1 oder 0
@@ -218,20 +226,20 @@ function snapW(pt){
   }
   return snap(pt);
 }
-const anySel = () => !!ED.sel || ED.selC !== null || ED.selS !== null || ED.selT !== null || !!ED.selF;
-function clearSel(){ ED.sel = null; ED.selC = null; ED.selS = null; ED.selT = null; ED.selF = false; }
-function snapshot(){ ED.hist.push(JSON.stringify(ED.data)); if (ED.hist.length > 80) ED.hist.shift(); }
-function saveSketch(){ const d = ED.data; d.ts = Date.now(); S.set(skKey(ED.scope, ED.key), (d.s.length || d.t.length || d.o.length || d.meta) ? d : null); }
-function refreshTpl(){ if (ED.svg) ED.svg.querySelector(".tpl").innerHTML = pagesSVG(ED.key, BY[ED.scope], skMeta(ED.scope, ED.key, ED.data), ED.pages, true); }
+export const anySel = () => !!ED.sel || ED.selC !== null || ED.selS !== null || ED.selT !== null || !!ED.selF;
+export function clearSel(){ ED.sel = null; ED.selC = null; ED.selS = null; ED.selT = null; ED.selF = false; }
+export function snapshot(){ ED.hist.push(JSON.stringify(ED.data)); if (ED.hist.length > 80) ED.hist.shift(); }
+export function saveSketch(){ const d = ED.data; d.ts = Date.now(); S.set(skKey(ED.scope, ED.key), (d.s.length || d.t.length || d.o.length || d.meta) ? d : null); }
+export function refreshTpl(){ if (ED.svg) ED.svg.querySelector(".tpl").innerHTML = pagesSVG(ED.key, BY[ED.scope], skMeta(ED.scope, ED.key, ED.data), ED.pages, true); }
 /* Zeichnung aus einer anderen Übung übernehmen: Kopie, das Original bleibt unverändert */
-function takeList(){
+export function takeList(){
   const all = S.all(), suf = ":sk:" + ED.key, out = [];
   Object.entries(all).forEach(([k, d]) => { if (!k.endsWith(suf) || !d) return; const sc = k.slice(0, -suf.length); if (sc === ED.scope) return;
     const n = (d.o || []).length + (d.s || []).length + (d.t || []).length; if (n) out.push({sc, n, ts: d.ts || 0}); });
   const ord = sc => { const i = SHEETS.findIndex(x => x.id === sc); return i < 0 ? 999 : i; };
   return out.sort((a, b) => ord(a.sc) - ord(b.sc));
 }
-function takeMenu(btn){
+export function takeMenu(btn){
   const old = $("#editor .takemenu"); if (old) { old.remove(); return; }
   const list = takeList(), name = sc => BY[sc] ? `${sc} ${esc(BY[sc].t)}` : "Freie Zeichnung (Vorlagen)";
   const m = document.createElement("div"); m.className = "takemenu"; m.setAttribute("role", "menu");
@@ -243,7 +251,7 @@ function takeMenu(btn){
   const off = e => { if (!m.contains(e.target) && e.target !== btn && !btn.contains(e.target)) { m.remove(); document.removeEventListener("pointerdown", off, true); } };
   document.addEventListener("pointerdown", off, true);
 }
-function takeSketch(sc){
+export function takeSketch(sc){
   const src = S.get(skKey(sc, ED.key)); $("#editor .takemenu")?.remove(); if (!src) return;
   const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
   if (has && !confirm(`Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`)) return;
@@ -252,18 +260,18 @@ function takeSketch(sc){
   if (d.meta) { delete d.meta.title; delete d.meta.datum; }   // Titel und Datum gehören zur neuen Übung
   ED.data = d; clearSel(); saveSketch(); refreshTpl(); renderInk(); updateProps(true);
 }
-function undo(){ if (!ED.hist.length) return; ED.data = JSON.parse(ED.hist.pop()); clearSel(); saveSketch(); renderInk(); }
-function turnSel(a){
+export function undo(){ if (!ED.hist.length) return; ED.data = JSON.parse(ED.hist.pop()); clearSel(); saveSketch(); renderInk(); }
+export function turnSel(a){
   const o = objById(ED.sel); if (!o || !PC[o.k] || o.k === "rail") return;
   snapshot(); if (a === "rot") o.rot = ((o.rot || 0) + 90) % 360; else o.flip = !o.flip;
   saveSketch(); renderInk();
 }
-function editTextItem(i){
+export function editTextItem(i){
   const t = ED.data.t[i]; if (!t) return;
   editLabel(t.x, t.y - 5, t.v, "Text", v => { snapshot(); if (v) t.v = v; else { ED.data.t.splice(i, 1); ED.selT = null; } saveSketch(); renderInk(); updateProps(true); });
 }
-function removeObj(id){ ED.data.o = ED.data.o.filter(o => o.id !== id); ED.data.c = ED.data.c.filter(c => c.a !== id && c.b !== id); if (ED.sel === id) ED.sel = null; }
-function delSel(){
+export function removeObj(id){ ED.data.o = ED.data.o.filter(o => o.id !== id); ED.data.c = ED.data.c.filter(c => c.a !== id && c.b !== id); if (ED.sel === id) ED.sel = null; }
+export function delSel(){
   if (ED.sel) { snapshot(); removeObj(ED.sel); }
   else if (ED.selC !== null && ED.data.c[ED.selC]) { snapshot(); ED.data.c.splice(ED.selC, 1); ED.selC = null; }
   else if (ED.selS !== null && ED.data.s[ED.selS]) { snapshot(); ED.data.s.splice(ED.selS, 1); ED.selS = null; }
@@ -271,7 +279,7 @@ function delSel(){
   else return;
   saveSketch(); renderInk();
 }
-function eraseAt(e){
+export function eraseAt(e){
   const el = document.elementFromPoint(e.clientX, e.clientY); if (!el) return;
   const go = el.closest("[data-o]"), gc = el.closest("[data-c]");
   if (go) { snapshot(); removeObj(go.dataset.o); }
@@ -281,12 +289,12 @@ function eraseAt(e){
   else return;
   saveSketch(); renderInk();
 }
-function nextLabel(l){   // -QA1 → nächste freie Nummer
+export function nextLabel(l){   // -QA1 → nächste freie Nummer
   const m = /^(.*?)(\d+)$/.exec(l); if (!m || l.includes(":")) return l;
   const used = ED.data.o.map(o => o.v || "").filter(v => v.startsWith(m[1])).map(v => parseInt(v.slice(m[1].length), 10)).filter(n => !isNaN(n));
   return used.length ? m[1] + (Math.max(...used) + 1) : l;
 }
-function makeObj(k, [px, py]){
+export function makeObj(k, [px, py]){
   const mk = BLK[k] && BLK[k].mk; if (mk) k = mk.k || k;
   if (PC[k]) { const pc = PC[k], o = {id: uid(), ...(pc.def || {}), ...(mk || {})}; o.k = k; o.v = nextLabel(pc.lbl || "");
     if (k === "rail") { o.w = 400; o.x = px - 200; o.y = py; } else { o.x = px - (pc.bx || 0) - pc.w / 2; o.y = py - pc.h / 2; }
@@ -304,7 +312,7 @@ function makeObj(k, [px, py]){
   [o.x, o.y] = snap([o.x, o.y]);
   return o;
 }
-function chainSource(k){
+export function chainSource(k){
   const base = (BLK[k] && BLK[k].mk && BLK[k].mk.k) || k; if (PC[base] && !PC[base].bx) return null;
   const A = !ED.dnd && ED.sel && objById(ED.sel);   // beim Ziehen entscheidet die Ablagestelle (Andocken), nicht die Markierung
   if (!A || !(fam(A) === "grafcet" || fam(A) === "elektro") || fam(A) !== BLK[k].g) return null;
@@ -314,7 +322,7 @@ function chainSource(k){
     return cur || A; }
   return A;
 }
-function align(o, A, pt){
+export function align(o, A, pt){
   if (isAct(o) && isAct(A)) {
     const right = pt && (pt[0] - (A.x + aw(A))) > (pt[1] - (A.y + 30));
     if (right) { o.x = A.x + aw(A); o.y = A.y; } else { o.x = A.x; o.y = A.y + 30 + (hasMark(o) ? 20 : 0); }
@@ -325,7 +333,7 @@ function align(o, A, pt){
   o.x = o.k === "step" || o.k === "init" ? ax - 20 : o.k === "alt" || o.k === "par" ? ax - 100 : ax;
 }
 /* Andocken: Anschluss in der Nähe eines passenden Anschlusses → ausrichten und beim Loslassen verbinden */
-function dockFor(o){
+export function dockFor(o){
   const g = fam(o); if (!ED.dock || !(g === "grafcet" || g === "elektro") || (PC[o.k] && !PC[o.k].bx)) return null;
   const others = ED.data.o.filter(p => p.id !== o.id && fam(p) === g && (!PC[p.k] || PC[p.k].bx));
   let best = null; const take = c => { if (!best || c.d < best.d) best = c; };
@@ -352,7 +360,7 @@ function dockFor(o){
   return best;
 }
 /* Hilfslinien: Mitte auf die Mitte eines Nachbarn ziehen */
-function smartPos(o){
+export function smartPos(o){
   if (ED.key === "stromlauf" && fam(o) === "elektro") o.x = 40 + Math.max(1, Math.min(20, Math.round((o.x - 40) / 46))) * 46;
   const dock = dockFor(o), marks = [];
   if (dock) { o.x += dock.sx; o.y += dock.sy; }
@@ -373,13 +381,13 @@ function smartPos(o){
   }
   return {dock, marks: marks.join("")};
 }
-function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blattende legen – sonst auf das nächste Blatt
+export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blattende legen – sonst auf das nächste Blatt
   if (FIXED[ED.key]) return;
   for (let i = 0; i < 4; i++) { const b = bbox(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
     if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) o.y += B + 70 - b.y; else break; }
 }
-const linked = (a, b) => ED.data.c.some(c => (c.a === a && c.b === b) || (c.a === b && c.b === a));
-function placeObj(k, pt){
+export const linked = (a, b) => ED.data.c.some(c => (c.a === a && c.b === b) || (c.a === b && c.b === a));
+export function placeObj(k, pt){
   const A = chainSource(k), o = makeObj(k, pt);
   let dock = null;
   if (A) align(o, A, pt); else dock = smartPos(o).dock;
@@ -390,19 +398,19 @@ function placeObj(k, pt){
   ED.sel = o.id; ED.selC = null; saveSketch(); setTool("sel");
   if (o.k === "trans" || o.k === "box" || o.k === "ref" || isAct(o)) editObjLabel(o);
 }
-function connectPorts(a, pa, b, pb){
+export function connectPorts(a, pa, b, pb){
   if (a === b && pa === pb) return;
   if (a.startsWith("_") && b.startsWith("_")) return;
   if (ED.data.c.some(c => (c.a === a && c.pa === pa && c.b === b && c.pb === pb) || (c.a === b && c.pa === pb && c.b === a && c.pb === pa))) return;
   snapshot(); ED.data.c.push({a, pa, b, pb, v: ""}); clearSel(); ED.selC = ED.data.c.length - 1; saveSketch(); renderInk();
 }
-function connect(a, b){
+export function connect(a, b){
   const A = objById(a); if (!A || (a === b && fam(A) !== "zustand")) return;
   if (ED.data.c.some(c => c.a === a && c.b === b)) return;
   snapshot(); ED.data.c.push({a, b, v: ""}); ED.selC = ED.data.c.length - 1; ED.sel = null; saveSketch(); renderInk();
   if (fam(A) === "zustand" && A.k !== "start") editConnLabel(ED.data.c.length - 1);
 }
-function edDown(e){
+export function edDown(e){
   if (!e.target.closest("input")) { e.preventDefault(); const sl = getSelection(); if (sl && sl.rangeCount) sl.removeAllRanges(); }
   const svg = ED.svg, pt = svgPt(svg, e), hitO = e.target.closest("[data-o]"), hitC = e.target.closest("[data-c]");
   if (ED.tool === "sim") { const h = e.target.closest("[data-o]"); if (h) simClick(objById(h.dataset.o), pt); return; }
@@ -469,7 +477,7 @@ function edDown(e){
   path.setAttribute("stroke", ED.color); path.setAttribute("stroke-width", ED.w); path.setAttribute("fill", "none"); path.setAttribute("stroke-linecap", "round"); path.setAttribute("stroke-linejoin", "round");
   svg.querySelector(".ink").appendChild(path); ED.curEl = path; edMove(e);
 }
-function edMove(e){
+export function edMove(e){
   const svg = ED.svg; if (!svg) return;
   if (ED.erasing) { eraseAt(e); return; }
   const pt = svgPt(svg, e);
@@ -512,7 +520,7 @@ function edMove(e){
   if (Math.hypot(pt[0]-l[0], pt[1]-l[1]) > 1.2) ED.cur.p.push(pt);
   ED.curEl.setAttribute("d", "M" + ED.cur.p.map(q => q.join(" ")).join("L") + (ED.cur.p.length === 1 ? "l.01 0" : ""));
 }
-function edUp(){
+export function edUp(){
   ED.erasing = false; ED.extraY = 0;
   if (ED.drag) {
     const dk = ED.drag.dock;
@@ -528,14 +536,14 @@ function edUp(){
   if (neu.k === "sig") { clearSel(); ED.selS = ED.data.s.length - 1; renderInk(); updateProps("neu"); const f = $('#props [data-prop="sl"]'); if (f) f.focus(); return; }
   renderInk();
 }
-function edDbl(e){
+export function edDbl(e){
   if (ED.tool !== "sel") return;
   const hitO = e.target.closest("[data-o]"), hitC = e.target.closest("[data-c]");
   if (hitO) editObjLabel(objById(hitO.dataset.o)); else if (hitC) editConnLabel(+hitC.dataset.c);
 }
-const LABEL_HINT = {trans:"Bedingung, z. B. BG1 · BG40", action:"Aktion, z. B. MB1", actionq:"Bestimmungszeichen und Aktion, z. B. S MB9", macro:"Bezeichnung, z. B. M1", ref:"Ziel, z. B. 1", step:"Schrittnummer", init:"Schrittnummer",
+export const LABEL_HINT = {trans:"Bedingung, z. B. BG1 · BG40", action:"Aktion, z. B. MB1", actionq:"Bestimmungszeichen und Aktion, z. B. S MB9", macro:"Bezeichnung, z. B. M1", ref:"Ziel, z. B. 1", step:"Schrittnummer", init:"Schrittnummer",
   state:"Name des Zustands", sinit:"Name des Zustands", box:"Bezeichnung, z. B. Regler", alt:"Breite (Standard 200)", par:"Breite (Standard 200)", no:"Kennzeichen, z. B. -SF1", nc:"Kennzeichen, z. B. -SF2", coil:"Kennzeichen, z. B. -QA1", lamp:"Kennzeichen, z. B. -PF1"};
-function editObjLabel(o){
+export function editObjLabel(o){
   if (!o || o.k === "start" || o.k === "sum") return;
   const b = bbox(o);
   const q = isAct(o) && atype(o) === "q";
@@ -549,13 +557,13 @@ function editObjLabel(o){
     saveSketch(); renderInk(); updateProps(true);
   });
 }
-function editConnLabel(i){
+export function editConnLabel(i){
   const c = ED.data.c[i], p = ED.svg.querySelector(`[data-c="${i}"] path`); if (!c || !p) return;
   const L = p.getTotalLength(), m = p.getPointAtLength(L / 2);
   editLabel(m.x + 8, m.y, c.v || "", "Bedingung / Aktion, z. B. BG1 / MB1", v => { snapshot(); c.v = v; saveSketch(); renderInk(); updateProps(true); });
 }
-function newline(el){ const a = el.selectionStart, b = el.selectionEnd; el.value = el.value.slice(0, a) + "\n" + el.value.slice(b); el.selectionStart = el.selectionEnd = a + 1; }
-function editLabel(x, y, init, ph, done){
+export function newline(el){ const a = el.selectionStart, b = el.selectionEnd; el.value = el.value.slice(0, a) + "\n" + el.value.slice(b); el.selectionStart = el.selectionEnd = a + 1; }
+export function editLabel(x, y, init, ph, done){
   const svg = ED.svg, stage = $("#edstage"), r = stage.getBoundingClientRect(), m = svg.getScreenCTM();
   const inp = document.createElement("textarea"); inp.className = "txtin"; inp.value = init; inp.placeholder = (ph || "Text") + " – Enter übernimmt, Alt+Enter neue Zeile";
   inp.rows = Math.max(1, init.split("\n").length); inp.title = "Enter übernimmt, Alt+Enter (oder Umschalt+Enter) beginnt eine neue Zeile";
@@ -569,82 +577,4 @@ function editLabel(x, y, init, ph, done){
     if (ev.key === "Escape") { ev.preventDefault(); commit(false); } });
   inp.addEventListener("blur", ev => commit(true, ev.relatedTarget));
 }
-let palDrag = null;
-$("#editor").addEventListener("pointerdown", e => { const pb = e.target.closest("[data-place]"); if (pb && e.button === 0) { e.preventDefault(); palDrag = {k: pb.dataset.place, x: e.clientX, y: e.clientY, on: false}; } });
-$("#editor").addEventListener("selectstart", e => { if (!e.target.closest || !e.target.closest("input,textarea")) e.preventDefault(); });
-const overSheet = e => { const r = ED.svg && $("#edstage").getBoundingClientRect(); return r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; };
-document.addEventListener("pointermove", e => {
-  if (!palDrag || !ED.svg) return;
-  if (!palDrag.on && Math.hypot(e.clientX - palDrag.x, e.clientY - palDrag.y) > 6) { palDrag.on = true; ED.dnd = true; ED.place = palDrag.k; setTool("place"); document.body.classList.add("dnd"); }
-  if (palDrag.on) { if (overSheet(e)) edMove(e); else $(".ghost", ED.svg).innerHTML = ""; }
-});
-document.addEventListener("pointerup", e => {
-  if (!palDrag) return; const d = palDrag; palDrag = null; document.body.classList.remove("dnd");
-  if (!d.on) return;
-  ED.skipClick = true; ED.extraY = 0;
-  if (overSheet(e)) placeObj(d.k, svgPt(ED.svg, e)); else setTool(PAL[ED.key] ? "sel" : ED.tool);
-  ED.dnd = false;
-});
-$("#editor").addEventListener("click", e => {
-  if (ED.skipClick) { ED.skipClick = false; if (e.target.closest("[data-place]")) return; }
-  const pb = e.target.closest("[data-place]"); if (pb) { ED.place = pb.dataset.place; setTool("place"); return; }
-  const wb = e.target.closest("[data-ws]");
-  if (wb) { const it = wsItem(+wb.dataset.ws); setTool(it[0]); ED.wsPreset = it[2]; clearSel(); $$("#editor [data-ws]").forEach(x => x.setAttribute("aria-pressed", x === wb)); renderInk(); updateProps(true); return; }
-  const sy = e.target.closest("[data-sym]");
-  if (sy) { const el = lastProp; if (el && el.isConnected && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) { const a = el.selectionStart ?? el.value.length, b = el.selectionEnd ?? a;
-    el.value = el.value.slice(0, a) + sy.dataset.sym + el.value.slice(b); el.focus(); el.setSelectionRange(a + sy.dataset.sym.length, a + sy.dataset.sym.length); applyProp(el.dataset.prop, el.value); } return; }
-  const t = e.target.closest("[data-tool],[data-w],[data-ed]"); if (!t) return;
-  if (t.dataset.tool) { if (t.dataset.color) ED.color = t.dataset.color; setTool(t.dataset.tool); }
-  if (t.dataset.w) { ED.w = +t.dataset.w; $$("#editor [data-w]").forEach(b => b.setAttribute("aria-pressed", b === t)); }
-  const a = t.dataset.ed;
-  if (a === "undo") undo();
-  if (a === "take") takeMenu(t);
-  if (a === "takeit") takeSketch(t.dataset.from);
-  if ((a === "rot" || a === "flip") && ED.sel && PC[objById(ED.sel).k]) turnSel(a);
-  if (a === "sfzu") { ED.selF = false; updateProps("neu"); }
-  if (a === "heute") { const f = $('#props [data-prop="md"]'); if (f) { snapshot(); f.value = deDate(Date.now()); applyProp("md", f.value); } }
-  if (a === "del") delSel();
-  if (a === "grid") { ED.grid = !ED.grid; t.setAttribute("aria-pressed", ED.grid); }
-  if (a === "dock") { ED.dock = !ED.dock; t.setAttribute("aria-pressed", ED.dock); }
-  if (a === "clear" && (ED.data.s.length || ED.data.t.length || ED.data.o.length) && confirm("Die ganze Skizze löschen?")) { snapshot(); ED.data = {s:[], t:[], o:[], c:[]}; clearSel(); saveSketch(); renderInk(); }
-  if (a === "print") doPrint(sketchPage(ED.scope, ED.key, true));
-  if (a === "close") $("#editor").close();
-});
-$("#editor").addEventListener("focusin", e => { if (e.target.dataset && e.target.dataset.prop) { snapshot(); lastProp = e.target; } });
-$("#editor").addEventListener("input", e => { const f = e.target.dataset && e.target.dataset.prop; if (f) applyProp(f, e.target.value); });
-$("#editor").addEventListener("change", e => {
-  const f = e.target.dataset && e.target.dataset.prop; if (f !== "t" && f !== "q") return;
-  applyProp(f, e.target.value); updateProps("neu");
-  const again = $(`#props [data-prop="${f}"]`); if (again) again.focus();
-});
-$("#editor").addEventListener("pointerdown", e => { if (e.target.closest(".sym")) e.preventDefault(); });
-$("#editor").addEventListener("keydown", e => {
-  if (e.target.matches("input,select,textarea")) {
-    if (e.key === "Enter" && e.target.dataset.prop) {
-      e.preventDefault();
-      if (e.target.tagName === "TEXTAREA" && (e.altKey || e.shiftKey || e.ctrlKey)) { newline(e.target); e.target.rows = e.target.value.split("\n").length; applyProp(e.target.dataset.prop, e.target.value); }
-      else $("#edstage").focus({preventScroll: true});
-    }
-    return; }
-  if ((e.key === "Enter" || e.key === "F2") && anySel() && !ED.selF) { e.preventDefault(); const o = ED.sel && objById(ED.sel); if (o) editObjLabel(o); else if (ED.selT !== null) editTextItem(ED.selT); else if (ED.selC !== null) editConnLabel(ED.selC); return; }
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a") { e.preventDefault(); return; }
-  if (!e.ctrlKey && !e.metaKey && !e.altKey && ED.sel && (e.key === "r" || e.key === "R" || e.key === "m" || e.key === "M")) { e.preventDefault(); turnSel(e.key.toLowerCase() === "r" ? "rot" : "flip"); return; }
-  if (e.key === "Escape" && ED.pend) { e.preventDefault(); ED.pend = null; $(".ghost", ED.svg).innerHTML = ""; updateProps(true); return; }
-  if (e.key === "Escape" && (ED.place || ED.from || anySel())) { e.preventDefault(); clearSel(); ED.from = null; setTool(PAL[ED.key] ? "sel" : ED.tool); return; }
-  if ((e.key === "Delete" || e.key === "Backspace") && anySel()) { e.preventDefault(); delSel(); return; }
-  if (e.key.startsWith("Arrow") && (ED.sel || ED.selS !== null || ED.selT !== null)) {
-    e.preventDefault(); snapshot();
-    const dx = e.key === "ArrowLeft" ? -10 : e.key === "ArrowRight" ? 10 : 0, dy = e.key === "ArrowUp" ? -10 : e.key === "ArrowDown" ? 10 : 0;
-    if (ED.sel) { const o = objById(ED.sel); o.x += dx; o.y += dy; }
-    else if (ED.selS !== null) ED.data.s[ED.selS].p = ED.data.s[ED.selS].p.map(([x, y]) => [x + dx, y + dy]);
-    else { const t = ED.data.t[ED.selT]; t.x += dx; t.y += dy; }
-    saveSketch(); renderInk();
-  }
-});
-$("#editor").addEventListener("cancel", e => {
-  if (ED.svg && ED.pend) { e.preventDefault(); ED.pend = null; $(".ghost", ED.svg).innerHTML = ""; updateProps(true); return; }
-  if (ED.svg && (ED.place || ED.from || anySel())) { e.preventDefault(); clearSel(); ED.from = null; setTool(PAL[ED.key] ? "sel" : ED.tool); }
-});
-$("#editor").addEventListener("close", () => { ED.svg = null; ED.sim = {on: false, st: {}, pos: {}}; route(); });
 

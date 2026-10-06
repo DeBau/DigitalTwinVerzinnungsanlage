@@ -1,5 +1,11 @@
+import { FIXED, INK, MUTE, PH, SVGT, clamp } from './svg.js';
+import { ED } from './status.js';
+import { strokesSVG } from './vorlagen-svg.js';
+import { BLUE, DIRV, PC, PCPAL, PORTS2, SK, VALVE, portsOf, pressed, simOn, vrails, vstate, wireD, wireEnds, xform } from './bauteile.js';
+import { BLK, R, atype, aw, bbox, bw, ctr, fam, hasMark, isAct } from './bausteine.js';
+
 /* Pneumatik-Simulation */
-function simCompute(){
+export function simCompute(){
   const d = ED.data, adj = new Map(), add = (a, b) => { if (!adj.has(a)) adj.set(a, []); if (!adj.has(b)) adj.set(b, []); adj.get(a).push(b); adj.get(b).push(a); };
   d.c.forEach(c => { if (c.pa !== undefined && c.pb !== undefined) add(c.a + ":" + c.pa, c.b + ":" + c.pb); });
   const roots = [];
@@ -16,7 +22,7 @@ function simCompute(){
   }
   ED.sim.P = P;
 }
-function simStep(t){
+export function simStep(t){
   if (!simOn()) return;
   const dt = Math.min(.05, (t - (ED.sim.t || t)) / 1000); ED.sim.t = t;
   let moving = false;
@@ -27,7 +33,7 @@ function simStep(t){
   if (moving && ED.svg) ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
   requestAnimationFrame(simStep);
 }
-function simClick(o, pt){
+export function simClick(o, pt){
   if (o.k === "kh") { ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf"; simCompute(); ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key); return; }
   if (!["v22","v32","v52","v53"].includes(o.k)) return;
   const b = bbox(o), left = pt[0] < b.x + b.w / 2, s = vstate(o), mono = (o.ar || "feder") === "feder";
@@ -39,7 +45,7 @@ function simClick(o, pt){
 }
 
 Object.entries(PC).forEach(([k, pc]) => { if (k === "zyl2") Object.assign(BLK, PCPAL); if (!BLK[k]) BLK[k] = {g: pc.g, n: pc.n, hide: pc.hide}; });
-function drawObj(o, edit){
+export function drawObj(o, edit){
   if (PC[o.k]) {
     const svg = PC[o.k].draw(o, edit), X = xform(o); if (!X) return svg;
     const swap = X.f * X.c < 0;   // Schrift läge sonst auf der falschen Seite
@@ -79,7 +85,7 @@ function drawObj(o, edit){
   }
   return "";
 }
-function outPt(o, tx){
+export function outPt(o, tx){
   if (PC[o.k] && PC[o.k].bx) { const q = portsOf(o)[1]; return [q.x, q.y]; }
   switch (o.k) {
     case "init": case "step": case "macro": return [o.x+20, o.y+40];
@@ -91,7 +97,7 @@ function outPt(o, tx){
   }
   const b = bbox(o); return [b.x+b.w/2, b.y+b.h];
 }
-function inPt(o, fx){
+export function inPt(o, fx){
   if (PC[o.k] && PC[o.k].bx) { const q = portsOf(o)[0]; return [q.x, q.y]; }
   switch (o.k) {
     case "init": case "step": case "macro": return [o.x+20, o.y];
@@ -102,7 +108,7 @@ function inPt(o, fx){
   }
   const b = bbox(o); return [b.x+b.w/2, b.y];
 }
-function routeV([x1, y1], [x2, y2]){
+export function routeV([x1, y1], [x2, y2]){
   const p = {p1: [x1, y1], p2: [x2, y2]};
   if (y2 > y1 + 4) {
     if (Math.abs(x1 - x2) < 1) return {...p, d:`M${x1} ${y1}V${y2}`};
@@ -112,14 +118,14 @@ function routeV([x1, y1], [x2, y2]){
   const lane = Math.min(x1, x2) - 50, ya = y1 + 20, yb = y2 - 20;
   return {...p, d:`M${x1} ${y1}V${ya}H${lane}V${yb}H${x2}V${y2}`, up:[lane, (ya + yb) / 2]};
 }
-const isStep = o => o && (o.k === "step" || o.k === "init" || o.k === "macro");
-function refName(o, objs, cs, dir){   // „Schritt 7“; bei Transitionen der Schritt davor bzw. danach
+export const isStep = o => o && (o.k === "step" || o.k === "init" || o.k === "macro");
+export function refName(o, objs, cs, dir){   // „Schritt 7“; bei Transitionen der Schritt davor bzw. danach
   if (isStep(o)) return `Schritt ${o.v}`;
   if (o.k === "trans") { const c = cs.find(c => dir === "von" ? c.b === o.id && isStep(objs[c.a]) : c.a === o.id && isStep(objs[c.b]));
     if (c) return `Schritt ${(dir === "von" ? objs[c.a] : objs[c.b]).v}`; return o.v ? `Transition ${o.v}` : "Transition"; }
   return o.v || BLK[o.k].n;
 }
-function connGeom(c, objs, all){
+export function connGeom(c, objs, all){
   const A = objs[c.a], B = objs[c.b]; if (!A || !B) return null;
   if (c.pa !== undefined || c.pb !== undefined) { const e = wireEnds(c, objs); if (!e) return null;
     return {d: wireD(e[0], e[1]), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"]}; }
@@ -162,7 +168,7 @@ function connGeom(c, objs, all){
   const p1 = edge(A, ba, dy >= 0 ? "d" : "u"), p2 = edge(B, bb, dy >= 0 ? "u" : "d"), m = Math.round((p1[1]+p2[1])/2);
   return {d: Math.abs(p1[0]-p2[0]) < 1 ? `M${p1[0]} ${p1[1]}V${p2[1]}` : `M${p1[0]} ${p1[1]}V${m}H${p2[0]}V${p2[1]}`, arrow:true, lbl:[Math.max(p1[0], p2[0]) + 8, m + 4, "start"]};
 }
-function inkSVG(d, edit=false, key=null){
+export function inkSVG(d, edit=false, key=null){
   if (!d) return "";
   const objs = Object.fromEntries((d.o || []).map(o => [o.id, o])), cs = d.c || [];
   vrails(key, pageCount(key, d)).forEach(r => { objs[r.id] = r; });
@@ -213,4 +219,24 @@ function inkSVG(d, edit=false, key=null){
   if (edit && ED.tool === "conn") (d.o || []).forEach(o => portsOf(o).forEach(q => { const f = ED.from === o.id && ED.fromP === q.n;
     extra += `<circle cx="${q.x}" cy="${q.y}" r="${f ? 5 : 3.6}" fill="${f ? BLUE : "#fff"}" stroke="${BLUE}" stroke-width="1.5" pointer-events="none"/>`; }));
   return rails + conns + os + extra + strokesSVG(d, edit);
+}
+export function pageCount(key, d, extraY=0){
+  if (FIXED[key]) return 1;
+  let m = extraY;
+  (d && d.o || []).forEach(o => { const b = bbox(o); m = Math.max(m, b.y + b.h); });
+  (d && d.s || []).forEach(st => st.p.forEach(q => { m = Math.max(m, q[1]); }));
+  (d && d.t || []).forEach(t => { m = Math.max(m, t.y); });
+  return Math.max(1, Math.ceil((m + 160) / PH));
+}
+export function wireRef(o, port, key, y, x){   // Verweistext: Kennzeichen:Anschluss, Blatt, Strompfad
+  const b = Math.floor(y / PH) + 1, name = o.k === "rail" ? o.v : `${o.v || BLK[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
+  const pfad = key === "stromlauf" ? `, Pfad ${Math.max(1, Math.min(20, Math.round((x - 40) / 46)))}` : "";
+  return `${name}, Blatt ${b}${pfad}`;
+}
+export function pcSample(k){
+  const mk = BLK[k] && BLK[k].mk, base = (mk && mk.k) || k, pc = PC[base];
+  const o = {k: base, ...(pc.def || {}), ...(mk || {}), x: 0, y: 0, v: ""}; o.k = base; if (base === "rail") o.w = 70;
+  const bx = pc.bx || 0, w = base === "rail" ? 70 : pc.w, h = Math.max(pc.h, 12);
+  o.x = 4 - bx; o.y = base === "rail" ? 10 : 4;
+  return [o, `0 0 ${w + 8} ${h + 8}`, ""];
 }

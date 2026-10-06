@@ -1,19 +1,28 @@
-/* ================= Ereignisse ================= */
-function restoreInputs(root){
-  $$("[data-k]", root).forEach(el => { const v = S.get(el.dataset.k); if (el.type === "checkbox") el.checked = !!v; else el.value = v ?? ""; });
-  $$("[data-k='name'],[data-k='klasse']", root).forEach(el => el.value = S.get(el.dataset.k) || "");
-  refreshStatus();
+import { $, $$, BY, S, chips, hilfeLevel, quizKey, quizSet, sigEntries } from './basis.js';
+import { paintVars, typeOf } from './variablen.js';
+import { hilfeInner, quizHTML, refreshStatus, restoreInputs, toggleTimer } from './uebung.js';
+import { openEditor } from '../editor/editor.js';
+import { bewPage, doPrint, openPrintDialog, sketchPage } from './druck.js';
+import { formPage, paintGrade } from './seiten.js';
+import { route } from './router.js';
+
+export const curEx = () => (location.hash.match(/^#\/(L\d\d)/) || [])[1];
+
+export function openDataDialog(){
+  $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>Meine Daten</h2><p class="muted">Alle Eingaben, Häkchen und Skizzen bleiben nur in diesem Browser. Sichern Sie sie als Datei, um sie abzugeben oder auf einem anderen Rechner weiterzuarbeiten.</p>
+    <div class="cols2" style="gap:12px"><div><label class="small muted" for="dn">Name</label><input type="text" id="dn" data-k="name"></div><div><label class="small muted" for="dk">Klasse</label><input type="text" id="dk" data-k="klasse"></div></div>
+    <div class="row" style="justify-content:flex-start"><button class="btn" type="button" id="dexp">Als Datei sichern</button><label class="btn">Datei laden<input type="file" id="dimp" accept="application/json" hidden></label><button class="btn" type="button" id="dclr">Alles löschen</button></div>
+    <div class="row"><button class="btn primary" value="ok">Fertig</button></div></form>`;
+  restoreInputs($("#dlg"));
+  $("#dexp").onclick = () => { const blob = new Blob([JSON.stringify({handbuch:"Übungshandbuch SPS-Technik", stand:new Date().toISOString(), eingaben:S.all()}, null, 1)], {type:"application/json"});
+    const l = document.createElement("a"); l.href = URL.createObjectURL(blob); l.download = `uebungshandbuch_${(S.get("name")||"eingaben").replace(/[^\wäöüÄÖÜß-]+/g,"_")}.json`; l.click(); setTimeout(() => URL.revokeObjectURL(l.href), 1000); };
+  $("#dimp").onchange = e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => { const d = JSON.parse(t).eingaben || {}; Object.entries(d).forEach(([k, v]) => S.set(k, v)); $("#dlg").close(); route(); }).catch(() => alert("Diese Datei enthält keine gesicherten Eingaben des Übungshandbuchs.")); };
+  $("#dclr").onclick = () => { if (confirm("Alle Eingaben, Häkchen und Skizzen in diesem Browser löschen?")) { Object.keys(S.all()).forEach(k => S.set(k, null)); $("#dlg").close(); route(); } };
+  $("#dlg").showModal();
 }
-function refreshStatus(){
-  const m = location.hash.match(/^#\/(L\d\d)\/(\d)/); if (!m) return;
-  const s = BY[m[1]]; if (!s) return;
-  $$(".stepper a[data-step]").forEach(a => { const n = +a.dataset.step, d = phaseDone(s, n); a.classList.toggle("done", d); a.querySelector(".n").textContent = d ? "✓" : n; });
-  $$("[data-state]").forEach(el => el.textContent = (S.get(el.dataset.state) || "").trim() ? "beantwortet" : "");
-  const sum = $("#sum"); if (sum) { const ok = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "ok").length, bad = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "bad").length;
-    const ana = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "bad" && prDone(s.id, i)).length;
-    sum.innerHTML = `<span><b>${ok}</b>bestanden</span><span><b>${bad}</b>nicht bestanden${bad ? `, davon ${ana} analysiert` : ""}</span><span><b>${s.pr.length-ok-bad}</b>offen</span>`; }
-  const fin = $("#finish"); if (fin) { fin.innerHTML = finishInner(s); fin.classList.toggle("done", !!S.get(s.id+":fertig")); }
-}
+
+// Seiteneffekte: Listener, Migrationen, Start. main.js ruft init() in der ursprünglichen Reihenfolge auf.
+export function init(){
 document.addEventListener("input", e => {
   const el = e.target;
   if (el.dataset.k) {
@@ -26,7 +35,6 @@ document.addEventListener("input", e => {
   if (el.dataset.var !== undefined) { const id = curEx(); const rows = S.get(id+":vars", []); rows[+el.dataset.var][el.dataset.f] = el.value; S.set(id+":vars", rows); }
 });
 document.addEventListener("change", e => { if (e.target.dataset.max) e.target.value = S.get(e.target.dataset.k) ?? ""; });
-const curEx = () => (location.hash.match(/^#\/(L\d\d)/) || [])[1];
 document.addEventListener("click", e => {
   const set = e.target.closest("[data-set]");
   if (set) {
@@ -62,17 +70,4 @@ document.addEventListener("keydown", e => {
   if ((e.key === "Enter" || e.key === " ") && e.target.matches(".th[data-act]")) { e.preventDefault(); e.target.click(); }
 });
 $("#lb").addEventListener("click", e => { if (e.target === $("#lb")) $("#lb").close(); });
-
-function openDataDialog(){
-  $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>Meine Daten</h2><p class="muted">Alle Eingaben, Häkchen und Skizzen bleiben nur in diesem Browser. Sichern Sie sie als Datei, um sie abzugeben oder auf einem anderen Rechner weiterzuarbeiten.</p>
-    <div class="cols2" style="gap:12px"><div><label class="small muted" for="dn">Name</label><input type="text" id="dn" data-k="name"></div><div><label class="small muted" for="dk">Klasse</label><input type="text" id="dk" data-k="klasse"></div></div>
-    <div class="row" style="justify-content:flex-start"><button class="btn" type="button" id="dexp">Als Datei sichern</button><label class="btn">Datei laden<input type="file" id="dimp" accept="application/json" hidden></label><button class="btn" type="button" id="dclr">Alles löschen</button></div>
-    <div class="row"><button class="btn primary" value="ok">Fertig</button></div></form>`;
-  restoreInputs($("#dlg"));
-  $("#dexp").onclick = () => { const blob = new Blob([JSON.stringify({handbuch:"Übungshandbuch SPS-Technik", stand:new Date().toISOString(), eingaben:S.all()}, null, 1)], {type:"application/json"});
-    const l = document.createElement("a"); l.href = URL.createObjectURL(blob); l.download = `uebungshandbuch_${(S.get("name")||"eingaben").replace(/[^\wäöüÄÖÜß-]+/g,"_")}.json`; l.click(); setTimeout(() => URL.revokeObjectURL(l.href), 1000); };
-  $("#dimp").onchange = e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => { const d = JSON.parse(t).eingaben || {}; Object.entries(d).forEach(([k, v]) => S.set(k, v)); $("#dlg").close(); route(); }).catch(() => alert("Diese Datei enthält keine gesicherten Eingaben des Übungshandbuchs.")); };
-  $("#dclr").onclick = () => { if (confirm("Alle Eingaben, Häkchen und Skizzen in diesem Browser löschen?")) { Object.keys(S.all()).forEach(k => S.set(k, null)); $("#dlg").close(); route(); } };
-  $("#dlg").showModal();
 }
-

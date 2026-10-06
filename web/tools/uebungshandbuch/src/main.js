@@ -1,0 +1,27 @@
+// Einstieg für esbuild: lädt die Module in fester Reihenfolge (src/reihenfolge.json) und startet danach die Seiteneffekte.
+import './app/daten.js';
+import './app/basis.js';
+import './app/fortschritt.js';
+import './editor/svg.js';
+import './editor/status.js';
+import './editor/vorlagen-svg.js';
+import './editor/bauteile.js';
+import './editor/bausteine.js';
+import './editor/zeichnen.js';
+import './editor/blaetter.js';
+import './app/start.js';
+import './app/skizzen-kacheln.js';
+import './app/variablen.js';
+import './app/uebung.js';
+import './editor/editor.js';
+import './app/druck.js';
+import './app/seiten.js';
+import { init as init_app_tooltip } from './app/tooltip.js';
+import { init as init_app_router } from './app/router.js';
+import { init as init_app_ereignisse } from './app/ereignisse.js';
+import { init as init_editor_ereignisse } from './editor/ereignisse.js';
+
+init_editor_ereignisse();
+init_app_ereignisse();
+init_app_tooltip();
+init_app_router();

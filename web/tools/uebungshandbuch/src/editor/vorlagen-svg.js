@@ -1,17 +1,22 @@
+import { CYL } from '../app/daten.js';
+import { esc } from '../app/basis.js';
+import { INK, SVGT, arrowHead, tw } from './svg.js';
+import { ED } from './status.js';
+
 /* ---------- Skizzen: Vorlagen als SVG ---------- */
-const G = "#9AA4AD", G2 = "#C9D0D5";
-function grid(step, color, x0=15, y0=15, x1=985, y1=630){
+export const G = "#9AA4AD", G2 = "#C9D0D5";
+export function grid(step, color, x0=15, y0=15, x1=985, y1=630){
   let s = "";
   for (let x = x0; x <= x1 + .1; x += step) s += `M${x.toFixed(1)} ${y0}V${y1}`;
   for (let y = y0; y <= y1 + .1; y += step) s += `M${x0} ${y.toFixed(1)}H${x1}`;
   return `<path d="${s}" stroke="${color}" stroke-width=".5" fill="none"/>`;
 }
-function dots(step, x0=15, y0=15, x1=985, y1=630){
+export function dots(step, x0=15, y0=15, x1=985, y1=630){
   let s = "";
   for (let x = x0 + step; x < x1; x += step) for (let y = y0 + step; y < y1; y += step) s += `M${x} ${y}h.01`;
   return `<path d="${s}" stroke="${G}" stroke-width="2.2" stroke-linecap="round"/>`;
 }
-function frame(meta){
+export function frame(meta){
   const t = (x, y, s, w, txt, f="#333") => `<text x="${x}" y="${y}" font-size="${s}" font-weight="${w}" fill="${f}" font-family="Plex Sans,Segoe UI,sans-serif">${esc(txt)}</text>`;
   return `<rect x="15" y="15" width="970" height="677" fill="none" stroke="#333" stroke-width="1.4"/>
   <g><rect x="555" y="632" width="430" height="60" fill="#fff" stroke="#333" stroke-width="1.1"/>
@@ -22,8 +27,8 @@ function frame(meta){
   <text x="985" y="701.5" font-size="6.5" fill="#999" text-anchor="end" letter-spacing=".3" font-family="Plex Sans,Segoe UI,sans-serif">© Bauer Automation Solutions · Dennis Bauer</text>
   <rect data-sf="1" x="555" y="632" width="430" height="60" fill="transparent"><title>Schriftfeld ändern</title></rect></g>`;
 }
-const TX = (x, y, s, txt, a="start", f=G, w=400) => `<text x="${x}" y="${y}" font-size="${s}" text-anchor="${a}" fill="${f}" font-weight="${w}" font-family="Plex Sans,Segoe UI,sans-serif">${esc(txt)}</text>`;
-function tplBody(key, ex, page=0, meta=null){
+export const TX = (x, y, s, txt, a="start", f=G, w=400) => `<text x="${x}" y="${y}" font-size="${s}" text-anchor="${a}" fill="${f}" font-weight="${w}" font-family="Plex Sans,Segoe UI,sans-serif">${esc(txt)}</text>`;
+export function tplBody(key, ex, page=0, meta=null){
   switch (key) {
     case "raster": return grid(10, G2);
     case "grafcet": {
@@ -96,17 +101,17 @@ function tplBody(key, ex, page=0, meta=null){
   }
   return "";
 }
-const snap = ([x, y]) => ED.grid ? [Math.round(x/10)*10, Math.round(y/10)*10] : [Math.round(x), Math.round(y)];
+export const snap = ([x, y]) => ED.grid ? [Math.round(x/10)*10, Math.round(y/10)*10] : [Math.round(x), Math.round(y)];
 /* Weg-Schritt-Diagramm: Stellung 1 liegt 16 unter dem Zeilenanfang, Stellung 0 bei 50 (Zeilenhöhe 62, erste Zeile bei 74).
    "aus" = Richtung aus dem Zeilenbereich heraus (Stellung 1: nach oben, Stellung 0: nach unten), "ein" = in die Zeile hinein. */
-const wsAus = y => (((y - 74) % 62) + 62) % 62 < 33 ? -1 : 1;
-const halo = t => t.replace("<text ", '<text stroke="#fff" stroke-width="4" stroke-linejoin="round" paint-order="stroke" ');
-const sigLoop = st => { const [x, y] = st.p[0], [x2, y2] = st.p[1] || st.p[0]; return Math.abs(x - x2) < .5 && Math.abs(y - y2) < .5; };
-function startGeo(st){ const [x, y] = st.p[0], e = -wsAus(y), cy = y + e * 23; return {x, y, e, cy}; }   // freie Ecke des Schrittfelds unter bzw. über der Bewegungslinie
-function sigMid(st){   // Höhe des Querstücks; auf gleicher Höhe nach außen ausweichen, sonst läge die Signallinie auf der Funktionslinie
+export const wsAus = y => (((y - 74) % 62) + 62) % 62 < 33 ? -1 : 1;
+export const halo = t => t.replace("<text ", '<text stroke="#fff" stroke-width="4" stroke-linejoin="round" paint-order="stroke" ');
+export const sigLoop = st => { const [x, y] = st.p[0], [x2, y2] = st.p[1] || st.p[0]; return Math.abs(x - x2) < .5 && Math.abs(y - y2) < .5; };
+export function startGeo(st){ const [x, y] = st.p[0], e = -wsAus(y), cy = y + e * 23; return {x, y, e, cy}; }   // freie Ecke des Schrittfelds unter bzw. über der Bewegungslinie
+export function sigMid(st){   // Höhe des Querstücks; auf gleicher Höhe nach außen ausweichen, sonst läge die Signallinie auf der Funktionslinie
   const [[, y1], [, y2]] = st.p; return Math.abs(y1 - y2) < .5 ? y1 + wsAus(y1) * 20 : Math.round((y1 + y2) / 2);
 }
-function shapeD(st){
+export function shapeD(st){
   if (st.k === "st") { const {x, cy} = startGeo(st); return `M${x + 2} ${cy - 9}H${x + 56}V${cy + 9}H${x + 2}Z`; }
   if (st.k === "eq") { const [x] = st.p[0]; return `M${x} 41H${x + 68}V73H${x}Z`; }
   if (st.k === "vk") { const [x, y] = st.p[0]; return `M${x - 4} ${y - 4}H${x + 4}V${y + 4}H${x - 4}Z`; }
@@ -115,7 +120,7 @@ function shapeD(st){
   if (st.k === "sig") { if (Math.abs(x1 - x2) < .5) return `M${x1} ${y1}V${y2}`; const ym = sigMid(st); return `M${x1} ${y1}V${ym}H${x2}V${y2}`; }
   return st.k === "l" ? `M${x1} ${y1}L${x2} ${y2}` : `M${x1} ${y1}H${x2}V${y2}H${x1}Z`;
 }
-function srcMark(st, x, y){   // Signalgeber am Auslösepunkt
+export function srcMark(st, x, y){   // Signalgeber am Auslösepunkt
   const c = st.c || INK;
   switch (st.sg || "punkt") {
     case "kreis": return `<circle cx="${x}" cy="${y}" r="4.5" fill="#fff" stroke="${c}" stroke-width="1.4"/>`;
@@ -125,7 +130,7 @@ function srcMark(st, x, y){   // Signalgeber am Auslösepunkt
   }
   return `<circle cx="${x}" cy="${y}" r="3" fill="${c}"/>`;
 }
-function sigSVG(st, grp){   // Signallinie, Schleife und Start – im Schrittfeld
+export function sigSVG(st, grp){   // Signallinie, Schleife und Start – im Schrittfeld
   if (st.k === "vk") { const [x, y] = st.p[0], c = st.c || INK;   // Verknüpfungspunkt: UND = Schrägstrich, ODER = Punkt
     return st.t === "oder" ? `<circle cx="${x}" cy="${y}" r="4" fill="${c}"/>` : `<circle cx="${x}" cy="${y}" r="1.6" fill="${c}"/><path d="M${x - 8} ${y + 6}L${x + 8} ${y - 6}" stroke="${c}" stroke-width="2" stroke-linecap="round"/>`; }
   const c = st.c || INK, lab = (x, y, a="start") => st.lbl ? halo(SVGT(x, y, st.lbl, a, 10.5, 600, c)) : "";
@@ -146,7 +151,7 @@ function sigSVG(st, grp){   // Signallinie, Schleife und Start – im Schrittfel
   const links = st.sg === "balken" || (grp && grp.ldy);
   return r + lab(x1 + (st.sg === "balken" ? -26 : links ? -7 : 7), y1 + o * 13 + (o > 0 ? 4 : 0), links ? "end" : "start");
 }
-function strokesSVG(d, edit=false){
+export function strokesSVG(d, edit=false){
   if (!d) return "";
   const path = pts => { if (!pts.length) return ""; let s = `M${pts[0][0]} ${pts[0][1]}`; if (pts.length === 1) return s + "l.01 0";
     for (let i = 1; i < pts.length - 1; i++) { const [x, y] = pts[i], [nx, ny] = pts[i+1]; s += `Q${x} ${y} ${((x+nx)/2).toFixed(1)} ${((y+ny)/2).toFixed(1)}`; }

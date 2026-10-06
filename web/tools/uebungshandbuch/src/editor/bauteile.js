@@ -1,33 +1,36 @@
+import { INK, PH, SVGT, arrowHead, clamp } from './svg.js';
+import { ED } from './status.js';
+
 /* ---------- Bauteile mit Anschlüssen: Stromlauf, Geräte, Hauptstromkreis, Pneumatik (ISO 1219) ---------- */
-const SK = `stroke="${INK}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
-const PP = d => `<path d="${d}" ${SK}/>`;
-const PD = d => `<path d="${d}" ${SK} stroke-dasharray="3 2.5"/>`;
-const LB = (x, y, t, a="end") => t ? SVGT(x, y, t, a, 12, 600) : "";
-const PN = (x, y, t, a="start") => SVGT(x, y, t, a, 8.5, 500, "#5A6672");
-const cNO = (x, y) => `M${x} ${y}V${y+20}M${x} ${y+60}V${y+42}L${x-13} ${y+19}`;
-const cNC = (x, y) => `M${x} ${y}V${y+20}H${x+9}M${x} ${y+60}V${y+42}L${x+12} ${y+16}`;
-const BLUE = "#2F80ED";
-const simOn = () => typeof ED !== "undefined" && ED.sim && ED.sim.on;
-const pressed = (o, p) => simOn() && ED.sim.P && ED.sim.P.has(o.id + ":" + p);
-const posOf = o => simOn() && ED.sim.pos[o.id] !== undefined ? ED.sim.pos[o.id] : 0;
-const vstate = o => simOn() && ED.sim.st[o.id] || (o.k === "v53" ? "center" : "rest");
+export const SK = `stroke="${INK}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+export const PP = d => `<path d="${d}" ${SK}/>`;
+export const PD = d => `<path d="${d}" ${SK} stroke-dasharray="3 2.5"/>`;
+export const LB = (x, y, t, a="end") => t ? SVGT(x, y, t, a, 12, 600) : "";
+export const PN = (x, y, t, a="start") => SVGT(x, y, t, a, 8.5, 500, "#5A6672");
+export const cNO = (x, y) => `M${x} ${y}V${y+20}M${x} ${y+60}V${y+42}L${x-13} ${y+19}`;
+export const cNC = (x, y) => `M${x} ${y}V${y+20}H${x+9}M${x} ${y+60}V${y+42}L${x+12} ${y+16}`;
+export const BLUE = "#2F80ED";
+export const simOn = () => typeof ED !== "undefined" && ED.sim && ED.sim.on;
+export const pressed = (o, p) => simOn() && ED.sim.P && ED.sim.P.has(o.id + ":" + p);
+export const posOf = o => simOn() && ED.sim.pos[o.id] !== undefined ? ED.sim.pos[o.id] : 0;
+export const vstate = o => simOn() && ED.sim.st[o.id] || (o.k === "v53" ? "center" : "rest");
 
 /* Wegeventile nach ISO 1219: quadratische Schaltstellungen 40 × 40, Anschlüsse im 10er-Raster */
-const VB = 40;
-const VALVE = {
+export const VB = 40;
+export const VALVE = {
   v22: {n: 2, rest: 1, ports: [["2", 20, "u"], ["1", 20, "d"]]},
   v32: {n: 2, rest: 1, ports: [["2", 20, "u"], ["1", 10, "d"], ["3", 30, "d"]]},
   v52: {n: 2, rest: 1, ports: [["4", 10, "u"], ["2", 30, "u"], ["5", 10, "d"], ["1", 20, "d"], ["3", 30, "d"]]},
   v53: {n: 3, rest: 1, ports: [["4", 10, "u"], ["2", 30, "u"], ["5", 10, "d"], ["1", 20, "d"], ["3", 30, "d"]]}
 };
-const vIdx = (o, s) => o.k === "v53" ? ({act: 0, center: 1, b: 2}[s] ?? 1) : (s === "act" ? 0 : 1);
-function vPairs(o, s){
+export const vIdx = (o, s) => o.k === "v53" ? ({act: 0, center: 1, b: 2}[s] ?? 1) : (s === "act" ? 0 : 1);
+export function vPairs(o, s){
   if (o.k === "v22") { const nc = (o.gs || "nc") === "nc"; return (s === "act") === nc ? [["1","2"]] : []; }   // 2/2: Durchgang oder gesperrt
   if (o.k === "v32") { const nc = (o.gs || "nc") === "nc"; return s === "act" ? (nc ? [["1","2"]] : [["2","3"]]) : (nc ? [["2","3"]] : [["1","2"]]); }
   if (o.k === "v52") return s === "act" ? [["1","4"],["2","3"]] : [["1","2"],["4","5"]];
   return s === "act" ? [["1","4"],["2","3"]] : s === "b" ? [["1","2"],["4","5"]] : [];
 }
-function vBox(o, i){   // Durchflusswege (Pfeil vom Druck- bzw. Arbeitsanschluss weg) und Sperren eines Kästchens
+export function vBox(o, i){   // Durchflusswege (Pfeil vom Druck- bzw. Arbeitsanschluss weg) und Sperren eines Kästchens
   const V = VALVE[o.k], at = n => V.ports.find(p => p[0] === n);
   let pairs;
   if (o.k === "v53" && i === 1) pairs = [];
@@ -36,12 +39,8 @@ function vBox(o, i){   // Durchflusswege (Pfeil vom Druck- bzw. Arbeitsanschluss
   const dir = ([a, b]) => a === "1" ? [at(a), at(b)] : b === "1" ? [at(b), at(a)] : (b === "3" || b === "5") ? [at(a), at(b)] : [at(b), at(a)];
   return {flows: pairs.map(dir), blocked: V.ports.filter(p => !used.has(p[0]))};
 }
-const thin = `stroke="${INK}" stroke-width="1.3" fill="none" stroke-linecap="round"`;
-function arrowHead(x1, y1, x2, y2, h=6.5, w=.42){
-  const a = Math.atan2(y2 - y1, x2 - x1), f = n => n.toFixed(1);
-  return `<path d="M${f(x2)} ${f(y2)}L${f(x2 - h*Math.cos(a - w))} ${f(y2 - h*Math.sin(a - w))}L${f(x2 - h*Math.cos(a + w))} ${f(y2 - h*Math.sin(a + w))}Z" fill="${INK}"/>`;
-}
-function actuator(kind, ex, cy, dir){   // ex = Außenkante des äußeren Kästchens, dir −1 links, +1 rechts
+export const thin = `stroke="${INK}" stroke-width="1.3" fill="none" stroke-linecap="round"`;
+export function actuator(kind, ex, cy, dir){   // ex = Außenkante des äußeren Kästchens, dir −1 links, +1 rechts
   const X = d => ex + dir * d;
   if (kind === "feder") return `<path d="M${ex} ${cy}L${X(3)} ${cy-7}L${X(7)} ${cy+7}L${X(11)} ${cy-7}L${X(15)} ${cy+7}L${X(19)} ${cy-7}L${X(22)} ${cy}" ${thin}/>`;
   if (kind === "taster") return `<path d="M${ex} ${cy}H${X(14)}M${X(14)} ${cy-8}V${cy+8}" ${thin}/><path d="M${X(14)} ${cy-8}A8 8 0 0 ${dir < 0 ? 0 : 1} ${X(14)} ${cy+8}" ${thin}/>`;
@@ -51,8 +50,8 @@ function actuator(kind, ex, cy, dir){   // ex = Außenkante des äußeren Kästc
   if (kind === "magp") { const x1 = Math.min(X(12), X(24)); s += `<rect x="${x1}" y="${cy-9}" width="12" height="18" fill="#fff" ${thin}/><path d="M${X(14)} ${cy}L${X(22)} ${cy-5}V${cy+5}Z" fill="${INK}"/>`; }
   return s;
 }
-const actW = k => k === "magp" ? 24 : k === "feder" ? 22 : k === "mag" ? 12 : 18;
-function drawValve(o){
+export const actW = k => k === "magp" ? 24 : k === "feder" ? 22 : k === "mag" ? 12 : 18;
+export function drawValve(o){
   const V = VALVE[o.k], x = o.x, y = o.y, s = vstate(o), shift = (V.rest - vIdx(o, s)) * VB, by = y + 10;
   let g = "";
   for (let i = 0; i < V.n; i++) {
@@ -73,7 +72,7 @@ function drawValve(o){
   const lx = Math.min(el - actW(al) - (o.k === "v53" ? 22 : 0), x + 30) - 4;
   return g + LB(lx, y + 34, o.v);
 }
-function cylinder(o, single){
+export function cylinder(o, single){
   const x = o.x, y = o.y, p = posOf(o), px = x + 16 + p * 88, f = n => n.toFixed(1);
   let s = "";
   if (simOn()) { if (pressed(o, "A")) s += `<rect x="${x+3}" y="${y+13}" width="${f(px - x - 3)}" height="24" fill="${BLUE}" fill-opacity=".2"/>`;
@@ -94,7 +93,7 @@ function cylinder(o, single){
   s += sens(x + 16, o.s1, simOn() && p < .02) + sens(x + 104, o.s2, simOn() && p > .98);
   return s + LB(x - 6, y + 30, o.v);
 }
-const PC = {
+export const PC = {
   /* Steuerstromkreis – Mittellinie bei o.x, Höhe 60 */
   tno:{g:"elektro", n:"Taster Schließer", lbl:"-SF1", bx:-22, w:44, h:60, ports:[["13",0,0,"u"],["14",0,60,"d"]],
     draw:o => PP(cNO(o.x, o.y)) + PD(`M${o.x-7} ${o.y+31}H${o.x-24}`) + PP(`M${o.x-24} ${o.y+24}V${o.y+38}M${o.x-24} ${o.y+24}H${o.x-28}M${o.x-24} ${o.y+38}H${o.x-28}`) + LB(o.x-34, o.y+35, o.v) + PN(o.x+5, o.y+11, "13") + PN(o.x+5, o.y+57, "14")},
@@ -251,7 +250,7 @@ const PC = {
     draw:o => PP(`M${o.x+12} ${o.y}V${o.y+10}`) + `<path d="M${o.x+12} ${o.y+10}L${o.x+22} ${o.y+20}L${o.x+12} ${o.y+30}L${o.x+2} ${o.y+20}Z" fill="#fff" stroke="${INK}" stroke-width="1.5"/><path d="M${o.x+6} ${o.y+17}H${o.x+18}M${o.x+5} ${o.y+20}H${o.x+19}M${o.x+6} ${o.y+23}H${o.x+18}" ${thin}/>`}
 };
 /* Palette: Ventil-Varianten als Voreinstellungen eines Grundtyps */
-const PCPAL = {
+export const PCPAL = {
   v22nc:{g:"pneu", n:"2/2-Wegeventil gesperrt, Magnet/Feder", mk:{k:"v22", gs:"nc", al:"mag", ar:"feder"}},
   v22no:{g:"pneu", n:"2/2-Wegeventil offen, Magnet/Feder", mk:{k:"v22", gs:"no", al:"mag", ar:"feder"}},
   v32nc:{g:"pneu", n:"3/2-Wegeventil gesperrt, Magnet/Feder", mk:{k:"v32", gs:"nc", al:"mag", ar:"feder"}},
@@ -263,10 +262,10 @@ const PCPAL = {
   v52pb:{g:"pneu", n:"5/2 vorgesteuert, bistabil", mk:{k:"v52", al:"magp", ar:"magp"}},
   v53c:{g:"pneu", n:"5/3-Wegeventil Mitte gesperrt", mk:{k:"v53", al:"mag", ar:"mag"}}
 };
-const PORTS2 = {no:[["13",0,0,"u"],["14",0,60,"d"]], nc:[["11",0,0,"u"],["12",0,60,"d"]], coil:[["A1",0,0,"u"],["A2",0,60,"d"]], lamp:[["X1",0,0,"u"],["X2",0,60,"d"]]};
+export const PORTS2 = {no:[["13",0,0,"u"],["14",0,60,"d"]], nc:[["11",0,0,"u"],["12",0,60,"d"]], coil:[["A1",0,0,"u"],["A2",0,60,"d"]], lamp:[["X1",0,0,"u"],["X2",0,60,"d"]]};
 /* Drehen (o.rot = 0/90/180/270) und Spiegeln (o.flip) um die Bauteilmitte – Schrift bleibt aufrecht */
-const DIRV = {u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0]};
-function xform(o){
+export const DIRV = {u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0]};
+export function xform(o){
   const pc = PC[o.k]; if (!pc || o.k === "rail") return null;
   const r = (((o.rot || 0) % 360) + 360) % 360, f = o.flip ? -1 : 1; if (!r && f === 1) return null;
   const x0 = o.x + (pc.bx || 0), cx = x0 + pc.w / 2, cy = o.y + pc.h / 2, c = Math.round(Math.cos(r * Math.PI / 180)), sn = Math.round(Math.sin(r * Math.PI / 180));
@@ -274,19 +273,19 @@ function xform(o){
   const dir = d => { const [vx, vy] = DIRV[d], ux = vx * f, wx = ux*c - vy*sn, wy = ux*sn + vy*c; return wx > .5 ? "r" : wx < -.5 ? "l" : wy > .5 ? "d" : "u"; };
   return {r, f, c, cx, cy, x0, pt, dir};
 }
-function portsOf(o){
+export function portsOf(o){
   if (!o) return [];
   const P = PC[o.k] ? PC[o.k].ports : PORTS2[o.k];
   if (!P) return [];
   const X = xform(o);
   return (typeof P === "function" ? P(o) : P).map(([n, dx, dy, d]) => { if (!X) return {n, x: o.x + dx, y: o.y + dy, d}; const [x, y] = X.pt(o.x + dx, o.y + dy); return {n, x: Math.round(x), y: Math.round(y), d: X.dir(d)}; });
 }
-const portCap = o => !!o && (o.k === "rail" || portsOf(o).length > 0);
-function nearestPort(o, pt){ if (o.k === "rail") return "~"; let b = null; for (const p of portsOf(o)) { const d = Math.hypot(p.x - pt[0], p.y - pt[1]); if (!b || d < b.d) b = {n: p.n, d}; } return b ? b.n : null; }
+export const portCap = o => !!o && (o.k === "rail" || portsOf(o).length > 0);
+export function nearestPort(o, pt){ if (o.k === "rail") return "~"; let b = null; for (const p of portsOf(o)) { const d = Math.hypot(p.x - pt[0], p.y - pt[1]); if (!b || d < b.d) b = {n: p.n, d}; } return b ? b.n : null; }
 /* virtuelle Schienen der Vorlagen – auf jedem Blatt */
-const VRAIL = {stromlauf: [["L+", 70, 40, 935], ["M", 590, 40, 935]], leistung: [["L1", 50, 60, 915], ["L2", 70, 60, 915], ["L3", 90, 60, 915], ["N", 110, 60, 915], ["PE", 130, 60, 915]]};
-function vrails(key, n){ const r = []; (VRAIL[key] || []).forEach(([v, y, x, w]) => { for (let i = 0; i < n; i++) r.push({id: `_${v}@${i}`, k: "rail", v, x, y: y + i*PH, w, virt: true}); }); return r; }
-function wireD(a, b){
+export const VRAIL = {stromlauf: [["L+", 70, 40, 935], ["M", 590, 40, 935]], leistung: [["L1", 50, 60, 915], ["L2", 70, 60, 915], ["L3", 90, 60, 915], ["N", 110, 60, 915], ["PE", 130, 60, 915]]};
+export function vrails(key, n){ const r = []; (VRAIL[key] || []).forEach(([v, y, x, w]) => { for (let i = 0; i < n; i++) r.push({id: `_${v}@${i}`, k: "rail", v, x, y: y + i*PH, w, virt: true}); }); return r; }
+export function wireD(a, b){
   if ((a.d === "u" || a.d === "d") && (b.d === "u" || b.d === "d") && Math.abs(a.x - b.x) < 1) return `M${a.x} ${a.y}V${b.y}`;
   const st = 14, ext = p => [p.x + (p.d === "r" ? st : p.d === "l" ? -st : 0), p.y + (p.d === "d" ? st : p.d === "u" ? -st : 0)];
   const A = ext(a), B = ext(b), va = a.d === "u" || a.d === "d", vb = b.d === "u" || b.d === "d";
@@ -296,22 +295,10 @@ function wireD(a, b){
   else if (va) mid = [[A[0], B[1]]]; else mid = [[B[0], A[1]]];
   return "M" + [[a.x, a.y], A, ...mid, B, [b.x, b.y]].map(p => p.join(" ")).join("L");
 }
-function wireEnds(c, objs){
+export function wireEnds(c, objs){
   const A = objs[c.a], B = objs[c.b]; if (!A || !B) return null;
   const pa = A.k === "rail" ? null : portsOf(A).find(p => p.n === c.pa), pb = B.k === "rail" ? null : portsOf(B).find(p => p.n === c.pb);
   if ((!pa && A.k !== "rail") || (!pb && B.k !== "rail") || (!pa && !pb)) return null;
   const onRail = (r, p) => ({x: clamp(p.x, r.x, r.x + (r.w || 400)), y: r.y, d: p.y > r.y ? "d" : "u", rail: true});
   return [pa || onRail(A, pb), pb || onRail(B, pa)];
-}
-function wireRef(o, port, key, y, x){   // Verweistext: Kennzeichen:Anschluss, Blatt, Strompfad
-  const b = Math.floor(y / PH) + 1, name = o.k === "rail" ? o.v : `${o.v || BLK[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
-  const pfad = key === "stromlauf" ? `, Pfad ${Math.max(1, Math.min(20, Math.round((x - 40) / 46)))}` : "";
-  return `${name}, Blatt ${b}${pfad}`;
-}
-function pcSample(k){
-  const mk = BLK[k] && BLK[k].mk, base = (mk && mk.k) || k, pc = PC[base];
-  const o = {k: base, ...(pc.def || {}), ...(mk || {}), x: 0, y: 0, v: ""}; o.k = base; if (base === "rail") o.w = 70;
-  const bx = pc.bx || 0, w = base === "rail" ? 70 : pc.w, h = Math.max(pc.h, 12);
-  o.x = 4 - bx; o.y = base === "rail" ? 10 : 4;
-  return [o, `0 0 ${w + 8} ${h + 8}`, ""];
 }

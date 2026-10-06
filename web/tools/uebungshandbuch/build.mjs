@@ -1,9 +1,10 @@
-// Erzeugt docs/uebungshandbuch.html aus src/ (Seite, Styles, Skripte), uebungen.js, quiz.js, texte/*.json und signale.csv.
+// Erzeugt docs/uebungshandbuch.html aus src/ (Seite, Styles, ES-Module ab src/main.js), uebungen.js, quiz.js, stil.js, texte/*.json und signale.csv.
 //   node web/tools/uebungshandbuch/build.mjs
 // Prüft dabei die Inhalte und meldet Auffälligkeiten als Warnung (der Build bricht nicht ab).
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { waechter } from './waechter.mjs';
 
 const hier = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(hier, '../../..');
@@ -24,12 +25,23 @@ for (const line of readFileSync(path.join(repo, 'signale.csv'), 'utf8').split(/\
   (sig[n.split('_')[0]] ||= []).push({ n, a, k: umlaut(k.join(';')) });
 }
 
-// Quelltext: src/seite.html mit den Styles und Skripten aus src/ in fester Reihenfolge (src/reihenfolge.json)
+// Quelltext: src/seite.html, die Styles aus src/styles in fester Reihenfolge (src/reihenfolge.json)
+// und die ES-Module ab src/main.js, gebündelt mit esbuild (liegt in web/node_modules).
 const src = path.join(hier, 'src'), folge = JSON.parse(readFileSync(path.join(src, 'reihenfolge.json'), 'utf8'));
 const lies = (...t) => readFileSync(path.join(src, ...t), 'utf8');
+let esbuild;
+try { esbuild = await import('esbuild'); }
+catch { console.error('esbuild fehlt. Einmal ausführen: cd web && npm ci'); process.exit(1); }
+const wache = waechter(path.join(src, 'main.js'));
+if (wache.length) { console.error('Modulprüfung fehlgeschlagen:\n  ' + wache.join('\n  ')); process.exit(1); }
+const bündel = await esbuild.build({
+  entryPoints: [path.join(src, 'main.js')], bundle: true, write: false, format: 'iife', target: 'es2022',
+  charset: 'utf8', legalComments: 'none', treeShaking: false, minify: false, logLevel: 'error',
+});
+const skript = bündel.outputFiles[0].text.replace(/<\/script/gi, '<\\/script');
 const vorlage = lies('seite.html')
   .replace(/<!--@CSS-->\r?\n/, () => folge.css.map((n) => lies('styles', n + '.css')).join(''))
-  .replace(/<!--@JS-->\r?\n/, () => folge.js.map((n) => lies(n + '.js')).join(''));
+  .replace(/<!--@JS-->\r?\n/, () => skript);
 const ohneKopf = (t) => t.replace(/^(\s*\/\/.*\r?\n)+/, '').trim();   // führende Kommentarzeilen weg
 const auswerten = (datei, text, ...arg) => {   // JS-Datenausdruck auswerten, Fehler mit Dateiname melden
   try { return new Function(...arg.map((a) => a[0]), 'return ' + text)(...arg.map((a) => a[1])); }
@@ -46,6 +58,12 @@ let quiz = existsSync(qdatei) ? ohneKopf(readFileSync(qdatei, 'utf8')).replace(/
 const QUIZ = auswerten('quiz.js', quiz);
 if (!QUIZ) quiz = '({})';
 
+// Programmierrichtlinien einzeln mit Übung, ab der sie gelten: stil.js (fehlt die Datei, bleibt STIL leer)
+const sdatei = path.join(hier, 'stil.js');
+let stil = existsSync(sdatei) ? ohneKopf(readFileSync(sdatei, 'utf8')).replace(/;\s*$/, '') : '[]';
+const STIL = auswerten('stil.js', stil);
+if (!STIL) stil = '[]';
+
 // Ausführliche Aufgabenbeschreibung und Fachwissen: je Übung eine Datei texte/Lxx.json
 const tdir = path.join(hier, 'texte'), texte = {};
 if (existsSync(tdir)) for (const f of readdirSync(tdir)) if (/^L\d\d\.json$/.test(f)) {
@@ -54,7 +72,7 @@ if (existsSync(tdir)) for (const f of readdirSync(tdir)) if (/^L\d\d\.json$/.tes
 }
 
 /* ---------- Prüfungen ---------- */
-const EXTRA = auswerten('vorlage.html (EXTRA)', (vorlage.match(/\nconst EXTRA = (\{[\s\S]*?\n\});/) || [, '{}'])[1]) || {};
+const EXTRA = auswerten('src/app/daten.js (EXTRA)', (lies('app', 'daten.js').match(/\nexport const EXTRA = (\{[\s\S]*?\n\});/) || [, '{}'])[1]) || {};
 const IDS = new Set(SHEETS.map((s) => s.id));
 const kurz = (t, i, n) => '„' + (i > 30 ? '…' : '') + t.slice(Math.max(0, i - 30), i + n + 30).replace(/\s+/g, ' ') + (i + n + 30 < t.length ? '…' : '') + '“';
 const prosa = (t) => String(t).replace(/<(code|pre)\b[^>]*>[\s\S]*?<\/\1>/gi, ' ').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ');
@@ -105,12 +123,17 @@ for (const [id, q] of Object.entries(QUIZ || {})) {
   if (!IDS.has(id)) warn('Verweis auf fehlende Übung', `quiz.js ${id}`, 'keine Übung mit dieser id');
   walk(`quiz.js ${id}`, q);
 }
+(Array.isArray(STIL) ? STIL : []).forEach((r, i) => {
+  if (!r || !IDS.has(r.ab)) warn('Datenformat', `stil.js [${i}]`, `ab „${r && r.ab}“ ist keine Übung`);
+  walk(`stil.js [${i}]`, r);
+});
 
 /* ---------- Ausgabe ---------- */
 const html = vorlage
   .replace('__SIG__', () => JSON.stringify(sig))
   .replace('__SHEETS__', () => uebungen)
   .replace('__QUIZ__', () => quiz)
+  .replace('__STIL__', () => stil)
   .replace('__TEXTE__', () => JSON.stringify(texte));
 writeFileSync(path.join(repo, 'docs', 'uebungshandbuch.html'), html);
 console.log('docs/uebungshandbuch.html erzeugt');
