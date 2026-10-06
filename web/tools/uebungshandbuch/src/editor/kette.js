@@ -15,8 +15,9 @@ export function seitenArt(k){
   return art(grund).seite || null;
 }
 
-// Senkrechte Verbindung von unten aus A nach oben in B, bei Rücksprüngen links vorbei mit Pfeil nach oben
-export function routeV([x1, y1], [x2, y2]){
+// Senkrechte Verbindung von unten aus A nach oben in B, bei Rücksprüngen links vorbei mit Pfeil nach oben.
+// spuren (spuren.js) ist die Spurbelegung der Zeichnung, noch unbenutzt.
+export function routeV([x1, y1], [x2, y2], spuren){
   const p = {p1: [x1, y1], p2: [x2, y2]};
   if (y2 > y1 + 4) {
     if (Math.abs(x1 - x2) < 1) return {...p, d: `M${x1} ${y1}V${y2}`};
@@ -27,12 +28,12 @@ export function routeV([x1, y1], [x2, y2]){
   return {...p, d: `M${x1} ${y1}V${ya}H${lane}V${yb}H${x2}V${y2}`, up: [lane, (ya + yb) / 2]};
 }
 
-// Linie von A nach B innerhalb einer Kette
-export function verbindeKette(A, B){
+// Linie von A nach B innerhalb einer Kette; spuren geht an routeV bzw. den Haken seite.verbinde
+export function verbindeKette(A, B, spuren){
   const s = seite(B);
-  if (s) return s.verbinde(A, B);
+  if (s) return s.verbinde(A, B, spuren);
   const von = outPt(A, ctr(B)[0]);
-  return routeV(von, inPt(B, von[0]));
+  return routeV(von, inPt(B, von[0]), spuren);
 }
 
 // An welchen Baustein hängt sich ein neuer Baustein der Palettenart k? Der markierte, wenn er zur selben Kette gehört.

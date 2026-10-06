@@ -3,6 +3,7 @@
 import { INK, MUTE, PH, SVGT } from './svg.js';
 import { ED } from './status.js';
 import { BLK, FIXED, GRUPPE, PC, VORL, art } from './registry.js';
+import { neueSpuren } from './spuren.js';
 import { strokesSVG } from './vorlagen-svg.js';
 import { BLUE, istSchiene, portsOf, simOn, vrails, wireD, wireEnds, xform } from './bauteile.js';
 import { bbox, ctr, fam, gruppeVon } from './bausteine.js';
@@ -34,18 +35,19 @@ export function refName(o, objs, cs, dir){
 
 /* ---------- Verbindungen ---------- */
 // Geometrie einer Verbindung c: Leitung zwischen Anschlüssen, sonst nach der Gruppe von A
-// (Ablaufkette, Haken verbinde der Gruppe oder rechtwinklig von Rand zu Rand)
-export function connGeom(c, objs, all){
+// (Ablaufkette, Haken verbinde der Gruppe oder rechtwinklig von Rand zu Rand).
+// spuren ist die Spurbelegung der Zeichnung (spuren.js); die Wege reichen sie weiter, damit sie freie Spuren wählen können.
+export function connGeom(c, objs, all, spuren = neueSpuren()){
   const A = objs[c.a], B = objs[c.b];
   if (!A || !B) return null;
   if (c.pa !== undefined || c.pb !== undefined) {
     const e = wireEnds(c, objs);
     if (!e) return null;
-    return {d: wireD(e[0], e[1]), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"]};
+    return {d: wireD(e[0], e[1], spuren), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"]};
   }
   const gruppe = GRUPPE[fam(A)] || {};
-  if (gruppe.kette) return verbindeKette(A, B);
-  if (gruppe.verbinde) return gruppe.verbinde(c, A, B, objs, all);
+  if (gruppe.kette) return verbindeKette(A, B, spuren);
+  if (gruppe.verbinde) return gruppe.verbinde(c, A, B, objs, all, spuren);
   return verbindeRechtwinklig(A, B);
 }
 // Randpunkt in Richtung dir (r, l, d, u); runde Bausteine (Haken radius) auf dem Kreis
@@ -151,8 +153,9 @@ export function inkSVG(d, edit=false, key=null){
   vrails(key, pageCount(key, d)).forEach(r => { objs[r.id] = r; });
   const v = VORL[key];
   const rails = v && v.hintergrund ? v.hintergrund(d, cs) : "";   // Haken hintergrund, z. B. Strompfade zu L+ und M
+  const spuren = neueSpuren();   // eine Belegung für alle Verbindungen der Zeichnung
   const conns = cs.map((c, i) => {
-    const gm = connGeom(c, objs, cs);
+    const gm = connGeom(c, objs, cs, spuren);
     if (!gm) return "";
     return gm.wire ? leitungSVG(c, i, gm, objs, key, edit) : verbindungSVG(c, i, gm, objs, cs, key, edit);
   }).join("");

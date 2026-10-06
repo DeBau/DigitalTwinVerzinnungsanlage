@@ -64,8 +64,9 @@ export function vrails(key, n){
   });
   return r;
 }
-// Leitungsweg zwischen zwei Anschlüssen: erst 14 in Anschlussrichtung hinaus, dann rechtwinklig verbinden
-export function wireD(a, b){
+// Leitungsweg zwischen zwei Anschlüssen: erst 14 in Anschlussrichtung hinaus, dann rechtwinklig verbinden.
+// spuren (spuren.js) ist die Spurbelegung der Zeichnung, noch unbenutzt.
+export function wireD(a, b, spuren){
   if ((a.d === "u" || a.d === "d") && (b.d === "u" || b.d === "d") && Math.abs(a.x - b.x) < 1) return `M${a.x} ${a.y}V${b.y}`;
   const st = 14, ext = p => [p.x + (p.d === "r" ? st : p.d === "l" ? -st : 0), p.y + (p.d === "d" ? st : p.d === "u" ? -st : 0)];
   const A = ext(a), B = ext(b), va = a.d === "u" || a.d === "d", vb = b.d === "u" || b.d === "d";

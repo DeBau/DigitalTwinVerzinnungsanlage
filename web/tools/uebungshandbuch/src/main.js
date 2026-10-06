@@ -6,6 +6,7 @@ import './app/fortschritt.js';
 import './editor/svg.js';
 import './editor/status.js';
 import './editor/registry.js';
+import './editor/spuren.js';
 import './editor/vorlagen-svg.js';
 import './editor/bauteile.js';
 import './editor/bausteine.js';
