@@ -12,7 +12,7 @@ import { B2, BAND, BAND_Y, KURVE, LS_POS } from './baender.js';
 import { B1_MOTOR, KANAL1, QM2 } from './band1.js';
 import './rollenkurve.js';
 import { B2_MOTOR } from './band2.js';
-import { BAD_X, RAND_Y, bad } from './zinnbad.js';
+import { BG9_KOPF, BG10_KOPF, bad } from './zinnbad.js';
 import { KETTE, haken, schlitten } from './portal.js';
 import { HK1, SPUR, WANNE, dummy, inAnlage, wannenWeg } from './pneumatik.js';
 
@@ -103,7 +103,9 @@ export function zumPort(weg, port, parent = anlage, r = 2.4) {
 const XD1 = feldverteiler(-655, 1000, -260, Math.PI / 2, '−XD1 Feldverteiler Portal', [
   ['BG1_MM1_eingehaengt', 'BG2_MM1_geloest'], ['BG3_MM2_oben'], ['BG4_MM2_unten'], ['BG5_MM3_Band'],
   ['BG6_MM3_Bad'], null, null, null]);
-const XD2 = feldverteiler(760, 560, -215, 0, '−XD2 Feldverteiler Bad', [
+// −XD2 an der badseitigen Seitenfläche der rechten Säule (Ports nach −x): Verteiler, Stecker und die Leitungsgassen
+// davor liegen hinter z −230 und damit ganz außerhalb des Fahrwegs der Abdeckung (Deckel bis z −181)
+const XD2 = feldverteiler(715, 560, -260, -Math.PI / 2, '−XD2 Feldverteiler Bad', [
   ['BG7_MM4_offen'], ['BG8_MM4_zu'], ['BG9_Temperatur'], ['BG10_Fuellhoehe'], null, null, null, null]);
 
 // Sammelleitungen (M23, 12-adrig) in die Kabelkanäle an den Säulen → Gitterrinne → Schaltschrank
@@ -111,7 +113,8 @@ const XD2 = feldverteiler(760, 560, -215, 0, '−XD2 Feldverteiler Bad', [
   const s = XD1.sammel;
   kabel([s, V(s.x, 820, s.z), V(s.x, 820, -340), V(-775, 820, -340), V(-775, 820, -260), V(-775, 1000, -260)], anlage, M.kabelGrau, 4);
   const t = XD2.sammel;
-  kabel([t, V(t.x, 350, t.z), V(845, 350, t.z), V(845, 410, t.z), V(835, 480, -260), V(835, 640, -260)], anlage, M.kabelGrau, 4);
+  // hinter der Säule herum und von unten in den Kabelkanal auf ihrer anderen Seite
+  kabel([t, V(t.x, 380, t.z), V(t.x, 380, -325), V(835, 380, -325), V(835, 380, -260), V(835, 640, -260)], anlage, M.kabelGrau, 4);
 }
 
 // −MM3 (Traverse): Austritt am Zylinderboden nach hinten über das Zylinderende hinaus, in Sensorhöhe nach vorn
@@ -159,18 +162,20 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
   zumPort([V(KETTE.xa - 10, 1313, z), V(x, 1313, z), V(x, 1130 - k * 6, z), V(-548 - k * 6, 1130 - k * 6, z)], port);
 });
 
-// −MM4 (Gestell rechts): am Zylinderboden heraus, hinter dem Gestell zu −XD2
+// −MM4 (Gestell rechts): am Zylinderboden heraus, hinter dem Gestell und vor der Säule unter der Abdeckung durch zu −XD2
 [['BG7_MM4_offen', 0, 318], ['BG8_MM4_zu', 1, 324]].forEach(([sig, port, y]) => {
   const [e, w] = austritt(sig);
   const x = 1400 + port * 6;
-  zumPort([e, w, V(x, w.y, w.z), V(x, y, w.z), V(x, y, -200), V(747, y, -200)], XD2.ports[port]);
+  zumPort([e, w, V(x, w.y, w.z), V(x, y, w.z), V(x, y, -200), V(660, y, -200)], XD2.ports[port]);
 });
-// −BG9 Thermoelement und −BG10 Niveauelektrode: M12-Stecker am Anschlusskopf, hinter dem Bad entlang zu −XD2
+// −BG9 Thermoelement und −BG10 Niveauelektrode: M12-Stecker unten an den Köpfen hinter dem Bad, tief an der
+// Rückwand entlang (außerhalb des Fahrwegs der Abdeckung) und von unten in ihre Gassen vor −XD2
 {
-  stecker(bad, V(BAD_X - 77, RAND_Y + 70, -105), '+x');
-  zumPort([V(BAD_X - 77 + 32, RAND_Y + 70, -105), V(BAD_X - 19, RAND_Y + 70, -105), V(BAD_X - 19, RAND_Y + 120, -105), V(540, RAND_Y + 120, -105), V(540, RAND_Y + 120, -192), V(540, 330, -192), V(747, 330, -192)], XD2.ports[2]);
-  stecker(bad, V(BAD_X + 118, RAND_Y + 70, -105), '+x');
-  zumPort([V(BAD_X + 118 + 32, RAND_Y + 70, -105), V(608, RAND_Y + 70, -105), V(608, RAND_Y + 70, -198), V(608, 336, -198), V(747, 336, -198)], XD2.ports[3]);
+  const k9 = BG9_KOPF, k10 = BG10_KOPF;
+  stecker(bad, V(k9.x, k9.y - 28, k9.z), '-y');
+  zumPort([V(k9.x, k9.y - 60, k9.z), V(k9.x, 210, k9.z), V(580, 210, k9.z)], XD2.ports[2]);
+  stecker(bad, V(k10.x, k10.y - 15, k10.z), '-y');
+  zumPort([V(k10.x, k10.y - 47, k10.z), V(k10.x, 230, k10.z), V(580, 230, k10.z)], XD2.ports[3]);
 }
 // Lichtschranken −BG11…−BG13: Stecker hinten am Sensor, senkrecht in den Kabelkanal am Bandgestell
 {

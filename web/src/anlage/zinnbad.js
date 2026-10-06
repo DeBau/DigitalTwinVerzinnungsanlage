@@ -72,27 +72,40 @@ schildPlatte(TEX.schild('JUMO dTRON 316', '#202326', '#cfd4d8', 256, 32), 40, 5,
 // Hauptschalter und Betriebsleuchte Heizung
 zyl(14, 6, M.gelb, BAD_X + 150, 230, 173, 'z', bad, 20); zyl(9, 10, M.rot, BAD_X + 150, 230, 180, 'z', bad, 20); box(4, 22, 6, M.rot, BAD_X + 150, 230, 186, bad);
 schildPlatte(TEX.schild(tr('Lötbad 25 kg · 3,5 kW · 400 V 3~'), '#d8dcdf', '#1b232c', 384, 40), 110, 12, bad, BAD_X - 80, 220, 170.6);
-// Randabsaugung an der Rückseite mit Abluftkanal
-box(298, 54, 40, M.edelstahl, BAD_X, RAND_Y + 27, -150, bad);                              // 1 mm schmaler als die Abdeckung (gleiche Seitenfläche flackerte)
-for (let i = 0; i < 7; i++) box(30, 8, 1, M.schwarz, BAD_X - 120 + i * 40, RAND_Y + 34, -129.6, bad);
-box(160, 60, 65, M.edelstahl, BAD_X, RAND_Y + 30, -202.5, bad);                             // stößt hinten an die Randabsaugung
-zyl(45, 400, M.edelstahl, BAD_X, RAND_Y + 30, -400, 'z', bad, 32);       // Abluftkanal nach hinten durch die Rückwand
+// Randabsaugung: Schlitzkanal hinter der hinteren Führungsschiene, ganz außerhalb des Fahrwegs der Abdeckung
+// (Deckel bis z −181, Führungswagen bis z −178); die Schlitze liegen über Schiene und Badrand und saugen
+// quer über den Zinnspiegel ab. Zwei Winkelkonsolen an der Rückwand, Sammelhaube hinten zum Abluftkanal.
+box(298, 64, 44, M.edelstahl, BAD_X, RAND_Y + 16, -210, bad);                               // Kanal z −232…−188, y 404…468
+for (let i = 0; i < 7; i++) box(30, 8, 1, M.schwarz, BAD_X - 120 + i * 40, RAND_Y + 30, -187.6, bad);
+for (const dx of [-110, 110]) {
+  box(24, 8, 22, M.edelstahl, BAD_X + dx, RAND_Y - 20, -181, bad);                         // Winkelkonsole: Auflage unter dem Kanal
+  box(24, 40, 3, M.edelstahl, BAD_X + dx, RAND_Y - 36, -171.5, bad);                       // Schenkel an der Rückwand
+}
+box(130, 100, 40, M.edelstahl, BAD_X, RAND_Y + 30, -252, bad);                              // Sammelhaube
+zyl(45, 340, M.edelstahl, BAD_X, RAND_Y + 30, -430, 'z', bad, 32);       // Abluftkanal nach hinten durch die Rückwand
 zyl(47, 16, M.edelstahl, BAD_X, RAND_Y + 30, -560, 'z', bad, 32);
 zyl(45, 900, M.edelstahl, BAD_X, RAND_Y + 30 + 405, -650, null, bad, 32);
 zyl(47, 16, M.edelstahl, BAD_X, RAND_Y + 30, -650, null, bad, 32);
-label('Randabsaugung', bad, BAD_X, RAND_Y + 110, -200, 'klein');
-// Thermoelement −BG9 (Anschlusskopf) und Niveauelektrode −BG10
+label('Randabsaugung', bad, BAD_X, RAND_Y + 110, -240, 'klein');
+// Thermoelement −BG9 (Anschlusskopf) und Niveauelektrode −BG10: waagrecht durch die Rückwand eingebaut,
+// Köpfe hinten unterhalb des Randes – oben über dem Bad fährt die Abdeckung (−MM4) über die ganze Breite
+export const BG9_KOPF = new THREE.Vector3(BAD_X - 100, 290, -203), BG10_KOPF = new THREE.Vector3(BAD_X + 100, 270 + 1.5 * FUELL_MIN, -185);
 {
-  zyl(4, 210, M.stahl, BAD_X - 100, RAND_Y - 50, -105, null, bad, 12);
-  zyl(14, 26, M.edelstahl, BAD_X - 100, RAND_Y + 68, -105, null, bad, 24);
-  zyl(16, 10, M.edelstahl, BAD_X - 100, RAND_Y + 86, -105, null, bad, 24);
-  zyl(5, 14, M.kunststoff, BAD_X - 84, RAND_Y + 70, -105, 'x', bad, 12);
-  const mat = sensorLed(bad, BAD_X - 100, RAND_Y + 92, -105, 'BG9_Temperatur', 6, 2, 6);
-  SENSOREN.push({ signal: 'BG9_Temperatur', mat, div: label('−BG9 Temperatur', bad, BAD_X - 100, RAND_Y + 130, -105, 'klein') });
-  for (const dx of [-5, 5]) zyl(2.5, 180, M.stahl, BAD_X + 100 + dx, 270 + 1.5 * FUELL_MIN + 90, -105, null, bad, 10);
-  box(36, 30, 30, M.kunststoff, BAD_X + 100, RAND_Y + 70, -105, bad);
-  const mat2 = sensorLed(bad, BAD_X + 100, RAND_Y + 86, -105, 'BG10_Fuellhoehe', 6, 2, 6);
-  SENSOREN.push({ signal: 'BG10_Fuellhoehe', mat: mat2, div: label('−BG10 Füllhöhe', bad, BAD_X + 100, RAND_Y + 130, -105, 'klein') });
+  const { x, y, z } = BG9_KOPF;
+  zyl(4, 100, M.stahl, x, y, -120, 'z', bad, 12);                                  // Schutzrohr bis 70 mm in den Tiegel (unter dem Zinnspiegel)
+  zyl(6, 20, M.edelstahl, x, y, -180, 'z', bad, 16);                                // Einschraubnippel/Halsrohr
+  zyl(14, 26, M.edelstahl, x, y, z, 'z', bad, 24);                                  // Anschlusskopf
+  zyl(16, 10, M.edelstahl, x, y, z - 18, 'z', bad, 24);
+  zyl(5, 14, M.kunststoff, x, y - 21, z, null, bad, 12);                            // Kabelverschraubung nach unten
+  const mat = sensorLed(bad, x, y + 15, z, 'BG9_Temperatur', 6, 2, 6);
+  SENSOREN.push({ signal: 'BG9_Temperatur', mat, div: label('−BG9 Temperatur', bad, x, y + 70, z, 'klein') });
+}
+{
+  const { x, y, z } = BG10_KOPF;
+  for (const dx of [-5, 5]) zyl(2.5, 80, M.stahl, x + dx, y, -130, 'z', bad, 10);   // Elektrodenstäbe auf Höhe der Mindestfüllung
+  box(36, 30, 30, M.kunststoff, x, y, z, bad);
+  const mat2 = sensorLed(bad, x, y + 16, z, 'BG10_Fuellhoehe', 6, 2, 6);
+  SENSOREN.push({ signal: 'BG10_Fuellhoehe', mat: mat2, div: label('−BG10 Füllhöhe', bad, x, y + 55, z, 'klein') });
 }
 const glut = new THREE.PointLight(0xff8a3a, 0, 0.8);
 glut.position.set(BAD_X, RAND_Y + 120, 0);

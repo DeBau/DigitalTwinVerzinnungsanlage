@@ -6,6 +6,25 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.10.1 – 2026-10-06
+
+Nur der Zwilling (3D-Modell). Bridge, Signalliste und TIA-Variablentabellen bleiben gleich.
+
+**Warum**
+Beim Öffnen und Schließen wäre die Abdeckung −MM4 real durch Sensoren, Leitungen und Anbauteile am
+Zinnbad gefahren.
+
+**Geändert**
+- **−BG9 Thermoelement und −BG10 Niveauelektrode** waagrecht durch die Rückwand des Bads statt von
+  oben; Köpfe, M12-Stecker und Leitungen liegen hinten unterhalb des Randes.
+- **Randabsaugung** als Schlitzkanal hinter der hinteren Führungsschiene (stand auf dem Badrand im
+  Fahrweg von Schiene und Deckel), Konsolen an der Rückwand, Sammelhaube zum Abluftkanal.
+- **Führung der Abdeckung:** Schienen und Endanschläge passend zum Hub 320 mm (die Wagen standen in
+  der Endlage „zu“ neben der Schiene, ein Endanschlag im Fahrweg); Mitnehmer an einer Konsole vor der
+  Deckelkante (steckte in der Endlage „zu“ in der Badwand), kurzes Ausgleichsstück.
+- **−XD2** an der badseitigen Seitenfläche der rechten Portalsäule: Die Leitungen −BG7…−BG10 stiegen
+  vor dem Verteiler durch die Ebene des offenen Deckels.
+
 ## 1.10.0 – 2026-10-06
 
 Bridge neu bauen (`Bridgeuild.bat`): Der Code der Bridge hat sich nicht geändert, aber sie trägt die
