@@ -1,6 +1,13 @@
-// Erzeugt einmalig die Beispielzeichnungen pruefen/beispiele/*.json aus einem Build (Referenz).
-//   node web/tools/uebungshandbuch/pruefen/beispiele-erzeugen.mjs docs/uebungshandbuch.ref.html
-// Nutzt dafür die globalen Funktionen des alten Ein-Skript-Stands (ED, PC, portsOf, saveSketch).
+// Hat die Beispielzeichnungen pruefen/beispiele/*.json einmalig erzeugt. Die Dateien sind seitdem fest und gehören
+// ins Repo; pruefen.mjs lädt sie nur. Neu erzeugen musst du sie nicht, auch nicht nach einem Umbau.
+//
+// Das Skript braucht die globalen Funktionen des alten Ein-Skript-Stands (ED, BLK, PAL, PC, makeObj, portsOf,
+// vrails, saveSketch). Seit dem Umbau auf ES-Module (Commit 2e7b2a3) bündelt esbuild alles in eine Funktion, die
+// Namen sind von außen nicht mehr erreichbar. Es läuft daher nur gegen einen Build bis Commit 640c36d:
+//   git show 640c36d:docs/uebungshandbuch.html > %TEMP%/alt.html
+//   node web/tools/uebungshandbuch/pruefen/beispiele-erzeugen.mjs %TEMP%/alt.html
+// Bausteine, die es damals noch nicht gab, kommen so nicht in die Beispiele. Für neue Bausteine ergänzt du die
+// JSON-Dateien von Hand oder legst sie im Editor an und kopierst den Eintrag uebh2:<scope>:sk:<key> aus localStorage.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -33,6 +40,7 @@ for (const { name, scope, key } of ziele) {
     await page.keyboard.press('Escape'); await ruhe(page, 20);
     if (!(await page.locator('#editor[open]').count())) await oeffne(page, scope, key);
   }
+  if (!(await page.evaluate(() => typeof ED !== 'undefined'))) throw new Error('Build ohne globale Editor-Funktionen (ES-Module). Siehe Kopfkommentar: Build bis Commit 640c36d verwenden.');
   const json = await page.evaluate((k) => {
     const d = ED.data, os = d.o;
     if (os.length < 6) { const ks = Object.keys(BLK).filter((x) => !BLK[x].hide && (PAL[k] || []).includes(BLK[x].g)); ks.forEach((x, j) => { for (let r = 0; r < 3; r++) os.push(makeObj(x, [140 + r * 260, 160 + j * 170])); }); }
