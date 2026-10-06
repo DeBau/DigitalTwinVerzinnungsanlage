@@ -187,3 +187,10 @@ SF45_Pruefband_Ein;%I11.3;Vor-Ort -S50 Pruefband EIN (Schliesser)
 SF46_Pruefband_Aus;%I11.4;Vor-Ort -S50 Pruefband AUS (Oeffner: 1 = nicht betaetigt)
 SF47_Pruefband_Drehzahl;%IW70;Vor-Ort -S50 Drehzahlpotentiometer Pruefband 0...27648 = 0...100 %
 PF16_VorOrt5;%Q5.3;Leuchte Vor-Ort-Steuerstelle Pruefband -S50 aktiv
+# --- Kuehlwassertank Spruehkuehlung: Nachspeisung (nur wirksam bei Uebungsumfang "SPS regelt") ---
+MB17_Nachspeisen;%Q5.4;Magnetventil Frischwasser -MB17 Nachspeisen (2/2 NC, in Reihe mit Regelventil -MB18)
+MB18_Regelventil;%QW80;Regelventil Frischwasser -MB18 Stellwert 0...27648 = 0...100 % (AQ 4 Kanal 0, Stellzeit 8 s)
+MB18_Stellung;%IW74;Regelventil -MB18 Stellungsrueckmeldung 0...27648 = 0...100 %
+BL2_Wasserstand;%IW72;Fuellstand Kuehlwassertank Radar Micropilot FMR20B analog 0...27648 = 0...100 %
+BG38_Wasser_Min;%I11.5;Grenzschalter Liquiphant FTL31 Kuehlwassertank MIN (1 = Gabel bedeckt ueber 25 %, Trockenlaufschutz Pumpe -MA3)
+BG39_Wasser_Max_frei;%I11.6;Grenzschalter Liquiphant FTL31 Kuehlwassertank MAX (1 = Gabel frei unter 90 %, 0 = voll oder Drahtbruch)

@@ -160,4 +160,10 @@ export default {
   SF46_Pruefband_Aus: 'SF46_InspConv_Off',
   SF47_Pruefband_Drehzahl: 'SF47_InspConv_Speed',
   PF16_VorOrt5: 'PF16_Local5',
+  MB17_Nachspeisen: 'MB17_WaterRefill',
+  MB18_Regelventil: 'MB18_ControlValve',
+  MB18_Stellung: 'MB18_ValvePosition',
+  BL2_Wasserstand: 'BL2_WaterLevel',
+  BG38_Wasser_Min: 'BG38_Water_Min',
+  BG39_Wasser_Max_frei: 'BG39_Water_Max_free',
 };

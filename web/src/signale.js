@@ -158,5 +158,11 @@ export const SIGNALE = [
   ['SF46_Pruefband_Aus', '%I11.4', 'eingang', 'Vor-Ort −S50 Prüfband AUS (Öffner)'],
   ['SF47_Pruefband_Drehzahl', '%IW70', 'eingang', 'Vor-Ort −S50 Drehzahlpotentiometer 0…27648 = 0…100 %'],
   ['PF16_VorOrt5', '%Q5.3', 'ausgang', 'Leuchte Vor-Ort-Steuerstelle Prüfband −S50 aktiv'],
+  ['MB17_Nachspeisen', '%Q5.4', 'ausgang', 'Magnetventil Frischwasser −MB17 Nachspeisen (in Reihe mit −MB18)'],
+  ['MB18_Regelventil', '%QW80', 'ausgang', 'Regelventil Frischwasser −MB18 Stellwert 0…27648 = 0…100 %'],
+  ['MB18_Stellung', '%IW74', 'eingang', 'Regelventil −MB18 Stellungsrückmeldung 0…27648 = 0…100 %'],
+  ['BL2_Wasserstand', '%IW72', 'eingang', 'Füllstand Kühlwassertank (Radar) 0…27648 = 0…100 %'],
+  ['BG38_Wasser_Min', '%I11.5', 'eingang', 'Liquiphant Kühlwassertank Minimum (1 = bedeckt, über 25 %)'],
+  ['BG39_Wasser_Max_frei', '%I11.6', 'eingang', 'Liquiphant Kühlwassertank Maximum (1 = frei, unter 90 %)'],
 ].map(([name, adresse, richtung, kommentar]) => ({ name, adresse, richtung, kommentar }));
 

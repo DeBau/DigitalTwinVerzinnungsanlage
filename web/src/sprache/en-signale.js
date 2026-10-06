@@ -342,4 +342,17 @@ export default {
   'Vor-Ort −S50 Prüfband AUS (Öffner)': 'Local −S50 inspection conveyor OFF (NC contact)',
   'Vor-Ort −S50 Drehzahlpotentiometer 0…27648 = 0…100 %': 'Local −S50 speed potentiometer 0…27648 = 0…100 %',
   'Leuchte Vor-Ort-Steuerstelle Prüfband −S50 aktiv': 'Lamp local control station inspection conveyor −S50 active',
+  // Kühlwassertank
+  'Magnetventil Frischwasser -MB17 Nachspeisen (2/2 NC, in Reihe mit Regelventil -MB18)': 'Fresh water solenoid valve -MB17 refill (2/2 NC, in series with control valve -MB18)',
+  'Regelventil Frischwasser -MB18 Stellwert 0...27648 = 0...100 % (AQ 4 Kanal 0, Stellzeit 8 s)': 'Fresh water control valve -MB18 setpoint 0...27648 = 0...100 % (AQ 4 channel 0, stroke time 8 s)',
+  'Regelventil -MB18 Stellungsrueckmeldung 0...27648 = 0...100 %': 'Control valve -MB18 position feedback 0...27648 = 0...100 %',
+  'Fuellstand Kuehlwassertank Radar Micropilot FMR20B analog 0...27648 = 0...100 %': 'Cooling water tank level radar Micropilot FMR20B analog 0...27648 = 0...100 %',
+  'Grenzschalter Liquiphant FTL31 Kuehlwassertank MIN (1 = Gabel bedeckt ueber 25 %, Trockenlaufschutz Pumpe -MA3)': 'Point level switch Liquiphant FTL31 cooling water tank MIN (1 = fork covered above 25 %, dry-run protection pump -MA3)',
+  'Grenzschalter Liquiphant FTL31 Kuehlwassertank MAX (1 = Gabel frei unter 90 %, 0 = voll oder Drahtbruch)': 'Point level switch Liquiphant FTL31 cooling water tank MAX (1 = fork free below 90 %, 0 = full or wire break)',
+  'Magnetventil Frischwasser −MB17 Nachspeisen (in Reihe mit −MB18)': 'Fresh water solenoid valve −MB17 refill (in series with −MB18)',
+  'Regelventil Frischwasser −MB18 Stellwert 0…27648 = 0…100 %': 'Fresh water control valve −MB18 setpoint 0…27648 = 0…100 %',
+  'Regelventil −MB18 Stellungsrückmeldung 0…27648 = 0…100 %': 'Control valve −MB18 position feedback 0…27648 = 0…100 %',
+  'Füllstand Kühlwassertank (Radar) 0…27648 = 0…100 %': 'Cooling water tank level (radar) 0…27648 = 0…100 %',
+  'Liquiphant Kühlwassertank Minimum (1 = bedeckt, über 25 %)': 'Liquiphant cooling water tank minimum (1 = covered, above 25 %)',
+  'Liquiphant Kühlwassertank Maximum (1 = frei, unter 90 %)': 'Liquiphant cooling water tank maximum (1 = free, below 90 %)',
 };

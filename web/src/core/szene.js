@@ -80,6 +80,7 @@ export const ANSICHT = {
   pneumatik: A('Teilprozesse', 'Pneumatik · Ventilinsel −QM1', -0.15, 1.25, 0.95, -0.66, 0.85, -0.2),
   kurve: A('Teilprozesse', 'Rollenkurve −MA6', -0.75, 1.15, 2.45, 0.15, 0.3, 1.35),
   kuehlung: A('Teilprozesse', 'Band 2 · Sprühkühlung', 1.45, 1.1, 2.75, 1.3, 0.45, 1.52),
+  kuehlwasser: A('Teilprozesse', 'Kühlwassertank · Nachspeisung', 1.95, 1.05, 0.35, 1.3, 0.45, 1.2),
   kipper: A('Teilprozesse', 'Korbkipper −MM8', 2.7, 1.15, 2.75, 3.0, 0.4, 1.52),
   pruefung: A('Teilprozesse', 'Vibrorinne · Prüfband · Kamera', 3.45, 1.25, 2.85, 3.85, 0.35, 1.52),
   klt: A('Teilprozesse', 'Ausschleusen · KLT', 4.55, 1.05, 2.65, 4.45, 0.2, 1.6),

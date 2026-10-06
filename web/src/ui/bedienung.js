@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ZYL, st } from '../logik/zustand.js';
+import { KW, ZYL, st } from '../logik/zustand.js';
 import { $, anlage, camera, controls, renderer } from '../core/szene.js';
 import { fmt0 } from '../core/format.js';
 import { PULT_TASTER } from '../anlage/register.js';
@@ -56,6 +56,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   if (art === 'lichtvorhang') { personStarten(); return; }
   if (art === 'drossel') { wzFensterOeffnen(key); return; }          // Drosselrückschlagventil: Einstellung im Weg-Zeit-Fenster
   if (art === 'umrichter') { fuFensterOeffnen(key); return; }        // Umrichter −TA2…−TA5 im Schaltschrank
+  if (art === 'ablass') { $('btn-ablass').click(); return; }         // Ablasshahn am Kühlwassertank
   if (art === 'notHalt') { st.notHalt[key] = !st.notHalt[key]; bedienSync(); return; }
   if (art === 'wahl') { st[key] = !st[key]; bedienSync(); return; }
   if (art === 'poti') {
@@ -114,10 +115,12 @@ $('sa4').onclick = () => { st.sa4 = !st.sa4; bedienSync(); };
 $('sa1').onclick = () => { st.sa1 = !st.sa1; bedienSync(); };
 $('sa2').onclick = () => { st.sa2 = !st.sa2; bedienSync(); };
 function betriebSetzen(was, wert) {
-  if (was === 'band') st.betriebBand = wert; else st.betriebBad = wert;
+  if (was === 'band') st.betriebBand = wert; else if (was === 'wasser') st.betriebWasser = wert; else st.betriebBad = wert;
   ereignis(was === 'band'
     ? (wert === 'sps' ? 'Übungsumfang: Band, Anschlag und Vereinzeler steuert jetzt die SPS' : 'Übungsumfang: Bandmodul läuft wieder automatisch')
-    : (wert === 'sps' ? 'Übungsumfang: Zinnbad-Temperatur und Nachfüllen regelt jetzt die SPS' : 'Übungsumfang: Zinnbad wird wieder vom Regler am Bad geregelt'));
+    : was === 'wasser'
+      ? (wert === 'sps' ? 'Übungsumfang: Nachspeisung des Kühlwassertanks (−MB17/−MB18) regelt jetzt die SPS' : 'Übungsumfang: Kühlwassertank wird wieder vom Niveauregler nachgespeist')
+      : (wert === 'sps' ? 'Übungsumfang: Zinnbad-Temperatur und Nachfüllen regelt jetzt die SPS' : 'Übungsumfang: Zinnbad wird wieder vom Regler am Bad geregelt'));
   bedienSync();
 }
 $('bm-auto').onclick = () => betriebSetzen('band', 'auto');
@@ -134,6 +137,8 @@ function antriebSetzen(name, art) {
 }
 $('zb-auto').onclick = () => betriebSetzen('bad', 'auto');
 $('zb-sps').onclick = () => betriebSetzen('bad', 'sps');
+$('kw-auto').onclick = () => betriebSetzen('wasser', 'auto');
+$('kw-sps').onclick = () => betriebSetzen('wasser', 'sps');
 function bedienSync() {
   $('sf0').setAttribute('aria-pressed', st.notHalt.sf0);
 
@@ -154,6 +159,10 @@ function bedienSync() {
   $('bm-sps').setAttribute('aria-pressed', st.betriebBand === 'sps');
   $('zb-auto').setAttribute('aria-pressed', st.betriebBad === 'auto');
   $('zb-sps').setAttribute('aria-pressed', st.betriebBad === 'sps');
+  $('kw-auto').setAttribute('aria-pressed', st.betriebWasser === 'auto');
+  $('kw-sps').setAttribute('aria-pressed', st.betriebWasser === 'sps');
+  $('btn-ablass').setAttribute('aria-pressed', st.ablass);
+  $('btn-ablass').textContent = t(st.ablass ? 'Ablasshahn schließen' : 'Ablasshahn öffnen');
   for (const b of antriebKnoepfe) b.setAttribute('aria-pressed', st.antrieb[b.dataset.antrieb] === b.dataset.art);
   $('btn-heizung').disabled = st.betriebBad === 'sps';
   $('btn-fuellen').disabled = st.betriebBad === 'sps';
@@ -161,6 +170,7 @@ function bedienSync() {
     st.betriebBand === 'sps' ? 'Band: −QA1/−QA2 (Rechts/Links), −MB9 Anschlag, −MB10 Vereinzeler, Rollenkurve −QA10/−QA11, Band 2, Muldenrollen −QA12/−QA13 und Prüfstation aus deinem Programm; −BG11…−BG13, −BG35/−BG36, −BG21…−BG24, −BG37/−BG33 (Einlauf/Endanschlag Kippmulde) und die Vor-Ort-Steuerstellen sind Eingänge.' : 'Band: Das Bandmodul fördert, stoppt, vereinzelt und übergibt über die Rollenkurve selbstständig.',
     UMRICHTER_LISTE.some(fu => st.antrieb[fu.name] === 'fu') ? t`Am Umrichter: ${UMRICHTER_LISTE.filter(fu => st.antrieb[fu.name] === 'fu').map(fu => '−' + fu.name).join(', ')}. ${t(st.betriebBand === 'sps' ? 'Dein Programm führt sie über Standardtelegramm 1 (STW1/NSOLL_A → ZSW1/NIST_A), z. B. mit TO_SpeedAxis; die zugehörigen Schütze sind ohne Wirkung.' : 'Das Bandmodul führt sie selbst. Mit „SPS steuert“ übernimmt dein Programm die Telegramme.')}` : '',
     st.betriebBad === 'sps' ? 'Zinnbad: −TB1 Heizung (2-Punkt, Impuls/PWM oder PID) und −MB11 Nachfüllen aus deinem Programm, Istwerte −BT1/−BL1 analog.' : 'Zinnbad: Der Regler am Bad hält 280 °C, nachfüllen per Knopf.',
+    st.betriebWasser === 'sps' ? 'Kühlwasser: −MB17 Magnetventil und −MB18 Regelventil (%QW80, 0…27648) aus deinem Programm – Zweipunkt mit den Grenzschaltern −BG38/−BG39, mit Hysterese auf den Radar −BL2 (%IW72) oder stetig mit PID_Compact. Den Trockenlaufschutz der Pumpe −MA3 übernimmt dein Programm.' : 'Kühlwasser: Der Niveauregler am Tank speist zwischen 55 und 75 % nach und sperrt die Pumpe unter −BG38.',
   ].filter(Boolean).map(x => t(x)).join(' ');
   eingaengeSenden(false);
 }
@@ -173,6 +183,11 @@ $('btn-heizung').onclick = (e) => {
 };
 $('btn-fuellen').onclick = () => { st.fuell = 85; ereignis('Zinn nachgefüllt (85 %)'); };
 $('btn-korb').onclick = () => korbAuflegen(true);
+$('btn-ablass').onclick = () => {
+  st.ablass = !st.ablass;
+  ereignis(st.ablass ? 'Ablasshahn am Kühlwassertank geöffnet (Störgröße)' : 'Ablasshahn am Kühlwassertank geschlossen');
+  bedienSync();
+};
 $('btn-zufuhr').onclick = (e) => {
   st.zufuhr = !st.zufuhr;
   e.currentTarget.setAttribute('aria-pressed', st.zufuhr);
@@ -204,7 +219,9 @@ function anlageZuruecksetzen() {
   for (const d of daempfe.splice(0)) { anlage.remove(d.s); d.s.material.dispose(); }
   korbNrZuruecksetzen();
   korbErzeugen(-150);
-  Object.assign(st, { temp: 266, heizung: true, fuell: 62, verzinnt: 0 });
+  Object.assign(st, { temp: 266, heizung: true, fuell: 62, verzinnt: 0, wasser: 70, ablass: false });
+  Object.assign(KW, { y: 0, mb17: false, zulauf: 0, verbrauch: 0, ablauf: 0, regelEin: false, sperre: false, sperreGemeldet: false, trocken: false, ohneFluss: 0 });
+  demo.kw.i = 0;
   for (const k in st.bedien) st.bedien[k] = false;
   Object.assign(st, { notHalt: { sf0: false, sf8: false, sf9: false, sf10: false, sf33: false }, kf2: true, eingriff: false, sa1: true, sa2: false, sa3: false, sa4: false, sa5: false, sa6: false, sa7: false, pbPoti: 1, heizElement: 0.76 });
   Object.assign(BAND2, { v: 0, wende: 0, pruefT: 0, ergebnisT: 0, pumpe: 0, spruehen: 0, blasen: 0 });

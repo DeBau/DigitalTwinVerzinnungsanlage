@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { FUELL_MIN, QUITT, TEMP_SOLL, ZYL, ZYL_LISTE, st } from '../logik/zustand.js';
+import { FUELL_MIN, KW, QUITT, TEMP_SOLL, WASSER_MAX, WASSER_MIN, ZYL, ZYL_LISTE, st } from '../logik/zustand.js';
 import { $, TAKT, anlage } from '../core/szene.js';
 import { M } from '../core/materialien.js';
-import { fmt0 } from '../core/format.js';
+import { fmt0, fmt1 } from '../core/format.js';
 import { KNEBEL, LICHTVORHANG, POTIS, PULT_LAMPEN, PULT_TASTER, SENSOREN } from '../anlage/register.js';
 import { personBewegen } from '../anlage/werker.js';
 import { B1, B2, BAND, BAND2, BAND_Y, KURVE, TROMMEL_R } from '../anlage/baender.js';
@@ -46,6 +46,13 @@ export function visual(dt) {
   KUEHL.luftschleier.visible = BAND2.blasen > 0.5;
   KUEHL.ventilLed.emissiveIntensity = BAND2.spruehen > 0.5 ? 2.4 : 0;
   KUEHL.blasLed.emissiveIntensity = BAND2.blasen > 0.5 ? 2.4 : 0;
+  // Kühlwassertank: Wassersäule im Schauglas, Stellungsanzeige −MB18, Ablasshahn, LEDs −MB17/−BG38/−BG39
+  { const w = KUEHL.wasserSaeule, h = Math.max(0.5, Math.min(100, st.wasser) / 100 * w.h); w.m.scale.y = h; w.m.position.y = w.y0 + h / 2; }
+  KUEHL.mb18Zeiger.m.position.z = KUEHL.mb18Zeiger.z0 + KW.y * KUEHL.mb18Zeiger.hub;
+  KUEHL.ablassHebel.rotation.y = st.ablass ? -Math.PI / 2 : 0;
+  KUEHL.mb17Led.emissiveIntensity = KW.mb17 ? 2.4 : 0;
+  KUEHL.bg38Led.emissiveIntensity = eingang('BG38_Wasser_Min') ? 2.4 : 0;
+  KUEHL.bg39Led.emissiveIntensity = eingang('BG39_Wasser_Max_frei') ? 2.4 : 0;
   // Dampf aus dem Wrasenrohr, solange heiße Körbe abgeschreckt werden
   KUEHL.dampfTakt -= dt;
   if (BAND2.spruehen > 0.5 && KUEHL.dampfTakt <= 0 && koerbe.some(k => k.zustand === 'band2' && k.x > KUEHL.x0 && k.x < KUEHL.x1 && k.temp > 60)) {
@@ -144,9 +151,16 @@ export function visual(dt) {
   $('g-temp-bar').style.width = Math.min(100, st.temp / 300 * 100) + '%';
   $('g-level').textContent = fmt0.format(st.fuell) + ' %';
   $('g-level-bar').style.width = Math.min(100, st.fuell) + '%';
+  $('g-wasser').textContent = fmt0.format(st.wasser) + ' %';
+  $('g-wasser').classList.toggle('warn', st.wasser < WASSER_MIN);
+  $('g-wasser-bar').style.width = Math.min(100, st.wasser) + '%';
+  $('kw-info').textContent = tr`Nachspeisen −MB17: ${tr(KW.mb17 ? 'AUF' : 'ZU')} · Regelventil −MB18: ${fmt0.format(KW.y * 100)} % · Zulauf ${fmt1.format(KW.zulauf)} %/s · Verbrauch ${fmt1.format(KW.verbrauch + KW.ablauf)} %/s · BL2 = ${eingang('BL2_Wasserstand')}`
+    + (KW.sperre ? ' · ' + tr('Pumpe gesperrt (−BG38)') : '');
 
   if (!$('toast').hidden && performance.now() > toastBis) $('toast').hidden = true;
 }
 $('g-temp-mark').style.left = (TEMP_SOLL / 300 * 100) + '%';
 $('g-level-mark').style.left = FUELL_MIN + '%';
+$('g-wasser-min').style.left = WASSER_MIN + '%';
+$('g-wasser-max').style.left = WASSER_MAX + '%';
 

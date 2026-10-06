@@ -66,8 +66,8 @@ Lichtvorhang – und ein Werker, der die fertigen Körbe abnimmt.
 
 ## Leistungsmerkmale
 
-**155 Signale an frei wählbaren Adressen.** 104 Eingänge, davon 4 analog, und 51 Ausgänge auf
-`%I0.0…%I11.7`, `%Q0.0…%Q5.3` und `%IW64…70`, dazu die PROFINET-Telegramme der vier Umrichter
+**161 Signale an frei wählbaren Adressen.** 108 Eingänge, davon 6 analog, und 53 Ausgänge, davon 1 analog, auf
+`%I0.0…%I11.7`, `%Q0.0…%Q5.4`, `%IW64…74` und `%QW80`, dazu die PROFINET-Telegramme der vier Umrichter
 −TA2…−TA5 (Band 1, Band 2, Rollenkurve, Prüfband) auf `%IW256…270/%QW256…270` – für
 Technologieobjekte `TO_SpeedAxis` wie an echten SINAMICS G120. Dein Programm sieht dieselbe Schnittstelle wie an
 der realen Anlage – kein proprietäres Protokoll, keine Bausteinbibliothek, keine Lizenzdatei.
@@ -155,7 +155,7 @@ Bridge/
   start.bat                 Instanzname, Port, CPU-Zykluszeit
   ZwillingBridge.cs         Quellcode der Bridge
 TIA/
-  PLC_Variablen_Zinnbad.xlsx  alle 155 Signale zum Import (deutsche Namen)
+  PLC_Variablen_Zinnbad.xlsx  alle 161 Signale zum Import (deutsche Namen)
   PLC_Tags_Tinning_EN.xlsx    dieselben Signale mit englischen Namen
 web/
   index.html                der fertige Zwilling – eine Datei, läuft per Doppelklick

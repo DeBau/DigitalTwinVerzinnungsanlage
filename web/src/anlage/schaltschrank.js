@@ -359,18 +359,32 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   ioModul(-87, SCHRANK.diLeds, 'DI 32x24VDC HF', '6ES7521-1BL00-0AB0', 'DI 32 (%I4.0–%I7.7)', 60);
   ioModul(-17, SCHRANK.dqLeds, 'DQ 32x24VDC/0.5A ST', '6ES7522-1BL01-0AB0', 'DQ 32 (%Q4.0–%Q7.7)', 30);
   ioModul(18, SCHRANK.diLeds, 'DI 32x24VDC HF', '6ES7521-1BL00-0AB0', 'DI 32 (%I8.0–%I11.7)', 90);
-  // AI 8xU/I/RTD/TC ST: Temperatur −BT1 (%IW64) und Füllstand −BL1 (%IW66)
+  // AI 8xU/I/RTD/TC ST: Temperatur −BT1 (%IW64), Füllstand −BL1 (%IW66), Pyrometer −BT2, Poti −SF47,
+  // Kühlwasser −BL2 (%IW72) und Stellungsrückmeldung −MB18 (%IW74)
   {
     const w = 35, xm = s7Modul(-52, w, 'AI 8xU/I/RTD/TC ST', (c, ww) => {
       s7Kopf(c, ww, 'AI 8');
       c.fillStyle = '#f1f2ef'; c.fillRect(14, 24, ww - 17, 106);
-      ['CH0 BT1', 'CH1 BL1', 'CH2', 'CH3', 'CH4', 'CH5', 'CH6', 'CH7'].forEach((t, i) => text(c, t, 15, 32 + i * 11, 2.1, '#333', 500));
+      ['CH0 BT1', 'CH1 BL1', 'CH2 BT2', 'CH3 SF47', 'CH4 BL2', 'CH5 MB18', 'CH6', 'CH7'].forEach((t, i) => text(c, t, 15, 32 + i * 11, 2.1, '#333', 500));
       text(c, 'AI 8xU/I/RTD/TC', 14.5, 126, 1.9, '#222', 600);
       text(c, '6ES7531-7KF00-0AB0', 14.5, 128.8, 1.6, '#555', 500);
     });
     statusLeds(xm, w).run.emissiveIntensity = 1.6;
     for (let i = 0; i < 6; i++) ab.add([[xm - 8 + i * 3, YB - MH / 2 + 4, MZ + MT - 20], [xm - 8 + i * 3, YB - MH / 2 - 24, MZ + MT - 20], [xm - 8 + i * 3, YB - MH / 2 - 24, PF + 40 + i * 6], [xm - 8 + i * 3, 1250, PF + 40 + i * 6]], i < 4 ? M.kabelGrau : aderMat(FARBE.dc), 0.9, 6);
-    lbl('AI 8 (%IW64 BT1, %IW66 BL1)', xm, YB + 120, MZ + MT + 10);
+    lbl('AI 8 (%IW64…%IW74)', xm, YB + 120, MZ + MT + 10);
+  }
+  // AQ 4xU/I ST: Stellsignal Regelventil −MB18 (%QW80, 0…10 V)
+  {
+    const w = 35, xm = s7Modul(53, w, 'AQ 4xU/I ST', (c, ww) => {
+      s7Kopf(c, ww, 'AQ 4');
+      c.fillStyle = '#f1f2ef'; c.fillRect(14, 24, ww - 17, 106);
+      ['CH0 MB18', 'CH1', 'CH2', 'CH3'].forEach((t, i) => text(c, t, 15, 32 + i * 22, 2.1, '#333', 500));
+      text(c, 'AQ 4xU/I ST', 14.5, 126, 1.9, '#222', 600);
+      text(c, '6ES7532-5HD00-0AB0', 14.5, 128.8, 1.6, '#555', 500);
+    });
+    statusLeds(xm, w).run.emissiveIntensity = 1.6;
+    for (let i = 0; i < 2; i++) ab.add([[xm - 4 + i * 4, YB - MH / 2 + 4, MZ + MT - 20], [xm - 4 + i * 4, YB - MH / 2 - 24, MZ + MT - 20], [xm - 4 + i * 4, YB - MH / 2 - 24, PF + 76 + i * 6], [xm - 4 + i * 4, 1250, PF + 76 + i * 6]], i ? aderMat(FARBE.dc) : M.kabelGrau, 0.9, 6);
+    lbl('AQ 4 (%QW80 MB18)', xm, YB + 135, MZ + MT + 10);
   }
   lbl('Reserve 20 %', 128, YB, MZ + 20);
 
@@ -800,7 +814,9 @@ function hmiZeichnen() {
   lampe(1060, 456, st.betriebBand === 'sps', '#2f7fd0'); txt(t('SPS steuert'), 1085, 465, 22);
   const kp = korbAmPyrometer(), b2n = koerbe.filter(k => k.zustand === 'band2').length, kn = koerbe.filter(k => k.zustand === 'kurve').length;
   const ri = (v) => (v > 1 ? '→' : v < -1 ? '←' : t('Halt'));
-  txt(t`Kurve: ${ri(KURVE.v)} ${kn} · Band 2: ${ri(BAND2.v)} ${b2n} · Mulde: ${ri(MULDE.v)} · Kühlplatz ${kp ? fmt0.format(kp.temp) + ' °C' : '–'} · Sprühen ${t(BAND2.spruehen > 0.5 ? 'EIN' : 'AUS')} · KLT ${ST.klt}/${ST.kltVoll} · Ausschuss ${ST.aus}`, 40, 650, 21, '#1b232c', 600);
+  const W = E('BL2_Wasserstand') / 27648 * 100;
+  txt(t`Kurve: ${ri(KURVE.v)} ${kn} · Band 2: ${ri(BAND2.v)} ${b2n} · Mulde: ${ri(MULDE.v)} · Kühlplatz ${kp ? fmt0.format(kp.temp) + ' °C' : '–'} · Sprühen ${t(BAND2.spruehen > 0.5 ? 'EIN' : 'AUS')} · KLT ${ST.klt}/${ST.kltVoll} · Ausschuss ${ST.aus}`, 40, 650, 19, '#1b232c', 600);
+  txt(t`Kühlwasser ${fmt0.format(W)} %`, 1240, 437, 22, E('BG38_Wasser_Min') ? '#1f6fb2' : '#c0392b', 700, 'right');
   // Meldezeile
   // Not-Halt: Meldekontakte (Öffner, 1 = entriegelt) zeigen, welcher Taster betätigt ist
   const nh = !E('KF2_NotHalt_OK'), betaetigt = NOT_HALT.filter(n => !E(n.signal));

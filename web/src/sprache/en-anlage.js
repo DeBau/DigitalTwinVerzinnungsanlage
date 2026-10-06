@@ -216,4 +216,14 @@ export default {
   'PRÜFBAND EIN': 'CONVEYOR ON',
   'PRÜFBAND AUS': 'CONVEYOR OFF',
   'DREHZAHL': 'SPEED',
+  // Kühlwassertank
+  'Kühlwassertank, Umwälzpumpe −MA3': 'Cooling water tank, circulation pump −MA3',
+  '−BG39 Max (Liquiphant FTL31)': '−BG39 max (Liquiphant FTL31)',
+  '−BG38 Min (Liquiphant FTL31)': '−BG38 min (Liquiphant FTL31)',
+  'Ablasshahn (anklickbar)': 'Drain valve (clickable)',
+  '−BL2 Füllstand (Micropilot FMR20B, Radar)': '−BL2 level (Micropilot FMR20B, radar)',
+  'Magnetventil −MB17': 'Solenoid valve −MB17',
+  'Regelventil −MB18': 'Control valve −MB18',
+  'Frischwasser': 'Fresh water',
+  'Kühlwasser {0} %': 'Cooling water {0} %',
 };

@@ -12,8 +12,11 @@ programmiert.
 | Stufe | Dein Programm macht | Das Modell macht |
 |---|---|---|
 | **1 – Nur Verzinnen** | Schrittkette −MM1…−MM4, Betriebsarten, Meldeleuchten | Band, Rollenkurve, Band 2, Kühlung, Prüfstation, Temperaturregelung |
-| **2 – + Förderstrecke** | zusätzlich Band 1, Anschlag, Vereinzeler, Rollenkurve, Band 2, Kippmulde, Prüfstation, Vor-Ort-Steuerstellen; Band 1, Band 2, Rollenkurve und Prüfband wahlweise über Schütz oder Umrichter (Telegramm 1) | Temperaturregelung |
-| **3 – + Zinnbad** | zusätzlich Heizung −TB1 und Nachfüllen −MB11 aus Analogwerten | nichts mehr – die ganze Anlage hängt an deinem Programm |
+| **2 – + Förderstrecke** | zusätzlich Band 1, Anschlag, Vereinzeler, Rollenkurve, Band 2, Kippmulde, Prüfstation, Vor-Ort-Steuerstellen; Band 1, Band 2, Rollenkurve und Prüfband wahlweise über Schütz oder Umrichter (Telegramm 1) | Temperaturregelung, Nachspeisung Kühlwasser |
+| **3 – + Zinnbad und Kühlwasser** | zusätzlich Heizung −TB1 und Nachfüllen −MB11 aus Analogwerten, Nachspeisung des Kühlwassertanks −MB17/−MB18 | nichts mehr – die ganze Anlage hängt an deinem Programm |
+
+Die Nachspeisung des Kühlwassertanks lässt sich auch einzeln auf *SPS regelt* stellen – gut als
+eigene Regelungsübung neben einer automatisch laufenden Anlage (Aufgaben 21–24).
 
 ## Aufgaben nach Schwierigkeit
 
@@ -88,10 +91,33 @@ programmiert.
     auslösen, Not-Halt drücken (STO) und am Bedienpanel auf HAND schalten (ZSW1.9 fällt ab). Dein Programm meldet Störung (ZSW1.3) und Einschaltsperre
     (ZSW1.6) und quittiert mit `MC_Reset` bzw. STW1.7 – F07011 erst, wenn der Motor abgekühlt ist.
 
+### Füllstandsregelung Kühlwassertank
+
+Übungsumfang *Kühlwassertank: Nachspeisung → SPS regelt*. Gerätedaten und Regelstrecke in
+[Signale und TIA-Anbindung](04-signale.md#kühlwassertank-füllstand-und-nachspeisung). Den Ablasshahn
+als Störgröße nutzen, damit die Regelung etwas zu tun hat.
+
+21. **Zweipunkt mit Grenzschaltern.** −MB17 öffnen, sobald −BG38 abfällt, schließen, wenn −BG39
+    abfällt (0 = voll); −MB18 dafür fest auf 100 % (`27648` auf %QW80). Pumpe −QA7 nur mit −BG38
+    freigeben (Trockenlaufschutz). Drahtbruch prüfen: −BG39 im Signalmonitor auf 0 forcen – dein
+    Programm darf dann nicht mehr nachspeisen und soll eine Störung melden.
+22. **Analogwert und Hysterese.** −BL2 mit `NORM_X`/`SCALE_X` in Prozent umrechnen, Zweipunktregler
+    mit Hysterese 60/80 % auf den Analogwert. Die Grenzschalter bleiben als unabhängige
+    Sicherheitsebene darüber. Plausibilität: −BL2 über 95 %, aber −BG39 noch frei (oder −BL2 unter
+    20 % und −BG38 bedeckt) → Messung gestört, Meldung ausgeben (mit Forcen von −BL2 testen).
+23. **Stetige Regelung mit PID_Compact.** Sollwert 70 %, Istwert −BL2, Stellwert `Output_PER` auf
+    −MB18 (%QW80); −MB17 als Freigabe (zu bei −BG39 = 0 oder Not-Halt). Erst nur mit P-Anteil fahren
+    und die bleibende Regelabweichung bei offenem Ablasshahn beobachten, dann mit I-Anteil. Die
+    Strecke ist integrierend – warum reicht ohne Störgröße ein P-Regler? Selbstoptimierung ausprobieren.
+24. **Ventil und Zulauf überwachen.** Stellungsrückmeldung −MB18 (%IW74) mit dem Stellwert
+    vergleichen: Abweichung über 10 % länger als 15 s → „Regelventil klemmt“. Ist −MB17 offen und
+    steigt der Pegel in 20 s nicht um 1 %, fehlt Frischwasser → Meldung und Nachspeisung abschalten.
+
 ## Was der Zwilling selbst meldet
 
 Die Ereignisliste in der Seitenleiste ist ein Korrektiv, kein Logbuch: Sie nennt Fehlverhalten im
 Klartext – hängender Korb an einer Übergabe (>4 s), Gutteil ausgeblasen, n.i.O.-Teil im KLT,
-KLT übervoll, Korb nicht abgeblasen, Zinn nicht auf Temperatur. Das Weg-Zeit-Diagramm zeichnet alle
+KLT übervoll, Korb nicht abgeblasen, Zinn nicht auf Temperatur, Pumpe läuft trocken, Kühlwassertank
+läuft über, −MB17 offen bei geschlossenem Regelventil. Das Weg-Zeit-Diagramm zeichnet alle
 sieben Zylinder mit Schrittnummern mit und misst je Zylinder und Richtung die Fahrzeit zwischen den
 Endlagensensoren.

@@ -6,6 +6,40 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.7.0 – 2026-10-06
+
+Bridge neu bauen (`Bridge\build.bat`) und mit der neuen `signale.csv` starten: Der Code der Bridge
+hat sich nicht geändert, aber sie trägt die neue Nebenversion, und erst mit der neuen Signalliste
+kennt sie die Signale des Kühlwassertanks. Die TIA-Variablentabellen neu importieren (161 Signale).
+
+**Neu**
+- **Füllstandsmessung und Nachspeisung des Kühlwassertanks** der Sprühkühlung: Das Abschrecken
+  verbraucht Wasser (Sprühnebel, nasse Körbe, Verdampfung an heißen Körben), unter 8 % läuft die
+  Pumpe −MA3 trocken und es kommt kein Sprühwasser mehr.
+- Sensoren von Endress+Hauser: Radar **Micropilot FMR20B** −BL2 im Deckel (stetiger Füllstand,
+  `BL2_Wasserstand` %IW72) und zwei Vibrations-Grenzschalter **Liquiphant FTL31** an der Rückwand:
+  −BG38 MIN 25 % (`BG38_Wasser_Min` %I11.5, Trockenlaufschutz) und −BG39 MAX 90 %
+  (`BG39_Wasser_Max_frei` %I11.6, 1 = frei, Ruhestromprinzip). Dazu ein Schauglas-Standrohr mit
+  Wassersäule.
+- Frischwasser-Fallleitung mit Kugelhahn, **Magnetventil −MB17** (`MB17_Nachspeisen` %Q5.4, hinter
+  −KF2) und **Regelventil −MB18** in Reihe (`MB18_Regelventil` %QW80, Stellzeit 8 s,
+  Stellungsrückmeldung `MB18_Stellung` %IW74, Stellungsanzeige am Joch).
+- Neue Baugruppe **AQ 4xU/I ST** im Schaltschrank, AI 8 mit beschrifteten Kanälen BT1…MB18.
+- Übungsumfang **Kühlwassertank: Nachspeisung**: *Niveauregler automatisch* (55…75 %, Pumpe unter
+  −BG38 gesperrt) oder *SPS regelt*. Die Demo-SPS regelt mit einem PI-Regler auf 70 %.
+- **Ablasshahn** als Störgröße (Seitenleiste *Prozess* oder Klick in 3D), Anzeige Kühlwasser −BL2
+  mit Min-/Max-Marken, Ventilstellungen, Zulauf und Verbrauch live; Kühlwasser im HMI-Bild.
+- Meldungen: Pumpe läuft trocken, Trockenlaufschutz hat gesperrt, Tank läuft über, −MB17 offen bei
+  Regelventil 0 %.
+- Neue Ansicht „Kühlwassertank · Nachspeisung“.
+
+**Doku**
+- `docs/04-signale.md`: Abschnitt „Kühlwassertank: Füllstand und Nachspeisung“, Adressbelegung.
+- `docs/05-uebungen.md`: Aufgaben 21–24 zur Füllstandsregelung (Zweipunkt mit Grenzschaltern,
+  Hysterese auf den Analogwert mit Plausibilität, PID_Compact, Ventil- und Zulaufüberwachung).
+- `docs/02-anlage.md`, `docs/03-bedienung.md`: Tank, Signale, AQ-Baugruppe, Übungsumfang, Regelstrecke.
+- Bilder: neu Kühlwassertank, Schaltschrank neu aufgenommen (AQ 4).
+
 ## 1.6.0 – 2026-10-05
 
 Bridge neu bauen (`Bridge\build.bat`) und mit der neuen `signale.csv` starten: Der Code der Bridge

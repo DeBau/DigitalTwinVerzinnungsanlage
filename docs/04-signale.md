@@ -1,7 +1,7 @@
 # Signale und TIA-Anbindung
 
-Der Zwilling kennt **155 Signale**: 104 Eingänge (davon 4 Analogwerte und 8 Telegrammwörter) und
-51 Ausgänge (davon 8 Telegrammwörter). Sie sind die
+Der Zwilling kennt **161 Signale**: 108 Eingänge (davon 6 Analogwerte und 8 Telegrammwörter) und
+53 Ausgänge (davon 1 Analogwert und 8 Telegrammwörter). Sie sind die
 einzige Schnittstelle zwischen deinem Programm und dem Modell – kein proprietäres Protokoll, keine
 Bausteinbibliothek, keine Lizenzdatei.
 
@@ -35,8 +35,9 @@ BT1_Temperatur;%IW64;Zinntemperatur analog 0...27648 = 0...400 Grad C
 | Bereich | Adressen | Inhalt |
 |---|---|---|
 | Digitale Eingänge | `%I0.0 … %I11.7` | Endlagen, Lichtschranken, Taster, Wahl- und Schlüsselschalter, Motorschutz-Hilfskontakte, Not-Halt-Meldekontakte, Rückmeldung Sicherheitsrelais |
-| Digitale Ausgänge | `%Q0.0 … %Q5.2` | Ventilspulen, Wendeschütze, Heizung, Pumpe, Vibrorinne, Prüfband, Ausblasdüse, Melde- und Leuchttaster |
-| Analoge Eingänge | `%IW64`, `%IW66`, `%IW68`, `%IW70` | Zinntemperatur −BT1 (0…400 °C), Füllstand −BL1 (0…100 %), Korbtemperatur −BT2 (0…400 °C), Drehzahlpotentiometer −SF47 an −S50 (0…100 %) – jeweils 0…27648 |
+| Digitale Ausgänge | `%Q0.0 … %Q5.4` | Ventilspulen, Wendeschütze, Heizung, Pumpe, Vibrorinne, Prüfband, Ausblasdüse, Nachspeiseventil, Melde- und Leuchttaster |
+| Analoge Eingänge | `%IW64 … %IW74` | Zinntemperatur −BT1 (0…400 °C), Füllstand −BL1 (0…100 %), Korbtemperatur −BT2 (0…400 °C), Drehzahlpotentiometer −SF47 an −S50 (0…100 %), Füllstand Kühlwassertank −BL2 (0…100 %), Stellungsrückmeldung Regelventil −MB18 (0…100 %) – jeweils 0…27648 |
+| Analoge Ausgänge | `%QW80` | Stellwert Regelventil −MB18 (0…27648 = 0…100 %) |
 | Umrichter −TA2…−TA5 (Telegramm 1) | `%QW256…270` / `%IW256…270` | je Umrichter STW1 und NSOLL_A hin, ZSW1 und NIST_A zurück – nur bei Antrieb „Umrichter“ |
 
 ## Was die Bridge tut
@@ -157,6 +158,34 @@ der aktuellen `signale.csv` gestartet werden, sonst kennt sie die Telegrammwört
 > Bridge-Zyklus (Vorgabe 10 ms). Für eine Drehzahlachse reicht das gut. Für eine Lageregelung
 > wäre es zu träge.
 
+## Kühlwassertank: Füllstand und Nachspeisung
+
+![Kühlwassertank mit Micropilot −BL2, Liquiphant −BG38/−BG39, Magnetventil −MB17 und Regelventil −MB18](bilder/14-kuehlwassertank.jpg)
+
+Der Tank der Sprühkühlung (ca. 17 l) verliert beim Abschrecken Wasser: Sprühnebel und nasse Körbe
+tragen es aus, heiße Körbe verdampfen zusätzlich. Nachgespeist wird über eine Frischwasser-Fallleitung
+mit **Magnetventil −MB17** (2/2 NC, Absperrung, hinter −KF2) und **Regelventil −MB18** in Reihe. Wasser
+fließt nur, wenn −MB17 offen ist; die Menge bestimmt −MB18 (bis 1,5 %/s bei 100 %). Der Stellantrieb
+braucht 8 s für 0…100 % und meldet seine Stellung zurück.
+
+| Gerät | Signal | Funktion |
+|---|---|---|
+| −BL2 Endress+Hauser **Micropilot FMR20B** (Radar 80 GHz, 4…20 mA) im Deckel | `BL2_Wasserstand` %IW72 | Füllstand stetig, 0…27648 = 0…100 % |
+| −BG38 Endress+Hauser **Liquiphant FTL31** (Vibronik, PNP, MIN-Sicherheit) | `BG38_Wasser_Min` %I11.5 | 1 = Gabel bedeckt (über 25 %), Trockenlaufschutz der Pumpe −MA3 |
+| −BG39 Endress+Hauser **Liquiphant FTL31** (Vibronik, PNP, MAX-Sicherheit) | `BG39_Wasser_Max_frei` %I11.6 | 1 = Gabel frei (unter 90 %), 0 = voll *oder* Drahtbruch |
+| −MB17 Magnetventil Frischwasser | `MB17_Nachspeisen` %Q5.4 | Absperrung (stromlos zu) |
+| −MB18 Regelventil Frischwasser | `MB18_Regelventil` %QW80, `MB18_Stellung` %IW74 | Stellwert und Stellungsrückmeldung, 0…27648 = 0…100 % |
+
+Beide Grenzschalter arbeiten nach dem Ruhestromprinzip wie in der Praxis: Ein Drahtbruch meldet an
+−BG38 „leer“ und an −BG39 „voll“ – beides ist die sichere Seite. Unter 8 % zieht die Pumpe Luft,
+dann kommt kein Sprühwasser mehr. Der **Ablasshahn** am Tank (Seitenleiste *Prozess* oder Klick in
+der 3D-Ansicht) ist eine Störgröße von ca. 1 %/s zum Testen der Regelung.
+
+Im Übungsumfang *Niveauregler automatisch* speist der Tank zwischen 55 und 75 % selbst nach und
+sperrt die Pumpe unter −BG38. Bei *SPS regelt* macht beides dein Programm. Die Demo-SPS zeigt
+eine Lösung: PI-Regler auf 70 % über −MB18, −MB17 offen, solange der Regler Wasser fordert und
+−BG39 frei ist, Pumpe −QA7 nur mit −BG38.
+
 ## Signalmonitor im Browser
 
 Die Seitenleiste zeigt jedes Signal mit Name, Adresse und Live-Zustand. Jeder Eingang lässt sich
@@ -175,6 +204,7 @@ Drahtbruchsicher verdrahtet, also **1 = nicht betätigt**:
 | `FA1/FA5/FA7/FA8_Motorschutz` | Hilfskontakte der Motorschutzschalter (1 = OK) |
 | `KF2_NotHalt_OK` | Rückmeldung Sicherheitsrelais (1 = Freigabe) |
 | `BG20_Lichtvorhang_frei` | Sicherheitslichtvorhang (1 = Schutzfeld frei) |
+| `BG38_Wasser_Min`, `BG39_Wasser_Max_frei` | Grenzschalter Liquiphant am Kühlwassertank (1 = über Minimum bzw. unter Maximum) |
 
 Erwartet dein Programm bei STOP einen Schließer, nimm im Bedienfeld den Haken
 „STOP −SF2 als Öffner verdrahtet“ heraus.
@@ -192,7 +222,7 @@ fahren zum Band und schließen das Bad, senken und lösen. Ein dabei abgelegter 
 
 ## Variablentabelle
 
-Zwei Variablentabellen mit denselben 155 Signalen und denselben Adressen, zum Import in TIA
+Zwei Variablentabellen mit denselben 161 Signalen und denselben Adressen, zum Import in TIA
 (PLC-Variablen → Rechtsklick → *Importieren*):
 
 | Datei | Namen und Kommentare | Beispiel |

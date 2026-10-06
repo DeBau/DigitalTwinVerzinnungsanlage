@@ -26,7 +26,7 @@ Seitenleiste. Beide zeigen denselben Zustand und schreiben dieselben Eingänge.
   - **Meldekontakte:** Jeder Not-Halt-Taster hat zusätzlich einen Hilfskontakt (Öffner, drahtbruchsicher) auf einen normalen SPS-Eingang: `SF0_NotHalt_frei`, `SF8_NotHalt_frei`, `SF9_NotHalt_frei`, `SF10_NotHalt_frei`, `SF33_NotHalt_frei` (%I9.1…%I9.5, **1 = entriegelt**, 0 = betätigt). Die Abschaltung bleibt hart über −KF2. Ereignisliste und HMI-Meldezeile nennen den Taster, z. B. „NOT-HALT −SF9 (Band 2) – entriegeln und quittieren (−SF42)“.
   - **Quittiertaster:** −SF4 (Bedienpult), −SF41 (−S10), −SF42 (−S20), −SF43 (−S30), −SF44 (−S40) liegen parallel am Reset-Eingang von −KF2 – jeder quittiert. Jeder hat einen eigenen Eingang (`SF4_Quittieren`, `SF41_Quittieren_S10` … `SF44_Quittieren_S40`), die SPS sieht also, wo quittiert wurde („Not-Halt quittiert an −S20 (−SF42)“), und einen eigenen Leuchtmelder (−PF5, −PF12…−PF15), der bei Quittierbedarf blinkt.
 - **Lichtvorhang −BG20:** Klick auf eine Lichtvorhangsäule (oder Knopf „Eingriff in den Lichtvorhang“) lässt einen Arm in das Schutzfeld greifen. −KF2 schaltet ab, Wiederanlauf erst bei freiem Schutzfeld und Quittieren −SF4. Eingang BG20_Lichtvorhang_frei %I4.7.
-- **3D-Ansicht:** linke Maustaste ziehen = drehen, rechte Maustaste ziehen (oder Shift + links) = verschieben, Mausrad = zoomen, Doppelklick auf ein Bauteil = Drehpunkt dorthin. Die Legende blendet der Knopf „Steuerung“ ein und aus. Über „Ansicht“ fliegt die Kamera zu festen Sichten: Übersicht, Teilprozesse (Übergabeplatz, Portal, Zinnbad, Pneumatik, Rollenkurve, Kühlung, Kipper, Prüfung, KLT) und Steuerstellen (Bedienpult, −S10, −S30, −S20, −S40).
+- **3D-Ansicht:** linke Maustaste ziehen = drehen, rechte Maustaste ziehen (oder Shift + links) = verschieben, Mausrad = zoomen, Doppelklick auf ein Bauteil = Drehpunkt dorthin. Die Legende blendet der Knopf „Steuerung“ ein und aus. Über „Ansicht“ fliegt die Kamera zu festen Sichten: Übersicht, Teilprozesse (Übergabeplatz, Portal, Zinnbad, Pneumatik, Rollenkurve, Kühlung, Kühlwassertank, Kipper, Prüfung, KLT) und Steuerstellen (Bedienpult, −S10, −S30, −S20, −S40).
 - Alle Befehlsgeräte sind in der 3D-Szene anklickbar: Taster solange gedrückt, Not-Halt und Wahlschalter rasten.
 
 
@@ -64,8 +64,11 @@ Seitenleiste. Beide zeigen denselben Zustand und schreiben dieselben Eingänge.
 |---|---|---|
 | **Band, Anschlag, Vereinzeler** (mit Rollenkurve und Band 2) | Das Bandmodul fördert, stoppt am Anschlag, vereinzelt und übergibt über die Rollenkurve auf Band 2 selbstständig. | Dein Programm steuert −QA1/−QA2 (Rechts-/Linkslauf), −MB9 Anschlag, −MB10 Vereinzeler, die Rollenkurve −QA10/−QA11, Band 2 (−QA5/−QA6, Kühlung), die Muldenrollen −QA12/−QA13 und die Prüfstation. Eingänge: −BG11…−BG13, −BG35/−BG36, −BG21…−BG24, −BG37/−BG33 (Kippmulde), Vor-Ort-Steuerstellen, −FA1/−FA5/−FA7/−FA8. |
 | **Zinnbad Temperatur/Füllstand** | Der Regler am Bad hält 280 °C, Nachfüllen per Knopf. | Dein Programm schaltet −TB1 Heizung und −MB11 Nachfüllen. Istwerte −BT1/−BL1 analog. Ob 2-Punkt, Impuls/PWM oder PID_Compact – das entscheidet dein Programm. |
+| **Kühlwassertank: Nachspeisung** | Der Niveauregler am Tank speist zwischen 55 und 75 % nach und sperrt die Pumpe −MA3 unter −BG38. | Dein Programm schaltet −MB17 und stellt −MB18 (%QW80). Istwerte −BL2 (%IW72) und −MB18 (%IW74) analog, Grenzschalter −BG38/−BG39. Zweipunkt oder PID_Compact – und den Trockenlaufschutz der Pumpe übernimmst du auch. |
 
 Regelstrecke Zinnbad: Heizelement PT1 (6 s) → Bad PT1 (150 s), 100 % Heizleistung ergibt 360 °C im Beharrungszustand, für 280 °C sind ca. 76 % nötig. Jedes Tauchen kühlt um 5 K und verbraucht 4 % Zinn. Analogwerte: 0…27648 = 0…400 °C bzw. 0…100 %.
+
+Regelstrecke Kühlwassertank: integrierend (ohne Ausgleich). Zulauf bis 1,5 %/s bei −MB17 offen und −MB18 100 %, Regelventil mit 8 s Stellzeit. Verbrauch beim Sprühen ca. 0,3 %/s plus Verdampfung an heißen Körben, Ablasshahn ca. 1 %/s (nimmt mit sinkendem Pegel ab). Unter *Prozess* stehen Füllstand, Ventilstellungen, Zulauf und Verbrauch live; der Knopf *Ablasshahn öffnen* schaltet die Störgröße.
 
 
 

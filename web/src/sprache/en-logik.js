@@ -66,4 +66,14 @@ export default {
   'Motor {0} abgekühlt: F07011 lässt sich quittieren': 'Motor {0} cooled down: F07011 can be acknowledged',
   'Umrichter −{0}: HAND – das Bedienpanel führt, das Telegramm der SPS ist ohne Wirkung': 'Drive −{0}: HAND – the operator panel is in control, the PLC telegram has no effect',
   'Umrichter −{0}: AUTO – Führung wieder über PROFINET': 'Drive −{0}: AUTO – control via PROFINET again',
+  // Kühlwassertank
+  'Übungsumfang: Nachspeisung des Kühlwassertanks (−MB17/−MB18) regelt jetzt die SPS': 'Exercise scope: the PLC now controls the refilling of the cooling water tank (−MB17/−MB18)',
+  'Übungsumfang: Kühlwassertank wird wieder vom Niveauregler nachgespeist': 'Exercise scope: the cooling water tank is refilled by the level controller again',
+  'Ablasshahn am Kühlwassertank geöffnet (Störgröße)': 'Drain valve on the cooling water tank opened (disturbance)',
+  'Ablasshahn am Kühlwassertank geschlossen': 'Drain valve on the cooling water tank closed',
+  'Umwälzpumpe −MA3 läuft trocken: Kühlwassertank leer, kein Sprühwasser': 'Circulation pump −MA3 running dry: cooling water tank empty, no spray water',
+  'Trockenlaufschutz −BG38: Umwälzpumpe −MA3 gesperrt, bis der Tank nachgespeist ist': 'Dry-run protection −BG38: circulation pump −MA3 locked until the tank is refilled',
+  'Nachspeisen: −MB17 ist offen, aber das Regelventil −MB18 steht auf 0 % – es fließt kein Wasser': 'Refill: −MB17 is open, but control valve −MB18 is at 0 % – no water flows',
+  'Kühlwassertank läuft über': 'Cooling water tank overflowing',
+  'Kühlwassertank läuft über: Nachspeisung nicht rechtzeitig geschlossen (−BG39)': 'Cooling water tank overflowing: refill not closed in time (−BG39)',
 };

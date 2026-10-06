@@ -19,6 +19,10 @@ export const TEMP_SOLL = 250;
 export const FUELL_MIN = 40;
 export const TAUCH_SOLL = 10;
 export const TROPF_SOLL = 10;
+// Kühlwassertank der Sprühkühlung: Grenzschalter Liquiphant FTL31 −BG38 (MIN-Sicherheit, Trockenlaufschutz) und −BG39 (MAX-Sicherheit), Saugstutzen der Pumpe
+export const WASSER_MIN = 25, WASSER_MAX = 90, WASSER_SAUG = 8;
+// Nachspeisung: Magnetventil −MB17 (Absperrung) in Reihe mit dem Regelventil −MB18 (Stellantrieb 0…100 %, Stellzeit 8 s)
+export const KW = { y: 0, mb17: false, zulauf: 0, verbrauch: 0, ablauf: 0, regelEin: false, sperre: false, sperreGemeldet: false, trocken: false, ohneFluss: 0 };
 
 // Not-Halt-Taster: harte Abschaltung über −KF2, je Taster ein Meldekontakt (Öffner) auf einen SPS-Eingang
 export const NOT_HALT = [
@@ -48,7 +52,8 @@ export const st = {
   sf2Oeffner: true,
   force: {},
   temp: 266, heizung: true, fuell: 62,
-  betriebBand: 'auto', betriebBad: 'auto',                 // Übungsumfang: 'auto' = Anlage regelt selbst, 'sps' = SPS-Programm
+  betriebBand: 'auto', betriebBad: 'auto', betriebWasser: 'auto',   // Übungsumfang: 'auto' = Anlage regelt selbst, 'sps' = SPS-Programm
+  wasser: 70, ablass: false,                               // Kühlwassertank: Füllstand in %, Ablasshahn offen
   antrieb: { TA2: 'schuetz', TA3: 'schuetz', TA4: 'schuetz', TA5: 'schuetz' },   // je Förderer 'schuetz' oder 'fu' = Umrichter (Telegramm 1)
   notHalt: { sf0: false, sf8: false, sf9: false, sf10: false, sf33: false }, kf2: true, sf4Alt: false, eingriff: false,
   sa1: true, sa2: false, sa3: false, sa4: false, sa5: false, sa6: false, sa7: false, fa1Ok: true, fa5Ok: true, fa7Ok: true, fa8Ok: true,

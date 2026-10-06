@@ -1,4 +1,4 @@
-import { FUELL_MIN, NOT_HALT, QUITT, TEMP_SOLL, ZYL_LISTE, st } from './zustand.js';
+import { FUELL_MIN, KW, NOT_HALT, QUITT, TEMP_SOLL, WASSER_MAX, WASSER_MIN, ZYL_LISTE, st } from './zustand.js';
 import { BAND, BAND2, KURVE, LS_POS, TROMMEL_R } from '../anlage/baender.js';
 import { MM8, ST } from '../anlage/pruefstation.js';
 import { kipperKorb, koerbe } from '../anlage/koerbe.js';
@@ -126,6 +126,10 @@ function rohEingang(name) {
     case 'BT2_Korbtemperatur': { const k = korbAmPyrometer(); return analog(k ? k.temp : 25, 400); }
     case 'BT1_Temperatur': return analog(st.temp, 400);
     case 'BL1_Fuellstand': return analog(st.fuell, 100);
+    case 'BL2_Wasserstand': return analog(st.wasser, 100);
+    case 'MB18_Stellung': return analog(KW.y, 1);
+    case 'BG38_Wasser_Min': return st.wasser >= WASSER_MIN;
+    case 'BG39_Wasser_Max_frei': return st.wasser < WASSER_MAX;       // MAX-Sicherheit: Gabel frei = 1
     default: return false;
   }
 }

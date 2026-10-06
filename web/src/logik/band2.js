@@ -9,6 +9,7 @@ import { ereignis } from '../ui/ereignisse.js';
 import { t } from '../core/sprache.js';
 import { wirksam } from './eingaenge.js';
 import { amUmrichter, umrichterFahren } from './antriebe.js';
+import { kuehlwasser } from './kuehlwasser.js';
 import { UEBERGABE, gemeinsam, kurveAuslauf, rollenkurve, vBand2, wartetAufBand2 } from './rollenkurve.js';
 
 
@@ -48,6 +49,7 @@ export function uebergabeUndBand2(dt) {
     BAND2.blasen = wirksam('MB14_Luftmesser') ? 1 : 0;
   }
   if (auto && st.sa4) BAND2.pumpe = BAND2.spruehen = BAND2.blasen = 0;
+  kuehlwasser(dt);                                                   // Tank: Nachspeisung, Verbrauch, Trockenlauf der Pumpe
   vZiel = BAND2.wende * BAND2.vSoll;
   BAND2.fu = amUmrichter('TA3');
   if (BAND2.fu) {

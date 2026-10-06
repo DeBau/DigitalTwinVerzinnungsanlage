@@ -93,6 +93,13 @@ const BILDER = {
     await ansicht(p, 's50');
     await p.waitForTimeout(2500);
   },
+  // Kühlwassertank: Nachspeisung über die (Demo-)SPS, Ablasshahn offen, Seitenleiste mit Prozesswerten
+  '14-kuehlwassertank': async (p) => {
+    await p.evaluate(() => { document.getElementById('kw-sps').click(); document.getElementById('btn-ablass').click(); });
+    await p.waitForTimeout(25000);
+    await bereiche(p, ['sec-prozess']);
+    await ansicht(p, 'kuehlwasser');
+  },
 };
 
 for (const [name, vorbereiten] of Object.entries(BILDER)) {

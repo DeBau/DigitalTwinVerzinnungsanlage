@@ -71,7 +71,7 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(-
 .readout div { background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; min-width: 78px; }
 .readout span { display: block; font: 500 10px/1.2 var(--font-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .readout b { font: 500 15px/1.3 var(--font-data); font-variant-numeric: tabular-nums; }
-.readout b.warn { color: var(--fault); }
+.readout b.warn, .gauge b.warn { color: var(--fault); }
 
 .stage-foot { position: absolute; left: 16px; bottom: 14px; right: 16px; display: flex; gap: 6px; flex-wrap: wrap; }
 .chip-btn { font: 500 12px var(--font-label); letter-spacing: .03em; color: var(--fg); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; cursor: pointer; }
@@ -209,6 +209,8 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(-
 .bar { height: 6px; border-radius: 3px; background: var(--line); position: relative; overflow: visible; }
 .bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--tin); }
 .bar i.hot { background: var(--led); }
+.bar i.wasser { background: var(--accent); }
+.proc .gauge:nth-child(3) { grid-column: 1 / -1; }
 .bar em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--fg); opacity: .55; }
 .btnrow { display: flex; gap: 6px; flex-wrap: wrap; }
 .btn { font: 500 12.5px var(--font-ui); padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--fg); cursor: pointer; }
@@ -505,6 +507,13 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
             <button type="button" id="zb-sps" aria-pressed="false">SPS regelt</button>
           </div>
         </div>
+        <div class="betrieb">
+          <span>Kühlwassertank: Nachspeisung</span>
+          <div class="seg klein" role="group" aria-label="Nachspeisung des Kühlwassertanks">
+            <button type="button" id="kw-auto" aria-pressed="true">Niveauregler automatisch</button>
+            <button type="button" id="kw-sps" aria-pressed="false">SPS regelt</button>
+          </div>
+        </div>
         <p class="hint" id="betrieb-hint"></p>
       </div>
     </details>
@@ -678,20 +687,27 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
             <div class="top"><span>Füllhöhe −BL1</span><b id="g-level">– %</b></div>
             <div class="bar"><i id="g-level-bar"></i><em id="g-level-mark"></em></div>
           </div>
+          <div class="gauge">
+            <div class="top"><span>Kühlwasser −BL2</span><b id="g-wasser">– %</b></div>
+            <div class="bar"><i class="wasser" id="g-wasser-bar"></i><em id="g-wasser-min"></em><em id="g-wasser-max"></em></div>
+          </div>
         </div>
         <div class="btnrow">
           <button type="button" class="btn" id="btn-heizung" aria-pressed="true">Heizung ein</button>
           <button type="button" class="btn" id="btn-fuellen">Zinn nachfüllen</button>
           <button type="button" class="btn" id="btn-korb">Korb auflegen</button>
           <button type="button" class="btn" id="btn-zufuhr" aria-pressed="true">Körbe automatisch zuführen</button>
+          <button type="button" class="btn" id="btn-ablass" aria-pressed="false" title="Störgröße: Handventil am Kühlwassertank öffnen (ca. 1 %/s)">Ablasshahn Kühlwasser</button>
         </div>
         <p class="hint" id="bad-info"></p>
+        <p class="hint" id="kw-info"></p>
         <div class="param">
           <label for="p-speed">Geschwindigkeit aller Zylinder</label><output id="o-speed" for="p-speed">100 %</output>
           <input type="range" id="p-speed" min="0.3" max="2" step="0.1" value="1">
         </div>
         <p class="hint">Jeden Zylinder einzeln stellen die Drosselrückschlagventile an seinen Anschlüssen: Klick auf ein Ventil in der 3D-Ansicht oder „Groß öffnen“ im Weg-Zeit-Diagramm.</p>
         <p class="hint">Jedes Tauchen verbraucht Zinn. Unter 40&nbsp;% meldet −BG10 „Füllhöhe unterschritten“, unter 250&nbsp;°C fällt −BG9 ab. Temperatur (−BT1, 0…400&nbsp;°C) und Füllstand (−BL1, 0…100&nbsp;%) liegen zusätzlich als Analogwerte 0…27648 an.</p>
+        <p class="hint">Jedes Abschrecken verbraucht Kühlwasser, heiße Körbe verdampfen zusätzlich. Grenzschalter Liquiphant: −BG38 = 1, solange Wasser über Minimum (25&nbsp;%) steht, −BG39 = 1, solange Maximum (90&nbsp;%) nicht erreicht ist (Ruhestrom: Drahtbruch meldet wie leer bzw. voll); den Füllstand misst der Radar −BL2 stetig; unter 8&nbsp;% läuft die Pumpe −MA3 trocken. Der Ablasshahn ist eine Störgröße zum Testen der Regelung.</p>
       </div>
     </details>
 

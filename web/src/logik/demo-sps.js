@@ -5,7 +5,7 @@ import { eingang } from './eingaenge.js';
 // Demo-SPS – Schrittkette im Browser, wenn keine SPS gekoppelt ist
 // ----------------------------------------------------------------------------
 export const demo = { hand8: false, kurve: { rechts: false, links: false, nachlauf: 0 }, ps: { kip: false, kt: 0, gekippt: false, nachlauf: 0, bg32Alt: false, niOAlt: false, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false, voPb: false }, nh: { aktiv: [], erst: null, quittiertAn: null, freiAlt: true }, b2: { mulde: false, rechts: false, links: false, nachlauf: 0, trig: false, tt: 0, geprueft: false }, hand5: false, hand6: false, schritt: 1, auto: false, t: 0, korbFertig: false, mitKorb: false, sf1Alt: false, warten: false,
-  band: { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Zeit: 0, bg11Aus: 0, uebNach: 0 }, bad: { heiz: false, fuell: false } };
+  band: { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Zeit: 0, bg11Aus: 0, uebNach: 0 }, bad: { heiz: false, fuell: false }, kw: { i: 0 } };
 // Telegramm 1: 16#047F = Betrieb, 16#047E = AUS1, aus der Einschaltsperre (ZSW1.6) erst mit AUS1 = 0;
 // Störungen quittiert ein Quittiertaster über STW1.7
 function telegramm(A, name, vor, zurueck, nsoll = 0x4000) {
@@ -176,7 +176,7 @@ export function demoSps(dt) {
       q.rechts = okB2 && q.nachlauf > 0 && !kuehlHalt && !amEndeWarten;
     }
     A.QA5_B2_Rechts = q.rechts; A.QA6_B2_Links = q.links;
-    A.QA7_Pumpe = E('BG22_B2_Kuehlung') && T2 > 40;                   // Abschrecken, solange der Korb heiß ist
+    A.QA7_Pumpe = E('BG22_B2_Kuehlung') && T2 > 40 && E('BG38_Wasser_Min');   // Abschrecken, solange der Korb heiß ist; Trockenlaufschutz −BG38
     A.MB13_Spruehwasser = A.QA7_Pumpe;
     A.MB14_Luftmesser = q.rechts;                                        // Luftmesser bläst, solange Band 2 vorwärts läuft
     A.PF8_VorOrt2 = E('SA4_VorOrt2');
@@ -264,5 +264,14 @@ export function demoSps(dt) {
   if (L > 80) demo.bad.fuell = false;
   A.TB1_Heizung = demo.bad.heiz && frei;
   A.MB11_Nachfuellen = demo.bad.fuell;
+
+  // Kühlwassertank (wirkt nur bei „SPS regelt“): PI-Regler auf 70 % über das Regelventil −MB18,
+  // Magnetventil −MB17 gibt frei, solange der Regler Wasser fordert und −BG39 frei ist (Max nicht erreicht)
+  const W = E('BL2_Wasserstand') / 27648 * 100, kw = demo.kw, KP = 8, TI = 40;
+  const e = 70 - W;
+  kw.i = Math.max(0, Math.min(100, kw.i + KP * e / TI * dt));          // Anti-Windup: I-Anteil begrenzt
+  const y = Math.max(0, Math.min(100, KP * e + kw.i));
+  A.MB17_Nachspeisen = y > 0.5 && E('BG39_Wasser_Max_frei');
+  A.MB18_Regelventil = Math.round(y / 100 * 27648);
 }
 
