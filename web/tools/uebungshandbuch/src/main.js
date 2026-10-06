@@ -33,6 +33,7 @@ import './editor/vorlagen/grafcet.js';
 import './editor/vorlagen/zustand.js';
 import './editor/vorlagen/wegschritt.js';
 import './editor/vorlagen/elektro.js';
+import './editor/vorlagen/leistung.js';
 import './editor/vorlagen/alt.js';
 import { init as init_app_tooltip } from './app/tooltip.js';
 import { init as init_app_router } from './app/router.js';

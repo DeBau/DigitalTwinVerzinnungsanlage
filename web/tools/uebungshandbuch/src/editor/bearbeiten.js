@@ -28,7 +28,7 @@ export function delSel(){
   saveSketch(); renderInk();
 }
 export function turnSel(a){
-  const o = objById(ED.sel); if (!o || !PC[o.k] || o.k === "rail") return;
+  const o = objById(ED.sel); if (!o || !PC[o.k] || PC[o.k].drehbar === false) return;
   snapshot(); if (a === "rot") o.rot = ((o.rot || 0) + 90) % 360; else o.flip = !o.flip;
   saveSketch(); renderInk();
 }

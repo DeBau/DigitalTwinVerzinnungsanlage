@@ -34,7 +34,6 @@ export function neuesBauteil(k, mk, px, py){
   o.k = k;
   o.v = nextLabel(pc.lbl || "");
   if (pc.neu) pc.neu(o, [px, py]);
-  else if (k === "rail") { o.w = 400; o.x = px - 200; o.y = py; }
   else { o.x = px - (pc.bx || 0) - pc.w / 2; o.y = py - pc.h / 2; }
   [o.x, o.y] = snap([o.x, o.y]);
   return o;

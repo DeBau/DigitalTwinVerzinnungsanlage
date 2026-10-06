@@ -95,7 +95,7 @@ export function cylinder(o, single){
 /* Drehen (o.rot = 0/90/180/270) und Spiegeln (o.flip) um die Bauteilmitte – Schrift bleibt aufrecht */
 export const DIRV = {u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0]};
 export function xform(o){
-  const pc = PC[o.k]; if (!pc || o.k === "rail") return null;
+  const pc = PC[o.k]; if (!pc || pc.drehbar === false) return null;
   const r = (((o.rot || 0) % 360) + 360) % 360, f = o.flip ? -1 : 1; if (!r && f === 1) return null;
   const x0 = o.x + (pc.bx || 0), cx = x0 + pc.w / 2, cy = o.y + pc.h / 2, c = Math.round(Math.cos(r * Math.PI / 180)), sn = Math.round(Math.sin(r * Math.PI / 180));
   const pt = (x, y) => { const dx = (x - cx) * f, dy = y - cy; return [cx + dx*c - dy*sn, cy + dx*sn + dy*c]; };
@@ -109,8 +109,11 @@ export function portsOf(o){
   const X = xform(o);
   return (typeof P === "function" ? P(o) : P).map(([n, dx, dy, d]) => { if (!X) return {n, x: o.x + dx, y: o.y + dy, d}; const [x, y] = X.pt(o.x + dx, o.y + dy); return {n, x: Math.round(x), y: Math.round(y), d: X.dir(d)}; });
 }
-export const portCap = o => !!o && (o.k === "rail" || portsOf(o).length > 0);
-export function nearestPort(o, pt){ if (o.k === "rail") return "~"; let b = null; for (const p of portsOf(o)) { const d = Math.hypot(p.x - pt[0], p.y - pt[1]); if (!b || d < b.d) b = {n: p.n, d}; } return b ? b.n : null; }
+// Potenzialschiene (Bauteil mit schiene: true): Leitungen docken an beliebiger Stelle an, Anschlussname „~“
+export const istSchiene = o => !!(o && PC[o.k] && PC[o.k].schiene);
+export const portCap = o => !!o && (istSchiene(o) || portsOf(o).length > 0);
+export function nearestPort(o, pt){ if (istSchiene(o)) return "~"; let b = null; for (const p of portsOf(o)) { const d = Math.hypot(p.x - pt[0], p.y - pt[1]); if (!b || d < b.d) b = {n: p.n, d}; } return b ? b.n : null; }
+// Virtuelle Schienen der Vorlage (VRAIL) auf jedem Blatt. Sie sind Objekte der Bauteilart rail aus vorlagen/leistung.js.
 export function vrails(key, n){ const r = []; (VRAIL[key] || []).forEach(([v, y, x, w]) => { for (let i = 0; i < n; i++) r.push({id: `_${v}@${i}`, k: "rail", v, x, y: y + i*PH, w, virt: true}); }); return r; }
 export function wireD(a, b){
   if ((a.d === "u" || a.d === "d") && (b.d === "u" || b.d === "d") && Math.abs(a.x - b.x) < 1) return `M${a.x} ${a.y}V${b.y}`;
@@ -124,8 +127,9 @@ export function wireD(a, b){
 }
 export function wireEnds(c, objs){
   const A = objs[c.a], B = objs[c.b]; if (!A || !B) return null;
-  const pa = A.k === "rail" ? null : portsOf(A).find(p => p.n === c.pa), pb = B.k === "rail" ? null : portsOf(B).find(p => p.n === c.pb);
-  if ((!pa && A.k !== "rail") || (!pb && B.k !== "rail") || (!pa && !pb)) return null;
+  const sA = istSchiene(A), sB = istSchiene(B);
+  const pa = sA ? null : portsOf(A).find(p => p.n === c.pa), pb = sB ? null : portsOf(B).find(p => p.n === c.pb);
+  if ((!pa && !sA) || (!pb && !sB) || (!pa && !pb)) return null;
   const onRail = (r, p) => ({x: clamp(p.x, r.x, r.x + (r.w || 400)), y: r.y, d: p.y > r.y ? "d" : "u", rail: true});
   return [pa || onRail(A, pb), pb || onRail(B, pa)];
 }

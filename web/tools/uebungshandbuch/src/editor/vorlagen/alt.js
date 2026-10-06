@@ -1,21 +1,19 @@
 // Alle Vorlagen, Bausteingruppen und Bausteine, wie sie vor der Aufteilung in vorlage.html standen.
 // Diese Datei meldet sie in der Registry an (editor/registry.js). Nach und nach zieht jede Vorlage in eine
 // eigene Datei vorlagen/<key>.js um; wie das geht, steht in vorlagen/README.md.
-import { INK, SVGT, arrowHead } from '../svg.js';
+import { INK, arrowHead } from '../svg.js';
 import { BLK, LABEL_HINT, PC, PROPS, SAMPLE, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, G2, TX, grid } from '../vorlagen-svg.js';
-import { BLUE, LB, PD, PN, PP, SK, VALVE, cylinder, drawValve, posOf, pressed, thin, vPairs, vstate } from '../bauteile.js';
+import { BLUE, LB, PN, PP, VALVE, cylinder, drawValve, posOf, pressed, thin, vPairs, vstate } from '../bauteile.js';
 import { rund } from '../bausteine.js';
 
 /* ---------- Vorlagen: Reihenfolge = Reihenfolge der Kacheln ---------- */
-registriereVorlage("leistung", {n: "Hauptstromkreis", d: "L1, L2, L3, N, PE – Schütze, Wendeschützschaltung, Motorschutz, Motoren, Umrichter", gruppen: ["leistung", "geraete", "elektro"], schienen: [["L1",50,60,915], ["L2",70,60,915], ["L3",90,60,915], ["N",110,60,915], ["PE",130,60,915]], body: (ex, page, meta) => tplBody("leistung", ex, page, meta)});
 registriereVorlage("pneumatik", {n: "Pneumatikschaltplan", d: "Zylinder, Wegeventile, Drosseln nach ISO 1219 – mit Simulation", gruppen: ["pneu"], body: (ex, page, meta) => tplBody("pneumatik", ex, page, meta)});
 registriereVorlage("regelkreis", {n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: (ex, page, meta) => tplBody("regelkreis", ex, page, meta)});
 registriereVorlage("trend", {n: "Trendaufzeichnung", d: "Istwert, Sollwert und Stellgröße über der Zeit", einblattig: true, body: (ex, page, meta) => tplBody("trend", ex, page, meta)});
 registriereVorlage("raster", {n: "Kästchenraster", d: "5-mm-Raster für alles Weitere", gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel"], body: (ex, page, meta) => tplBody("raster", ex, page, meta)});
 
 /* ---------- Bausteingruppen: Name in der Palette und Bedienhinweis ---------- */
-registriereGruppe("leistung", {name: "Hauptstromkreis", hinweis: "Bauteile setzen und mit Verbinden Anschluss für Anschluss verdrahten: erst den Anschluss am einen, dann am anderen Bauteil anklicken – auch direkt auf die Schienen L1, L2, L3, N, PE. Wendeschützschaltung: zwei Schütze, beim zweiten L1 und L3 tauschen."});
 registriereGruppe("pneu", {name: "Pneumatik nach ISO 1219", hinweis: "Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken."});
 registriereGruppe("regel", {pfeiltext: true, name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn."});
 
@@ -24,24 +22,6 @@ fuelle(BLK, {
   box:{g:"regel", n:"Block"}, sum:{g:"regel", n:"Summierstelle", ...rund(15), beschriftung: false}
 });
 fuelle(PC, {
-  /* Hauptstromkreis – drei Pole bei 10/30/50 */
-  ls3:{g:"leistung", n:"Leitungsschutzschalter 3-polig", lbl:"-FA2", w:60, h:60, ports:[["1",10,0,"u"],["3",30,0,"u"],["5",50,0,"u"],["2",10,60,"d"],["4",30,60,"d"],["6",50,60,"d"]],
-    draw:o => [10,30,50].map(d => PP(`M${o.x+d} ${o.y}V${o.y+20}M${o.x+d} ${o.y+60}V${o.y+42}L${o.x+d-11} ${o.y+21}M${o.x+d-3} ${o.y+17}L${o.x+d+3} ${o.y+23}M${o.x+d+3} ${o.y+17}L${o.x+d-3} ${o.y+23}`)).join("") + PD(`M${o.x+4} ${o.y+31}H${o.x+46}`) + LB(o.x-4, o.y+35, o.v)},
-  ms3:{g:"leistung", n:"Motorschutzschalter", lbl:"-FA1", w:90, h:60, ports:[["1",10,0,"u"],["3",30,0,"u"],["5",50,0,"u"],["2",10,60,"d"],["4",30,60,"d"],["6",50,60,"d"]],
-    draw:o => [10,30,50].map(d => PP(`M${o.x+d} ${o.y}V${o.y+20}M${o.x+d} ${o.y+60}V${o.y+42}L${o.x+d-11} ${o.y+21}M${o.x+d-3} ${o.y+17}L${o.x+d+3} ${o.y+23}M${o.x+d+3} ${o.y+17}L${o.x+d-3} ${o.y+23}`)).join("") + PD(`M${o.x+4} ${o.y+31}H${o.x+62}`)
-      + `<rect x="${o.x+62}" y="${o.y+21}" width="26" height="20" fill="#fff" ${SK}/>` + SVGT(o.x+75, o.y+35, "I> ϑ", "middle", 9, 600) + LB(o.x-4, o.y+35, o.v)},
-  k3:{g:"leistung", n:"Schütz 3-polig (Hauptkontakte)", lbl:"-QA1", w:60, h:60, ports:[["1",10,0,"u"],["3",30,0,"u"],["5",50,0,"u"],["2",10,60,"d"],["4",30,60,"d"],["6",50,60,"d"]],
-    draw:o => [10,30,50].map(d => PP(`M${o.x+d} ${o.y}V${o.y+20}M${o.x+d} ${o.y+60}V${o.y+42}L${o.x+d-11} ${o.y+21}`) + `<path d="M${o.x+d-3.5} ${o.y+20}A3.5 3.5 0 0 0 ${o.x+d+3.5} ${o.y+20}" ${SK}/>`).join("") + PD(`M${o.x+4} ${o.y+31}H${o.x+46}`) + LB(o.x-4, o.y+35, o.v)},
-  qs3:{g:"leistung", n:"Hauptschalter 3-polig", lbl:"-QB1", w:60, h:60, ports:[["1",10,0,"u"],["3",30,0,"u"],["5",50,0,"u"],["2",10,60,"d"],["4",30,60,"d"],["6",50,60,"d"]],
-    draw:o => [10,30,50].map(d => PP(`M${o.x+d} ${o.y}V${o.y+20}M${o.x+d} ${o.y+60}V${o.y+42}L${o.x+d-11} ${o.y+21}M${o.x+d-4} ${o.y+20}H${o.x+d+4}`)).join("") + PD(`M${o.x+4} ${o.y+31}H${o.x+64}`) + PP(`M${o.x+64} ${o.y+25}V${o.y+37}`) + LB(o.x-4, o.y+35, o.v)},
-  m3:{g:"leistung", n:"Drehstrommotor", lbl:"-MA1", w:60, h:80, ports:[["U1",10,0,"u"],["V1",30,0,"u"],["W1",50,0,"u"]],
-    draw:o => PP(`M${o.x+10} ${o.y}V${o.y+43}M${o.x+30} ${o.y}V${o.y+30}M${o.x+50} ${o.y}V${o.y+43}`) + `<circle cx="${o.x+30}" cy="${o.y+52}" r="22" fill="#fff" ${SK}/>` + SVGT(o.x+30, o.y+54, "M", "middle", 15, 600) + SVGT(o.x+30, o.y+68, "3~", "middle", 10, 500)
-      + PN(o.x+12, o.y+10, "U1") + PN(o.x+32, o.y+10, "V1") + PN(o.x+52, o.y+10, "W1") + LB(o.x-4, o.y+56, o.v)},
-  fu:{g:"leistung", n:"Frequenzumrichter", lbl:"-TA2", w:80, h:90, ports:[["L1",10,0,"u"],["L2",30,0,"u"],["L3",50,0,"u"],["PE",70,0,"u"],["U",10,90,"d"],["V",30,90,"d"],["W",50,90,"d"],["PE2",70,90,"d"]],
-    draw:o => `<rect x="${o.x}" y="${o.y+15}" width="80" height="60" fill="#fff" ${SK}/>` + PP(`M${o.x} ${o.y+75}L${o.x+80} ${o.y+15}` + [10,30,50,70].map(d => `M${o.x+d} ${o.y}V${o.y+15}M${o.x+d} ${o.y+75}V${o.y+90}`).join(""))
-      + SVGT(o.x+18, o.y+36, "~", "middle", 14, 600) + SVGT(o.x+62, o.y+66, "~", "middle", 14, 600) + ["L1","L2","L3","PE"].map((n, i) => PN(o.x+12+i*20, o.y+9, n)).join("") + ["U","V","W","PE"].map((n, i) => PN(o.x+12+i*20, o.y+87, n)).join("") + LB(o.x-4, o.y+48, o.v)},
-  rail:{g:"leistung", n:"Potenzialschiene", lbl:"L+", w:400, h:0, props:[["w","Länge","text"]],
-    draw:o => `<path d="M${o.x} ${o.y}H${o.x+(o.w||400)}" stroke="${INK}" stroke-width="2.2" ${o.v === "PE" ? 'stroke-dasharray="10 4"' : ""}/>` + LB(o.x-6, o.y+4, o.v)},
   /* Pneumatik nach ISO 1219 – Energiefluss von unten nach oben */
   src:{g:"pneu", n:"Druckluftquelle", lbl:"", w:30, h:40, ports:[["1",15,0,"u"]], sim:() => ({src: ["1"]}),
     draw:o => PP(`M${o.x+15} ${o.y}V${o.y+16}`) + `<circle cx="${o.x+15}" cy="${o.y+27}" r="11" fill="#fff" stroke="${INK}" stroke-width="1.6"/><circle cx="${o.x+15}" cy="${o.y+27}" r="2.6" fill="${INK}"/>` + LB(o.x-4, o.y+31, o.v)},
@@ -164,11 +144,6 @@ Object.entries(PC).forEach(([k, pc]) => { if (k === "zyl2") Object.assign(BLK, P
 function tplBody(key, ex, page=0, meta=null){
   switch (key) {
     case "raster": return grid(10, G2);
-    case "leistung": {
-      let r = "";
-      [["L1",50],["L2",70],["L3",90],["N",110],["PE",130]].forEach(([n, y]) => { r += `<path d="M60 ${y}H975" stroke="${G}" stroke-width="2" ${n === "PE" ? 'stroke-dasharray="10 4"' : ""}/>` + TX(50, y + 4, 12, n, "end", "#555", 600); });
-      return grid(10, "#EEF1F3", 40, 150, 975, 620) + r + TX(975, 38, 9, "3/N/PE AC 400/230 V 50 Hz", "end");
-    }
     case "pneumatik": return grid(10, "#EEF1F3", 15, 15, 985, 630) + TX(25, 33, 10, "Energiefluss von unten nach oben: Versorgung unten, Ventile in der Mitte, Antriebe oben", "start");
     case "regelkreis": {
       const box = (x, y, w, h, lbl) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="#fff" stroke="${G}" stroke-width="1.3"/>` + TX(x + w/2, y - 7, 10, lbl, "middle", "#666", 600);

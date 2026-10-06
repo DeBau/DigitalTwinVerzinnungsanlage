@@ -1325,7 +1325,7 @@ pre.code code{font-size:inherit}
   var DIRV = { u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0] };
   function xform(o) {
     const pc = PC[o.k];
-    if (!pc || o.k === "rail") return null;
+    if (!pc || pc.drehbar === false) return null;
     const r = ((o.rot || 0) % 360 + 360) % 360, f = o.flip ? -1 : 1;
     if (!r && f === 1) return null;
     const x0 = o.x + (pc.bx || 0), cx = x0 + pc.w / 2, cy = o.y + pc.h / 2, c = Math.round(Math.cos(r * Math.PI / 180)), sn = Math.round(Math.sin(r * Math.PI / 180));
@@ -1350,9 +1350,10 @@ pre.code code{font-size:inherit}
       return { n, x: Math.round(x), y: Math.round(y), d: X.dir(d) };
     });
   }
-  var portCap = (o) => !!o && (o.k === "rail" || portsOf(o).length > 0);
+  var istSchiene = (o) => !!(o && PC[o.k] && PC[o.k].schiene);
+  var portCap = (o) => !!o && (istSchiene(o) || portsOf(o).length > 0);
   function nearestPort(o, pt) {
-    if (o.k === "rail") return "~";
+    if (istSchiene(o)) return "~";
     let b = null;
     for (const p of portsOf(o)) {
       const d = Math.hypot(p.x - pt[0], p.y - pt[1]);
@@ -1385,8 +1386,9 @@ pre.code code{font-size:inherit}
   function wireEnds(c, objs) {
     const A = objs[c.a], B = objs[c.b];
     if (!A || !B) return null;
-    const pa = A.k === "rail" ? null : portsOf(A).find((p) => p.n === c.pa), pb = B.k === "rail" ? null : portsOf(B).find((p) => p.n === c.pb);
-    if (!pa && A.k !== "rail" || !pb && B.k !== "rail" || !pa && !pb) return null;
+    const sA = istSchiene(A), sB = istSchiene(B);
+    const pa = sA ? null : portsOf(A).find((p) => p.n === c.pa), pb = sB ? null : portsOf(B).find((p) => p.n === c.pb);
+    if (!pa && !sA || !pb && !sB || !pa && !pb) return null;
     const onRail = (r, p) => ({ x: clamp(p.x, r.x, r.x + (r.w || 400)), y: r.y, d: p.y > r.y ? "d" : "u", rail: true });
     return [pa || onRail(A, pb), pb || onRail(B, pa)];
   }
@@ -1402,7 +1404,6 @@ pre.code code{font-size:inherit}
     const pc = PC[o.k];
     if (pc) {
       if (pc.umriss) return pc.umriss(o);
-      if (o.k === "rail") return { x: o.x, y: o.y - 6, w: o.w || 400, h: 12 };
       if (o.k === "insel") return { x: o.x, y: o.y, w: +o.fw || 360, h: +o.fh || 120 };
       const X = xform(o), b = { x: o.x + (pc.bx || 0), y: o.y, w: pc.w, h: pc.h };
       if (!X || X.c) return b;
@@ -1742,7 +1743,7 @@ pre.code code{font-size:inherit}
     return Math.max(1, Math.ceil((m + 160) / PH));
   }
   function wireRef(o, port, key, y, x) {
-    const b = Math.floor(y / PH) + 1, name = o.k === "rail" ? o.v : `${o.v || BLK[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
+    const b = Math.floor(y / PH) + 1, name = istSchiene(o) ? o.v : `${o.v || BLK[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
     const v = VORL[key], pfad = v && v.verweis ? v.verweis(x, y) : "";
     return `${name}, Blatt ${b}${pfad}`;
   }
@@ -1750,10 +1751,9 @@ pre.code code{font-size:inherit}
     const mk = BLK[k] && BLK[k].mk, base = mk && mk.k || k, pc = PC[base];
     const o = { k: base, ...pc.def || {}, ...mk || {}, x: 0, y: 0, v: "" };
     o.k = base;
-    if (base === "rail") o.w = 70;
-    const bx = pc.bx || 0, w = base === "rail" ? 70 : pc.w, h = Math.max(pc.h, 12);
+    const bx = pc.bx || 0, w = pc.w, h = Math.max(pc.h, 12);
     o.x = 4 - bx;
-    o.y = base === "rail" ? 10 : 4;
+    o.y = 4;
     return [o, `0 0 ${w + 8} ${h + 8}`, ""];
   }
 
@@ -2138,14 +2138,14 @@ pre.code code{font-size:inherit}
     else if (pc) h += bauteilFelder(o, pc);
     else for (const [f, lbl, ph] of PROPS[o.k] || []) h += textFeld(f, lbl, ph, o[f]);
     if (pc && pc.info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${pc.info}</p>`;
-    if (pc && o.k !== "rail") h += DREHKNOEPFE;
+    if (pc && pc.drehbar !== false) h += DREHKNOEPFE;
     return `<div class="props"><div class="palh">${a.titel || BLK[o.k].n}</div>${h}${h ? SYMS : ""}${loeschKnopf()}</div>`;
   }
   function bauteilFelder(o, pc) {
-    let h = textFeld("v", o.k === "rail" ? "Potenzial, z. B. L+, M, L1, PE" : "Kennzeichen", pc.lbl, o.v);
+    let h = textFeld("v", "Kennzeichen", pc.lbl, o.v);
     for (const [f, lbl, ty, opts] of pc.props || []) {
       if (ty === "select") h += auswahlFeld(f, lbl, opts, o[f] ?? (pc.def || {})[f]);
-      else h += textFeld(f, lbl, "", f === "w" ? o.w || 400 : o[f]);
+      else h += textFeld(f, lbl, "", o[f]);
     }
     return h;
   }
@@ -2454,7 +2454,7 @@ pre.code code{font-size:inherit}
   }
   function turnSel(a) {
     const o = objById(ED.sel);
-    if (!o || !PC[o.k] || o.k === "rail") return;
+    if (!o || !PC[o.k] || PC[o.k].drehbar === false) return;
     snapshot();
     if (a === "rot") o.rot = ((o.rot || 0) + 90) % 360;
     else o.flip = !o.flip;
@@ -2511,11 +2511,7 @@ pre.code code{font-size:inherit}
     o.k = k;
     o.v = nextLabel(pc.lbl || "");
     if (pc.neu) pc.neu(o, [px, py]);
-    else if (k === "rail") {
-      o.w = 400;
-      o.x = px - 200;
-      o.y = py;
-    } else {
+    else {
       o.x = px - (pc.bx || 0) - pc.w / 2;
       o.y = py - pc.h / 2;
     }
@@ -4272,20 +4268,38 @@ END_CASE;`)}
     }
   });
 
-  // web/tools/uebungshandbuch/src/editor/vorlagen/alt.js
-  registriereVorlage("leistung", { n: "Hauptstromkreis", d: "L1, L2, L3, N, PE – Schütze, Wendeschützschaltung, Motorschutz, Motoren, Umrichter", gruppen: ["leistung", "geraete", "elektro"], schienen: [["L1", 50, 60, 915], ["L2", 70, 60, 915], ["L3", 90, 60, 915], ["N", 110, 60, 915], ["PE", 130, 60, 915]], body: (ex, page, meta) => tplBody("leistung", ex, page, meta) });
-  registriereVorlage("pneumatik", { n: "Pneumatikschaltplan", d: "Zylinder, Wegeventile, Drosseln nach ISO 1219 – mit Simulation", gruppen: ["pneu"], body: (ex, page, meta) => tplBody("pneumatik", ex, page, meta) });
-  registriereVorlage("regelkreis", { n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: (ex, page, meta) => tplBody("regelkreis", ex, page, meta) });
-  registriereVorlage("trend", { n: "Trendaufzeichnung", d: "Istwert, Sollwert und Stellgröße über der Zeit", einblattig: true, body: (ex, page, meta) => tplBody("trend", ex, page, meta) });
-  registriereVorlage("raster", { n: "Kästchenraster", d: "5-mm-Raster für alles Weitere", gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel"], body: (ex, page, meta) => tplBody("raster", ex, page, meta) });
-  registriereGruppe("leistung", { name: "Hauptstromkreis", hinweis: "Bauteile setzen und mit Verbinden Anschluss für Anschluss verdrahten: erst den Anschluss am einen, dann am anderen Bauteil anklicken – auch direkt auf die Schienen L1, L2, L3, N, PE. Wendeschützschaltung: zwei Schütze, beim zweiten L1 und L3 tauschen." });
-  registriereGruppe("pneu", { name: "Pneumatik nach ISO 1219", hinweis: "Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken." });
-  registriereGruppe("regel", { pfeiltext: true, name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn." });
-  fuelle(BLK, {
-    box: { g: "regel", n: "Block" },
-    sum: { g: "regel", n: "Summierstelle", ...rund(15), beschriftung: false }
+  // web/tools/uebungshandbuch/src/editor/vorlagen/leistung.js
+  var LEITER = [["L1", 50], ["L2", 70], ["L3", 90], ["N", 110], ["PE", 130]];
+  function leistungBlatt() {
+    let r = "";
+    LEITER.forEach(([n, y]) => {
+      r += `<path d="M60 ${y}H975" stroke="${G}" stroke-width="2" ${n === "PE" ? 'stroke-dasharray="10 4"' : ""}/>` + TX(50, y + 4, 12, n, "end", "#555", 600);
+    });
+    return grid(10, "#EEF1F3", 40, 150, 975, 620) + r + TX(975, 38, 9, "3/N/PE AC 400/230 V 50 Hz", "end");
+  }
+  registriereVorlage("leistung", {
+    n: "Hauptstromkreis",
+    d: "L1, L2, L3, N, PE – Schütze, Wendeschützschaltung, Motorschutz, Motoren, Umrichter",
+    gruppen: ["leistung", "geraete", "elektro"],
+    schienen: [["L1", 50, 60, 915], ["L2", 70, 60, 915], ["L3", 90, 60, 915], ["N", 110, 60, 915], ["PE", 130, 60, 915]],
+    body: leistungBlatt
   });
-  fuelle(PC, {
+  registriereGruppe("leistung", {
+    name: "Hauptstromkreis",
+    hinweis: "Bauteile setzen und mit Verbinden Anschluss für Anschluss verdrahten: erst den Anschluss am einen, dann am anderen Bauteil anklicken – auch direkt auf die Schienen L1, L2, L3, N, PE. Wendeschützschaltung: zwei Schütze, beim zweiten L1 und L3 tauschen."
+  });
+  var SCHIENE = {
+    schiene: true,
+    drehbar: false,
+    umriss: (o) => ({ x: o.x, y: o.y - 6, w: o.w || 400, h: 12 }),
+    neu(o, [px, py]) {
+      o.w = 400;
+      o.x = px - 200;
+      o.y = py;
+    },
+    felder: (o) => textFeld("v", "Potenzial, z. B. L+, M, L1, PE", PC.rail.lbl, o.v) + textFeld("w", "Länge", "", o.w || 400)
+  };
+  registriereBauteile({
     /* Hauptstromkreis – drei Pole bei 10/30/50 */
     ls3: {
       g: "leistung",
@@ -4347,9 +4361,24 @@ END_CASE;`)}
       lbl: "L+",
       w: 400,
       h: 0,
-      props: [["w", "Länge", "text"]],
+      ...SCHIENE,
       draw: (o) => `<path d="M${o.x} ${o.y}H${o.x + (o.w || 400)}" stroke="${INK}" stroke-width="2.2" ${o.v === "PE" ? 'stroke-dasharray="10 4"' : ""}/>` + LB(o.x - 6, o.y + 4, o.v)
-    },
+    }
+  });
+  fuelle(SAMPLE, { rail: [{ k: "rail", x: 4, y: 10, v: "", w: 70 }, "0 0 78 20", ""] });
+
+  // web/tools/uebungshandbuch/src/editor/vorlagen/alt.js
+  registriereVorlage("pneumatik", { n: "Pneumatikschaltplan", d: "Zylinder, Wegeventile, Drosseln nach ISO 1219 – mit Simulation", gruppen: ["pneu"], body: (ex, page, meta) => tplBody("pneumatik", ex, page, meta) });
+  registriereVorlage("regelkreis", { n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: (ex, page, meta) => tplBody("regelkreis", ex, page, meta) });
+  registriereVorlage("trend", { n: "Trendaufzeichnung", d: "Istwert, Sollwert und Stellgröße über der Zeit", einblattig: true, body: (ex, page, meta) => tplBody("trend", ex, page, meta) });
+  registriereVorlage("raster", { n: "Kästchenraster", d: "5-mm-Raster für alles Weitere", gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel"], body: (ex, page, meta) => tplBody("raster", ex, page, meta) });
+  registriereGruppe("pneu", { name: "Pneumatik nach ISO 1219", hinweis: "Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken." });
+  registriereGruppe("regel", { pfeiltext: true, name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn." });
+  fuelle(BLK, {
+    box: { g: "regel", n: "Block" },
+    sum: { g: "regel", n: "Summierstelle", ...rund(15), beschriftung: false }
+  });
+  fuelle(PC, {
     /* Pneumatik nach ISO 1219 – Energiefluss von unten nach oben */
     src: {
       g: "pneu",
@@ -4639,13 +4668,6 @@ END_CASE;`)}
     switch (key) {
       case "raster":
         return grid(10, G2);
-      case "leistung": {
-        let r = "";
-        [["L1", 50], ["L2", 70], ["L3", 90], ["N", 110], ["PE", 130]].forEach(([n, y]) => {
-          r += `<path d="M60 ${y}H975" stroke="${G}" stroke-width="2" ${n === "PE" ? 'stroke-dasharray="10 4"' : ""}/>` + TX(50, y + 4, 12, n, "end", "#555", 600);
-        });
-        return grid(10, "#EEF1F3", 40, 150, 975, 620) + r + TX(975, 38, 9, "3/N/PE AC 400/230 V 50 Hz", "end");
-      }
       case "pneumatik":
         return grid(10, "#EEF1F3", 15, 15, 985, 630) + TX(25, 33, 10, "Energiefluss von unten nach oben: Versorgung unten, Ventile in der Mitte, Antriebe oben", "start");
       case "regelkreis": {

@@ -20,7 +20,6 @@ export function bbox(o){
   const pc = PC[o.k];
   if (pc) {
     if (pc.umriss) return pc.umriss(o);
-    if (o.k === "rail") return {x: o.x, y: o.y - 6, w: o.w || 400, h: 12};
     if (o.k === "insel") return {x: o.x, y: o.y, w: +o.fw || 360, h: +o.fh || 120};
     const X = xform(o), b = {x: o.x + (pc.bx || 0), y: o.y, w: pc.w, h: pc.h};
     if (!X || X.c) return b;   // 0°/180°: gleicher Umriss

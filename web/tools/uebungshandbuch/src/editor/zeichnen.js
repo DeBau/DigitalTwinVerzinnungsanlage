@@ -3,7 +3,7 @@ import { INK, MUTE, PH, SVGT } from './svg.js';
 import { ED } from './status.js';
 import { BLK, FIXED, GRUPPE, PC, VORL, art } from './registry.js';
 import { G, strokesSVG } from './vorlagen-svg.js';
-import { BLUE, DIRV, SK, VALVE, portsOf, pressed, simOn, vrails, vstate, wireD, wireEnds, xform } from './bauteile.js';
+import { BLUE, DIRV, SK, VALVE, istSchiene, portsOf, pressed, simOn, vrails, vstate, wireD, wireEnds, xform } from './bauteile.js';
 import { bbox, bw, ctr, fam, gruppeVon } from './bausteine.js';
 import { verbindeKette } from './kette.js';
 
@@ -148,14 +148,14 @@ export function pageCount(key, d, extraY=0){
   return Math.max(1, Math.ceil((m + 160) / PH));
 }
 export function wireRef(o, port, key, y, x){   // Verweistext: Kennzeichen:Anschluss, Blatt, Strompfad
-  const b = Math.floor(y / PH) + 1, name = o.k === "rail" ? o.v : `${o.v || BLK[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
+  const b = Math.floor(y / PH) + 1, name = istSchiene(o) ? o.v : `${o.v || BLK[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
   const v = VORL[key], pfad = v && v.verweis ? v.verweis(x, y) : "";   // Haken verweis, z. B. Strompfad
   return `${name}, Blatt ${b}${pfad}`;
 }
 export function pcSample(k){
   const mk = BLK[k] && BLK[k].mk, base = (mk && mk.k) || k, pc = PC[base];
-  const o = {k: base, ...(pc.def || {}), ...(mk || {}), x: 0, y: 0, v: ""}; o.k = base; if (base === "rail") o.w = 70;
-  const bx = pc.bx || 0, w = base === "rail" ? 70 : pc.w, h = Math.max(pc.h, 12);
-  o.x = 4 - bx; o.y = base === "rail" ? 10 : 4;
+  const o = {k: base, ...(pc.def || {}), ...(mk || {}), x: 0, y: 0, v: ""}; o.k = base;
+  const bx = pc.bx || 0, w = pc.w, h = Math.max(pc.h, 12);
+  o.x = 4 - bx; o.y = 4;
   return [o, `0 0 ${w + 8} ${h + 8}`, ""];
 }

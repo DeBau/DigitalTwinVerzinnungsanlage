@@ -68,14 +68,14 @@ export function objektFelder(o){
   else if (pc) h += bauteilFelder(o, pc);
   else for (const [f, lbl, ph] of PROPS[o.k] || []) h += textFeld(f, lbl, ph, o[f]);
   if (pc && pc.info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${pc.info}</p>`;
-  if (pc && o.k !== "rail") h += DREHKNOEPFE;
+  if (pc && pc.drehbar !== false) h += DREHKNOEPFE;
   return `<div class="props"><div class="palh">${a.titel || BLK[o.k].n}</div>${h}${h ? SYMS : ""}${loeschKnopf()}</div>`;
 }
 export function bauteilFelder(o, pc){
-  let h = textFeld("v", o.k === "rail" ? "Potenzial, z. B. L+, M, L1, PE" : "Kennzeichen", pc.lbl, o.v);
+  let h = textFeld("v", "Kennzeichen", pc.lbl, o.v);
   for (const [f, lbl, ty, opts] of pc.props || []) {
     if (ty === "select") h += auswahlFeld(f, lbl, opts, o[f] ?? (pc.def || {})[f]);
-    else h += textFeld(f, lbl, "", f === "w" ? (o.w || 400) : o[f]);
+    else h += textFeld(f, lbl, "", o[f]);
   }
   return h;
 }
