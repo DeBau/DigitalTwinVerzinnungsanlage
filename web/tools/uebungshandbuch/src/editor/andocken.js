@@ -7,8 +7,7 @@ import { bbox, ctr, gruppeVon } from './bausteine.js';
 import { clearSel, objById, uid } from './auswahl.js';
 import { andockPunkt, andockStelle, ausrichten, kettenQuelle } from './kette.js';
 import { connGeom, fragtBedingung } from './zeichnen.js';
-import { renderInk } from './anzeige.js';
-import { saveSketch, snapshot } from './verlauf.js';
+import { aendere } from './verlauf.js';
 import { editConnLabel, editObjLabel } from './beschriften.js';
 import { setTool } from './werkzeuge.js';
 
@@ -89,10 +88,12 @@ export function placeObj(k, pt){
   let dock = null;
   if (A) ausrichten(o, A, pt); else dock = smartPos(o).dock;
   avoidBreak(o);
-  snapshot(); ED.data.o.push(o);
-  if (A) ED.data.c.push({a: A.id, b: o.id, v: ""});
-  else if (dock && !linked(dock.a, dock.b)) ED.data.c.push({a: dock.a, b: dock.b, v: ""});
-  ED.sel = o.id; ED.selC = null; saveSketch(); setTool("sel");
+  aendere(d => {
+    d.o.push(o);
+    if (A) d.c.push({a: A.id, b: o.id, v: ""});
+    else if (dock && !linked(dock.a, dock.b)) d.c.push({a: dock.a, b: dock.b, v: ""});
+  }, {ohneRender: true});
+  ED.sel = o.id; ED.selC = null; setTool("sel");
   const b = art(o.k).beschriftung;
   if (b && b.sofort) editObjLabel(o);   // z. B. Transition: Bedingung gleich eintragen
 }
@@ -100,11 +101,11 @@ export function connectPorts(a, pa, b, pb){
   if (a === b && pa === pb) return;
   if (a.startsWith("_") && b.startsWith("_")) return;
   if (ED.data.c.some(c => (c.a === a && c.pa === pa && c.b === b && c.pb === pb) || (c.a === b && c.pa === pb && c.b === a && c.pb === pa))) return;
-  snapshot(); ED.data.c.push({a, pa, b, pb, v: ""}); clearSel(); ED.selC = ED.data.c.length - 1; saveSketch(); renderInk();
+  aendere(d => { d.c.push({a, pa, b, pb, v: ""}); clearSel(); ED.selC = d.c.length - 1; });
 }
 export function connect(a, b){
   const A = objById(a); if (!A || (a === b && !gruppeVon(A).schleife)) return;
   if (ED.data.c.some(c => c.a === a && c.b === b)) return;
-  snapshot(); ED.data.c.push({a, b, v: ""}); ED.selC = ED.data.c.length - 1; ED.sel = null; saveSketch(); renderInk();
+  aendere(d => { d.c.push({a, b, v: ""}); ED.selC = d.c.length - 1; ED.sel = null; });
   if (fragtBedingung(A)) editConnLabel(ED.data.c.length - 1);
 }

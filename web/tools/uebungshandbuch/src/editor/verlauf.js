@@ -1,4 +1,4 @@
-// Editor-Kern: Speichern, Rückgängig und Kopie einer Zeichnung aus einer früheren Übung.
+// Editor-Kern: Verlauf (edit, Transaktionen, Rückgängig, Wiederholen), Speichern, Kopie aus einer früheren Übung.
 import { SHEETS } from '../app/daten.js';
 import { $, BY, S, esc } from '../app/basis.js';
 import { ED } from './status.js';
@@ -8,9 +8,55 @@ import { deDate, skKey } from './blaetter.js';
 import { updateProps } from './eigenschaften.js';
 import { refreshTpl, renderInk } from './anzeige.js';
 
-export function snapshot(){ ED.hist.push(JSON.stringify(ED.data)); if (ED.hist.length > 80) ED.hist.shift(); }
+/* ---------- Verlauf: ED.hist (Rückgängig) und ED.zukunft (Wiederholen), je ein JSON-Stand ---------- */
+// Stand vor einer Änderung ablegen. Eine neue Änderung leert ED.zukunft.
+export function ablegen(stand){
+  ED.hist.push(stand);
+  if (ED.hist.length > 80) ED.hist.shift();
+  ED.zukunft = [];
+}
+// Übergang: Stand merken, auch wenn danach nichts geändert wird. Neue Aufrufer nehmen aendere().
+export function snapshot(){ ablegen(JSON.stringify(ED.data)); }
+// Eine Änderung als ein Verlaufsschritt. aenderung(d) ändert die Zeichnung d oder gibt eine neue zurück.
+// Nur bei echter Änderung (JSON-Vergleich): Verlauf, speichern, Schriftfeld (wenn meta anders), Zeichnung neu.
+// Während einer offenen Transaktion (beginne) entsteht der Verlaufsschritt erst bei schliesse().
+// Gibt true zurück, wenn sich etwas geändert hat.
+export function aendere(aenderung, {ohneRender = false} = {}){
+  const vorher = JSON.stringify(ED.data), metaVorher = JSON.stringify(ED.data.meta);
+  const neu = aenderung(ED.data);
+  if (neu) ED.data = neu;
+  if (JSON.stringify(ED.data) === vorher) return false;
+  if (!ED.tx) ablegen(vorher);
+  saveSketch();
+  if (JSON.stringify(ED.data.meta) !== metaVorher) refreshTpl();
+  if (!ohneRender) renderInk();
+  return true;
+}
+// Transaktion für Ziehen und Tippen: alle aendere() bis schliesse() ergeben einen Verlaufsschritt.
+// schluessel nennt, was gerade bearbeitet wird (z. B. "feld:v"). Derselbe Schlüssel öffnet nicht neu.
+export function beginne(schluessel){
+  if (ED.tx && ED.tx.schluessel === schluessel) return;
+  schliesse();
+  ED.tx = {schluessel, vorher: JSON.stringify(ED.data)};
+}
+export function schliesse(){
+  const tx = ED.tx;
+  ED.tx = null;
+  if (tx && JSON.stringify(ED.data) !== tx.vorher) ablegen(tx.vorher);
+}
+export const kannUndo = () => ED.hist.length > 0;
+export const kannRedo = () => ED.zukunft.length > 0;
 export function saveSketch(){ const d = ED.data; d.ts = Date.now(); S.set(skKey(ED.scope, ED.key), (d.s.length || d.t.length || d.o.length || d.meta) ? d : null); }
-export function undo(){ if (!ED.hist.length) return; ED.data = JSON.parse(ED.hist.pop()); clearSel(); saveSketch(); renderInk(); }
+// Stand aus von holen, den aktuellen nach nach legen (Rückgängig: hist → zukunft, Wiederholen umgekehrt)
+export function holeStand(von, nach){
+  schliesse();
+  if (!von.length) return;
+  nach.push(JSON.stringify(ED.data));
+  ED.data = JSON.parse(von.pop());
+  clearSel(); saveSketch(); renderInk();
+}
+export const undo = () => holeStand(ED.hist, ED.zukunft);
+export const redo = () => holeStand(ED.zukunft, ED.hist);
 /* Zeichnung aus einer anderen Übung übernehmen: Kopie, das Original bleibt unverändert */
 export function takeList(){
   const all = S.all(), suf = ":sk:" + ED.key, out = [];

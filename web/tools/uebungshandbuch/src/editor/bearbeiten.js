@@ -4,7 +4,7 @@ import { PC, STRICHFELD, art } from './registry.js';
 import { objById } from './auswahl.js';
 import { inkSVG } from './zeichnen.js';
 import { refreshTpl, renderInk } from './anzeige.js';
-import { saveSketch, snapshot } from './verlauf.js';
+import { aendere, saveSketch } from './verlauf.js';
 
 // Eingabe im Eigenschaftsfeld übernehmen. f ist das Feld (data-prop), v der neue Wert.
 export function applyProp(f, v){
@@ -41,25 +41,20 @@ export function setzeFeld(f, v){
 }
 export function removeObj(id){ ED.data.o = ED.data.o.filter(o => o.id !== id); ED.data.c = ED.data.c.filter(c => c.a !== id && c.b !== id); if (ED.sel === id) ED.sel = null; }
 export function delSel(){
-  if (ED.sel) { snapshot(); removeObj(ED.sel); }
-  else if (ED.selC !== null && ED.data.c[ED.selC]) { snapshot(); ED.data.c.splice(ED.selC, 1); ED.selC = null; }
-  else if (ED.selS !== null && ED.data.s[ED.selS]) { snapshot(); ED.data.s.splice(ED.selS, 1); ED.selS = null; }
-  else if (ED.selT !== null && ED.data.t[ED.selT]) { snapshot(); ED.data.t.splice(ED.selT, 1); ED.selT = null; }
-  else return;
-  saveSketch(); renderInk();
+  if (ED.sel) aendere(() => removeObj(ED.sel));
+  else if (ED.selC !== null && ED.data.c[ED.selC]) aendere(d => { d.c.splice(ED.selC, 1); ED.selC = null; });
+  else if (ED.selS !== null && ED.data.s[ED.selS]) aendere(d => { d.s.splice(ED.selS, 1); ED.selS = null; });
+  else if (ED.selT !== null && ED.data.t[ED.selT]) aendere(d => { d.t.splice(ED.selT, 1); ED.selT = null; });
 }
 export function turnSel(a){
   const o = objById(ED.sel); if (!o || !PC[o.k] || PC[o.k].drehbar === false) return;
-  snapshot(); if (a === "rot") o.rot = ((o.rot || 0) + 90) % 360; else o.flip = !o.flip;
-  saveSketch(); renderInk();
+  aendere(() => { if (a === "rot") o.rot = ((o.rot || 0) + 90) % 360; else o.flip = !o.flip; });
 }
 export function eraseAt(e){
   const el = document.elementFromPoint(e.clientX, e.clientY); if (!el) return;
   const go = el.closest("[data-o]"), gc = el.closest("[data-c]");
-  if (go) { snapshot(); removeObj(go.dataset.o); }
-  else if (gc) { snapshot(); ED.data.c.splice(+gc.dataset.c, 1); }
-  else if (el.dataset.i !== undefined) { snapshot(); ED.data.s.splice(+el.dataset.i, 1); }
-  else if (el.dataset.ti !== undefined) { snapshot(); ED.data.t.splice(+el.dataset.ti, 1); }
-  else return;
-  saveSketch(); renderInk();
+  if (go) aendere(() => removeObj(go.dataset.o));
+  else if (gc) aendere(d => { d.c.splice(+gc.dataset.c, 1); });
+  else if (el.dataset.i !== undefined) aendere(d => { d.s.splice(+el.dataset.i, 1); });
+  else if (el.dataset.ti !== undefined) aendere(d => { d.t.splice(+el.dataset.ti, 1); });
 }

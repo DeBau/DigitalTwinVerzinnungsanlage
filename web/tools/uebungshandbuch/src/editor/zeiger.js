@@ -11,7 +11,7 @@ import { ausrichten, kettenQuelle } from './kette.js';
 import { connGeom, drawObj } from './zeichnen.js';
 import { updateProps } from './eigenschaften.js';
 import { checkPages, renderInk } from './anzeige.js';
-import { saveSketch, snapshot } from './verlauf.js';
+import { aendere, saveSketch, snapshot } from './verlauf.js';
 import { editConnLabel, editLabel, editObjLabel, editTextItem } from './beschriften.js';
 import { snapW, svgPt } from './werkzeuge.js';
 import { eraseAt } from './bearbeiten.js';
@@ -103,10 +103,7 @@ export function verbindenUnten(e, pt){
 }
 export function neuerText(pt){
   editLabel(pt[0], pt[1], "", "Text, Enter übernimmt", v => {
-    if (!v) return;
-    snapshot();
-    ED.data.t.push({x: pt[0], y: pt[1] + 5, v, c: ED.color, s: 16});
-    saveSketch(); renderInk();
+    if (v) aendere(d => { d.t.push({x: pt[0], y: pt[1] + 5, v, c: ED.color, s: 16}); });
   });
 }
 // Strich cur aufziehen: Zeiger festhalten, Stand merken, Vorschaupfad anlegen. Auch für die Werkzeuge der Vorlagen.

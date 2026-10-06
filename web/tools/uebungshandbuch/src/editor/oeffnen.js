@@ -8,6 +8,8 @@ import { sizeSVG } from './anzeige.js';
 import { setTool } from './werkzeuge.js';
 import { edDown, edMove, edUp } from './zeiger.js';
 
+// Bild für Wiederholen: gespiegeltes Rückgängig (IC.undo). Der Knopf bleibt aus, bis KERN K2 ihn schaltet.
+export const IC_REDO = '<svg class="ic" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>';
 // Linien-Werkzeug, solange eine Vorlage es nicht über werkzeugleiste.linie umbenennt
 export const LINIE_STANDARD = {titel: "Gerade Linie, rastet im 10er-Raster", name: "Linie"};
 // Editor für die Zeichnung der Vorlage key im Bereich scope (Übung oder „frei“) öffnen.
@@ -16,7 +18,7 @@ export function openEditor(scope, key){
   const data = S.get(skKey(scope, key)) || {}; data.s ||= []; data.t ||= []; data.o ||= []; data.c ||= [];
   const pal = PAL[key] || [], v = VORL[key], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
   const keepTool = ["pen","line","rect","text","erase"].includes(ED.tool) ? ED.tool : "pen";
-  Object.assign(ED, {scope, key, data, hist:[], cur:null, sel:null, selC:null, selS:null, selT:null, from:null, place:null, drag:null, tool: pal.length ? "sel" : v.startWerkzeug || keepTool});
+  Object.assign(ED, {scope, key, data, hist:[], zukunft:[], tx:null, cur:null, sel:null, selC:null, selS:null, selT:null, from:null, place:null, drag:null, tool: pal.length ? "sel" : v.startWerkzeug || keepTool});
   const ex = BY[scope], dlg = $("#editor");
   const colors = [["#17212B","Schwarz"],["#0E4C92","Blau"],["#C0392B","Rot"]];
   dlg.innerHTML = `<div class="ed"><div class="edbar">
@@ -35,7 +37,7 @@ export function openEditor(scope, key){
     <span class="sep"></span>
     <button type="button" class="tool" data-w="1.4">dünn</button><button type="button" class="tool" data-w="2.2">mittel</button><button type="button" class="tool" data-w="4">dick</button>
     <span class="sep"></span>
-    <span class="takewrap"><button type="button" class="tool" data-ed="take" aria-haspopup="true" title="Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren">${IC.copy}Aus früherer Übung</button></span><button type="button" class="tool" data-ed="undo" title="Strg+Z">${IC.undo}Rückgängig</button><button type="button" class="tool" data-ed="del" title="Entf">${IC.trash}Markiertes löschen</button><button type="button" class="tool" data-ed="clear">Alles leeren</button>
+    <span class="takewrap"><button type="button" class="tool" data-ed="take" aria-haspopup="true" title="Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren">${IC.copy}Aus früherer Übung</button></span><button type="button" class="tool" data-ed="undo" title="Strg+Z">${IC.undo}Rückgängig</button><button type="button" class="tool" data-ed="redo" title="Strg+Y" disabled>${IC_REDO}Wiederholen</button><button type="button" class="tool" data-ed="del" title="Entf">${IC.trash}Markiertes löschen</button><button type="button" class="tool" data-ed="clear">Alles leeren</button>
     <span style="flex:1"></span>
     <button type="button" class="btn small" data-ed="print">${IC.print}Drucken</button><button type="button" class="btn primary small" data-ed="close">Fertig</button>
   </div><div class="edbody"><aside class="pal" aria-label="Bausteine und Eigenschaften"><div id="props"></div>${pal.length ? paletteHTML(pal) : (v.seitenleiste ? v.seitenleiste() : "") + `<div class="palhelp">${v.hilfe || ""}<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p></div>`}</aside><div class="edstage" id="edstage" tabindex="-1"></div></div></div>`;

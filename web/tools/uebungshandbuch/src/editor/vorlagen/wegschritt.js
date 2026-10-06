@@ -11,7 +11,7 @@ import { anySel, clearSel } from '../auswahl.js';
 import { skMeta } from '../blaetter.js';
 import { updateProps } from '../eigenschaften.js';
 import { refreshTpl, renderInk } from '../anzeige.js';
-import { saveSketch, snapshot } from '../verlauf.js';
+import { aendere, saveSketch, snapshot } from '../verlauf.js';
 import { editLabel } from '../beschriften.js';
 import { setTool, snapW } from '../werkzeuge.js';
 import { beginneStrich } from '../zeiger.js';
@@ -118,9 +118,10 @@ export function zeilennameKlick(e, pt){
 // Verknüpfung: Punkt vor dem Ziel setzen, dazu die Linie mit Pfeil zum Ziel; danach weiter mit Signallinien
 export function setzeVerknuepfung(pt){
   const q = snapW(pt), J = [q[0], q[1] - wsAus(q[1]) * 18];
-  snapshot();
-  ED.data.s.push({k: "vk", t: (ED.wsPreset && ED.wsPreset.t) || "und", c: ED.color, w: 1.2, p: [J]}, {k: "sig", c: ED.color, w: 1.2, p: [J, q], lbl: ""});
-  saveSketch(); setTool("sig"); ED.wsPreset = {}; clearSel(); renderInk(); updateProps(true);
+  aendere(d => {
+    d.s.push({k: "vk", t: (ED.wsPreset && ED.wsPreset.t) || "und", c: ED.color, w: 1.2, p: [J]}, {k: "sig", c: ED.color, w: 1.2, p: [J, q], lbl: ""});
+  }, {ohneRender: true});
+  setTool("sig"); ED.wsPreset = {}; clearSel(); renderInk(); updateProps(true);
 }
 // Zyklusende: die angeklickte Spalte wird zu „n = 1“, ein früheres Zyklusende entfällt
 export function setzeZyklusende(pt){
@@ -131,24 +132,23 @@ export function setzeZyklusende(pt){
   clearSel(); saveSketch(); setTool("sel");
 }
 export function setzeStart(pt){
-  snapshot();
-  ED.data.s.push({k: "st", c: ED.color, w: 1.2, p: [snapW(pt)], lbl: "−SF1"});
-  clearSel(); ED.selS = ED.data.s.length - 1; saveSketch(); setTool("sel");
+  aendere(d => {
+    d.s.push({k: "st", c: ED.color, w: 1.2, p: [snapW(pt)], lbl: "−SF1"});
+    clearSel(); ED.selS = d.s.length - 1;
+  }, {ohneRender: true});
+  setTool("sel");
 }
 // Zweiter Klick mit Signallinie bzw. Funktionslinie: Linie vom gemerkten Punkt bis hier
 export function zweiterKlick(pt){
   const q = snapW(pt), a = ED.pend, same = Math.abs(a[0] - q[0]) < .5 && Math.abs(a[1] - q[1]) < .5;
   $(".ghost", ED.svg).innerHTML = "";
   if (ED.tool === "sig") {
-    snapshot();
-    ED.data.s.push({k: "sig", c: ED.color, w: 1.2, p: [a, q], lbl: "", ...(ED.wsPreset || {})});
-    ED.pend = null; saveSketch(); signalMarkieren();
+    aendere(d => { d.s.push({k: "sig", c: ED.color, w: 1.2, p: [a, q], lbl: "", ...(ED.wsPreset || {})}); }, {ohneRender: true});
+    ED.pend = null; signalMarkieren();
     return;
   }
   if (same) { ED.pend = null; renderInk(); updateProps(true); return; }   // gleicher Punkt: Linienzug beenden
-  snapshot();
-  ED.data.s.push({k: "l", c: ED.color, w: Math.max(ED.w, 2.8), p: [a, q]});
-  ED.pend = q; saveSketch(); renderInk();
+  aendere(d => { d.s.push({k: "l", c: ED.color, w: Math.max(ED.w, 2.8), p: [a, q]}); ED.pend = q; });
 }
 export const WS_ZEIGER = {
   unten(e, pt){

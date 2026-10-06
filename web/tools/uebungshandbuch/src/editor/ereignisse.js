@@ -6,7 +6,7 @@ import { anySel, clearSel, objById } from './auswahl.js';
 import { deDate } from './blaetter.js';
 import { lastProp, setLastProp, updateProps } from './eigenschaften.js';
 import { renderInk, sizeSVG } from './anzeige.js';
-import { saveSketch, snapshot, takeMenu, takeSketch, undo } from './verlauf.js';
+import { aendere, redo, saveSketch, snapshot, takeMenu, takeSketch, undo } from './verlauf.js';
 import { editConnLabel, editObjLabel, editTextItem, newline } from './beschriften.js';
 import { setTool, svgPt } from './werkzeuge.js';
 import { applyProp, delSel, turnSel } from './bearbeiten.js';
@@ -49,6 +49,7 @@ export function paletteLoslassen(e){
 // Knöpfe mit data-ed: Aktion je Name
 export const AKTIONEN = {
   undo: () => undo(),
+  redo: () => redo(),
   take: t => takeMenu(t),
   takeit: t => takeSketch(t.dataset.from),
   rot: () => { if (ED.sel && PC[objById(ED.sel).k]) turnSel("rot"); },
@@ -136,7 +137,7 @@ export function taste(e){
   if (e.key === "Escape" && abbrechen(e)) return;
   if ((e.key === "Delete" || e.key === "Backspace") && anySel()) { e.preventDefault(); delSel(); return; }
   if (e.key.startsWith("Arrow") && (ED.sel || ED.selS !== null || ED.selT !== null)) {
-    e.preventDefault(); snapshot(); verschiebeMarkiertes(e.key); saveSketch(); renderInk();
+    e.preventDefault(); aendere(() => verschiebeMarkiertes(e.key));
   }
 }
 
