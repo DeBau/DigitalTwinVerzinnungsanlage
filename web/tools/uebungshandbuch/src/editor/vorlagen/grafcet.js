@@ -137,15 +137,15 @@ export function transitionName(o, objs, cs, dir){
   if (c) return `Schritt ${(dir === "von" ? objs[c.a] : objs[c.b]).v}`;
   return o.v ? `Transition ${o.v}` : "Transition";
 }
-export const breite = o => o.w || 200;
+export const verzweigungsBreite = o => o.w || 200;
 export const VERZWEIGUNG = {
-  aus: (o, tx) => [clamp(tx, o.x, o.x + breite(o)), o.y],
-  ein: (o, fx) => [clamp(fx, o.x, o.x + breite(o)), o.y],
+  aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y],
+  ein: (o, fx) => [clamp(fx, o.x, o.x + verzweigungsBreite(o)), o.y],
   einrueck: 100,
   neu(o, [px, py]){ o.x = px - 100; o.y = py; o.w = 200; },
-  felder: o => textFeld("w", "Breite", undefined, breite(o)),
+  felder: o => textFeld("w", "Breite", undefined, verzweigungsBreite(o)),
   beschriftung: {
-    wert: o => String(breite(o)),
+    wert: o => String(verzweigungsBreite(o)),
     setze(o, v){ const w = parseInt(v, 10); if (w >= 40) o.w = Math.round(w/10)*10; },
   },
 };
@@ -200,12 +200,12 @@ fuelle(BLK, {
   acte: {g: "grafcet", n: "Aktion bei Ereignis", mk: {k: "action", t: "ereig", b: ""}},
   actionq: {...AKTION, n: "Aktion mit Bestimmungszeichen", mk: {k: "action", t: "q", q: "S"}},
   alt: {g: "grafcet", n: "ODER-Verzweigung", ...VERZWEIGUNG,
-    zeichne: o => `<path d="M${o.x} ${o.y}H${o.x+breite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
-    umriss: o => ({x: o.x, y: o.y-5, w: breite(o), h: 10})},
+    zeichne: o => `<path d="M${o.x} ${o.y}H${o.x+verzweigungsBreite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
+    umriss: o => ({x: o.x, y: o.y-5, w: verzweigungsBreite(o), h: 10})},
   par: {g: "grafcet", n: "UND-Verzweigung", ...VERZWEIGUNG,
-    zeichne: o => `<path d="M${o.x} ${o.y}H${o.x+breite(o)}M${o.x} ${o.y+5}H${o.x+breite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
-    aus: (o, tx) => [clamp(tx, o.x, o.x + breite(o)), o.y+5],
-    umriss: o => ({x: o.x, y: o.y-5, w: breite(o), h: 15})},
+    zeichne: o => `<path d="M${o.x} ${o.y}H${o.x+verzweigungsBreite(o)}M${o.x} ${o.y+5}H${o.x+verzweigungsBreite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
+    aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y+5],
+    umriss: o => ({x: o.x, y: o.y-5, w: verzweigungsBreite(o), h: 15})},
   ref: {g: "grafcet", n: "Verweis / Sprung",
     zeichne: (o, edit) => `<path d="M${o.x} ${o.y}V${o.y+30}M${o.x-5} ${o.y+23}L${o.x} ${o.y+31}L${o.x+5} ${o.y+23}" ${LINIE} fill="none"/>`
       + (o.v ? SVGT(o.x+9, o.y+29, o.v, "start", 12, 500) : platzhalter(edit, "Ziel, z. B. 1", o.x+9, o.y+29, "start")),

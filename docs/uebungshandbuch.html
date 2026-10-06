@@ -1406,16 +1406,17 @@ pre.code code{font-size:inherit}
 
   // web/tools/uebungshandbuch/src/editor/zeichnen.js
   function drawObj(o, edit) {
-    if (PC[o.k]) {
-      const svg = PC[o.k].draw(o, edit), X = xform(o);
-      if (!X) return svg;
-      const swap = X.f * X.c < 0;
-      const upright = svg.replace(/<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)"/g, (m, x, y, a2) => `<text transform="translate(${x} ${y}) scale(${X.f} 1) rotate(${-X.r}) translate(${-x} ${-y})" x="${x}" y="${y}" text-anchor="${swap && a2 !== "middle" ? a2 === "end" ? "start" : "end" : a2}"`);
-      return `<g transform="translate(${X.cx} ${X.cy}) rotate(${X.r}) scale(${X.f} 1) translate(${-X.cx} ${-X.cy})">${upright}</g>`;
-    }
+    if (PC[o.k]) return gedreht(o, PC[o.k].draw(o, edit));
     const a = BLK[o.k];
     if (a && a.zeichne) return a.zeichne(o, edit);
     return "";
+  }
+  function gedreht(o, svg) {
+    const X = xform(o);
+    if (!X) return svg;
+    const swap = X.f * X.c < 0;
+    const upright = svg.replace(/<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)"/g, (m, x, y, a) => `<text transform="translate(${x} ${y}) scale(${X.f} 1) rotate(${-X.r}) translate(${-x} ${-y})" x="${x}" y="${y}" text-anchor="${swap && a !== "middle" ? a === "end" ? "start" : "end" : a}"`);
+    return `<g transform="translate(${X.cx} ${X.cy}) rotate(${X.r}) scale(${X.f} 1) translate(${-X.cx} ${-X.cy})">${upright}</g>`;
   }
   function refName(o, objs, cs, dir) {
     const a = art(o.k);
@@ -1430,27 +1431,101 @@ pre.code code{font-size:inherit}
       if (!e) return null;
       return { d: wireD(e[0], e[1]), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"] };
     }
-    const g = fam(A), G3 = GRUPPE[g] || {};
+    const G3 = GRUPPE[fam(A)] || {};
     if (G3.kette) return verbindeKette(A, B);
     if (G3.verbinde) return G3.verbinde(c, A, B, objs, all);
+    return verbindeRechtwinklig(A, B);
+  }
+  function randPunkt(o, b, dir) {
+    const c = ctr(o), r = art(o.k).radius;
+    if (r) return { r: [c[0] + r, c[1]], l: [c[0] - r, c[1]], d: [c[0], c[1] + r], u: [c[0], c[1] - r] }[dir];
+    return { r: [b.x + b.w, c[1]], l: [b.x, c[1]], d: [c[0], b.y + b.h], u: [c[0], b.y] }[dir];
+  }
+  function verbindeRechtwinklig(A, B) {
     const ba = bbox(A), bb = bbox(B), ca = ctr(A), cb = ctr(B), dx = cb[0] - ca[0], dy = cb[1] - ca[1];
-    const edge = (o, b, dir) => {
-      const c2 = ctr(o), r = art(o.k).radius;
-      if (r) return dir === "r" ? [c2[0] + r, c2[1]] : dir === "l" ? [c2[0] - r, c2[1]] : dir === "d" ? [c2[0], c2[1] + r] : [c2[0], c2[1] - r];
-      return dir === "r" ? [b.x + b.w, c2[1]] : dir === "l" ? [b.x, c2[1]] : dir === "d" ? [c2[0], b.y + b.h] : [c2[0], b.y];
-    };
     if (Math.abs(dx) >= Math.abs(dy)) {
-      const p12 = edge(A, ba, dx >= 0 ? "r" : "l"), p22 = edge(B, bb, dx >= 0 ? "l" : "r"), m2 = Math.round((p12[0] + p22[0]) / 2);
-      return { d: Math.abs(p12[1] - p22[1]) < 1 ? `M${p12[0]} ${p12[1]}H${p22[0]}` : `M${p12[0]} ${p12[1]}H${m2}V${p22[1]}H${p22[0]}`, arrow: true, lbl: [m2, Math.min(p12[1], p22[1]) - 8, "middle"] };
+      const p12 = randPunkt(A, ba, dx >= 0 ? "r" : "l"), p22 = randPunkt(B, bb, dx >= 0 ? "l" : "r"), m2 = Math.round((p12[0] + p22[0]) / 2);
+      const d2 = Math.abs(p12[1] - p22[1]) < 1 ? `M${p12[0]} ${p12[1]}H${p22[0]}` : `M${p12[0]} ${p12[1]}H${m2}V${p22[1]}H${p22[0]}`;
+      return { d: d2, arrow: true, lbl: [m2, Math.min(p12[1], p22[1]) - 8, "middle"] };
     }
-    const p1 = edge(A, ba, dy >= 0 ? "d" : "u"), p2 = edge(B, bb, dy >= 0 ? "u" : "d"), m = Math.round((p1[1] + p2[1]) / 2);
-    return { d: Math.abs(p1[0] - p2[0]) < 1 ? `M${p1[0]} ${p1[1]}V${p2[1]}` : `M${p1[0]} ${p1[1]}V${m}H${p2[0]}V${p2[1]}`, arrow: true, lbl: [Math.max(p1[0], p2[0]) + 8, m + 4, "start"] };
+    const p1 = randPunkt(A, ba, dy >= 0 ? "d" : "u"), p2 = randPunkt(B, bb, dy >= 0 ? "u" : "d"), m = Math.round((p1[1] + p2[1]) / 2);
+    const d = Math.abs(p1[0] - p2[0]) < 1 ? `M${p1[0]} ${p1[1]}V${p2[1]}` : `M${p1[0]} ${p1[1]}V${m}H${p2[0]}V${p2[1]}`;
+    return { d, arrow: true, lbl: [Math.max(p1[0], p2[0]) + 8, m + 4, "start"] };
   }
   var fragtBedingung = (A) => {
     const b = gruppeVon(A).bedingung;
     return !!b && b(A);
   };
+  var treffer = (d, edit) => edit ? `<path d="${d}" fill="none" stroke="transparent" stroke-width="12"/>` : "";
+  var blattwechsel = (y1, y2, key) => !FIXED[key] && Math.floor(y1 / PH) !== Math.floor(y2 / PH);
+  function leitungSVG(c, i, gm, objs, key, edit) {
+    const [a, b] = gm.ends, sel = edit && ED.selC === i;
+    const P = simOn() && ED.sim.P && (ED.sim.P.has(c.a + ":" + c.pa) || ED.sim.P.has(c.b + ":" + c.pb));
+    const wc = sel ? "#0E4C92" : P ? BLUE : INK, ww = sel || P ? 2.4 : 1.6, dash = c.st ? 'stroke-dasharray="6 4"' : "";
+    if (!blattwechsel(a.y, b.y, key)) {
+      return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash}/>${treffer(gm.d, edit)}${c.v ? SVGT(gm.lbl[0], gm.lbl[1], c.v, "start", 11, 500) : ""}</g>`;
+    }
+    const stub = (q, n) => [q.x + (q.d === "r" ? n : q.d === "l" ? -n : 0), q.y + (q.d === "d" ? n : q.d === "u" ? -n : 0)];
+    const e1 = stub(a, 30), e2 = stub(b, 30);
+    const t1 = `→ ${wireRef(objs[c.b], c.pb, key, b.y, b.x)}`, t2 = `von ${wireRef(objs[c.a], c.pa, key, a.y, a.x)}`;
+    const lab = (q, e, t) => {
+      const v = q.d === "u" || q.d === "d";
+      return SVGT(e[0] + (v ? 5 : 0), e[1] + (v ? q.d === "d" ? 4 : 2 : -5), t, "start", 10.5, 600);
+    };
+    const d1 = `M${a.x} ${a.y}L${e1[0]} ${e1[1]}`, d2 = `M${e2[0]} ${e2[1]}L${b.x} ${b.y}`;
+    const pfeil = (d) => `<path d="${d}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash} marker-end="url(#arw)"/>`;
+    return `<g data-c="${i}">${pfeil(d1)}${pfeil(d2)}${lab(a, e1, t1)}${lab(b, e2, t2)}` + treffer(d1 + d2, edit) + `</g>`;
+  }
+  function verbindungSVG(c, i, gm, objs, cs, key, edit) {
+    const sel = edit && ED.selC === i, col = sel ? "#0E4C92" : INK, staerke = sel ? 2.2 : 1.6;
+    if (gm.p1 && blattwechsel(gm.p1[1], gm.p2[1] - 1, key)) {
+      const [x1, y1] = gm.p1, [x2, y2] = gm.p2, b1 = Math.floor(y1 / PH) + 1, b2 = Math.floor((y2 - 1) / PH) + 1;
+      const zu = `→ ${refName(objs[c.b], objs, cs, "zu")}, Blatt ${b2}`, von = `von ${refName(objs[c.a], objs, cs, "von")}, Blatt ${b1}`;
+      const stummel = (d) => `<path d="${d}" fill="none" stroke="${col}" stroke-width="${staerke}" marker-end="url(#arw)"/>`;
+      return `<g data-c="${i}">${stummel(`M${x1} ${y1}V${y1 + 30}`)}${stummel(`M${x2} ${y2 - 34}V${y2}`)}` + SVGT(x1 + 10, y1 + 28, zu, "start", 11.5, 600) + SVGT(x2 + 10, y2 - 22, von, "start", 11.5, 600) + treffer(`M${x1} ${y1}V${y1 + 30}M${x2} ${y2 - 34}V${y2}`, edit) + `</g>`;
+    }
+    const up = gm.up ? `<path d="M${gm.up[0] - 6} ${gm.up[1] + 5}L${gm.up[0]} ${gm.up[1] - 6}L${gm.up[0] + 6} ${gm.up[1] + 5}" fill="none" stroke="${col}" stroke-width="1.6"/>` : "";
+    let lbl = "";
+    if (gm.lbl && c.v) lbl = SVGT(gm.lbl[0], gm.lbl[1], c.v, gm.lbl[2], 12, 500);
+    else if (gm.lbl && edit && fragtBedingung(objs[c.a])) lbl = SVGT(gm.lbl[0], gm.lbl[1], "Bedingung", gm.lbl[2], 11, 400, MUTE);
+    return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${col}" stroke-width="${staerke}" ${gm.arrow ? 'marker-end="url(#arw)"' : ""}/>${up}${treffer(gm.d, edit)}${lbl}</g>`;
+  }
   var istRahmen = (o) => !!(PC[o.k] && PC[o.k].rahmen);
+  function bausteinSVG(o, edit) {
+    const b = bbox(o), hi = edit && (ED.sel === o.id || ED.from === o.id), fr = istRahmen(o);
+    let h = "";
+    if (edit && fr) h = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? 0.25 : 0}" stroke-width="12"/>`;
+    if (edit && !fr) h = `<rect x="${b.x - 5}" y="${b.y - 5}" width="${b.w + 10}" height="${b.h + 10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${ED.from === o.id ? "2 3" : "5 3"}"` : ""}/>`;
+    return `<g data-o="${o.id}">${h}${drawObj(o, edit)}</g>`;
+  }
+  function punkteSVG(d, cs, objs, edit) {
+    let s = "";
+    const cnt = {}, dot = (q) => `<circle cx="${q.x}" cy="${q.y}" r="2.8" fill="${INK}"/>`;
+    cs.forEach((c) => {
+      if (c.pa === void 0 && c.pb === void 0) return;
+      const e = wireEnds(c, objs);
+      if (!e) return;
+      [[c.a, c.pa, e[0]], [c.b, c.pb, e[1]]].forEach(([id, pn, q]) => {
+        if (q.rail) s += dot(q);
+        else {
+          const k = id + ":" + pn;
+          (cnt[k] = cnt[k] || { n: 0, q }).n++;
+        }
+      });
+    });
+    Object.values(cnt).forEach((v) => {
+      if (v.n >= 2) s += dot(v.q);
+    });
+    (d.o || []).forEach((o) => {
+      const pc = PC[o.k];
+      if (pc && pc.zusatz) s += pc.zusatz(o, (n) => !!cnt[o.id + ":" + n]);
+    });
+    if (edit && ED.tool === "conn") (d.o || []).forEach((o) => portsOf(o).forEach((q) => {
+      const f = ED.from === o.id && ED.fromP === q.n;
+      s += `<circle cx="${q.x}" cy="${q.y}" r="${f ? 5 : 3.6}" fill="${f ? BLUE : "#fff"}" stroke="${BLUE}" stroke-width="1.5" pointer-events="none"/>`;
+    }));
+    return s;
+  }
   function inkSVG(d, edit = false, key = null) {
     if (!d) return "";
     const objs = Object.fromEntries((d.o || []).map((o) => [o.id, o])), cs = d.c || [];
@@ -1462,63 +1537,10 @@ pre.code code{font-size:inherit}
     const conns = cs.map((c, i) => {
       const gm = connGeom(c, objs, cs);
       if (!gm) return "";
-      const sel = edit && ED.selC === i, col = sel ? "#0E4C92" : INK, g = fam(objs[c.a]);
-      if (gm.wire) {
-        const [a, b] = gm.ends, P = simOn() && ED.sim.P && (ED.sim.P.has(c.a + ":" + c.pa) || ED.sim.P.has(c.b + ":" + c.pb));
-        const wc = sel ? "#0E4C92" : P ? BLUE : INK, ww = sel || P ? 2.4 : 1.6, dash = c.st ? 'stroke-dasharray="6 4"' : "";
-        if (!FIXED[key] && Math.floor(a.y / PH) !== Math.floor(b.y / PH)) {
-          const stub = (q, n) => [q.x + (q.d === "r" ? n : q.d === "l" ? -n : 0), q.y + (q.d === "d" ? n : q.d === "u" ? -n : 0)];
-          const e1 = stub(a, 30), e2 = stub(b, 30);
-          const t1 = `→ ${wireRef(objs[c.b], c.pb, key, b.y, b.x)}`, t2 = `von ${wireRef(objs[c.a], c.pa, key, a.y, a.x)}`;
-          const lab = (q, e, t) => {
-            const v2 = q.d === "u" || q.d === "d";
-            return SVGT(e[0] + (v2 ? 5 : 0), e[1] + (v2 ? q.d === "d" ? 4 : 2 : -5), t, "start", 10.5, 600);
-          };
-          const d1 = `M${a.x} ${a.y}L${e1[0]} ${e1[1]}`, d2 = `M${e2[0]} ${e2[1]}L${b.x} ${b.y}`;
-          return `<g data-c="${i}"><path d="${d1}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash} marker-end="url(#arw)"/><path d="${d2}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash} marker-end="url(#arw)"/>${lab(a, e1, t1)}${lab(b, e2, t2)}` + (edit ? `<path d="${d1}${d2}" fill="none" stroke="transparent" stroke-width="12"/>` : "") + `</g>`;
-        }
-        return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash}/>${edit ? `<path d="${gm.d}" fill="none" stroke="transparent" stroke-width="12"/>` : ""}${c.v ? SVGT(gm.lbl[0], gm.lbl[1], c.v, "start", 11, 500) : ""}</g>`;
-      }
-      if (gm.p1 && !FIXED[key] && Math.floor(gm.p1[1] / PH) !== Math.floor((gm.p2[1] - 1) / PH)) {
-        const [x1, y1] = gm.p1, [x2, y2] = gm.p2, b1 = Math.floor(y1 / PH) + 1, b2 = Math.floor((y2 - 1) / PH) + 1;
-        const zu = `→ ${refName(objs[c.b], objs, cs, "zu")}, Blatt ${b2}`, von = `von ${refName(objs[c.a], objs, cs, "von")}, Blatt ${b1}`;
-        const d2 = `M${x1} ${y1}V${y1 + 30}M${x2} ${y2 - 34}V${y2}`;
-        return `<g data-c="${i}"><path d="M${x1} ${y1}V${y1 + 30}" fill="none" stroke="${col}" stroke-width="${sel ? 2.2 : 1.6}" marker-end="url(#arw)"/><path d="M${x2} ${y2 - 34}V${y2}" fill="none" stroke="${col}" stroke-width="${sel ? 2.2 : 1.6}" marker-end="url(#arw)"/>` + SVGT(x1 + 10, y1 + 28, zu, "start", 11.5, 600) + SVGT(x2 + 10, y2 - 22, von, "start", 11.5, 600) + (edit ? `<path d="${d2}" fill="none" stroke="transparent" stroke-width="12"/>` : "") + `</g>`;
-      }
-      const up = gm.up ? `<path d="M${gm.up[0] - 6} ${gm.up[1] + 5}L${gm.up[0]} ${gm.up[1] - 6}L${gm.up[0] + 6} ${gm.up[1] + 5}" fill="none" stroke="${col}" stroke-width="1.6"/>` : "";
-      const lbl = gm.lbl ? c.v ? SVGT(gm.lbl[0], gm.lbl[1], c.v, gm.lbl[2], 12, 500) : edit && fragtBedingung(objs[c.a]) ? SVGT(gm.lbl[0], gm.lbl[1], "Bedingung", gm.lbl[2], 11, 400, MUTE) : "" : "";
-      return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${col}" stroke-width="${sel ? 2.2 : 1.6}" ${gm.arrow ? 'marker-end="url(#arw)"' : ""}/>${up}${edit ? `<path d="${gm.d}" fill="none" stroke="transparent" stroke-width="12"/>` : ""}${lbl}</g>`;
+      return gm.wire ? leitungSVG(c, i, gm, objs, key, edit) : verbindungSVG(c, i, gm, objs, cs, key, edit);
     }).join("");
-    const os = [...d.o || []].sort((a, b) => istRahmen(b) - istRahmen(a)).map((o) => {
-      const b = bbox(o), hi = edit && (ED.sel === o.id || ED.from === o.id), fr = istRahmen(o);
-      return `<g data-o="${o.id}">${edit && fr ? `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? 0.25 : 0}" stroke-width="12"/>` : ""}${edit && !fr ? `<rect x="${b.x - 5}" y="${b.y - 5}" width="${b.w + 10}" height="${b.h + 10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${ED.from === o.id ? "2 3" : "5 3"}"` : ""}/>` : ""}${drawObj(o, edit)}</g>`;
-    }).join("");
-    let extra = "";
-    const cnt = {}, dot = (q) => `<circle cx="${q.x}" cy="${q.y}" r="2.8" fill="${INK}"/>`;
-    cs.forEach((c) => {
-      if (c.pa === void 0 && c.pb === void 0) return;
-      const e = wireEnds(c, objs);
-      if (!e) return;
-      [[c.a, c.pa, e[0]], [c.b, c.pb, e[1]]].forEach(([id, pn, q]) => {
-        if (q.rail) extra += dot(q);
-        else {
-          const k = id + ":" + pn;
-          (cnt[k] = cnt[k] || { n: 0, q }).n++;
-        }
-      });
-    });
-    Object.values(cnt).forEach((v2) => {
-      if (v2.n >= 2) extra += dot(v2.q);
-    });
-    (d.o || []).forEach((o) => {
-      const pc = PC[o.k];
-      if (pc && pc.zusatz) extra += pc.zusatz(o, (n) => !!cnt[o.id + ":" + n]);
-    });
-    if (edit && ED.tool === "conn") (d.o || []).forEach((o) => portsOf(o).forEach((q) => {
-      const f = ED.from === o.id && ED.fromP === q.n;
-      extra += `<circle cx="${q.x}" cy="${q.y}" r="${f ? 5 : 3.6}" fill="${f ? BLUE : "#fff"}" stroke="${BLUE}" stroke-width="1.5" pointer-events="none"/>`;
-    }));
-    return rails + conns + os + extra + strokesSVG(d, edit);
+    const os = [...d.o || []].sort((a, b) => istRahmen(b) - istRahmen(a)).map((o) => bausteinSVG(o, edit)).join("");
+    return rails + conns + os + punkteSVG(d, cs, objs, edit) + strokesSVG(d, edit);
   }
   function pageCount(key, d, extraY = 0) {
     if (FIXED[key]) return 1;
@@ -2401,14 +2423,17 @@ pre.code code{font-size:inherit}
   }
 
   // web/tools/uebungshandbuch/src/editor/zeiger.js
+  var VORSCHAU = (d) => `<path d="${d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`;
+  var zeigerHaken = () => VORL[ED.key] && VORL[ED.key].zeiger || {};
+  var festhalten = (e) => ED.svg.setPointerCapture(e.pointerId);
   function edDown(e) {
     if (!e.target.closest("input")) {
       e.preventDefault();
       const sl = getSelection();
       if (sl && sl.rangeCount) sl.removeAllRanges();
     }
-    const svg = ED.svg, pt = svgPt(svg, e), hitO = e.target.closest("[data-o]"), hitC = e.target.closest("[data-c]");
-    const zeiger = VORL[ED.key].zeiger || {};
+    const pt = svgPt(ED.svg, e);
+    const zeiger = zeigerHaken();
     if (zeiger.unten && zeiger.unten(e, pt)) return;
     if (ED.tool === "place" && ED.place) {
       e.preventDefault();
@@ -2417,141 +2442,133 @@ pre.code code{font-size:inherit}
     }
     if (ED.tool === "sel") {
       e.preventDefault();
-      const hitH = e.target.closest("[data-hi]"), hitS = e.target.closest("[data-i]"), hitT = e.target.closest("[data-ti]");
-      if (e.target.closest("[data-sf]") && !hitO && !hitS && !hitT) {
-        clearSel();
-        ED.selF = true;
-        renderInk();
-        updateProps("neu");
-        const f = $('#props [data-prop="mn"]');
-        if (f) f.focus();
-        return;
-      }
-      if (hitH) {
-        ED.drag = { kind: "h", i: +hitH.dataset.hi, h: +hitH.dataset.h, sx: pt[0], sy: pt[1], moved: false };
-        svg.setPointerCapture(e.pointerId);
-        return;
-      }
-      const now = Date.now(), hitId = hitO ? hitO.dataset.o : hitC ? "c" + hitC.dataset.c : hitT ? "t" + hitT.dataset.ti : hitS ? "s" + hitS.dataset.i : null;
-      const dbl = hitId && ED.lastClick && ED.lastClick.id === hitId && now - ED.lastClick.t < 450;
-      ED.lastClick = dbl ? null : { id: hitId, t: now };
-      clearSel();
-      if (dbl && hitO) {
-        ED.sel = hitO.dataset.o;
-        renderInk();
-        editObjLabel(objById(ED.sel));
-        return;
-      }
-      if (dbl && hitC) {
-        ED.selC = +hitC.dataset.c;
-        renderInk();
-        editConnLabel(ED.selC);
-        return;
-      }
-      if (dbl && hitT) {
-        ED.selT = +hitT.dataset.ti;
-        renderInk();
-        editTextItem(ED.selT);
-        return;
-      }
-      if (hitO) {
-        const o = objById(hitO.dataset.o);
-        ED.sel = o.id;
-        ED.drag = { id: o.id, sx: pt[0], sy: pt[1], ox: o.x, oy: o.y, moved: false };
-        svg.setPointerCapture(e.pointerId);
-        renderInk();
-        return;
-      }
-      if (hitC) {
-        ED.selC = +hitC.dataset.c;
-        renderInk();
-        return;
-      }
-      if (hitT) {
-        const i = +hitT.dataset.ti, t = ED.data.t[i];
-        ED.selT = i;
-        ED.drag = { kind: "t", i, sx: pt[0], sy: pt[1], ox: t.x, oy: t.y, moved: false };
-        svg.setPointerCapture(e.pointerId);
-        renderInk();
-        return;
-      }
-      if (hitS) {
-        const i = +hitS.dataset.i;
-        ED.selS = i;
-        ED.drag = { kind: "s", i, sx: pt[0], sy: pt[1], orig: JSON.parse(JSON.stringify(ED.data.s[i].p)), moved: false };
-        svg.setPointerCapture(e.pointerId);
-        renderInk();
-        return;
-      }
-      renderInk();
+      auswahlUnten(e, pt);
       return;
     }
     if (ED.tool === "conn") {
       e.preventDefault();
-      let id = hitO && hitO.dataset.o;
-      if (!id) {
-        const vr = vrails(ED.key, ED.pages || 1).find((r) => Math.abs(pt[1] - r.y) < 8 && pt[0] >= r.x && pt[0] <= r.x + r.w);
-        if (vr) id = vr.id;
-      }
-      if (!id) {
-        ED.from = null;
-        ED.fromP = null;
-        renderInk();
-        return;
-      }
-      const o = objById(id);
-      if (portCap(o)) {
-        const pn = nearestPort(o, pt);
-        if (!ED.from) {
-          ED.from = id;
-          ED.fromP = pn;
-          renderInk();
-          return;
-        }
-        const a2 = ED.from, pa = ED.fromP;
-        ED.from = null;
-        ED.fromP = null;
-        if (portCap(objById(a2))) connectPorts(a2, pa, id, pn);
-        else connect(a2, id);
-        renderInk();
-        return;
-      }
-      if (!ED.from) {
-        ED.from = id;
-        ED.fromP = null;
-        renderInk();
-        return;
-      }
-      const a = ED.from;
-      ED.from = null;
-      ED.fromP = null;
-      connect(a, id);
-      renderInk();
+      verbindenUnten(e, pt);
       return;
     }
     if (ED.tool === "erase") {
       ED.erasing = true;
-      svg.setPointerCapture(e.pointerId);
+      festhalten(e);
       eraseAt(e);
       return;
     }
     if (ED.tool === "text") {
       e.preventDefault();
-      editLabel(pt[0], pt[1], "", "Text, Enter übernimmt", (v) => {
-        if (v) {
-          snapshot();
-          ED.data.t.push({ x: pt[0], y: pt[1] + 5, v, c: ED.color, s: 16 });
-          saveSketch();
-          renderInk();
-        }
-      });
+      neuerText(pt);
       return;
     }
     const q = ED.tool === "pen" ? pt : snapW(pt);
-    beginneStrich(e, ED.tool === "pen" ? { c: ED.color, w: ED.w, p: [q] } : { k: { line: "l", rect: "r" }[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q] });
+    if (ED.tool === "pen") beginneStrich(e, { c: ED.color, w: ED.w, p: [q] });
+    else beginneStrich(e, { k: { line: "l", rect: "r" }[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q] });
+  }
+  function auswahlUnten(e, pt) {
+    const hitO = e.target.closest("[data-o]"), hitC = e.target.closest("[data-c]");
+    const hitH = e.target.closest("[data-hi]"), hitS = e.target.closest("[data-i]"), hitT = e.target.closest("[data-ti]");
+    if (e.target.closest("[data-sf]") && !hitO && !hitS && !hitT) {
+      schriftfeldWaehlen();
+      return;
+    }
+    if (hitH) {
+      ED.drag = { kind: "h", i: +hitH.dataset.hi, h: +hitH.dataset.h, sx: pt[0], sy: pt[1], moved: false };
+      festhalten(e);
+      return;
+    }
+    const dbl = doppelklick(hitO ? hitO.dataset.o : hitC ? "c" + hitC.dataset.c : hitT ? "t" + hitT.dataset.ti : hitS ? "s" + hitS.dataset.i : null);
+    clearSel();
+    if (dbl && hitO) {
+      ED.sel = hitO.dataset.o;
+      renderInk();
+      editObjLabel(objById(ED.sel));
+      return;
+    }
+    if (dbl && hitC) {
+      ED.selC = +hitC.dataset.c;
+      renderInk();
+      editConnLabel(ED.selC);
+      return;
+    }
+    if (dbl && hitT) {
+      ED.selT = +hitT.dataset.ti;
+      renderInk();
+      editTextItem(ED.selT);
+      return;
+    }
+    if (hitO) {
+      const o = objById(hitO.dataset.o);
+      ED.sel = o.id;
+      ED.drag = { id: o.id, sx: pt[0], sy: pt[1], ox: o.x, oy: o.y, moved: false };
+      festhalten(e);
+    } else if (hitC) {
+      ED.selC = +hitC.dataset.c;
+    } else if (hitT) {
+      const i = +hitT.dataset.ti, t = ED.data.t[i];
+      ED.selT = i;
+      ED.drag = { kind: "t", i, sx: pt[0], sy: pt[1], ox: t.x, oy: t.y, moved: false };
+      festhalten(e);
+    } else if (hitS) {
+      const i = +hitS.dataset.i;
+      ED.selS = i;
+      ED.drag = { kind: "s", i, sx: pt[0], sy: pt[1], orig: JSON.parse(JSON.stringify(ED.data.s[i].p)), moved: false };
+      festhalten(e);
+    }
+    renderInk();
+  }
+  function doppelklick(id) {
+    const now = Date.now();
+    const dbl = id && ED.lastClick && ED.lastClick.id === id && now - ED.lastClick.t < 450;
+    ED.lastClick = dbl ? null : { id, t: now };
+    return dbl;
+  }
+  function schriftfeldWaehlen() {
+    clearSel();
+    ED.selF = true;
+    renderInk();
+    updateProps("neu");
+    const f = $('#props [data-prop="mn"]');
+    if (f) f.focus();
+  }
+  function verbindenUnten(e, pt) {
+    const hitO = e.target.closest("[data-o]");
+    let id = hitO && hitO.dataset.o;
+    if (!id) {
+      const vr = vrails(ED.key, ED.pages || 1).find((r) => Math.abs(pt[1] - r.y) < 8 && pt[0] >= r.x && pt[0] <= r.x + r.w);
+      if (vr) id = vr.id;
+    }
+    if (!id) {
+      ED.from = null;
+      ED.fromP = null;
+      renderInk();
+      return;
+    }
+    const o = objById(id), pn = portCap(o) ? nearestPort(o, pt) : null;
+    if (!ED.from) {
+      ED.from = id;
+      ED.fromP = pn;
+      renderInk();
+      return;
+    }
+    const a = ED.from, pa = ED.fromP;
+    ED.from = null;
+    ED.fromP = null;
+    if (portCap(o) && portCap(objById(a))) connectPorts(a, pa, id, pn);
+    else connect(a, id);
+    renderInk();
+  }
+  function neuerText(pt) {
+    editLabel(pt[0], pt[1], "", "Text, Enter übernimmt", (v) => {
+      if (!v) return;
+      snapshot();
+      ED.data.t.push({ x: pt[0], y: pt[1] + 5, v, c: ED.color, s: 16 });
+      saveSketch();
+      renderInk();
+    });
   }
   function beginneStrich(e, cur) {
-    ED.svg.setPointerCapture(e.pointerId);
+    festhalten(e);
     snapshot();
     ED.cur = cur;
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -2575,71 +2592,16 @@ pre.code code{font-size:inherit}
     const busy = ED.drag || ED.cur || ED.tool === "place" && ED.place;
     ED.extraY = busy ? pt[1] : 0;
     checkPages();
-    if (busy) {
-      const st = $("#edstage"), r = st.getBoundingClientRect();
-      if (e.clientY > r.bottom - 36) st.scrollTop += 18;
-      else if (e.clientY < r.top + 36) st.scrollTop -= 18;
-    }
+    if (busy) randScrollen(e);
     if (ED.drag) {
-      const dx = pt[0] - ED.drag.sx, dy = pt[1] - ED.drag.sy;
-      if (!ED.drag.moved && Math.hypot(dx, dy) < 3) return;
-      if (!ED.drag.moved) {
-        snapshot();
-        ED.drag.moved = true;
-      }
-      if (ED.drag.kind === "h") {
-        ED.data.s[ED.drag.i].p[ED.drag.h] = snapW(pt);
-        renderInk();
-        return;
-      }
-      if (ED.drag.kind === "t") {
-        const t = ED.data.t[ED.drag.i];
-        [t.x, t.y] = snap([ED.drag.ox + dx, ED.drag.oy + dy]);
-        renderInk();
-        return;
-      }
-      if (ED.drag.kind === "s") {
-        const st = ED.data.s[ED.drag.i], o0 = ED.drag.orig[0];
-        let mx = dx, my = dy;
-        const art2 = STRICH[st.k];
-        if (art2 && art2.ziehen) {
-          art2.ziehen(st, ED.drag, dx, dy);
-          renderInk();
-          return;
-        }
-        if (st.k) {
-          const q = snapW([o0[0] + dx, o0[1] + dy]);
-          mx = q[0] - o0[0];
-          my = q[1] - o0[1];
-        }
-        st.p = ED.drag.orig.map(([x, y]) => [+(x + mx).toFixed(1), +(y + my).toFixed(1)]);
-        renderInk();
-        return;
-      }
-      const o = objById(ED.drag.id);
-      [o.x, o.y] = snap([ED.drag.ox + dx, ED.drag.oy + dy]);
-      const r = smartPos(o);
-      avoidBreak(o);
-      ED.drag.dock = r.dock && !linked(r.dock.a, r.dock.b) ? r.dock : null;
-      renderInk();
-      $(".ghost", svg).innerHTML = r.marks;
+      ziehen(pt);
       return;
     }
     if (ED.tool === "place" && ED.place) {
-      const o = makeObj(ED.place, pt), A = kettenQuelle(ED.place);
-      let marks = "";
-      if (A) {
-        ausrichten(o, A, pt);
-        const map = Object.fromEntries(ED.data.o.map((p) => [p.id, p]));
-        map[o.id] = o;
-        const gm = connGeom({ a: A.id, b: o.id }, map, []);
-        if (gm) marks = `<path d="${gm.d}" fill="none" stroke="#2F80ED" stroke-width="2.5" stroke-dasharray="6 4"/>`;
-      } else marks = smartPos(o).marks;
-      avoidBreak(o);
-      $(".ghost", svg).innerHTML = marks + `<g opacity=".5">${drawObj(o, true)}</g>`;
+      setzVorschau(pt);
       return;
     }
-    const zeiger = VORL[ED.key].zeiger || {};
+    const zeiger = zeigerHaken();
     if (zeiger.bewegen && zeiger.bewegen(e, pt)) return;
     if (!ED.cur) return;
     if (ED.cur.k) {
@@ -2651,24 +2613,80 @@ pre.code code{font-size:inherit}
     if (Math.hypot(pt[0] - l[0], pt[1] - l[1]) > 1.2) ED.cur.p.push(pt);
     ED.curEl.setAttribute("d", "M" + ED.cur.p.map((q) => q.join(" ")).join("L") + (ED.cur.p.length === 1 ? "l.01 0" : ""));
   }
+  function randScrollen(e) {
+    const st = $("#edstage"), r = st.getBoundingClientRect();
+    if (e.clientY > r.bottom - 36) st.scrollTop += 18;
+    else if (e.clientY < r.top + 36) st.scrollTop -= 18;
+  }
+  function ziehen(pt) {
+    const dr = ED.drag, dx = pt[0] - dr.sx, dy = pt[1] - dr.sy;
+    if (!dr.moved && Math.hypot(dx, dy) < 3) return;
+    if (!dr.moved) {
+      snapshot();
+      dr.moved = true;
+    }
+    if (dr.kind === "h") {
+      ED.data.s[dr.i].p[dr.h] = snapW(pt);
+      renderInk();
+      return;
+    }
+    if (dr.kind === "t") {
+      const t = ED.data.t[dr.i];
+      [t.x, t.y] = snap([dr.ox + dx, dr.oy + dy]);
+      renderInk();
+      return;
+    }
+    if (dr.kind === "s") {
+      zieheStrich(ED.data.s[dr.i], dx, dy);
+      renderInk();
+      return;
+    }
+    const o = objById(dr.id);
+    [o.x, o.y] = snap([dr.ox + dx, dr.oy + dy]);
+    const r = smartPos(o);
+    avoidBreak(o);
+    dr.dock = r.dock && !linked(r.dock.a, r.dock.b) ? r.dock : null;
+    renderInk();
+    $(".ghost", ED.svg).innerHTML = r.marks;
+  }
+  function zieheStrich(st, dx, dy) {
+    const a = STRICH[st.k], o0 = ED.drag.orig[0];
+    if (a && a.ziehen) {
+      a.ziehen(st, ED.drag, dx, dy);
+      return;
+    }
+    let mx = dx, my = dy;
+    if (st.k) {
+      const q = snapW([o0[0] + dx, o0[1] + dy]);
+      mx = q[0] - o0[0];
+      my = q[1] - o0[1];
+    }
+    st.p = ED.drag.orig.map(([x, y]) => [+(x + mx).toFixed(1), +(y + my).toFixed(1)]);
+  }
+  function setzVorschau(pt) {
+    const o = makeObj(ED.place, pt), A = kettenQuelle(ED.place);
+    let marks = "";
+    if (A) {
+      ausrichten(o, A, pt);
+      const map = Object.fromEntries(ED.data.o.map((p) => [p.id, p]));
+      map[o.id] = o;
+      const gm = connGeom({ a: A.id, b: o.id }, map, []);
+      if (gm) marks = VORSCHAU(gm.d);
+    } else marks = smartPos(o).marks;
+    avoidBreak(o);
+    $(".ghost", ED.svg).innerHTML = marks + `<g opacity=".5">${drawObj(o, true)}</g>`;
+  }
   function edUp() {
     ED.erasing = false;
     ED.extraY = 0;
-    const zeiger = VORL[ED.key].zeiger || {};
     if (ED.drag) {
-      const dk = ED.drag.dock;
-      if (ED.drag.moved) {
-        if (dk && !linked(dk.a, dk.b)) ED.data.c.push({ a: dk.a, b: dk.b, v: "" });
-        saveSketch();
-        renderInk();
-      }
-      ED.drag = null;
-      if (ED.svg) $(".ghost", ED.svg).innerHTML = "";
+      ziehenEnde();
       return;
     }
     if (!ED.cur) return;
-    if (ED.cur.k && ED.cur.p[0][0] === ED.cur.p[1][0] && ED.cur.p[0][1] === ED.cur.p[1][1]) {
-      const p0 = ED.cur.p[0], k = ED.cur.k;
+    const zeiger = zeigerHaken(), [p0, p1] = ED.cur.p;
+    if (ED.cur.k && p0[0] === p1[0] && p0[1] === p1[1]) {
+      const k = ED.cur.k;
       ED.cur = null;
       ED.hist.pop();
       if (zeiger.angeklickt && zeiger.angeklickt(p0, k)) return;
@@ -2681,6 +2699,16 @@ pre.code code{font-size:inherit}
     saveSketch();
     if (zeiger.gezogen && zeiger.gezogen(neu)) return;
     renderInk();
+  }
+  function ziehenEnde() {
+    const dk = ED.drag.dock;
+    if (ED.drag.moved) {
+      if (dk && !linked(dk.a, dk.b)) ED.data.c.push({ a: dk.a, b: dk.b, v: "" });
+      saveSketch();
+      renderInk();
+    }
+    ED.drag = null;
+    if (ED.svg) $(".ghost", ED.svg).innerHTML = "";
   }
 
   // web/tools/uebungshandbuch/src/editor/oeffnen.js
@@ -3190,19 +3218,19 @@ END_CASE;`)}
     if (c) return `Schritt ${(dir === "von" ? objs[c.a] : objs[c.b]).v}`;
     return o.v ? `Transition ${o.v}` : "Transition";
   }
-  var breite = (o) => o.w || 200;
+  var verzweigungsBreite = (o) => o.w || 200;
   var VERZWEIGUNG = {
-    aus: (o, tx) => [clamp(tx, o.x, o.x + breite(o)), o.y],
-    ein: (o, fx) => [clamp(fx, o.x, o.x + breite(o)), o.y],
+    aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y],
+    ein: (o, fx) => [clamp(fx, o.x, o.x + verzweigungsBreite(o)), o.y],
     einrueck: 100,
     neu(o, [px, py]) {
       o.x = px - 100;
       o.y = py;
       o.w = 200;
     },
-    felder: (o) => textFeld("w", "Breite", void 0, breite(o)),
+    felder: (o) => textFeld("w", "Breite", void 0, verzweigungsBreite(o)),
     beschriftung: {
-      wert: (o) => String(breite(o)),
+      wert: (o) => String(verzweigungsBreite(o)),
       setze(o, v) {
         const w = parseInt(v, 10);
         if (w >= 40) o.w = Math.round(w / 10) * 10;
@@ -3294,16 +3322,16 @@ END_CASE;`)}
       g: "grafcet",
       n: "ODER-Verzweigung",
       ...VERZWEIGUNG,
-      zeichne: (o) => `<path d="M${o.x} ${o.y}H${o.x + breite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
-      umriss: (o) => ({ x: o.x, y: o.y - 5, w: breite(o), h: 10 })
+      zeichne: (o) => `<path d="M${o.x} ${o.y}H${o.x + verzweigungsBreite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
+      umriss: (o) => ({ x: o.x, y: o.y - 5, w: verzweigungsBreite(o), h: 10 })
     },
     par: {
       g: "grafcet",
       n: "UND-Verzweigung",
       ...VERZWEIGUNG,
-      zeichne: (o) => `<path d="M${o.x} ${o.y}H${o.x + breite(o)}M${o.x} ${o.y + 5}H${o.x + breite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
-      aus: (o, tx) => [clamp(tx, o.x, o.x + breite(o)), o.y + 5],
-      umriss: (o) => ({ x: o.x, y: o.y - 5, w: breite(o), h: 15 })
+      zeichne: (o) => `<path d="M${o.x} ${o.y}H${o.x + verzweigungsBreite(o)}M${o.x} ${o.y + 5}H${o.x + verzweigungsBreite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
+      aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y + 5],
+      umriss: (o) => ({ x: o.x, y: o.y - 5, w: verzweigungsBreite(o), h: 15 })
     },
     ref: {
       g: "grafcet",
@@ -3431,30 +3459,8 @@ END_CASE;`)}
   fuelle(PROPS, { state: [["v", "Name"]], sinit: [["v", "Name"]] });
   fuelle(LABEL_HINT, { state: "Name des Zustands", sinit: "Name des Zustands" });
 
-  // web/tools/uebungshandbuch/src/editor/vorlagen/wegschritt.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/wegschritt-striche.js
   var WS_X0 = 150, WS_SPALTE = (975 - 150) / 12, WS_Y0 = 74, WS_ZEILE = 62;
-  var wsRows = () => (CYL[ED.scope] || ["", "", "", ""]).length + 2;
-  function wegschrittBlatt(ex, page = 0, meta = null) {
-    const rows = CYL[ex?.id] || ["−MM1", "−MM2", "−MM3", "−MM4"];
-    const all = [...rows, "", ""].map((r, i) => meta && meta.rows && meta.rows[i] !== void 0 && meta.rows[i] !== null ? meta.rows[i] : r);
-    const x0 = 30, xs = 150, cols = 12, cw = (975 - xs) / cols, y0 = 40, hh = 34, rh = 62;
-    let s = `<rect x="${x0}" y="${y0}" width="${975 - x0}" height="${hh + all.length * rh + 3 * 40}" fill="none" stroke="${G}" stroke-width="1"/>`;
-    s += TX(x0 + 10, y0 + 22, 12, "Bauglied", "start", "#666", 600);
-    for (let c = 0; c <= cols; c++) {
-      const x = xs + c * cw;
-      s += `<path d="M${x} ${y0}V${y0 + hh + all.length * rh + 120}" stroke="${G}" stroke-width="${c === 0 ? 1 : 0.5}"/>`;
-      if (c < cols) s += TX(x + cw / 2, y0 + 22, 12, String(c + 1), "middle", "#666", 600);
-    }
-    s += `<path d="M${x0} ${y0 + hh}H975" stroke="${G}"/>`;
-    all.forEach((r, i) => {
-      const y = y0 + hh + i * rh;
-      s += `<path d="M${x0} ${y + rh}H975" stroke="${G}" stroke-width=".8"/><path d="M${xs} ${y + 16}H975M${xs} ${y + rh - 12}H975" stroke="${G2}" stroke-width=".6" stroke-dasharray="3 3"/>` + TX(x0 + 10, y + rh / 2 + 5, 13, r, "start", "#555", 600) + TX(xs - 8, y + 20, 9, "1", "end") + TX(xs - 8, y + rh - 8, 9, "0", "end");
-    });
-    const yb = y0 + hh + all.length * rh;
-    s += TX(x0 + 10, yb + 25, 11, "Bedingungen", "start", "#666", 600);
-    for (let i = 1; i <= 3; i++) s += `<path d="M${x0} ${yb + i * 40}H975" stroke="${G}" stroke-width=".6"/>`;
-    return s;
-  }
   var wsAus = (y) => ((y - 74) % 62 + 62) % 62 < 33 ? -1 : 1;
   var halo = (t) => t.replace("<text ", '<text stroke="#fff" stroke-width="4" stroke-linejoin="round" paint-order="stroke" ');
   var sigLoop = (st) => {
@@ -3595,6 +3601,30 @@ END_CASE;`)}
     }
   });
   fuelle(STRICHFELD, { sl: "lbl", sg: "sg", tz: "tz", vt: "t" });
+
+  // web/tools/uebungshandbuch/src/editor/vorlagen/wegschritt.js
+  var wsRows = () => (CYL[ED.scope] || ["", "", "", ""]).length + 2;
+  function wegschrittBlatt(ex, page = 0, meta = null) {
+    const rows = CYL[ex?.id] || ["−MM1", "−MM2", "−MM3", "−MM4"];
+    const all = [...rows, "", ""].map((r, i) => meta && meta.rows && meta.rows[i] !== void 0 && meta.rows[i] !== null ? meta.rows[i] : r);
+    const x0 = 30, xs = 150, cols = 12, cw = (975 - xs) / cols, y0 = 40, hh = 34, rh = 62;
+    let s = `<rect x="${x0}" y="${y0}" width="${975 - x0}" height="${hh + all.length * rh + 3 * 40}" fill="none" stroke="${G}" stroke-width="1"/>`;
+    s += TX(x0 + 10, y0 + 22, 12, "Bauglied", "start", "#666", 600);
+    for (let c = 0; c <= cols; c++) {
+      const x = xs + c * cw;
+      s += `<path d="M${x} ${y0}V${y0 + hh + all.length * rh + 120}" stroke="${G}" stroke-width="${c === 0 ? 1 : 0.5}"/>`;
+      if (c < cols) s += TX(x + cw / 2, y0 + 22, 12, String(c + 1), "middle", "#666", 600);
+    }
+    s += `<path d="M${x0} ${y0 + hh}H975" stroke="${G}"/>`;
+    all.forEach((r, i) => {
+      const y = y0 + hh + i * rh;
+      s += `<path d="M${x0} ${y + rh}H975" stroke="${G}" stroke-width=".8"/><path d="M${xs} ${y + 16}H975M${xs} ${y + rh - 12}H975" stroke="${G2}" stroke-width=".6" stroke-dasharray="3 3"/>` + TX(x0 + 10, y + rh / 2 + 5, 13, r, "start", "#555", 600) + TX(xs - 8, y + 20, 9, "1", "end") + TX(xs - 8, y + rh - 8, 9, "0", "end");
+    });
+    const yb = y0 + hh + all.length * rh;
+    s += TX(x0 + 10, yb + 25, 11, "Bedingungen", "start", "#666", 600);
+    for (let i = 1; i <= 3; i++) s += `<path d="M${x0} ${yb + i * 40}H975" stroke="${G}" stroke-width=".6"/>`;
+    return s;
+  }
   var WSI = (inner) => `<svg viewBox="0 0 64 40" aria-hidden="true"><path d="M4 8H60M4 32H60" stroke="#C9D0D5" stroke-width="1" stroke-dasharray="2 2"/>${inner}</svg>`;
   var WSP = (d, w = 1.2) => `<path d="${d}" stroke="${INK}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
   var WSA = (x, y1, y2) => WSP(`M${x} ${y1}V${y2}`) + arrowHead(x, y2 + (y2 > y1 ? -7 : 7), x, y2, 5);
