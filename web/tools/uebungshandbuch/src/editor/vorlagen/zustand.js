@@ -2,7 +2,7 @@
 // Übergänge tragen eine Bedingung; ein Übergang darf auf denselben Zustand zurückführen (Schleife).
 import { INK, SVGT } from '../svg.js';
 import { ED } from '../status.js';
-import { BLK, LABEL_HINT, PROPS, SAMPLE, art, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
+import { BAUSTEIN, SAMPLE, art, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, TX, dots } from '../vorlagen-svg.js';
 import { LINIE, ctr, rund } from '../bausteine.js';
 
@@ -52,10 +52,11 @@ export function zustandNeu(o, [px, py]){
   o.x = px; o.y = py;
   o.v = "Z" + ED.data.o.filter(q => q.k === "state" || q.k === "sinit").length;
 }
-fuelle(BLK, {
-  sinit: {g: "zustand", n: "Anfangszustand", ...rund(36), neu: zustandNeu,
+export const ZUSTAND = {neu: zustandNeu, feldliste: [["v", "Name"]], beschriftung: {hinweis: "Name des Zustands"}};
+fuelle(BAUSTEIN, {
+  sinit: {g: "zustand", n: "Anfangszustand", ...rund(36), ...ZUSTAND,
     zeichne: o => `<circle cx="${o.x}" cy="${o.y}" r="36" fill="#fff" ${LINIE}/><circle cx="${o.x}" cy="${o.y}" r="31" fill="none" ${LINIE}/>` + SVGT(o.x, o.y+5, o.v)},
-  state: {g: "zustand", n: "Zustand", ...rund(36), neu: zustandNeu,
+  state: {g: "zustand", n: "Zustand", ...rund(36), ...ZUSTAND,
     zeichne: o => `<circle cx="${o.x}" cy="${o.y}" r="36" fill="#fff" ${LINIE}/>` + SVGT(o.x, o.y+5, o.v)},
   start: {g: "zustand", n: "Startpunkt", ...rund(8), beschriftung: false,
     zeichne: o => `<circle cx="${o.x}" cy="${o.y}" r="8" fill="${INK}"/>`},
@@ -63,5 +64,3 @@ fuelle(BLK, {
 fuelle(SAMPLE, {
   sinit: [{k:"sinit", x:38, y:38, v:"Z0"}, "0 0 76 76"], state: [{k:"state", x:38, y:38, v:"Z1"}, "0 0 76 76"], start: [{k:"start", x:24, y:24}, "0 0 48 48"],
 });
-fuelle(PROPS, {state: [["v","Name"]], sinit: [["v","Name"]]});
-fuelle(LABEL_HINT, {state: "Name des Zustands", sinit: "Name des Zustands"});

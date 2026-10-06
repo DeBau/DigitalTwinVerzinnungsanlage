@@ -1,7 +1,7 @@
 // Vorlage Regelkreis: vorgedrucktes Blockschaltbild (Regler, Stellglied, Strecke, Messglied) und die Bausteine
 // Block und Summierstelle für eigene Blockschaltbilder. Pfeile zwischen Blöcken sind beschriftbar.
 import { INK, SVGT, tw } from '../svg.js';
-import { BLK, LABEL_HINT, PROPS, SAMPLE, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
+import { BAUSTEIN, SAMPLE, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, G2, TX } from '../vorlagen-svg.js';
 import { LINIE, platzhalter, rund } from '../bausteine.js';
 
@@ -26,7 +26,7 @@ export function regelkreisBlatt(){
 registriereVorlage("regelkreis", {n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: regelkreisBlatt});
 registriereGruppe("regel", {name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn.", pfeiltext: true});
 
-fuelle(BLK, {
+fuelle(BAUSTEIN, {
   box: {g: "regel", n: "Block",
     zeichne(o, edit){
       const w = bw(o);
@@ -34,10 +34,9 @@ fuelle(BLK, {
     },
     umriss: o => ({x: o.x, y: o.y, w: bw(o), h: 50}),
     neu(o, [px, py]){ o.x = px - 55; o.y = py - 25; o.v = ""; },
-    beschriftung: {sofort: true}},
+    feldliste: [["v", "Bezeichnung"]],
+    beschriftung: {sofort: true, hinweis: "Bezeichnung, z. B. Regler"}},
   sum: {g: "regel", n: "Summierstelle", ...rund(15), beschriftung: false,
     zeichne: o => `<circle cx="${o.x}" cy="${o.y}" r="15" fill="#fff" ${LINIE}/><path d="M${o.x-10.6} ${o.y-10.6}L${o.x+10.6} ${o.y+10.6}M${o.x+10.6} ${o.y-10.6}L${o.x-10.6} ${o.y+10.6}" stroke="${INK}" stroke-width="1"/>`},
 });
 fuelle(SAMPLE, {box: [{k:"box", x:2, y:2, v:"Regler"}, "0 0 114 54"], sum: [{k:"sum", x:24, y:24}, "0 0 48 48"]});
-fuelle(PROPS, {box: [["v","Bezeichnung"]]});
-fuelle(LABEL_HINT, {box: "Bezeichnung, z. B. Regler"});

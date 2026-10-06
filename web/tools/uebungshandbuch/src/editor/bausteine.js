@@ -1,7 +1,7 @@
 // Editor-Kern: Geometrie der Bausteine (Umriss, Mitte, Kettenanschlüsse) und Hilfen zum Zeichnen einfacher Bausteine.
 // Die Einzelheiten je Bausteinart kommen über die Haken umriss, mitte, aus, ein aus den Vorlagen (registry.js).
 import { INK, MUTE, SVGT } from './svg.js';
-import { BLK, GRUPPE, PC, art } from './registry.js';
+import { BAUSTEIN, GRUPPE, art } from './registry.js';
 import { xform } from './bauteile.js';
 
 // Strichart einfacher Bausteine und Platzhaltertext, der nur im Editor erscheint
@@ -10,21 +10,17 @@ export const platzhalter = (edit, t, x, y, a = "middle") => edit ? SVGT(x, y, t,
 
 // Runder Baustein mit Radius r (Zustand, Summierstelle): Umriss und Radius für Pfeile an den Rand
 export const rund = r => ({radius: r, umriss: o => ({x: o.x - r, y: o.y - r, w: 2*r, h: 2*r})});
-export const fam = o => o && BLK[o.k] ? BLK[o.k].g : null;
+export const fam = o => o && BAUSTEIN[o.k] ? BAUSTEIN[o.k].g : null;
 export const gruppeVon = o => GRUPPE[fam(o)] || {};
 
 // Umriss eines Bausteins: Bauteile aus Breite, Höhe und Drehung, einfache Bausteine über den Haken umriss
 export function bbox(o){
-  const pc = PC[o.k];
-  if (pc) {
-    if (pc.umriss) return pc.umriss(o);
-    const X = xform(o), b = {x: o.x + (pc.bx || 0), y: o.y, w: pc.w, h: pc.h};
-    if (!X || X.c) return b;   // 0°/180°: gleicher Umriss
-    return {x: X.cx - pc.h / 2, y: X.cy - pc.w / 2, w: pc.h, h: pc.w};
-  }
-  const a = BLK[o.k];
-  if (a && a.umriss) return a.umriss(o);
-  return {x:o.x, y:o.y, w:20, h:20};
+  const a = art(o.k);
+  if (a.umriss) return a.umriss(o);
+  if (!a.bauteil) return {x:o.x, y:o.y, w:20, h:20};
+  const X = xform(o), b = {x: o.x + (a.bx || 0), y: o.y, w: a.w, h: a.h};
+  if (!X || X.c) return b;   // 0°/180°: gleicher Umriss
+  return {x: X.cx - a.h / 2, y: X.cy - a.w / 2, w: a.h, h: a.w};
 }
 export function ctr(o){
   const a = art(o.k);

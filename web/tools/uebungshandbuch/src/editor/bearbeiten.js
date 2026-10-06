@@ -1,6 +1,6 @@
 // Editor-Kern: Eigenschaften übernehmen, Drehen, Löschen, Radieren.
 import { ED } from './status.js';
-import { PC, STRICHFELD, art } from './registry.js';
+import { STRICHFELD, art, bauteil } from './registry.js';
 import { gruppeVon } from './bausteine.js';
 import { objById } from './auswahl.js';
 import { inkSVG } from './zeichnen.js';
@@ -56,7 +56,7 @@ export function delSel(){
   else if (ED.selT !== null && ED.data.t[ED.selT]) aendere(d => { d.t.splice(ED.selT, 1); ED.selT = null; });
 }
 export function turnSel(a){
-  const o = objById(ED.sel); if (!o || !PC[o.k] || PC[o.k].drehbar === false) return;
+  const o = objById(ED.sel); if (!o || !bauteil(o.k) || art(o.k).drehbar === false) return;
   aendere(() => { if (a === "rot") o.rot = ((o.rot || 0) + 90) % 360; else o.flip = !o.flip; });
 }
 export function eraseAt(e){

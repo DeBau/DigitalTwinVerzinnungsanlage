@@ -2,7 +2,7 @@
 // Benutzt vom Editor (anzeige.js, zeiger.js), von den Skizzen-Kacheln und vom Druck (über blaetter.js).
 import { INK, MUTE, PH, SVGT } from './svg.js';
 import { ED } from './status.js';
-import { BLK, PC, art, vorlage } from './registry.js';
+import { BAUSTEIN, art, bauteil, vorlage } from './registry.js';
 import { neueSpuren } from './spuren.js';
 import { strokesSVG } from './vorlagen-svg.js';
 import { BLUE, istSchiene, portsOf, simOn, vrails, wireD, wireEnds, xform } from './bauteile.js';
@@ -10,12 +10,10 @@ import { bbox, ctr, gruppeVon } from './bausteine.js';
 import { verbindeKette } from './kette.js';
 
 /* ---------- Bausteine ---------- */
-// Bauteile zeichnen sich über PC.draw und werden gedreht bzw. gespiegelt, einfache Bausteine über den Haken zeichne
+// Baustein über seinen Haken zeichne; Bauteile werden dabei gedreht bzw. gespiegelt
 export function drawObj(o, edit){
-  if (PC[o.k]) return gedreht(o, PC[o.k].draw(o, edit));
-  const a = BLK[o.k];
-  if (a && a.zeichne) return a.zeichne(o, edit);
-  return "";
+  const a = art(o.k);
+  return a.zeichne ? gedreht(o, a.zeichne(o, edit)) : "";
 }
 // Drehen und Spiegeln um die Bauteilmitte; Texte drehen zurück, damit sie lesbar bleiben
 export function gedreht(o, svg){
@@ -30,7 +28,7 @@ export function gedreht(o, svg){
 export function refName(o, objs, cs, dir){
   const a = art(o.k);
   if (a.verweisName) return a.verweisName(o, objs, cs, dir);
-  return o.v || BLK[o.k].n;
+  return o.v || BAUSTEIN[o.k].n;
 }
 
 /* ---------- Verbindungen ---------- */
@@ -110,7 +108,7 @@ export function verbindungSVG(c, i, gm, objs, cs, key, edit){
 
 /* ---------- Ganze Zeichnung ---------- */
 // Rahmen (Bauteil mit rahmen: true, z. B. Ventilinsel): liegt unter allen Bausteinen und ist nur am Rand greifbar
-export const istRahmen = o => !!(PC[o.k] && PC[o.k].rahmen);
+export const istRahmen = o => !!art(o.k).rahmen;
 // Baustein mit Markierungsrahmen (im Editor) bzw. greifbarem Rand (Rahmen-Bauteile)
 export function bausteinSVG(o, edit){
   const b = bbox(o), hi = edit && (ED.sel === o.id || ED.from === o.id), fr = istRahmen(o);
@@ -139,7 +137,7 @@ export function abzweigpunkte(cs, objs){
 // und beim Verbinden die Anschlusskreise
 export function punkteSVG(d, cs, objs, edit){
   let {svg: s, cnt} = abzweigpunkte(cs, objs);
-  (d.o || []).forEach(o => { const pc = PC[o.k]; if (pc && pc.zusatz) s += pc.zusatz(o, n => !!cnt[o.id + ":" + n]); });
+  (d.o || []).forEach(o => { const z = art(o.k).zusatz; if (z) s += z(o, n => !!cnt[o.id + ":" + n]); });
   if (edit && ED.tool === "conn") (d.o || []).forEach(o => portsOf(o).forEach(q => {
     const f = ED.from === o.id && ED.fromP === q.n;
     s += `<circle cx="${q.x}" cy="${q.y}" r="${f ? 5 : 3.6}" fill="${f ? BLUE : "#fff"}" stroke="${BLUE}" stroke-width="1.5" pointer-events="none"/>`;
@@ -172,13 +170,13 @@ export function pageCount(key, d, extraY=0){
 }
 // Verweistext an einer Leitung über den Blattrand: Kennzeichen:Anschluss, Blatt und was die Vorlage ergänzt (Haken verweis)
 export function wireRef(o, port, key, y, x){
-  const b = Math.floor(y / PH) + 1, name = istSchiene(o) ? o.v : `${o.v || BLK[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
+  const b = Math.floor(y / PH) + 1, name = istSchiene(o) ? o.v : `${o.v || BAUSTEIN[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
   const v = vorlage(key), pfad = v.verweis ? v.verweis(x, y) : "";
   return `${name}, Blatt ${b}${pfad}`;
 }
 // Palettenbild eines Bauteils ohne eigenes SAMPLE: Bauteil mit Vorgaben links oben, viewBox passend
 export function pcSample(k){
-  const mk = BLK[k] && BLK[k].mk, base = (mk && mk.k) || k, pc = PC[base];
+  const mk = BAUSTEIN[k] && BAUSTEIN[k].mk, base = (mk && mk.k) || k, pc = bauteil(base);
   const o = {k: base, ...(pc.def || {}), ...(mk || {}), x: 0, y: 0, v: ""}; o.k = base;
   const bx = pc.bx || 0, w = pc.w, h = Math.max(pc.h, 12);
   o.x = 4 - bx; o.y = 4;

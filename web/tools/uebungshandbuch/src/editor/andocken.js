@@ -1,7 +1,7 @@
 // Editor-Kern: Bausteine erzeugen und setzen, Ketten fortsetzen, Andocken, Hilfslinien, Verbinden.
 import { PH } from './svg.js';
 import { ED } from './status.js';
-import { BLK, PC, art, vorlage } from './registry.js';
+import { BAUSTEIN, art, bauteil, vorlage } from './registry.js';
 import { snap } from './vorlagen-svg.js';
 import { bbox, ctr, gruppeVon } from './bausteine.js';
 import { clearSel, objById, uid } from './auswahl.js';
@@ -20,22 +20,22 @@ export function nextLabel(l){   // -QA1 → nächste freie Nummer
 // Neues Objekt der Palettenart k mit der Mitte bei [px, py]. Lage und Vorgaben setzt der Haken neu der Bausteinart,
 // das Kennzeichen kann der Haken kennzeichen(k, d, vorschlag) der Gruppe ändern (vorschlag: o.v nach neu).
 export function makeObj(k, [px, py]){
-  const mk = BLK[k] && BLK[k].mk;
+  const mk = BAUSTEIN[k] && BAUSTEIN[k].mk;
   if (mk) k = mk.k || k;
-  const o = PC[k] ? neuesBauteil(k, mk, px, py) : neuerBaustein(k, mk, px, py);
+  const o = bauteil(k) ? neuesBauteil(k, mk, px, py) : neuerBaustein(k, mk, px, py);
   const kennzeichen = gruppeVon(o).kennzeichen;
   if (kennzeichen) o.v = kennzeichen(o.k, ED.data, o.v);
   return o;
 }
 export function neuerBaustein(k, mk, px, py){
-  const o = {id: uid(), k}, a = BLK[k];
+  const o = {id: uid(), k}, a = BAUSTEIN[k];
   if (a && a.neu) a.neu(o, [px, py], mk);
   else { o.x = px; o.y = py; }
   [o.x, o.y] = snap([o.x, o.y]);
   return o;
 }
 export function neuesBauteil(k, mk, px, py){
-  const pc = PC[k], o = {id: uid(), ...(pc.def || {}), ...(mk || {})};
+  const pc = bauteil(k), o = {id: uid(), ...(pc.def || {}), ...(mk || {})};
   o.k = k;
   o.v = nextLabel(pc.lbl || "");
   if (pc.neu) pc.neu(o, [px, py]);

@@ -1,7 +1,7 @@
 // Editor-Kern: Eigenschaftsfeld links im Editor (Felder des markierten Elements, Zeichenleiste).
 import { $, $$, IC, esc } from '../app/basis.js';
 import { ED } from './status.js';
-import { BLK, PC, PROPS, STRICH, art, vorlage } from './registry.js';
+import { BAUSTEIN, STRICH, art, vorlage } from './registry.js';
 import { gruppeVon } from './bausteine.js';
 import { objById } from './auswahl.js';
 import { deDate, skMeta } from './blaetter.js';
@@ -88,28 +88,23 @@ export function updateProps(force){
   propsKey = k; el.innerHTML = propsHTML();
 }
 
-// Eigenschaftsfeld eines Bausteins: eigene Felder über den Haken felder(o), sonst aus PC.props bzw. PROPS
+// Eigenschaftsfeld eines Bausteins: eigene Felder über den Haken felder(o), sonst aus der feldliste
 export function objektFelder(o){
-  const a = art(o.k), pc = PC[o.k];
-  let h = "";
-  if (a.felder) h += a.felder(o);
-  else if (pc) h += bauteilFelder(o, pc);
-  else for (const [f, lbl, ph] of PROPS[o.k] || []) h += f === "v" ? kennzeichenFeld(o, lbl, ph) : textFeld(f, lbl, ph, o[f]);
-  if (pc && pc.info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${pc.info}</p>`;
-  if (pc && pc.drehbar !== false) h += DREHKNOEPFE;
-  return `<div class="props"><div class="palh">${a.titel || BLK[o.k].n}</div>${h}${h ? SYMS : ""}${loeschKnopf()}</div>`;
+  const a = art(o.k);
+  let h = a.felder ? a.felder(o) : (a.feldliste || []).map(feld => listenFeld(o, a, feld)).join("");
+  if (a.info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${a.info}</p>`;
+  if (a.bauteil && a.drehbar !== false) h += DREHKNOEPFE;
+  return `<div class="props"><div class="palh">${a.titel || BAUSTEIN[o.k].n}</div>${h}${h ? SYMS : ""}${loeschKnopf()}</div>`;
 }
 // Kennzeichen: mit Vorschlagsliste (signalfeld.js), wenn die Bausteinart kennbuchstaben hat, z. B. ["QA", "KF"]
 export function kennzeichenFeld(o, lbl, ph){
   const arten = art(o.k).kennbuchstaben;
   return arten ? signalFeld("v", lbl, o.v, {arten, ph}) : textFeld("v", lbl, ph, o.v);
 }
-export function bauteilFelder(o, pc){
-  let h = kennzeichenFeld(o, "Kennzeichen", pc.lbl);
-  for (const [f, lbl, ty, opts] of pc.props || []) {
-    if (ty === "select") h += auswahlFeld(f, lbl, opts, o[f] ?? (pc.def || {})[f]);
-    else h += textFeld(f, lbl, "", o[f]);
-  }
-  return h;
+// Ein Eintrag [Feld, Beschriftung, Platzhalter oder Optionen] der feldliste: Kennzeichen (v), Auswahl oder Textfeld
+export function listenFeld(o, a, [f, lbl, zusatz]){
+  if (f === "v") return kennzeichenFeld(o, lbl, zusatz);
+  if (Array.isArray(zusatz)) return auswahlFeld(f, lbl, zusatz, o[f] ?? (a.def || {})[f]);
+  return textFeld(f, lbl, zusatz, o[f]);
 }
 export const DREHKNOEPFE = `<div class="propact" style="justify-content:flex-start;gap:6px;margin-bottom:8px"><button type="button" class="tool" data-ed="rot" title="Taste R">↻ Drehen 90°</button><button type="button" class="tool" data-ed="flip" title="Taste M">⇋ Spiegeln</button></div>`;

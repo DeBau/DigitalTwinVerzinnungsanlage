@@ -3,7 +3,7 @@
 // an einen Schritt bzw. eine Transition oder unter bzw. hinter eine andere Aktion (Haken seite).
 import { INK, SVGT, clamp, tw } from '../svg.js';
 import { ED } from '../status.js';
-import { BLK, LABEL_HINT, PROPS, SAMPLE, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
+import { BAUSTEIN, SAMPLE, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, TX, dots } from '../vorlagen-svg.js';
 import { LINIE, platzhalter } from '../bausteine.js';
 import { objById } from '../auswahl.js';
@@ -59,7 +59,7 @@ export function setzeAktion(o, f, v){
 export const AKTION_TEXT = {
   sofort: true,
   wert: o => atype(o) === "q" ? `${o.q || "S"} ${o.v || ""}`.trim() : (o.v || ""),
-  hinweis: o => atype(o) === "q" ? LABEL_HINT.actionq : LABEL_HINT[o.k],
+  hinweis: o => atype(o) === "q" ? "Bestimmungszeichen und Aktion, z. B. S MB9" : "Aktion, z. B. MB1",
   setze(o, v){
     if (atype(o) !== "q") { o.v = v; return; }
     const m = v.match(/^(\S+)\s*(.*)$/);
@@ -130,6 +130,8 @@ export const SCHRITT = {
   einrueck: 20,
   neu(o, [px, py]){ o.x = px - 20; o.y = py - 20; o.v = naechsteSchrittNummer(); },
   verweisName: o => `Schritt ${o.v}`,
+  feldliste: [["v", "Schrittnummer"]],
+  beschriftung: {hinweis: "Schrittnummer"},
 };
 // Bei einer Abbruchstelle heißt die Transition nach dem Schritt davor bzw. danach
 export function transitionName(o, objs, cs, dir){
@@ -145,6 +147,7 @@ export const VERZWEIGUNG = {
   neu(o, [px, py]){ o.x = px - 100; o.y = py; o.w = 200; },
   felder: o => textFeld("w", "Breite", undefined, verzweigungsBreite(o)),
   beschriftung: {
+    hinweis: "Breite (Standard 200)",
     wert: o => String(verzweigungsBreite(o)),
     setze(o, v){ const w = parseInt(v, 10); if (w >= 40) o.w = Math.round(w/10)*10; },
   },
@@ -176,13 +179,15 @@ export const AKTION = {
   felder: aktionFelder, setze: setzeAktion, umbau: ["t", "q"],
   beschriftung: AKTION_TEXT, seite: AKTION_SEITE,
 };
-fuelle(BLK, {
+fuelle(BAUSTEIN, {
   init: {g: "grafcet", n: "Anfangsschritt", ...SCHRITT,
     zeichne: o => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/><rect x="${o.x+4}" y="${o.y+4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x+20, o.y+25, o.v)},
   step: {g: "grafcet", n: "Schritt", ...SCHRITT,
     zeichne: o => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/>` + SVGT(o.x+20, o.y+25, o.v)},
   macro: {g: "grafcet", n: "Makroschritt", ...SCHRITT,
     einrueck: 0,   // Makroschritt richtet sich mit der linken Kante aus (wie bisher)
+    feldliste: [["v", "Bezeichnung", "z. B. M1"]],
+    beschriftung: {hinweis: "Bezeichnung, z. B. M1"},
     neu(o, [px, py]){ o.x = px - 20; o.y = py - 20; o.v = "M" + (ED.data.o.filter(q => q.k === "macro").length + 1); },
     zeichne: o => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/><path d="M${o.x} ${o.y+5}H${o.x+40}M${o.x} ${o.y+35}H${o.x+40}" ${LINIE}/>` + SVGT(o.x+20, o.y+25, o.v, "middle", 12)},
   trans: {g: "grafcet", n: "Transition",
@@ -192,7 +197,8 @@ fuelle(BLK, {
     mitte: o => [o.x, o.y],
     aus: o => [o.x, o.y], ein: o => [o.x, o.y],
     verweisName: transitionName,
-    beschriftung: {sofort: true, ort: o => [o.x + 20, o.y]}},
+    feldliste: [["v", "Übergangsbedingung", "z. B. BG1 · BG15, 5s/X3, ↑BG40"]],
+    beschriftung: {sofort: true, ort: o => [o.x + 20, o.y], hinweis: "Bedingung, z. B. BG1 · BG40"}},
   action: {...AKTION, n: "Aktion kontinuierlich", mk: {t: "kont"}},
   actc: {g: "grafcet", n: "Aktion mit Zuweisungsbedingung", mk: {k: "action", t: "kont", b: "", hb: true}},
   acta: {g: "grafcet", n: "Aktion bei Aktivierung ↑", mk: {k: "action", t: "akt"}},
@@ -212,7 +218,8 @@ fuelle(BLK, {
     umriss: o => ({x: o.x-10, y: o.y, w: 24 + tw(o.v || "Ziel"), h: 36}),
     aus: o => [o.x, o.y+30], ein: o => [o.x, o.y],
     neu(o, [px, py]){ o.x = px; o.y = py - 15; o.v = ""; },
-    beschriftung: {sofort: true}},
+    feldliste: [["v", "Ziel", "z. B. 1 oder Schritt 5"]],
+    beschriftung: {sofort: true, hinweis: "Ziel, z. B. 1"}},
 });
 fuelle(SAMPLE, {
   init: [{k:"init", x:4, y:4, v:"1"}, "0 0 48 48"], step: [{k:"step", x:4, y:4, v:"2"}, "0 0 48 48"],
@@ -223,13 +230,4 @@ fuelle(SAMPLE, {
   actd: [{k:"action", t:"deakt", x:4, y:22, v:"Z := 0"}, "0 0 98 56"], acte: [{k:"action", t:"ereig", x:4, y:22, v:"Z := Z+1", b:"↑BG1"}, "0 0 98 56"],
   alt: [{k:"alt", x:8, y:24, w:72}, "0 0 88 48", `<path d="M44 4V24M18 24V44M70 24V44" stroke="${INK}" stroke-width="1.6"/>`],
   par: [{k:"par", x:8, y:22, w:72}, "0 0 88 48", `<path d="M44 4V22M18 27V44M70 27V44" stroke="${INK}" stroke-width="1.6"/>`],
-});
-fuelle(PROPS, {
-  init: [["v","Schrittnummer"]], step: [["v","Schrittnummer"]], macro: [["v","Bezeichnung","z. B. M1"]], ref: [["v","Ziel","z. B. 1 oder Schritt 5"]],
-  trans: [["v","Übergangsbedingung","z. B. BG1 · BG15, 5s/X3, ↑BG40"]],
-});
-fuelle(LABEL_HINT, {
-  trans: "Bedingung, z. B. BG1 · BG40", action: "Aktion, z. B. MB1", actionq: "Bestimmungszeichen und Aktion, z. B. S MB9",
-  macro: "Bezeichnung, z. B. M1", ref: "Ziel, z. B. 1", step: "Schrittnummer", init: "Schrittnummer",
-  alt: "Breite (Standard 200)", par: "Breite (Standard 200)",
 });

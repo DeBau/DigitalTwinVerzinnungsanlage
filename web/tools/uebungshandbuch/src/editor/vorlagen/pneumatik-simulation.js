@@ -1,8 +1,8 @@
 // Pneumatik-Simulation: Druck von den Quellen über Leitungen und Ventile verteilen, Zylinder fahren lassen,
-// Ventile per Klick schalten. Die Bauteile beschreiben ihr Verhalten im Haken sim(o, stellung, hatDruck) in PC.
+// Ventile per Klick schalten. Die Bauteile beschreiben ihr Verhalten im Haken sim(o, stellung, hatDruck) ihres Bausteineintrags.
 // Benutzt von vorlagen/pneumatik.js (Werkzeug „Simulation“).
 import { ED } from '../status.js';
-import { PC } from '../registry.js';
+import { art } from '../registry.js';
 import { pressed, simOn } from '../bauteile.js';
 import { bbox } from '../bausteine.js';
 import { clearSel, objById } from '../auswahl.js';
@@ -13,12 +13,12 @@ export function simCompute(){
   const d = ED.data, adj = new Map(), add = (a, b) => { if (!adj.has(a)) adj.set(a, []); if (!adj.has(b)) adj.set(b, []); adj.get(a).push(b); adj.get(b).push(a); };
   d.c.forEach(c => { if (c.pa !== undefined && c.pb !== undefined) add(c.a + ":" + c.pa, c.b + ":" + c.pb); });
   const roots = [];
-  d.o.forEach(o => { const pc = PC[o.k]; if (!pc || !pc.sim) return; const r = pc.sim(o, ED.sim.st[o.id], () => false);
+  d.o.forEach(o => { const pc = art(o.k); if (!pc.sim) return; const r = pc.sim(o, ED.sim.st[o.id], () => false);
     (r.pairs || []).forEach(([p, q]) => add(o.id + ":" + p, o.id + ":" + q)); (r.src || []).forEach(p => roots.push(o.id + ":" + p)); });
   let P = new Set();
   for (let pass = 0; pass < 8; pass++) {   // gerichtete Wege hängen vom Druck ab: wiederholen, bis sich nichts mehr ändert
     const dir = new Map();
-    d.o.forEach(o => { const pc = PC[o.k]; if (!pc || !pc.sim) return; const r = pc.sim(o, ED.sim.st[o.id], q => P.has(o.id + ":" + q));
+    d.o.forEach(o => { const pc = art(o.k); if (!pc.sim) return; const r = pc.sim(o, ED.sim.st[o.id], q => P.has(o.id + ":" + q));
       (r.dir || []).forEach(([p, q]) => { const a = o.id + ":" + p; if (!dir.has(a)) dir.set(a, []); dir.get(a).push(o.id + ":" + q); }); });
     const N = new Set(), st = [...roots];
     while (st.length) { const n = st.pop(); if (N.has(n)) continue; N.add(n); (adj.get(n) || []).forEach(m => st.push(m)); (dir.get(n) || []).forEach(m => st.push(m)); }

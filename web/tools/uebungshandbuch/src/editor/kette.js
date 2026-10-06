@@ -3,15 +3,15 @@
 // Seitenbausteine (GRAFCET-Aktionen) hängen sich rechts an; ihr Verhalten steht im Haken `seite` der Bausteinart.
 // Benutzt von zeichnen.js (Verbindungslinien) und andocken.js (Setzen, Ziehen).
 import { ED } from './status.js';
-import { BLK, art } from './registry.js';
+import { BAUSTEIN, art } from './registry.js';
 import { ctr, fam, gruppeVon, inPt, outPt } from './bausteine.js';
 import { objById } from './auswahl.js';
 
 // Seitenbaustein-Haken eines Objekts bzw. eines Paletteneintrags (Palettenvarianten zeigen über mk.k auf die Grundart)
 export const seite = o => o && art(o.k).seite;
 export function seitenArt(k){
-  if (!BLK[k]) return null;
-  const grund = (BLK[k].mk && BLK[k].mk.k) || k;
+  if (!BAUSTEIN[k]) return null;
+  const grund = (BAUSTEIN[k].mk && BAUSTEIN[k].mk.k) || k;
   return art(grund).seite || null;
 }
 
@@ -39,7 +39,7 @@ export function verbindeKette(A, B, spuren){
 // An welchen Baustein hängt sich ein neuer Baustein der Palettenart k? Der markierte, wenn er zur selben Kette gehört.
 export function kettenQuelle(k){
   const A = !ED.dnd && ED.sel && objById(ED.sel);   // beim Ziehen entscheidet die Ablagestelle (Andocken), nicht die Markierung
-  if (!A || !gruppeVon(A).kette || fam(A) !== BLK[k].g) return null;
+  if (!A || !gruppeVon(A).kette || fam(A) !== BAUSTEIN[k].g) return null;
   const neuSeite = seitenArt(k);
   if (seite(A)) return neuSeite ? A : null;
   if (neuSeite) return neuSeite.quelle(A);

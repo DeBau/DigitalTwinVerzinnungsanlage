@@ -1,8 +1,8 @@
-// Editor-Kern: Hilfen für Bauteile mit Anschlüssen (PC): Strichstile, Drehen und Spiegeln, Anschlüsse,
+// Editor-Kern: Hilfen für Bauteile mit Anschlüssen (bauteil: true): Strichstile, Drehen und Spiegeln, Anschlüsse,
 // Potenzialschienen, Leitungsführung, Zustand der Simulation. Benutzt von den Vorlagen und vom Zeichnen.
 import { INK, PH, SVGT, clamp } from './svg.js';
 import { ED } from './status.js';
-import { PC, PORTS2, vorlage } from './registry.js';
+import { art, bauteil, vorlage } from './registry.js';
 
 // Strichstile und Beschriftungen der Bauteilsymbole: Pfad, gestrichelt, Kennzeichen, Anschlussname
 export const SK = `stroke="${INK}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
@@ -20,7 +20,7 @@ export const DIRV = {u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0]};
 // Drehung und Spiegelung eines Bauteils; null, wenn es ungedreht ist oder nicht drehbar (drehbar: false).
 // pt bildet einen Punkt ab, dir eine Anschlussrichtung.
 export function xform(o){
-  const pc = PC[o.k];
+  const pc = bauteil(o.k);
   if (!pc || pc.drehbar === false) return null;
   const r = (((o.rot || 0) % 360) + 360) % 360, f = o.flip ? -1 : 1;
   if (!r && f === 1) return null;
@@ -33,10 +33,10 @@ export function xform(o){
   };
   return {r, f, c, cx, cy, x0, pt, dir};
 }
-// Anschlüsse eines Objekts als [{n, x, y, d}] auf dem Blatt, gedreht wie das Bauteil (PC.ports bzw. PORTS2)
+// Anschlüsse eines Objekts als [{n, x, y, d}] auf dem Blatt, gedreht wie das Bauteil (Haken anschluesse)
 export function portsOf(o){
   if (!o) return [];
-  const P = PC[o.k] ? PC[o.k].ports : PORTS2[o.k];
+  const P = art(o.k).anschluesse;
   if (!P) return [];
   const X = xform(o);
   return (typeof P === "function" ? P(o) : P).map(([n, dx, dy, d]) => {
@@ -46,7 +46,7 @@ export function portsOf(o){
   });
 }
 // Potenzialschiene (Bauteil mit schiene: true): Leitungen docken an beliebiger Stelle an, Anschlussname „~“
-export const istSchiene = o => !!(o && PC[o.k] && PC[o.k].schiene);
+export const istSchiene = o => !!(o && art(o.k).schiene);
 export const portCap = o => !!o && (istSchiene(o) || portsOf(o).length > 0);
 // Name des Anschlusses von o, der pt am nächsten liegt
 export function nearestPort(o, pt){

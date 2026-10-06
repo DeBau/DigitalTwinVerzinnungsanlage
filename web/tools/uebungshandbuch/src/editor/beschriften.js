@@ -1,7 +1,7 @@
 // Editor-Kern: Beschriftungsfeld direkt auf dem Blatt (Bausteine, Verbindungen, Texte).
 import { $ } from '../app/basis.js';
 import { ED } from './status.js';
-import { LABEL_HINT, art } from './registry.js';
+import { art } from './registry.js';
 import { bbox } from './bausteine.js';
 import { updateProps } from './eigenschaften.js';
 import { renderInk } from './anzeige.js';
@@ -31,7 +31,7 @@ export function editObjLabel(o){
   const b = bbox(o);
   const wert = B && B.wert ? B.wert(o) : (o.v || "");
   const at = B && B.ort ? B.ort(o) : [b.x, b.y + b.h/2];
-  const hinweis = B && B.hinweis ? B.hinweis(o) : LABEL_HINT[o.k];
+  const hinweis = B && (typeof B.hinweis === "function" ? B.hinweis(o) : B.hinweis);
   editLabel(at[0], at[1], wert, hinweis, v => {
     snapshot();
     if (B && B.setze) B.setze(o, v); else o.v = v;

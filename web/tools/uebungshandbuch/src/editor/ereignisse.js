@@ -1,7 +1,7 @@
 // Editor-Kern: Listener des Editor-Dialogs (Palette ziehen, Klicks, Eigenschaftsfeld, Tastatur, Schließen).
 import { $, $$ } from '../app/basis.js';
 import { ED } from './status.js';
-import { PC, art, vorlage } from './registry.js';
+import { art, vorlage } from './registry.js';
 import { anySel, clearSel, objById } from './auswahl.js';
 import { deDate } from './blaetter.js';
 import { istSignalFeld, schliesseListe, signalEingabe, signalTaste, signalWahl } from './signalfeld.js';
@@ -56,8 +56,8 @@ export const AKTIONEN = {
   befund: t => waehleBefund(+t.dataset.n),
   take: t => takeMenu(t),
   takeit: t => takeSketch(t.dataset.from),
-  rot: () => { if (ED.sel && PC[objById(ED.sel).k]) turnSel("rot"); },
-  flip: () => { if (ED.sel && PC[objById(ED.sel).k]) turnSel("flip"); },
+  rot: () => turnSel("rot"),
+  flip: () => turnSel("flip"),
   sfzu: () => { ED.selF = false; updateProps("neu"); },
   heute: () => { const f = $('#props [data-prop="md"]'); if (f) { snapshot(); f.value = deDate(Date.now()); applyProp("md", f.value); } },
   del: () => delSel(),
