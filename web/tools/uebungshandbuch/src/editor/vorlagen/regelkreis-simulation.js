@@ -4,8 +4,8 @@
 // Zustand in ED.vorlage.sim = {regler, kp, tn, gestartet}; gespeichert wird nichts.
 import { $, esc } from '../../app/basis.js';
 import { ED } from '../status.js';
-import { FARBEN, HINWEIS, auswahlFeld, updateProps } from '../eigenschaften.js';
-import { richtung } from './zustand.js';
+import { markiertesElement } from '../auswahl.js';
+import { FARBEN, FELDER_JE_ART, HINWEIS, auswahlFeld, updateProps } from '../eigenschaften.js';
 
 export const STRECKE = {t1: 10, totzeit: 1, ks: 1};     // Zeitkonstante und Totzeit in s, Verstärkung
 export const LAUF = {dauer: 60, dt: 0.05, sprungBei: 5, wVor: 20, wNach: 60, hysterese: 2,
@@ -64,8 +64,8 @@ export function eingeschwungen(p){
 // mindestens zweimal um (ein langsames Ansteigen ist kein Schwingen).
 export function schwingtDauernd(p){
   const xs = p.slice(-Math.round(LAUF.ruhe / LAUF.dt)).filter((q, i) => i % 10 === 0).map(q => q.x);
-  const richtung = xs.slice(1).map((x, i) => Math.sign(x - xs[i])).filter(r => r);
-  const wenden = richtung.slice(1).filter((r, i) => r !== richtung[i]).length;
+  const auf = xs.slice(1).map((x, i) => Math.sign(x - xs[i])).filter(r => r);   // je Abschnitt: steigt (1) oder fällt (−1)
+  const wenden = auf.slice(1).filter((r, i) => r !== auf[i]).length;
   return Math.max(...xs) - Math.min(...xs) > 1 && wenden >= 2;
 }
 // Zahl in % mit Komma, echtem Minuszeichen (U+2212) und geschütztem Leerzeichen vor %
@@ -158,8 +158,13 @@ export const SIM_TIPPS = {
   "2P": "Tipp: Der Zweipunktregler kennt nur ein und aus. Gut für Heizungen, wenn ein kleines Pendeln nicht stört. "
     + "Die gestrichelten Linien sind die Schaltpunkte (Hysterese).",
 };
-// Haken anleitung: das Panel, solange die Simulation offen ist
-export const simAnleitung = () => ED.vorlage.sim ? simPanel() : null;
+// Haken anleitung: das Panel, solange die Simulation offen ist. Ist etwas markiert, stehen seine Eigenschaften darüber
+// und bleiben bedienbar.
+export function simAnleitung(){
+  if (!ED.vorlage.sim) return null;
+  const el = markiertesElement();
+  return (el ? FELDER_JE_ART[ED.markiert.art](el) : "") + simPanel();
+}
 // Haken eingabe: Feld übernehmen und nur das Bild und den Text neu zeichnen (das Feld behält den Fokus)
 export function simEingabe(e){
   const f = e.target.dataset && e.target.dataset.rks, sim = ED.vorlage.sim;

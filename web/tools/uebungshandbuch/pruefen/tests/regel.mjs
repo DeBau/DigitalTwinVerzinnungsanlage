@@ -280,6 +280,21 @@ export const tests = [
     },
   },
   {
+    name: 'P2-6 Simulation offen: Eigenschaften des markierten Blocks bleiben bedienbar',
+    lauf: async (t) => {
+      await t.oeffne('regelkreis');
+      await t.klick('#editor [data-rk="muster"]');
+      await t.klick('#editor [data-rk="sim"]');
+      await t.werkzeug('sel'); await t.klick([280, 200]);
+      t.gleich(await t.zaehle('#props #rk-sim-bild'), 1, 'Simulation bleibt offen');
+      await t.page.fill('#props [data-prop="v"]', 'Temperaturregler'); await t.ruhe();
+      await t.page.selectOption('#props select[data-prop="typ"]', 'PI'); await t.ruhe();
+      const regler = (await t.objekte('box')).find((o) => o.v === 'Temperaturregler');
+      t.gleich(regler && regler.typ, 'PI', 'Bezeichnung und Verhalten geändert');
+      t.gleich(await t.zaehle('#props #rk-sim-bild'), 1, 'Simulation weiter offen');
+    },
+  },
+  {
     name: '6e Prüfen: Muster ist in Ordnung',
     lauf: async (t) => {
       await t.oeffne('regelkreis');
