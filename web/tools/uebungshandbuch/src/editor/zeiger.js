@@ -236,8 +236,8 @@ export function zeigerLoslassen(e){
 }
 // Freihandstrich vereinfachen (Ramer-Douglas-Peucker, Abweichung höchstens eps), Punkte auf ganze Zahlen runden
 export function vereinfache(p, eps = 1){
-  const rund = rdp(p, eps).map(([x, y]) => [Math.round(x), Math.round(y)]);
-  return rund.filter((q, i) => !i || q[0] !== rund[i-1][0] || q[1] !== rund[i-1][1]);
+  const gerundet = rdp(p, eps).map(([x, y]) => [Math.round(x), Math.round(y)]);
+  return gerundet.filter((q, i) => !i || q[0] !== gerundet[i-1][0] || q[1] !== gerundet[i-1][1]);
 }
 export function rdp(p, eps){
   if (p.length < 3) return p;

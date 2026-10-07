@@ -2767,9 +2767,13 @@ pre.code code{font-size:inherit}
   function andockVorschau(o, dock) {
     const map = Object.fromEntries(ED.data.o.map((p2) => [p2.id, p2]));
     map[o.id] = o;
-    const gm = verbindungsWeg({ a: dock.a, b: dock.b }, map, []);
-    const p = andockPunkt(map[dock.a], map[dock.b]);
+    const gm = verbindungsWeg(dockLeitung(dock), map, []);
+    const p = vorschauPunkt(map, dock);
     return (gm ? VORSCHAU(gm.d) : "") + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
+  }
+  function vorschauPunkt(map, dock) {
+    const anschluss = dock.pa !== void 0 && portsOf(map[dock.a]).find((q) => q.n === dock.pa);
+    return anschluss ? [anschluss.x, anschluss.y] : andockPunkt(map[dock.a], map[dock.b]);
   }
   function avoidBreak(o) {
     if (vorlage(ED.key).einblattig) return;
@@ -3137,8 +3141,8 @@ pre.code code{font-size:inherit}
     renderInk();
   }
   function vereinfache(p, eps = 1) {
-    const rund2 = rdp(p, eps).map(([x, y]) => [Math.round(x), Math.round(y)]);
-    return rund2.filter((q, i) => !i || q[0] !== rund2[i - 1][0] || q[1] !== rund2[i - 1][1]);
+    const gerundet = rdp(p, eps).map(([x, y]) => [Math.round(x), Math.round(y)]);
+    return gerundet.filter((q, i) => !i || q[0] !== gerundet[i - 1][0] || q[1] !== gerundet[i - 1][1]);
   }
   function rdp(p, eps) {
     if (p.length < 3) return p;
