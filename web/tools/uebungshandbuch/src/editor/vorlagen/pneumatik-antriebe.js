@@ -1,7 +1,7 @@
 // Pneumatik: „Antrieb aus der Anlage einfügen“. Ein Klick setzt einen Antrieb der Verzinnungsanlage fertig verdrahtet ein:
 // Zylinder bzw. Schwenkantrieb mit Endlagensensoren, 5/2-Wegeventil mit Spulen (14 = ausfahren, 12 = einfahren),
 // zwei Drosselrückschlagventile in Abluftdrosselung und eine Druckluftquelle an 1. Benutzt von vorlagen/pneumatik.js.
-// Die Kennzeichen stehen in der Tabelle ANTRIEBE, die Namen im Menü in EXTRA (app/daten.js).
+// Die Kennzeichen stehen in ANTRIEBE (anlage-antriebe.js), die Namen im Menü in EXTRA (app/daten.js).
 import { EXTRA } from '../../app/daten.js';
 import { $ } from '../../app/basis.js';
 import { PH } from '../svg.js';
@@ -11,19 +11,8 @@ import { uid } from '../auswahl.js';
 import { HINWEIS, propsKasten, updateProps } from '../eigenschaften.js';
 import { aendere } from '../verlauf.js';
 import { setTool } from '../werkzeuge.js';
+import { ANTRIEBE } from './anlage-antriebe.js';
 
-// Antriebe −MM1 bis −MM8 (−MM7 gibt es an der Anlage nicht). aus = Spule 14 (fährt aus), ein = Spule 12 (fährt ein,
-// fehlt bei Federrückstellung), s1 = Sensor Grundstellung (hinten), s2 = Sensor vorn. Quelle: logik/zustand.js (ZYL)
-// und signale.csv der Anlage.
-export const ANTRIEBE = {
-  MM1: {art: "zyl2", aus: "MB2", ein: "MB1", s1: "BG1", s2: "BG2"},
-  MM2: {art: "zyl2", aus: "MB3", ein: "MB4", s1: "BG3", s2: "BG4"},
-  MM3: {art: "zyl2", aus: "MB5", ein: "MB6", s1: "BG5", s2: "BG6"},
-  MM4: {art: "zyl2", aus: "MB7", ein: "MB8", s1: "BG7", s2: "BG8"},
-  MM5: {art: "rot", aus: "MB9", s1: "BG14", s2: "BG15"},
-  MM6: {art: "rot", aus: "MB10", s1: "BG17", s2: "BG16"},
-  MM8: {art: "zyl2", aus: "MB15", s1: "BG30", s2: "BG31"},
-};
 const kz = tag => tag ? "−" + tag : "";
 
 // Auswahlliste im Eigenschaftsfeld

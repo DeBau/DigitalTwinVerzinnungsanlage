@@ -3889,11 +3889,33 @@ END_CASE;`)}
     start: [{ k: "start", x: 24, y: 24 }, "0 0 48 48"]
   });
 
+  // src/editor/vorlagen/anlage-antriebe.js
+  var ANTRIEBE = {
+    MM1: { art: "zyl2", aus: "MB2", ein: "MB1", s1: "BG1", s2: "BG2", b1: "gelöst", b0: "eingehängt" },
+    MM2: { art: "zyl2", aus: "MB3", ein: "MB4", s1: "BG3", s2: "BG4", b1: "unten", b0: "oben" },
+    MM3: { art: "zyl2", aus: "MB5", ein: "MB6", s1: "BG5", s2: "BG6", b1: "über Zinnbad", b0: "über Band" },
+    MM4: { art: "zyl2", aus: "MB7", ein: "MB8", s1: "BG7", s2: "BG8", b1: "Bad zu", b0: "Bad offen" },
+    MM5: { art: "rot", aus: "MB9", s1: "BG14", s2: "BG15", b1: "offen", b0: "zu" },
+    MM6: { art: "rot", aus: "MB10", s1: "BG17", s2: "BG16", b1: "sperrt", b0: "offen" },
+    MM8: { art: "zyl2", aus: "MB15", s1: "BG30", s2: "BG31", b1: "gekippt", b0: "unten" }
+  };
+  function antriebZu(text) {
+    const m = /MM\d+/.exec(String(text || ""));
+    return m && ANTRIEBE[m[0]] ? [m[0], ANTRIEBE[m[0]]] : null;
+  }
+
   // src/editor/vorlagen/wegschritt-striche.js
   var WS_RASTER = { x0: 150, x1: 975, spalten: 12, spalte: (975 - 150) / 12, y0: 74, zeile: 62 };
   var spalteBei = (x) => Math.round((x - WS_RASTER.x0) / WS_RASTER.spalte);
   var zeileBei = (y) => Math.floor((y - WS_RASTER.y0) / WS_RASTER.zeile);
   var WS_BAUGLIEDER = ["−MM1", "−MM2", "−MM3", "−MM4"];
+  var wsZeilen = (scope) => [...CYL[scope] || WS_BAUGLIEDER, "", ""];
+  var wsRows = () => wsZeilen(ED.scope).length;
+  var zeilenName = (meta, vorgabe, i) => meta && meta.rows && meta.rows[i] !== void 0 && meta.rows[i] !== null ? meta.rows[i] : vorgabe;
+  var wsPunkt = (j, i, stellung) => [
+    +(WS_RASTER.x0 + j * WS_RASTER.spalte).toFixed(2),
+    WS_RASTER.y0 + i * WS_RASTER.zeile + (stellung ? 16 : 50)
+  ];
   var wsAus = (y) => ((y - WS_RASTER.y0) % WS_RASTER.zeile + WS_RASTER.zeile) % WS_RASTER.zeile < 33 ? -1 : 1;
   var halo = (t) => t.replace("<text ", '<text stroke="#fff" stroke-width="4" stroke-linejoin="round" paint-order="stroke" ');
   var sigLoop = (st) => {
@@ -4038,10 +4060,152 @@ END_CASE;`)}
   });
   fuelle(STRICHFELD, { sl: "lbl", sg: "sg", tz: "tz", vt: "t" });
 
+  // src/editor/vorlagen/wegschritt-eingabe.js
+  function leseAblauf(text) {
+    const schritte = [];
+    for (const roh of String(text).split(/[,;]/).map((t) => t.trim()).filter(Boolean)) {
+      const zeit = /^t\s*=\s*(.+)$/i.exec(roh);
+      if (zeit) {
+        schritte.push({ moves: [], zeit: "t = " + zeit[1].trim() });
+        continue;
+      }
+      const moves = roh.split(/\s+/).map((m) => /^[-−–]?(MM\d+)([+\-−–])$/i.exec(m));
+      if (!moves.length || moves.some((m) => !m)) return { fehler: `„${roh}“ verstehe ich nicht. Beispiel: MM2−, MM3+, t = 10 s` };
+      schritte.push({ moves: moves.map((m) => ({ mm: m[1].toUpperCase(), aus: m[2] === "+" })) });
+    }
+    if (!schritte.length) return { fehler: "Trag einen Ablauf ein, z. B. MM2−, MM3+, MM2+." };
+    if (schritte.length > WS_RASTER.spalten - 1) return { fehler: `Höchstens ${WS_RASTER.spalten - 1} Schritte passen ins Formular.` };
+    return { schritte };
+  }
+  function zeilenFuer(schritte, namen) {
+    const neu = [...namen], zeile = {};
+    schritte.flatMap((s) => s.moves).forEach(({ mm }) => {
+      if (zeile[mm] !== void 0) return;
+      let i = neu.findIndex((n) => antriebZu(n) && antriebZu(n)[0] === mm);
+      if (i < 0) i = neu.findIndex((n) => !n);
+      if (i < 0) return;
+      if (!neu[i]) neu[i] = "−" + mm;
+      zeile[mm] = i;
+    });
+    return { zeile, namen: neu };
+  }
+  function stellungen(schritte) {
+    const pos = {};
+    schritte.forEach((s) => s.moves.forEach(({ mm, aus }) => {
+      if (!pos[mm]) pos[mm] = [aus ? 0 : 1];
+    }));
+    schritte.forEach((s, j) => Object.keys(pos).forEach((mm) => {
+      const m = s.moves.find((x) => x.mm === mm);
+      pos[mm][j + 1] = m ? m.aus ? 1 : 0 : pos[mm][j];
+    }));
+    return pos;
+  }
+  var LINIENFARBE = { c: "#17212B" };
+  function funktionslinien(p, zeile) {
+    const s = [];
+    for (let j = 0; j + 1 < p.length; j++) {
+      const a = wsPunkt(j, zeile, p[j]), b = wsPunkt(j + 1, zeile, p[j + 1]), letzte = s[s.length - 1];
+      if (letzte && p[j] === p[j + 1] && letzte.p[0][1] === letzte.p[1][1] && letzte.p[1][1] === a[1]) letzte.p[1] = b;
+      else s.push({ k: "l", ...LINIENFARBE, w: 2.8, p: [a, b] });
+    }
+    return s;
+  }
+  function ausloeser(schritte, j) {
+    const vorher = schritte[j - 1].zeit ? schritte[j - 2] : schritte[j - 1];
+    const zeit = schritte[j - 1].zeit, an = vorher ? vorher.moves : [];
+    return { zeit, sensoren: an.map(({ mm, aus }) => ({
+      mm,
+      aus,
+      j: schritte[j - 1].zeit ? j - 1 : j,
+      tag: ANTRIEBE[mm] ? "−" + ANTRIEBE[mm][aus ? "s2" : "s1"] : ""
+    })) };
+  }
+  function signallinien(schritte, j, zeile) {
+    const { zeit, sensoren } = ausloeser(schritte, j), s = [];
+    const quelle2 = (q) => wsPunkt(q.j, zeile[q.mm], q.aus ? 1 : 0);
+    if (!sensoren.length) return s;
+    schritte[j].moves.forEach(({ mm, aus }) => {
+      const ziel = wsPunkt(j, zeile[mm], aus ? 0 : 1), tz = zeit ? { tz: zeit } : {};
+      if (sensoren.length === 1) {
+        s.push({ k: "sig", ...LINIENFARBE, w: 1.2, p: [quelle2(sensoren[0]), ziel], lbl: sensoren[0].tag, ...tz });
+        return;
+      }
+      const J = [ziel[0], ziel[1] - wsAus(ziel[1]) * 18];
+      s.push({ k: "vk", ...LINIENFARBE, w: 1.2, t: "und", p: [J] }, { k: "sig", ...LINIENFARBE, w: 1.2, p: [J, ziel], lbl: "", ...tz });
+      sensoren.forEach((q) => s.push({ k: "sig", ...LINIENFARBE, w: 1.2, p: [quelle2(q), J], lbl: q.tag }));
+    });
+    return s;
+  }
+  function ablaufStriche(schritte, zeile, zeilen) {
+    const pos = stellungen(schritte), s = Object.keys(pos).flatMap((mm) => funktionslinien(pos[mm], zeile[mm]));
+    schritte[0].moves.forEach(({ mm, aus }) => s.push({
+      k: "st",
+      ...LINIENFARBE,
+      w: 1.2,
+      p: [wsPunkt(0, zeile[mm], aus ? 0 : 1)],
+      lbl: "−SF1"
+    }));
+    schritte.forEach((st, j) => {
+      if (j > 0 && st.moves.length) s.push(...signallinien(schritte, j, zeile));
+    });
+    const xEnde = wsPunkt(schritte.length, 0, 1)[0];
+    s.push({ k: "eq", ...LINIENFARBE, w: 2.6, p: [[xEnde, 57]], y2: WS_RASTER.y0 + zeilen * WS_RASTER.zeile });
+    return s;
+  }
+  var WS_ARTEN = ["l", "sig", "st", "eq", "vk"];
+  function ablaufZeichnen(text) {
+    const r = leseAblauf(text);
+    if (r.fehler) return r.fehler;
+    const namen = wsZeilen(ED.scope).map((v, i) => zeilenName(ED.data.meta, v, i));
+    const { zeile, namen: neu } = zeilenFuer(r.schritte, namen);
+    const fehlt = r.schritte.flatMap((s) => s.moves).find((m) => zeile[m.mm] === void 0);
+    if (fehlt) return `Für −${fehlt.mm} ist keine Zeile frei.`;
+    if (ED.data.s.some((st) => WS_ARTEN.includes(st.k)) && !confirm("Vorhandene Linien im Diagramm ersetzen?")) return "";
+    aendere((d) => {
+      d.s = [...d.s.filter((st) => !WS_ARTEN.includes(st.k)), ...ablaufStriche(r.schritte, zeile, namen.length)];
+      if (neu.some((n, i) => n !== namen[i])) {
+        d.meta = d.meta || {};
+        d.meta.rows = neu;
+      }
+    });
+    return "";
+  }
+  var EINGABE_HTML = `<div class="palg"><div class="palh">Schnelleingabe</div><label class="prop">Ablauf, Schritt für Schritt<input type="text" data-wsablauf placeholder="MM2−, MM3+, MM2+, t = 10 s" autocomplete="off"></label><button type="button" class="tool" data-wsablaufknopf>Diagramm zeichnen</button><p class="small muted" data-wsablaufhinweis style="margin:6px 0 0">+ fährt aus (1), − fährt ein (0). Sensoren und Zeilen kommen aus der Anlage.</p></div>`;
+  function eingabeKlick(e) {
+    if (!e.target.closest("[data-wsablaufknopf]")) return false;
+    const feld = $("#editor [data-wsablauf]"), hinweis = $("#editor [data-wsablaufhinweis]");
+    const fehler = ablaufZeichnen(feld ? feld.value : "");
+    if (fehler && hinweis) {
+      hinweis.textContent = fehler;
+      hinweis.style.color = "#C0392B";
+    }
+    return true;
+  }
+  function bedeutung(meta, name, i) {
+    const eigen = meta && meta.bed && meta.bed[i], a = antriebZu(name);
+    const vor = a ? [a[1].b1, a[1].b0] : ["", ""];
+    return [0, 1].map((k) => eigen && eigen[k] !== void 0 && eigen[k] !== null ? eigen[k] : vor[k]);
+  }
+  var nah = (a, b) => Math.abs(a[0] - b[0]) < 3 && Math.abs(a[1] - b[1]) < 3;
+  var linksRechts = (st) => [...st.p].sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  var zielVon = (st) => st.k === "st" || sigLoop(st) ? st.p[0] : st.p[1];
+  function bewegungOhneAusloeser(d) {
+    const bewegt = d.s.filter((st) => st.k === "l" && Math.abs(st.p[0][1] - st.p[1][1]) > 1);
+    const ziele = d.s.filter((st) => st.k === "sig" || st.k === "st").map(zielVon);
+    return bewegt.map(linksRechts).filter(([a]) => !ziele.some((z) => nah(z, a)) && !bewegt.some((b) => nah(linksRechts(b)[1], a))).map(([a]) => ({ stufe: "fehler", pt: a, text: `Schritt ${spalteBei(a[0]) + 1}: Die Bewegung hat keinen Auslöser. Zieh eine Signallinie vom Sensor oder setz den Start.` }));
+  }
+  function nichtInGrundstellung(d) {
+    const zeilen = {};
+    d.s.filter((st) => st.k === "l" && st.p[0][0] >= WS_RASTER.x0 - 1).forEach((st) => st.p.forEach((q) => {
+      const i = zeileBei(q[1]);
+      (zeilen[i] = zeilen[i] || []).push(q);
+    }));
+    return Object.entries(zeilen).map(([i, ps]) => [i, linksRechts({ p: ps })]).filter(([, ps]) => wsAus(ps[0][1]) !== wsAus(ps[ps.length - 1][1])).map(([i, ps]) => ({ stufe: "fehler", pt: ps[ps.length - 1], text: `Zeile ${+i + 1}: Der Zyklus endet nicht in der Grundstellung.` }));
+  }
+  var zyklusendeFehlt = (d) => d.s.some((st) => st.k === "l") && !d.s.some((st) => st.k === "eq") ? [{ stufe: "hinweis", text: "Das Zyklusende n = 1 fehlt. Setz es in die Spalte nach dem letzten Schritt." }] : [];
+  var wsPruefen = (d) => [bewegungOhneAusloeser, nichtInGrundstellung, zyklusendeFehlt].flatMap((r) => r(d));
+
   // src/editor/vorlagen/wegschritt.js
-  var wsZeilen = (scope) => [...CYL[scope] || WS_BAUGLIEDER, "", ""];
-  var wsRows = () => wsZeilen(ED.scope).length;
-  var zeilenName = (meta, vorgabe, i) => meta && meta.rows && meta.rows[i] !== void 0 && meta.rows[i] !== null ? meta.rows[i] : vorgabe;
   function wegschrittBlatt(ex, page = 0, meta = null) {
     const all = wsZeilen(ex?.id).map((r, i) => zeilenName(meta, r, i));
     const x0 = 30, xs = WS_RASTER.x0, cw = WS_RASTER.spalte, y0 = 40, hh = WS_RASTER.y0 - y0, rh = WS_RASTER.zeile;
@@ -4057,6 +4221,8 @@ END_CASE;`)}
     all.forEach((r, i) => {
       const y = y0 + hh + i * rh;
       s += `<path d="M${x0} ${y + rh}H975" stroke="${G}" stroke-width=".8"/><path d="M${xs} ${y + 16}H975M${xs} ${y + rh - 12}H975" stroke="${G2}" stroke-width=".6" stroke-dasharray="3 3"/>` + TX(x0 + 10, y + rh / 2 + 5, 13, r, "start", "#555", 600) + TX(xs - 8, y + 20, 9, "1", "end") + TX(xs - 8, y + rh - 8, 9, "0", "end");
+      const [b1, b0] = bedeutung(meta, r, i);
+      s += (b1 ? TX(xs - 18, y + 19, 8, b1, "end") : "") + (b0 ? TX(xs - 18, y + rh - 9, 8, b0, "end") : "");
     });
     s += TX(x0 + 10, yb + 25, 11, "Bedingungen", "start", "#666", 600);
     for (let i = 1; i <= 3; i++) s += `<path d="M${x0} ${yb + i * 40}H975" stroke="${G}" stroke-width=".6"/>`;
@@ -4109,7 +4275,8 @@ END_CASE;`)}
   var WS_HILFE = [
     "<b>Weg-Schritt-Diagramm</b> nach der zurückgezogenen VDI 3260. Eine Nachfolgenorm gibt es nicht, die Darstellung ist in Ausbildung und Prüfung trotzdem üblich.",
     "<b>Funktionslinie</b> (dick): waagrecht = Stillstand, schräg = Bewegung (je steiler, desto schneller), senkrecht = Ventil bzw. Stellglied schaltet. Die Enden rasten auf die Eckpunkte.",
-    "<b>Zeilenname</b>: links auf den Namen klicken, z. B. eine freie Zeile in „−MB1 Ventil“ umbenennen.",
+    "<b>Schnelleingabe</b>: den Ablauf als Zeile eintragen, z. B. MM2−, MM3+, MM2+, t = 10 s, MM2−, MM3−, MM2+. Funktionslinien, Signallinien mit den Sensoren der Anlage, Start und Zyklusende entstehen von selbst.",
+    "<b>Zeilenname</b>: links auf den Namen klicken, z. B. eine freie Zeile in „−MB1 Ventil“ umbenennen. Klickst du oben bzw. unten neben die 1 oder 0, trägst du ein, was die Stellung bedeutet (z. B. 1 = unten).",
     "<b>Start</b>: auf den Beginn der ersten Bewegung klicken. Der Starttaster (z. B. −SF1) wird davor gesetzt.",
     "<b>Signallinie</b>: vom Auslöser, z. B. der erreichten Endlage, zum Beginn der nächsten Bewegung ziehen und den Auslöser eintragen (−BG2, eine Zeit wie t = 10 s oder eine Verknüpfung).",
     "<b>Schleife</b>: Löst ein Zylinder mit seiner eigenen Endlage die Gegenbewegung aus, klickst du mit Signallinie einfach auf diesen Punkt.",
@@ -4188,19 +4355,28 @@ END_CASE;`)}
     const aufName = pt[0] >= 30 && pt[0] < 140 && pt[1] >= WS_RASTER.y0 && pt[1] < WS_RASTER.y0 + wsRows() * WS_RASTER.zeile;
     if (hitS || hitT || !aufName) return false;
     e.preventDefault();
-    const i = zeileBei(pt[1]), cur = (skMeta(ED.scope, ED.key, ED.data).rows || [])[i];
-    editLabel(
-      40,
-      WS_RASTER.y0 + i * WS_RASTER.zeile + 31,
-      cur ?? wsZeilen(ED.scope)[i],
-      "Bauglied, z. B. −MM1 Zylinder oder −MB1 Ventil",
-      (v) => aendere((d) => {
+    const i = zeileBei(pt[1]), dy = pt[1] - WS_RASTER.y0 - i * WS_RASTER.zeile, k = dy < 22 ? 0 : dy > 42 ? 1 : -1;
+    if (k >= 0) bedeutungAendern(i, k);
+    else {
+      const cur = (skMeta(ED.scope, ED.key, ED.data).rows || [])[i];
+      const ph = "Bauglied, z. B. −MM1 Zylinder oder −MB1 Ventil";
+      editLabel(40, WS_RASTER.y0 + i * WS_RASTER.zeile + 31, cur ?? wsZeilen(ED.scope)[i], ph, (v) => aendere((d) => {
         const m = d.meta = d.meta || {};
         m.rows = m.rows || [];
         m.rows[i] = v;
-      })
-    );
+      }));
+    }
     return true;
+  }
+  function bedeutungAendern(i, k) {
+    const name = zeilenName(ED.data.meta, wsZeilen(ED.scope)[i], i), cur = bedeutung(ED.data.meta, name, i)[k];
+    const y = WS_RASTER.y0 + i * WS_RASTER.zeile + (k ? 50 : 16);
+    editLabel(60, y, cur, `Bedeutung von ${k ? 0 : 1}, z. B. ${k ? "oben" : "unten"}`, (v) => aendere((d) => {
+      const m = d.meta = d.meta || {};
+      m.bed = m.bed || [];
+      m.bed[i] = m.bed[i] || [null, null];
+      m.bed[i][k] = v;
+    }));
   }
   function setzeVerknuepfung(pt) {
     const q = fangen(pt), J = [q[0], q[1] - wsAus(q[1]) * 18], art2 = ED.vorlage.voreinstellung && ED.vorlage.voreinstellung.t || "und";
@@ -4313,10 +4489,11 @@ END_CASE;`)}
       linie: { titel: "Funktionslinie: waagrecht = Stillstand, schräg = Bewegung, senkrecht = Ventil/Stellglied", name: "Funktionslinie" },
       nachLinie: `<button type="button" class="tool" data-tool="sig" title="Vom Auslöser (Endlage) zum Beginn der nächsten Bewegung ziehen">↳ Signallinie</button><button type="button" class="tool" data-tool="start" title="Auf den Beginn der ersten Bewegung klicken">⊤ Start</button><button type="button" class="tool" data-tool="eq" title="In die Spalte nach dem letzten Schritt klicken">n = 1</button>`
     },
-    seitenleiste: wsPaletteHTML,
+    seitenleiste: () => EINGABE_HTML + wsPaletteHTML(),
     hilfe: WS_HILFE,
     anleitung: wsAnleitung,
-    klick: seitenleisteKlick,
+    klick: (e) => eingabeKlick(e) || seitenleisteKlick(e),
+    pruefe: wsPruefen,
     werkzeugWechsel() {
       ED.vorlage.voreinstellung = null;
       $$("#editor [data-ws]").forEach((x) => x.setAttribute("aria-pressed", "false"));
@@ -5058,15 +5235,6 @@ END_CASE;`)}
   }
 
   // src/editor/vorlagen/pneumatik-antriebe.js
-  var ANTRIEBE = {
-    MM1: { art: "zyl2", aus: "MB2", ein: "MB1", s1: "BG1", s2: "BG2" },
-    MM2: { art: "zyl2", aus: "MB3", ein: "MB4", s1: "BG3", s2: "BG4" },
-    MM3: { art: "zyl2", aus: "MB5", ein: "MB6", s1: "BG5", s2: "BG6" },
-    MM4: { art: "zyl2", aus: "MB7", ein: "MB8", s1: "BG7", s2: "BG8" },
-    MM5: { art: "rot", aus: "MB9", s1: "BG14", s2: "BG15" },
-    MM6: { art: "rot", aus: "MB10", s1: "BG17", s2: "BG16" },
-    MM8: { art: "zyl2", aus: "MB15", s1: "BG30", s2: "BG31" }
-  };
   var kz = (tag) => tag ? "−" + tag : "";
   function antriebMenue() {
     const zeile = ([mm, a]) => `<button type="button" class="tool" data-antrieb="${mm}" style="display:block;width:100%;text-align:left;margin:0 0 6px;white-space:normal"><b>−${mm}</b> ${EXTRA[mm] || ""}<br><span class="small muted">${kz(a.aus)}${a.ein ? " / " + kz(a.ein) : " / Feder"}, ${kz(a.s1)} / ${kz(a.s2)}</span></button>`;

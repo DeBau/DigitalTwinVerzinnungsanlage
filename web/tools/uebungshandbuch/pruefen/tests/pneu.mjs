@@ -203,4 +203,45 @@ export const tests = [
       t.erwarte(!text.includes('Fehler') && !text.includes('Hinweis'), `unerwartete Befunde: ${text}`);
     },
   },
+  {
+    name: 'W1 Schnelleingabe zeichnet Funktions- und Signallinien mit den Sensoren der Anlage',
+    lauf: async (t) => {
+      await t.oeffne('wegschritt');
+      await t.klick('#editor [data-wsablauf]');
+      await t.tippe('MM2-, MM3+, MM2+, t = 10 s, MM2-, MM3-, MM2+');
+      await t.klick('#editor [data-wsablaufknopf]');
+      const s = (await t.daten()).s, art = (k) => s.filter((x) => x.k === k);
+      t.gleich(art('sig').map((x) => x.lbl), ['−BG3', '−BG6', '−BG4', '−BG3', '−BG5'], 'Signalgeber aus der Anlage');
+      t.gleich(art('sig').filter((x) => x.tz).map((x) => x.tz), ['t = 10 s'], 'Zeitglied an der Wartezeit');
+      t.gleich(art('st').map((x) => x.lbl), ['−SF1'], 'Start');
+      t.gleich(art('eq').length, 1, 'Zyklusende');
+      t.erwarte(art('l').length >= 8, 'Funktionslinien für −MM2 und −MM3');
+      t.erwarte(art('l').every((x) => x.p.every(([px]) => px >= 150 && px <= 150 + 7 * 68.75 + 1)), 'Linien in den Schritten 1 bis 7');
+    },
+  },
+  {
+    name: 'W2 Bedeutung 1/0 vorbelegt, Prüfung: Auslöser und Grundstellung',
+    daten: 'ws-fehler',
+    lauf: async (t) => {
+      await t.oeffne('wegschritt');
+      const vordruck = await t.page.$eval('#edstage .tpl', (g) => g.textContent);
+      t.erwarte(vordruck.includes('unten') && vordruck.includes('oben'), '−MM2: 1 = unten, 0 = oben');
+      await t.knopf('pruefen');
+      const text = await t.text('#props');
+      t.erwarte(text.includes('keinen Auslöser'), 'Bewegung ohne Auslöser');
+      t.erwarte(text.includes('nicht in der Grundstellung'), 'Zyklus endet nicht in Grundstellung');
+    },
+  },
+  {
+    name: 'W2 Schnelleingabe ergibt ein fehlerfreies Diagramm',
+    lauf: async (t) => {
+      await t.oeffne('wegschritt');
+      await t.klick('#editor [data-wsablauf]');
+      await t.tippe('MM1+ MM2-, MM3+, MM1- MM2+, MM3-');
+      await t.klick('#editor [data-wsablaufknopf]');
+      t.gleich((await t.daten()).s.filter((x) => x.k === 'vk').length, 2, 'zwei Sensoren lösen über UND aus');
+      await t.knopf('pruefen');
+      t.erwarte((await t.text('#props')).includes('Keine Auffälligkeiten'), await t.text('#props'));
+    },
+  },
 ];

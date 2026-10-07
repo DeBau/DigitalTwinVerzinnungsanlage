@@ -2,7 +2,6 @@
 // wird mit eigenen Werkzeugen (Funktionslinie, Signallinie, Start, Verknüpfung, Zyklusende) statt mit einer Palette.
 // Die Stricharten sig, st, eq, vk stehen in STRICH (wegschritt-striche.js), die Werkzeuge hängen über die Haken der
 // Vorlage im Kern. Schnelleingabe und Prüfung: wegschritt-eingabe.js.
-import { CYL } from '../../app/daten.js';
 import { $, $$ } from '../../app/basis.js';
 import { INK, SVGT, arrowHead } from '../svg.js';
 import { ED, markiere } from '../status.js';
@@ -16,16 +15,10 @@ import { aendere } from '../verlauf.js';
 import { editLabel } from '../beschriften.js';
 import { fangen, setTool } from '../werkzeuge.js';
 import { beginneStrich } from '../zeiger.js';
-import { WS_BAUGLIEDER, WS_RASTER, spalteBei, wsAus, zeileBei } from './wegschritt-striche.js';
+import { WS_RASTER, spalteBei, wsAus, wsRows, wsZeilen, zeileBei, zeilenName } from './wegschritt-striche.js';
+import { EINGABE_HTML, bedeutung, eingabeKlick, wsPruefen } from './wegschritt-eingabe.js';
 
 /* ---------- Formular ---------- */
-// Zeilennamen der Übung (CYL) oder die Vorgabe, dazu zwei freie Zeilen
-export const wsZeilen = scope => [...(CYL[scope] || WS_BAUGLIEDER), "", ""];
-export const wsRows = () => wsZeilen(ED.scope).length;
-// Name der Zeile i: aus dem Schriftfeld (meta.rows), sonst die Vorgabe
-export const zeilenName = (meta, vorgabe, i) => meta && meta.rows && meta.rows[i] !== undefined && meta.rows[i] !== null
-  ? meta.rows[i] : vorgabe;
-
 export function wegschrittBlatt(ex, page = 0, meta = null){
   const all = wsZeilen(ex?.id).map((r, i) => zeilenName(meta, r, i));
   const x0 = 30, xs = WS_RASTER.x0, cw = WS_RASTER.spalte, y0 = 40, hh = WS_RASTER.y0 - y0, rh = WS_RASTER.zeile;
@@ -43,6 +36,8 @@ export function wegschrittBlatt(ex, page = 0, meta = null){
     s += `<path d="M${x0} ${y+rh}H975" stroke="${G}" stroke-width=".8"/>`
       + `<path d="M${xs} ${y+16}H975M${xs} ${y+rh-12}H975" stroke="${G2}" stroke-width=".6" stroke-dasharray="3 3"/>`
       + TX(x0+10, y+rh/2+5, 13, r, "start", "#555", 600) + TX(xs-8, y+20, 9, "1", "end") + TX(xs-8, y+rh-8, 9, "0", "end");
+    const [b1, b0] = bedeutung(meta, r, i);   // Bedeutung von 1 und 0, z. B. unten / oben
+    s += (b1 ? TX(xs-18, y+19, 8, b1, "end") : "") + (b0 ? TX(xs-18, y+rh-9, 8, b0, "end") : "");
   });
   s += TX(x0+10, yb+25, 11, "Bedingungen", "start", "#666", 600);
   for (let i = 1; i <= 3; i++) s += `<path d="M${x0} ${yb + i*40}H975" stroke="${G}" stroke-width=".6"/>`;
@@ -93,7 +88,10 @@ export const WS_HILFE = [
     + "in Ausbildung und Prüfung trotzdem üblich.",
   "<b>Funktionslinie</b> (dick): waagrecht = Stillstand, schräg = Bewegung (je steiler, desto schneller), senkrecht = Ventil "
     + "bzw. Stellglied schaltet. Die Enden rasten auf die Eckpunkte.",
-  "<b>Zeilenname</b>: links auf den Namen klicken, z. B. eine freie Zeile in „−MB1 Ventil“ umbenennen.",
+  "<b>Schnelleingabe</b>: den Ablauf als Zeile eintragen, z. B. MM2−, MM3+, MM2+, t = 10 s, MM2−, MM3−, MM2+. "
+    + "Funktionslinien, Signallinien mit den Sensoren der Anlage, Start und Zyklusende entstehen von selbst.",
+  "<b>Zeilenname</b>: links auf den Namen klicken, z. B. eine freie Zeile in „−MB1 Ventil“ umbenennen. Klickst du oben "
+    + "bzw. unten neben die 1 oder 0, trägst du ein, was die Stellung bedeutet (z. B. 1 = unten).",
   "<b>Start</b>: auf den Beginn der ersten Bewegung klicken. Der Starttaster (z. B. −SF1) wird davor gesetzt.",
   "<b>Signallinie</b>: vom Auslöser, z. B. der erreichten Endlage, zum Beginn der nächsten Bewegung ziehen und den Auslöser "
     + "eintragen (−BG2, eine Zeit wie t = 10 s oder eine Verknüpfung).",
@@ -162,10 +160,22 @@ export function zeilennameKlick(e, pt){
   const aufName = pt[0] >= 30 && pt[0] < 140 && pt[1] >= WS_RASTER.y0 && pt[1] < WS_RASTER.y0 + wsRows() * WS_RASTER.zeile;
   if (hitS || hitT || !aufName) return false;
   e.preventDefault();
-  const i = zeileBei(pt[1]), cur = (skMeta(ED.scope, ED.key, ED.data).rows || [])[i];
-  editLabel(40, WS_RASTER.y0 + i * WS_RASTER.zeile + 31, cur ?? wsZeilen(ED.scope)[i], "Bauglied, z. B. −MM1 Zylinder oder −MB1 Ventil",
-    v => aendere(d => { const m = d.meta = d.meta || {}; m.rows = m.rows || []; m.rows[i] = v; }));
+  const i = zeileBei(pt[1]), dy = pt[1] - WS_RASTER.y0 - i * WS_RASTER.zeile, k = dy < 22 ? 0 : dy > 42 ? 1 : -1;
+  if (k >= 0) bedeutungAendern(i, k);
+  else {
+    const cur = (skMeta(ED.scope, ED.key, ED.data).rows || [])[i];
+    const ph = "Bauglied, z. B. −MM1 Zylinder oder −MB1 Ventil";
+    editLabel(40, WS_RASTER.y0 + i * WS_RASTER.zeile + 31, cur ?? wsZeilen(ED.scope)[i], ph, v => aendere(d => { const m = d.meta = d.meta || {}; m.rows = m.rows || []; m.rows[i] = v; }));
+  }
   return true;
+}
+// Bedeutung von Stellung 1 (k = 0) bzw. 0 (k = 1) der Zeile i eintragen (meta.bed)
+export function bedeutungAendern(i, k){
+  const name = zeilenName(ED.data.meta, wsZeilen(ED.scope)[i], i), cur = bedeutung(ED.data.meta, name, i)[k];
+  const y = WS_RASTER.y0 + i * WS_RASTER.zeile + (k ? 50 : 16);
+  editLabel(60, y, cur, `Bedeutung von ${k ? 0 : 1}, z. B. ${k ? "oben" : "unten"}`, v => aendere(d => {
+    const m = d.meta = d.meta || {}; m.bed = m.bed || []; m.bed[i] = m.bed[i] || [null, null]; m.bed[i][k] = v;
+  }));
 }
 // Verknüpfung: Punkt vor dem Ziel setzen, dazu die Linie mit Pfeil zum Ziel; danach weiter mit Signallinien
 export function setzeVerknuepfung(pt){
@@ -262,10 +272,11 @@ registriereVorlage("wegschritt", {
       + `Bewegung klicken">⊤ Start</button><button type="button" class="tool" data-tool="eq" title="In die Spalte nach dem `
       + `letzten Schritt klicken">n = 1</button>`,
   },
-  seitenleiste: wsPaletteHTML,
+  seitenleiste: () => EINGABE_HTML + wsPaletteHTML(),
   hilfe: WS_HILFE,
   anleitung: wsAnleitung,
-  klick: seitenleisteKlick,
+  klick: e => eingabeKlick(e) || seitenleisteKlick(e),
+  pruefe: wsPruefen,
   werkzeugWechsel(){
     ED.vorlage.voreinstellung = null;
     $$("#editor [data-ws]").forEach(x => x.setAttribute("aria-pressed", "false"));

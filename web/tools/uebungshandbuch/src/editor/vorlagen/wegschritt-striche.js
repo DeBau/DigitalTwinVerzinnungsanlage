@@ -1,5 +1,6 @@
 // Weg-Schritt-Diagramm: Stricharten im Schrittfeld (Signallinie sig, Start st, Zyklusende eq, Verknüpfung vk).
 // Sie melden sich in STRICH an und zeichnen sich dort selbst; die Werkzeuge dazu stehen in vorlagen/wegschritt.js.
+import { CYL } from '../../app/daten.js';
 import { INK, SVGT, arrowHead, tw } from '../svg.js';
 import { ED } from '../status.js';
 import { STRICH, STRICHFELD, fuelle } from '../registry.js';
@@ -12,6 +13,15 @@ export const WS_RASTER = {x0: 150, x1: 975, spalten: 12, spalte: (975 - 150) / 1
 export const spalteBei = x => Math.round((x - WS_RASTER.x0) / WS_RASTER.spalte);   // nächste Schrittgrenze
 export const zeileBei = y => Math.floor((y - WS_RASTER.y0) / WS_RASTER.zeile);      // Zeile, in der y liegt
 export const WS_BAUGLIEDER = ["−MM1", "−MM2", "−MM3", "−MM4"];   // Zeilen ohne Zylinderliste der Übung (CYL)
+// Zeilennamen der Übung (CYL) oder die Vorgabe, dazu zwei freie Zeilen
+export const wsZeilen = scope => [...(CYL[scope] || WS_BAUGLIEDER), "", ""];
+export const wsRows = () => wsZeilen(ED.scope).length;
+// Name der Zeile i: aus dem Schriftfeld (meta.rows), sonst die Vorgabe
+export const zeilenName = (meta, vorgabe, i) => meta && meta.rows && meta.rows[i] !== undefined && meta.rows[i] !== null
+  ? meta.rows[i] : vorgabe;
+// Eckpunkt im Schrittfeld: Schrittgrenze j, Zeile i, Stellung 1 oder 0
+export const wsPunkt = (j, i, stellung) => [+(WS_RASTER.x0 + j * WS_RASTER.spalte).toFixed(2),
+  WS_RASTER.y0 + i * WS_RASTER.zeile + (stellung ? 16 : 50)];
 
 /* ---------- Linien im Schrittfeld ---------- */
 /* Weg-Schritt-Diagramm: Stellung 1 liegt 16 unter dem Zeilenanfang, Stellung 0 bei 50 (Zeilenhöhe 62, erste Zeile bei 74).
