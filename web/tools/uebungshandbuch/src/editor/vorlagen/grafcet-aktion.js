@@ -5,7 +5,7 @@ import { SVGT, tw } from '../svg.js';
 import { ED } from '../status.js';
 import { LINIE, platzhalter } from '../bausteine.js';
 import { objById } from '../auswahl.js';
-import { textFeld } from '../eigenschaften.js';
+import { kennzeichenFeld, textFeld } from '../eigenschaften.js';
 
 /* ---------- Bausteinarten ---------- */
 export const SCHRITTARTEN = ["step", "init", "macro"];
@@ -23,6 +23,9 @@ export const ACT_T = {
   kont: "kontinuierlich wirkend", akt: "speichernd bei Aktivierung ↑", deakt: "speichernd bei Deaktivierung ↓",
   ereig: "speichernd bei Ereignis", q: "mit Bestimmungszeichen, S7-GRAPH (IEC 61131-3)",
 };
+// Kennbuchstaben für die Vorschlagsliste: was eine Aktion schaltet bzw. was eine Transition abfragt
+export const AKTION_KENNBUCHSTABEN = ["MB", "QA", "PF", "MA", "MM", "TA"];
+export const BEDINGUNG_KENNBUCHSTABEN = ["BG", "SF", "BT", "BL", "SA", "KF"];
 export const BESTIMMUNG = ["N", "S", "R", "D", "L", "P", "SD", "DS", "SL"];
 export const qBreite = o => isAct(o) && atype(o) === "q" ? 30 : 0;   // Feld für das Bestimmungszeichen
 export const aw = o => Math.max(90, Math.round((tw(o.v || "Aktion") + 26 + qBreite(o)) / 10) * 10);
@@ -65,7 +68,7 @@ export function aktionFelder(o){
     const zeichen = BESTIMMUNG.map(q => `<option ${q === (o.q || "S") ? "selected" : ""}>${q}</option>`).join("");
     h += `<label class="prop">Bestimmungszeichen (S7-GRAPH, IEC 61131-3)<select data-prop="q">${zeichen}</select></label>`;
   }
-  h += textFeld("v", "Aktion", "z. B. MB1 oder Z := Z + 1", o.v);
+  h += kennzeichenFeld(o, "Aktion", "z. B. MB1 oder Z := Z + 1");   // Vorschläge nach AKTION_KENNBUCHSTABEN
   return h + (zusatz ? zusatz(o) : "");
 }
 // Art der Aktion wechseln; eine alte Aktion „actionq“ wird dabei zur Aktion mit Art q
@@ -147,4 +150,15 @@ export const AKTION_SEITE = {
   ausrichten: aktionAusrichten,
   andocken: aktionAndocken,
   punkt: (A, B) => isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + stapelX(B), B.y] : [B.x, B.y + 15],
+};
+
+// Bausteineintrag einer Aktion (Anmeldung als action und actionq in vorlagen/grafcet.js)
+export const AKTION = {
+  g: "grafcet", titel: "Aktion",
+  zeichne: zeichneAktion,
+  umriss(o){ const m = hasMark(o) ? 20 : 0; return {x: o.x, y: o.y - m, w: aw(o), h: 30 + m}; },
+  neu(o, [px, py], mk){ Object.assign(o, mk || {t: "kont"}); o.k = "action"; o.x = px - 20; o.y = py - 15; o.v = ""; },
+  felder: aktionFelder, setze: setzeAktion, umbau: ["t", "q"],
+  kennbuchstaben: AKTION_KENNBUCHSTABEN,
+  beschriftung: AKTION_TEXT, seite: AKTION_SEITE,
 };

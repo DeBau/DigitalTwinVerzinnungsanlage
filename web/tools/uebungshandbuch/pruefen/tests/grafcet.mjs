@@ -277,6 +277,21 @@ export const tests = [
     },
   },
   {
+    name: 'Kennzeichen-Vorschläge für Aktion und Transition',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await kurzeKette(t);
+      const d = await t.daten(), a = d.o.find((o) => o.k === 'action'), tr = nach(d, 'BG1');
+      for (const [ziel, such, art] of [[[a.x + 30, a.y + 15], 'MB', 'MB'], [[tr.x, tr.y], 'BG', 'BG']]) {
+        await t.klick(ziel);
+        const feld = t.page.locator('#props input[data-prop="v"][data-sigart]');
+        await feld.fill(''); await feld.pressSequentially(such); await t.ruhe(50);
+        const liste = await t.page.locator('#props .sigliste li').allInnerTexts();
+        t.erwarte(liste.length > 0 && liste.every((x) => x.startsWith('−' + art)), `Vorschläge ${such}: ${liste.slice(0, 3)}`);
+      }
+    },
+  },
+  {
     name: 'Taste + wie + Schritt (wenn KERN den Haken taste hat)',
     lauf: async (t) => {
       await t.oeffne('grafcet');

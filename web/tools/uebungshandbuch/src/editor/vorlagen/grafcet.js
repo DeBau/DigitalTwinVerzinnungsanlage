@@ -7,7 +7,7 @@ import { BAUSTEIN, SAMPLE, fuelle, registriereGruppe, registriereVorlage } from 
 import { G, TX, dots } from '../vorlagen-svg.js';
 import { LINIE, platzhalter, setzeBreite } from '../bausteine.js';
 import { textFeld } from '../eigenschaften.js';
-import { AKTION_SEITE, AKTION_TEXT, aktionFelder, aw, hasMark, isStep, setzeAktion, zeichneAktion } from './grafcet-aktion.js';
+import { AKTION, BEDINGUNG_KENNBUCHSTABEN, isStep } from './grafcet-aktion.js';
 import { KETTEN_HAKEN, freieSchrittNummer, hinweisAnleitung } from './grafcet-kette.js';
 import { kettenKlick, kettenKnoepfeHTML, kettenTaste } from './grafcet-knoepfe.js';
 import { pruefeGrafcet } from './grafcet-pruefen.js';
@@ -92,14 +92,6 @@ registriereGruppe("grafcet", {
   ...KETTEN_HAKEN,                    // nachSetzen, vorVerbinden, loeschen, mitziehen (grafcet-kette.js)
 });
 
-export const AKTION = {
-  g: "grafcet", titel: "Aktion",
-  zeichne: zeichneAktion,
-  umriss(o){ const m = hasMark(o) ? 20 : 0; return {x: o.x, y: o.y - m, w: aw(o), h: 30 + m}; },
-  neu(o, [px, py], mk){ Object.assign(o, mk || {t: "kont"}); o.k = "action"; o.x = px - 20; o.y = py - 15; o.v = ""; },
-  felder: aktionFelder, setze: setzeAktion, umbau: ["t", "q"],
-  beschriftung: AKTION_TEXT, seite: AKTION_SEITE,
-};
 export const MAKRO = {
   einrueck: 0,   // Makroschritt richtet sich mit der linken Kante aus (wie bisher)
   feldliste: [["v", "Bezeichnung", "z. B. M1"]],
@@ -114,6 +106,7 @@ export const TRANSITION = {
   aus: o => [o.x, o.y], ein: o => [o.x, o.y],
   teilung: 30,
   verweisName: transitionName,
+  kennbuchstaben: BEDINGUNG_KENNBUCHSTABEN,
   feldliste: [["v", "Übergangsbedingung", "z. B. BG1 · BG15, 5s/X3, ↑BG40"], ["nr", "Transitionsnummer (optional)", "z. B. 1"]],
   beschriftung: {sofort: true, ort: o => [o.x + 20, o.y], hinweis: "Bedingung, z. B. BG1 · BG40"},
 };
