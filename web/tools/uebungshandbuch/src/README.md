@@ -77,9 +77,15 @@ importiert nie aus einer Vorlage.
 | `editor/vorlagen/zustand.js` | Zustandsdiagramm: Zustände, Übergänge als gebogene Pfeile |
 | `editor/vorlagen/wegschritt-striche.js` | Weg-Schritt-Diagramm: Raster `WS_RASTER`, Stricharten Signallinie, Start, Zyklusende, Verknüpfung |
 | `editor/vorlagen/wegschritt.js` | Weg-Schritt-Diagramm: Formular, Seitenleiste, Werkzeuge |
-| `editor/vorlagen/elektro-kennzeichen.js` | Kennzeichen-Vorschläge je Bausteinart, Ordnungsziffern der Kontakte |
-| `editor/vorlagen/elektro.js` | Stromlaufplan: Vorlage, Strompfade mit automatischen Leitungen, Gruppe Steuerstromkreis (`elektro`) |
+| `editor/vorlagen/elektro-kennzeichen.js` | Kennzeichen-Vorschläge je Bausteinart, Ordnungsziffern der Kontakte, `SPULEN` |
+| `editor/vorlagen/elektro-pfade.js` | Strompfade: Breite 46/60, Blatt, Ketten, automatische Leitungen zu L+ und M, Seite der Kennzeichen |
+| `editor/vorlagen/elektro-spiegel.js` | Kontaktspiegel unter den Spulen, Querverweise an den Kontakten |
+| `editor/vorlagen/elektro-simulation.js` | Stromfluss-Simulation: Netz, Spulen, Zeitrelais, Bedienen, Unterlegung L+ rot, M blau |
+| `editor/vorlagen/elektro-pruefen.js` | Knopf „Prüfen“ für Stromlaufplan und Hauptstromkreis |
+| `editor/vorlagen/elektro-klemmen.js` | Klemmenplan im Eigenschaftsfeld |
+| `editor/vorlagen/elektro.js` | Stromlaufplan: Vorlage, Gruppe Steuerstromkreis (`elektro`), Glieder im Strompfad |
 | `editor/vorlagen/elektro-geraete.js` | Gruppe Geräte und SPS (`geraete`): DI 8, DQ 8, Netzteil, Sicherheitsrelais |
+| `editor/vorlagen/leistung-pole.js` | Dreipolig verdrahten (`mehrpolig`), Phasen tauschen, dreipolig andocken |
 | `editor/vorlagen/leistung.js` | Hauptstromkreis mit Potenzialschiene |
 | `editor/vorlagen/pneumatik-symbole.js` | Ventile, Zylinder, Entlüftungen nach ISO 1219 |
 | `editor/vorlagen/pneumatik-simulation.js` | Druckverteilung, Zylinderbewegung, Ventile schalten |
@@ -489,7 +495,7 @@ Namen aus dem Plan und die Haken, die es dafür gibt:
 | `mitziehen` | Gruppe `mitziehen(o, {umschalt}, d)` | `mitnehmen` (zeiger.js) |
 | `loesche`, `nachLoeschen` | Gruppe `loeschen(o, d)`: mitgehende IDs, ergänzt vorher Verbindungen | `removeObj` |
 | `kennzeichen` | Gruppe `kennzeichen(k, d, vorschlag)` | `makeObj` |
-| `autoLeitungen` (L+/M-Block) | Vorlage `hintergrund(d, cs)` | elektro.js (`autoLeitungSVG`), Aufruf in `zeichnungSVG` |
+| `autoLeitungen` (L+/M-Block) | Vorlage `hintergrund(d, cs)` | elektro-pfade.js (`autoLeitungen`, `autoLeitungSVG`), Aufruf in `zeichnungSVG` |
 | `weg` | Gruppe `verbinde(…, spuren)`, `seite.verbinde(A, B, spuren)`, `routeV`, `wireD` | `verbindungsWeg` |
 | `PRUEF[vorlage]` | Vorlage `pruefe(d, {scope, key})` | pruefung.js |
 | `SIGART[bausteinart]` | Bausteinart `kennbuchstaben` | `kennzeichenFeld` (eigenschaften.js) |

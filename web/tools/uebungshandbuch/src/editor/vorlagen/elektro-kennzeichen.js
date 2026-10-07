@@ -15,7 +15,9 @@ export const vorKontakt = (a, b) => {
   const p = lageVon(a), q = lageVon(b);
   return p[0] - q[0] || p[1] - q[1] || p[2] - q[2];
 };
-export const spulenVon = d => (d.o || []).filter(o => o.k === "coil");
+// Spulen mit Kontakten: Schütz, Hilfsschütz, Zeitrelais anzugs- und abfallverzögert
+export const SPULEN = ["coil", "khs", "zan", "zab"];
+export const spulenVon = d => (d.o || []).filter(o => SPULEN.includes(o.k));
 export const kontakte = d => (d.o || []).filter(o => art(o.k).kontakt);
 export function merkeOrdnung(d){
   ORDNUNG.clear();
@@ -37,14 +39,17 @@ export function kontaktAnschluss(o, n){
   return i >= 0 ? kontaktNummern(o)[i] : n;
 }
 
+// Angezeigter Name des Anschlusses n von o (Haken anschlussName, sonst n)
+export const anschlussAnzeige = (o, n) => (art(o.k).anschlussName ? art(o.k).anschlussName(o, n) : n);
+
 /* ---------- Kennzeichen ---------- */
 // Vorsatz je Bausteinart; ab: kleinste Nummer (−KF1 ist die SPS, das Sicherheitsrelais beginnt bei −KF2)
 export const VORSATZ = {
   coil: "−QA", mbv: "−MB", lamp: "−PF", tno: "−SF", tnc: "−SF", estop: "−SF", estop2: "−SF", key: "−SF",
-  lsw: "−BG", sens: "−BG",
+  lsw: "−BG", sens: "−BG", khs: "−KF", zan: "−KF", zab: "−KF",
   fuse: "−FA", ps: "−TA", sr: "−KF", ls3: "−FA", ms3: "−FA", k3: "−QA", qs3: "−QB", m3: "−MA", fu: "−TA",
 };
-const AB = {sr: 2};
+const AB = {sr: 2, khs: 2, zan: 2, zab: 2};
 // Nummern n aller Kennzeichen „vorsatz n“ an Bausteinen mit diesem Vorsatz ("-" und "−" gelten gleich).
 // Kontakte zählen nicht mit: Sie tragen das Kennzeichen ihrer Spule.
 export function nummernMit(d, vorsatz){
@@ -54,7 +59,7 @@ export function nummernMit(d, vorsatz){
 export const naechste = (d, vorsatz, ab = 1) => vorsatz + (Math.max(ab - 1, ...nummernMit(d, vorsatz)) + 1);
 // Kontakt: Kennzeichen der zuletzt gesetzten Spule
 export function letzteSpule(d){
-  const spulen = (d.o || []).filter(o => o.k === "coil" && o.v);
+  const spulen = spulenVon(d).filter(o => o.v);
   return spulen.length ? spulen[spulen.length - 1].v : "−QA1";
 }
 // Klemme: nächste Nummer an der Klemmleiste −X1

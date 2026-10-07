@@ -5,13 +5,12 @@ import { PH } from '../svg.js';
 import { art } from '../registry.js';
 import { portsOf } from '../bauteile.js';
 import { kettenLeitung } from '../zeichnen.js';
-import { spulenVon } from './elektro-kennzeichen.js';
+import { anschlussAnzeige, spulenVon } from './elektro-kennzeichen.js';
 import { autoLeitungen, imPfad, pfadNummer } from './elektro-pfade.js';
 import { netzAus, objekteVon } from './elektro-simulation.js';
 
 const fehler = (text, o) => ({stufe: "fehler", text, o: o && o.id});
 const hinweis = (text, o) => ({stufe: "hinweis", text, o: o && o.id});
-const anzeige = (o, n) => (art(o.k).anschlussName ? art(o.k).anschlussName(o, n) : n);
 const wer = o => o.v || art(o.k).n;
 
 // Anschlüsse, an denen eine Leitung, eine Kettenverbindung oder eine automatische Leitung hängt: Set "id:Anschluss"
@@ -29,7 +28,7 @@ export function belegteAnschluesse(d){
 export function offeneAnschluesse(d, glieder = (d.o || []).filter(imPfad)){
   const belegt = belegteAnschluesse(d);
   return glieder.flatMap(o => portsOf(o).filter(p => !belegt.has(o.id + ":" + p.n) && p.n !== "BK")
-    .map(p => hinweis(`${wer(o)}: Anschluss ${anzeige(o, p.n)} ist offen.`, o)));
+    .map(p => hinweis(`${wer(o)}: Anschluss ${anschlussAnzeige(o, p.n)} ist offen.`, o)));
 }
 export function doppelteSpulen(d){
   const gesehen = new Set();

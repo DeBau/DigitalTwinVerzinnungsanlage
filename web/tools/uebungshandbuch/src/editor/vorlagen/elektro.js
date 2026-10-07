@@ -2,7 +2,7 @@
 // Kontakte, Spulen und Taster bilden Strompfade: eine Ablaufkette (editor/kette.js), die oben an L+ und unten
 // an M andockt. Die Schaltzeichen kommen aus symbole/iec60617.js (gemeinsam mit dem Schaltplan).
 // Geräte und SPS stehen in elektro-geraete.js.
-import { kasten, kreis, linie, nummer, text, wirklinie } from '../../symbole/grund.js';
+import { TINTE, kasten, kreis, linie, nummer, text, wirklinie } from '../../symbole/grund.js';
 import { SYM } from '../../symbole/iec60617.js';
 import { ED } from '../status.js';
 import { registriereBauteile, registriereGruppe, registriereVorlage } from '../registry.js';
@@ -13,6 +13,7 @@ import { autoLeitungSVG, kennzeichenSVG, merkePfade, pfadKlick, pfadKnopf, pfadN
 import { spiegelSVG } from './elektro-spiegel.js';
 import { STROM_ANLEITUNG, objekteVon, simKnopf, simUnten, simWechsel, simZusatz, stromSVG } from './elektro-simulation.js';
 import { pruefeStromlauf } from './elektro-pruefen.js';
+import { klemmenplanHTML } from './elektro-klemmen.js';
 
 /* ---------- Vorlage ---------- */
 // Haken hintergrund: Ordnungsziffern und Kennzeichen-Seiten merken (vor dem Zeichnen der Glieder), in der Simulation
@@ -29,7 +30,8 @@ registriereVorlage("stromlauf", {
   // Haken hintergrund: Ordnungsziffern merken (vor dem Zeichnen der Kontakte), automatische Leitungen
   hintergrund: stromlaufHintergrund,
   werkzeugleiste: {get nachVerbinden(){ return simKnopf() + pfadKnopf(); }},
-  anleitung: () => ED.tool === "sim" ? STROM_ANLEITUNG : null,
+  // Haken anleitung: Hilfe zur Simulation; ohne Markierung der Klemmenplan
+  anleitung: () => ED.tool === "sim" ? STROM_ANLEITUNG : !ED.markiert ? klemmenplanHTML(ED.data) : null,
   werkzeugWechsel: simWechsel,
   zeiger: {unten: simUnten},
   klick: pfadKlick,
@@ -83,11 +85,26 @@ const NOT_HALT_2 = {...glied("Not-Halt zweikanalig", "−SF0", notHalt2, ["11", 
 // Hilfsöffner 95/96 des Motorschutzschalters, betätigt vom Überlastauslöser (Kasten I>); in der Simulation auslösbar
 const motorschutzOeffner = (x, y, g) => SYM.nc.zeichne(x, y, g) + wirklinie(`M${x + 5} ${y + 29}H${x - 24}`)
   + kasten(x - 42, y + 22, 18, 14) + text(x - 33, y + 32.5, "I>", {a: "middle", g: 8, w: 600});
+// Zeitrelais: Spule mit Zusatzkasten links, anzugsverzögert mit Kreuz, abfallverzögert gefüllt (IEC 60617-7)
+const zeitrelaisBild = gefuellt => (x, y, g) => SYM.coil.zeichne(x, y, g) + kasten(x - 27, y + 18, 12, 24, gefuellt ? TINTE : "#fff")
+  + (gefuellt ? "" : linie(`M${x - 27} ${y + 18}L${x - 15} ${y + 42}M${x - 15} ${y + 18}L${x - 27} ${y + 42}`));
+const ZEIT = {def: {t: "3"}, feldliste: [["t", "Verzögerung in s (Simulation)"]]};
+// Mechanische Verriegelung zwischen zwei Spulen in benachbarten Pfaden: Wirklinie mit zwei Dreiecken
+const verriegelung = o => {
+  const w = pfadX(1) - pfadX(0);   // eine Pfadbreite
+  return wirklinie(`M${o.x + 15} ${o.y + 6}H${o.x + w - 15}`)
+    + linie(`M${o.x + 17} ${o.y + 2}l4 8l4 -8zM${o.x + w - 25} ${o.y + 2}l4 8l4 -8z`, 1);
+};
 const SPULE = ["QA", "KF", "MB"], TASTER = ["SF"], GEBER = ["BG"];
 registriereBauteile({
   no: glied("Schließer", "−QA1", SCHALTZEICHEN("no"), ["13", "14"], {links: 20, kontakt: "no", kb: SPULE}),
   nc: glied("Öffner", "−QA1", SCHALTZEICHEN("nc"), ["11", "12"], {links: 20, kontakt: "nc", kb: SPULE}),
   coil: glied("Spule / Schütz", "−QA1", SCHALTZEICHEN("coil"), ["A1", "A2"], {links: 22, kb: SPULE}),
+  khs: glied("Hilfsschütz", "−KF2", SCHALTZEICHEN("coil"), ["A1", "A2"], {links: 22, kb: SPULE}),
+  zan: {...glied("Zeitrelais anzugsverzögert", "−KF2", zeitrelaisBild(false), ["A1", "A2"], {links: 34, kb: SPULE}), ...ZEIT},
+  zab: {...glied("Zeitrelais abfallverzögert", "−KF2", zeitrelaisBild(true), ["A1", "A2"], {links: 34, kb: SPULE}), ...ZEIT},
+  mv: {g: "elektro", n: "Mechanische Verriegelung", lbl: "", w: 46, h: 12, drehbar: false, zeichne: verriegelung,
+    info: "Zwischen zwei Spulen setzen, z. B. bei der Wendeschützschaltung. Sie ersetzt die Verriegelung mit Öffnern nicht."},
   lamp: glied("Meldeleuchte", "−PF1", SCHALTZEICHEN("lamp"), ["X1", "X2"], {links: 20, kb: ["PF"]}),
   tno: glied("Taster Schließer", "−SF1", SCHALTZEICHEN("tno"), ["13", "14"], {kontakt: "no", kb: TASTER}),
   tnc: glied("Taster Öffner", "−SF2", SCHALTZEICHEN("tnc"), ["11", "12"], {kontakt: "nc", kb: TASTER}),

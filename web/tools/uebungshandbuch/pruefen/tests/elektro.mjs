@@ -9,19 +9,23 @@ async function autoLeitungen(t) {
 }
 // Texte im SVG eines Bausteins
 const texte = (t, id) => t.page.$$eval(`#edstage .ink [data-o="${id}"] text`, (ts) => ts.map((x) => x.textContent));
+// Baustein k aus der Palette setzen; die Palette ist länger als das Fenster, deshalb erst hinscrollen
+async function setze(t, k, x, y) {
+  await t.page.locator(`#editor [data-place="${k}"]`).scrollIntoViewIfNeeded();
+  await t.setze(k, x, y);
+}
 // Baustein setzen und die Auswahl aufheben; liefert das neue Objekt
 async function setzeEinzeln(t, k, x, y) {
   const vorher = new Set((await t.objekte()).map((o) => o.id));
-  await t.page.locator(`#editor [data-place="${k}"]`).scrollIntoViewIfNeeded();   // Palette ist länger als das Fenster
-  await t.setze(k, x, y); await t.taste('Escape');
+  await setze(t, k, x, y); await t.taste('Escape');
   return (await t.objekte()).find((o) => !vorher.has(o.id));
 }
 // Steuerstromkreis mit Selbsthaltung: Not-Halt, Aus, Ein, Spule −QA1 in Pfad 1, Haltekontakt −QA1 in Pfad 2 verdrahtet
 export async function selbsthaltung(t) {
   await t.oeffne('stromlauf');
-  for (const [k, y] of [['estop', 120], ['tnc', 220], ['tno', 320], ['coil', 450]]) await t.setze(k, PFAD(1), y);
+  for (const [k, y] of [['estop', 120], ['tnc', 220], ['tno', 320], ['coil', 450]]) await setze(t, k, PFAD(1), y);
   await t.taste('Escape');
-  await t.setze('no', PFAD(2), 320); await t.taste('Escape');
+  await setze(t, 'no', PFAD(2), 320); await t.taste('Escape');
   await t.werkzeug('conn');
   await t.klick([PFAD(2), 290]); await t.klick([PFAD(1), 290]);
   await t.klick([PFAD(2), 350]); await t.klick([PFAD(1), 350]);
@@ -35,10 +39,10 @@ export const tests = [
     name: 'E1 automatische Leitungen nur am Kettenanfang und Kettenende',
     lauf: async (t) => {
       await t.oeffne('stromlauf');
-      await t.setze('estop', PFAD(1), 120);
-      await t.setze('coil', PFAD(1), 250);
+      await setze(t, 'estop', PFAD(1), 120);
+      await setze(t, 'coil', PFAD(1), 250);
       await lose(t);
-      await t.setze('no', PFAD(2), 330);   // freier Kontakt: bleibt offen
+      await setze(t, 'no', PFAD(2), 330);   // freier Kontakt: bleibt offen
       await lose(t);
       const al = await autoLeitungen(t);
       t.gleich(al.length, 2, 'zwei automatische Leitungen (L+ oben, M unten)');
@@ -50,10 +54,10 @@ export const tests = [
     name: 'E1 keine automatische Leitung durch ein Bauteil',
     lauf: async (t) => {
       await t.oeffne('stromlauf');
-      await t.setze('lamp', PFAD(3), 110);   // einzelnes Bauteil oben im Pfad
+      await setze(t, 'lamp', PFAD(3), 110);   // einzelnes Bauteil oben im Pfad
       await lose(t);
-      await t.setze('tno', PFAD(3), 360);
-      await t.setze('coil', PFAD(3), 470);
+      await setze(t, 'tno', PFAD(3), 360);
+      await setze(t, 'coil', PFAD(3), 470);
       await lose(t);
       const al = (await autoLeitungen(t)).filter(([x]) => x === PFAD(3));
       t.gleich(al.map(([, y]) => y), [590], 'nur die Leitung unten zu M, oben läge die Leuchte im Weg');
@@ -112,7 +116,7 @@ export const tests = [
     name: 'E3 Vorschläge aus der Signalliste',
     lauf: async (t) => {
       await t.oeffne('stromlauf');
-      await t.setze('tno', PFAD(2), 200);
+      await setze(t, 'tno', PFAD(2), 200);
       t.gleich(await t.page.$eval('#props input[data-prop="v"]', (e) => e.dataset.sigart), 'SF', 'Kennbuchstaben SF');
     },
   },
@@ -220,11 +224,11 @@ export const tests = [
       };
       await selbsthaltung(t);
       t.gleich((await befunde()).filter((b) => b.includes('Fehler')), [], 'Selbsthaltung ohne Fehler');
-      for (const [k, y] of [['nc', 390], ['coil', 480]]) await t.setze(k, PFAD(4), y);   // −QA2, verriegelt durch −QA1
+      for (const [k, y] of [['nc', 390], ['coil', 480]]) await setze(t, k, PFAD(4), y);   // −QA2, verriegelt durch −QA1
       await t.taste('Escape');
-      for (const [k, y] of [['tnc', 200], ['term', 300]]) await t.setze(k, PFAD(7), y);   // Kurzschluss ohne Verbraucher
+      for (const [k, y] of [['tnc', 200], ['term', 300]]) await setze(t, k, PFAD(7), y);   // Kurzschluss ohne Verbraucher
       await t.taste('Escape');
-      await t.setze('no', PFAD(9), 200);
+      await setze(t, 'no', PFAD(9), 200);
       await t.page.fill('#props input[data-prop="v"]', '−QA9');   // Kontakt ohne Spule
       await t.taste('Escape');
       const b = (await befunde()).join(' | ');
@@ -259,6 +263,33 @@ export const tests = [
       const m = await setzeEinzeln(t, 'm3', k1.x + 55, k1.y + 135);
       t.gleich([m.x, m.y], [k1.x, k1.y + 80], 'Motor dockt unter dem Schütz an');
       t.gleich(await leitungen(m.id), [`${k1.id}:2-U1`, `${k1.id}:4-V1`, `${k1.id}:6-W1`], 'drei Leitungen beim Andocken');
+    },
+  },
+  {
+    name: 'E12 Klemmenplan, Zeitrelais anzugsverzögert, Hilfsschütz, mechanische Verriegelung',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      for (const [k, y] of [['term', 120], ['key', 220], ['zan', 330], ['term', 440]]) await setze(t, k, PFAD(2), y);
+      await t.page.fill('#props [data-prop="v"]', '−X1:2');   // untere Klemme
+      await t.taste('Escape');
+      const zeilen = await t.page.$$eval('#props table.klemmenplan tbody tr',
+        (rs) => rs.map((r) => [...r.cells].map((c) => c.textContent)));
+      t.gleich(zeilen[0].slice(0, 3), ['−X1:1', 'L+', '−SF1:13'], 'Klemme 1: oben L+, unten Schlüsselschalter');
+      t.gleich(zeilen[1].slice(0, 3), ['−X1:2', '−KF2:A2', 'M'], 'Klemme 2: oben Zeitrelais, unten M');
+      await t.klick([PFAD(2), 360]);
+      await t.page.fill('#props [data-prop="t"]', '0.4');
+      await t.taste('Escape');
+      await t.werkzeug('sim');
+      await t.klick([PFAD(2) - 10, 250]);   // Schlüsselschalter rastet ein
+      const an = () => t.zaehle('#edstage .ink rect[fill="#27AE60"]');
+      t.gleich(await an(), 0, 'Zeitrelais zieht nicht sofort an');
+      await t.ruhe(700);
+      t.gleich(await an(), 1, 'nach der Verzögerung angezogen');
+      await t.werkzeug('sel');
+      const kh = await setzeEinzeln(t, 'khs', PFAD(6), 300);
+      t.gleich(kh.v, '−KF3', 'Hilfsschütz −KF, nach dem Zeitrelais');
+      const mv = await setzeEinzeln(t, 'mv', PFAD(6) + 20, 330);
+      t.gleich(await t.zaehle(`#edstage .ink [data-o="${mv.id}"] path`), 2, 'Verriegelung: Wirklinie und Dreiecke');
     },
   },
 ];

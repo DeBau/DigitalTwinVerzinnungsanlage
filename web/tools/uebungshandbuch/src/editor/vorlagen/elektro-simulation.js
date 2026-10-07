@@ -11,6 +11,7 @@ import { umrissVon } from '../bausteine.js';
 import { clearSel, objById } from '../auswahl.js';
 import { kettenLeitung, pageCount, verbindungsWeg } from '../zeichnen.js';
 import { renderInk } from '../anzeige.js';
+import { SPULEN } from './elektro-kennzeichen.js';
 import { autoLeitungen } from './elektro-pfade.js';
 
 export const STROM_PLUS = "#D64541", STROM_MINUS = "#2F80ED", AN = "#27AE60";
@@ -68,15 +69,30 @@ export function netzAus(d, cs, objs, z){
   return netz;
 }
 // Verbraucher (Spule, Ventilspule, Leuchte): A1 bzw. X1 an L+ und A2 bzw. X2 an M
-export const VERBRAUCHER = ["coil", "mbv", "lamp"];
+export const VERBRAUCHER = [...SPULEN, "mbv", "lamp"];
 const gespeist = (o, netz, a, b) => netz.f(knoten(o, a)) === netz.f("pot:L+") && netz.f(knoten(o, b)) === netz.f("pot:M");
 // Sicherheitsrelais: versorgt, und beide Kanäle S11–S12, S21–S22 geschlossen
 const srAn = (o, netz) => gespeist(o, netz, "A1", "A2")
   && netz.f(knoten(o, "S11")) === netz.f(knoten(o, "S12")) && netz.f(knoten(o, "S21")) === netz.f(knoten(o, "S22"));
+// Zeitrelais: an = gespeist (anzugsverzögert erst nach o.t Sekunden, abfallverzögert noch o.t Sekunden danach).
+// ED.sim.zeit[id] = {gespeist, seit}: letzter Wechsel; ein Wecker zeichnet neu, wenn die Zeit abläuft.
+export const VERZOEGERT = {
+  zan: (g, vorbei) => g && vorbei,
+  zab: (g, vorbei) => g || !vorbei,
+};
+function zeitrelais(o, g){
+  const Z = ED.sim.zeit || (ED.sim.zeit = {}), jetzt = Date.now(), t = 1000 * (parseFloat(o.t) || 3);
+  const z = Z[o.id] || (Z[o.id] = {gespeist: false, seit: -Infinity});
+  if (z.gespeist !== g) { z.gespeist = g; z.seit = jetzt; }
+  const rest = z.seit + t - jetzt;
+  if (rest > 0) setTimeout(() => { if (simOn()) renderInk(); }, rest + 30);
+  return VERZOEGERT[o.k](g, rest <= 0);
+}
 function eingeschaltet(d, netz){
   const an = new Set();
   (d.o || []).forEach(o => {
-    if (VERBRAUCHER.includes(o.k) && gespeist(o, netz, name(o, 0), name(o, 1))) an.add(o.v || o.id);
+    const g = VERBRAUCHER.includes(o.k) && gespeist(o, netz, name(o, 0), name(o, 1));
+    if (VERZOEGERT[o.k] ? zeitrelais(o, g) : g) an.add(o.v || o.id);
     if (o.k === "sr" && srAn(o, netz)) an.add(o.v || o.id);
   });
   return an;
