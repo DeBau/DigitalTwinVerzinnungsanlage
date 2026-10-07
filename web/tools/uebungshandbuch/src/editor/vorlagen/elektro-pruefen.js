@@ -7,7 +7,7 @@ import { S } from '../../app/basis.js';
 import { PH } from '../svg.js';
 import { art } from '../registry.js';
 import { portsOf, virtuelleSchienen } from '../bauteile.js';
-import { kettenLeitung, pageCount } from '../zeichnen.js';
+import { RESERVE_EDITOR, kettenLeitung, pageCount } from '../zeichnen.js';
 import { skKey } from '../blaetter.js';
 import { anschlussAnzeige, spulenVon } from './elektro-kennzeichen.js';
 import { autoLeitungen, breiteVon, imPfad, pfadNummer } from './elektro-pfade.js';
@@ -105,7 +105,7 @@ const pole = () => art("k3").pole;
 // Netz des Hauptstromkreises: Leitungen und die Pole der Schutz- und Hauptschalter. Schütze bleiben offen.
 function leistungsNetz(d){
   const objs = Object.fromEntries((d.o || []).map(o => [o.id, o])), netz = neuesNetz();
-  virtuelleSchienen("leistung", pageCount("leistung", d)).forEach(r => { objs[r.id] = r; });
+  virtuelleSchienen("leistung", pageCount("leistung", d, 0, RESERVE_EDITOR)).forEach(r => { objs[r.id] = r; });
   (d.c || []).filter(c => objs[c.a] && objs[c.b] && c.pa !== undefined)
     .forEach(c => netz.u(knoten(objs[c.a], c.pa), knoten(objs[c.b], c.pb)));
   const [oben, unten] = pole();

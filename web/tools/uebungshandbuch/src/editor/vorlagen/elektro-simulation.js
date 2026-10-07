@@ -10,7 +10,7 @@ import { art } from '../registry.js';
 import { istSchiene, portsOf, simOn, virtuelleSchienen, wireD, wireEnds } from '../bauteile.js';
 import { umrissVon } from '../bausteine.js';
 import { clearSel, objById } from '../auswahl.js';
-import { kettenLeitung, pageCount, verbindungsWeg } from '../zeichnen.js';
+import { RESERVE_EDITOR, kettenLeitung, pageCount, verbindungsWeg } from '../zeichnen.js';
 import { renderInk } from '../anzeige.js';
 import { SPULEN } from './elektro-kennzeichen.js';
 import { autoLeitungen } from './elektro-pfade.js';
@@ -38,10 +38,10 @@ function verbindeFest(d, cs, objs, netz){
   autoLeitungen(d, cs).forEach(({o, p, y}) => netz.u(knoten(o, p.n), y % PH === 70 ? "pot:L+" : "pot:M"));
 }
 
-// Bausteine nach ID samt den virtuellen Schienen L+ und M auf jedem Blatt
+// Bausteine nach ID samt den virtuellen Schienen L+ und M auf jedem Blatt (Blattzahl wie im Editor, mit Reserve)
 export function objekteVon(d){
   const objs = Object.fromEntries((d.o || []).map(o => [o.id, o]));
-  virtuelleSchienen("stromlauf", pageCount("stromlauf", d)).forEach(r => { objs[r.id] = r; });
+  virtuelleSchienen("stromlauf", pageCount("stromlauf", d, 0, RESERVE_EDITOR)).forEach(r => { objs[r.id] = r; });
   return objs;
 }
 
