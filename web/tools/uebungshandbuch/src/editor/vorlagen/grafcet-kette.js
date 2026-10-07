@@ -1,7 +1,8 @@
-// GRAFCET: Regeln beim Bearbeiten der Ablaufkette. Haken der Gruppe grafcet (registriert in vorlagen/grafcet.js):
+// GRAFCET: Regeln beim Bearbeiten der Ablaufkette, gesammelt als Gruppen-Haken in KETTEN_HAKEN (Anmeldung in grafcet.js).
 // nachSetzen und vorVerbinden halten den Wechsel von Schritt und Transition ein (zwischen zwei Schritten kommt von selbst
-// eine Transition, zwei Transitionen hintereinander lehnt der Editor mit Hinweis ab).
-import { S } from '../../app/basis.js';
+// eine Transition, zwei Transitionen hintereinander lehnt der Editor mit Hinweis ab) und fügen echt ein (haengeEin).
+// mitziehen nimmt Aktionen (mit Umschalt den Rest der Kette) mit, loeschen nimmt Aktionen mit und schließt die Kette,
+// andocke fängt nur bis 70.
 import { ED, istMarkiert } from '../status.js';
 import { art } from '../registry.js';
 import { kettenAus, kettenEin, mitteVon } from '../bausteine.js';
@@ -124,20 +125,21 @@ export const EINFUEGEN = [
 export function nachfolgerUnten(d, A, ohne = null){
   return d.c.filter(c => c.a === A.id && c.b !== ohne).map(c => objIn(d, c.b)).find(B => B && !isAct(B) && B.y > A.y);
 }
-// glieder unter A einhängen: A → glieder → S (bisheriger Nachfolger); S rückt mit dem Rest der Kette um eine Teilung nach unten
-export function haengeEin(A, glieder, d, S){
-  if (S) { verschiebeRest(d, [S.id, ...kettenRest(d, S)], TEILUNG); loeseVerbindung(d, A, S); }
+// glieder unter A einhängen: A → glieder → nachher (bisheriger Nachfolger von A).
+// nachher rückt mit dem Rest der Kette um eine Teilung nach unten.
+export function haengeEin(A, glieder, d, nachher){
+  if (nachher) { verschiebeRest(d, [nachher.id, ...kettenRest(d, nachher)], TEILUNG); loeseVerbindung(d, A, nachher); }
   let vor = A;
   for (const B of glieder) { legeUnter(B, vor); verknuepfe(d, vor, B); vor = B; }
-  if (S) verknuepfe(d, vor, S);
+  if (nachher) verknuepfe(d, vor, nachher);
 }
-// Echtes Einfügen: Hatte A schon einen Nachfolger S, kommt o (mit Partner) zwischen A und S.
+// Echtes Einfügen: Hatte A schon einen Nachfolger, kommt o (mit Partner) zwischen A und den Nachfolger.
 // false, wenn A keinen Nachfolger hat oder die Arten nicht passen.
 export function einfuegen(A, o, d){
-  const S = nachfolgerUnten(d, A, o.id), regel = S && EINFUEGEN.find(r => r.passt(A, o));
+  const nachher = nachfolgerUnten(d, A, o.id), regel = nachher && EINFUEGEN.find(r => r.passt(A, o));
   if (!regel) return false;
   loeseVerbindung(d, A, o);
-  haengeEin(A, regel.folge(o, d), d, S);
+  haengeEin(A, regel.folge(o, d), d, nachher);
   return true;
 }
 

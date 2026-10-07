@@ -1,7 +1,6 @@
 // GRAFCET: Knöpfe der Werkzeugleiste (data-gc, Vorlagen-Haken klick): „+ Schritt“ hängt Transition und nächsten
 // Schritt in einem Rutsch an, „Kette ausrichten“ legt Schritte und Transitionen mit Teilung 100 untereinander,
 // „Neu nummerieren“ zählt die Schritte (und Transitionen mit Nummer) in der Reihenfolge der Kette.
-import { S } from '../../app/basis.js';
 import { markiere } from '../status.js';
 import { markiertesObjekt, objById } from '../auswahl.js';
 import { aendere } from '../verlauf.js';
@@ -45,9 +44,9 @@ export function plusSchritt(){
   aendere(d => {
     let A = anhaengeStelle(d);
     if (!A) A = Object.assign(neuesGlied(d, "init", "1"), {x: 180, y: 60});
-    const S = nachfolgerUnten(d, A);
+    const nachher = nachfolgerUnten(d, A);
     trans = neuesGlied(d, "trans", ""); schritt = neuesGlied(d, "step", freieSchrittNummer(d));
-    haengeEin(A, transitionZuerst(A) ? [trans, schritt] : [schritt, trans], d, S);
+    haengeEin(A, transitionZuerst(A) ? [trans, schritt] : [schritt, trans], d, nachher);
   });
   markiere("o", schritt.y > trans.y ? schritt.id : trans.id);   // das untere Glied: dort geht es weiter
   editObjLabel(objById(trans.id));   // Fokus auf die Bedingung

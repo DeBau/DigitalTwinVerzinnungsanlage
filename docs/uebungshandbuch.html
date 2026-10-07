@@ -3820,10 +3820,10 @@ END_CASE;`)}
   function nachfolgerUnten(d, A, ohne = null) {
     return d.c.filter((c) => c.a === A.id && c.b !== ohne).map((c) => objIn(d, c.b)).find((B) => B && !isAct(B) && B.y > A.y);
   }
-  function haengeEin(A, glieder, d, S2) {
-    if (S2) {
-      verschiebeRest(d, [S2.id, ...kettenRest(d, S2)], TEILUNG);
-      loeseVerbindung(d, A, S2);
+  function haengeEin(A, glieder, d, nachher) {
+    if (nachher) {
+      verschiebeRest(d, [nachher.id, ...kettenRest(d, nachher)], TEILUNG);
+      loeseVerbindung(d, A, nachher);
     }
     let vor = A;
     for (const B of glieder) {
@@ -3831,13 +3831,13 @@ END_CASE;`)}
       verknuepfe(d, vor, B);
       vor = B;
     }
-    if (S2) verknuepfe(d, vor, S2);
+    if (nachher) verknuepfe(d, vor, nachher);
   }
   function einfuegen(A, o, d) {
-    const S2 = nachfolgerUnten(d, A, o.id), regel = S2 && EINFUEGEN.find((r) => r.passt(A, o));
+    const nachher = nachfolgerUnten(d, A, o.id), regel = nachher && EINFUEGEN.find((r) => r.passt(A, o));
     if (!regel) return false;
     loeseVerbindung(d, A, o);
-    haengeEin(A, regel.folge(o, d), d, S2);
+    haengeEin(A, regel.folge(o, d), d, nachher);
     return true;
   }
   function grafcetLoeschen(o, d) {
@@ -3941,10 +3941,10 @@ END_CASE;`)}
     aendere((d) => {
       let A = anhaengeStelle(d);
       if (!A) A = Object.assign(neuesGlied(d, "init", "1"), { x: 180, y: 60 });
-      const S2 = nachfolgerUnten(d, A);
+      const nachher = nachfolgerUnten(d, A);
       trans = neuesGlied(d, "trans", "");
       schritt = neuesGlied(d, "step", freieSchrittNummer(d));
-      haengeEin(A, transitionZuerst(A) ? [trans, schritt] : [schritt, trans], d, S2);
+      haengeEin(A, transitionZuerst(A) ? [trans, schritt] : [schritt, trans], d, nachher);
     });
     markiere("o", schritt.y > trans.y ? schritt.id : trans.id);
     editObjLabel(objById(trans.id));
@@ -4142,7 +4142,7 @@ END_CASE;`)}
     beschriftung: { hinweis: "Schrittnummer" }
   };
   var KASTEN = (o) => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/>`;
-  var KOMMENTAR = (o) => o.km ? SVGT(o.x - 8, o.y + 24, `„${o.km}“`, "end", 12, 400) : "";
+  var KOMMENTAR = (o) => o.km ? SVGT(o.x - 40, o.y + 24, `„${o.km}“`, "end", 12, 400) : "";
   var MARKE = (o, edit) => edit && imSpiel("aktiv", o.id) ? `<circle cx="${o.x + 20}" cy="${o.y + 31}" r="3" fill="${INK}"/>` : "";
   var zeichneSchritt = (o, edit) => KASTEN(o) + SVGT(o.x + 20, o.y + 25, o.v) + MARKE(o, edit) + KOMMENTAR(o);
   var zeichneAnfangsschritt = (o, edit) => KASTEN(o) + `<rect x="${o.x + 4}" y="${o.y + 4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v) + MARKE(o, edit) + KOMMENTAR(o);
@@ -4343,7 +4343,7 @@ END_CASE;`)}
   ].join("\n        ");
   registriereGruppe("zustand", {
     name: "Zustandsdiagramm",
-    hinweis: "Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. Die Bedingung schreiben Sie direkt an den Pfeil.",
+    hinweis: "Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. Die Bedingung schreibst du direkt an den Pfeil, eine Aktion im Zustand ins Eigenschaftsfeld.",
     verbinde: verbindeZustand,
     schleife: true,
     // Übergang auf sich selbst erlaubt

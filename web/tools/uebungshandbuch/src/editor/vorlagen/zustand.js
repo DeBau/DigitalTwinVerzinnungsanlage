@@ -48,7 +48,7 @@ export const ZUSTAND_LEGENDE = [
 registriereGruppe("zustand", {
   name: "Zustandsdiagramm",
   hinweis: "Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. "
-    + "Die Bedingung schreiben Sie direkt an den Pfeil.",
+    + "Die Bedingung schreibst du direkt an den Pfeil, eine Aktion im Zustand ins Eigenschaftsfeld.",
   verbinde: verbindeZustand,
   schleife: true,                     // Übergang auf sich selbst erlaubt
   pfeiltext: true,                    // Übergänge sind beschriftbar
