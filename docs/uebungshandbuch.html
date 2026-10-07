@@ -1479,13 +1479,8 @@ pre.code code{font-size:inherit}
       const m = Math.round((y1 + y2) / 20) * 10;
       return { ...p, d: `M${x1} ${y1}V${m}H${x2}V${y2}` };
     }
-    return { ...p, ...ruecksprung([x1, y1], [x2, y2], spuren) };
-  }
-  function ruecksprung([x1, y1], [x2, y2], spuren) {
     const lane = Math.min(x1, x2) - 50, ya = y1 + 20, yb = y2 - 20;
-    const roh = [[x1, y1], [x1, ya], [lane, ya], [lane, yb], [x2, yb], [x2, y2]];
-    const [, [, ya2], [lane2], [, yb2]] = spuren ? spuren.knick(roh, `${x1}:${y1}`) : roh;
-    return { d: `M${x1} ${y1}V${ya2}H${lane2}V${yb2}H${x2}V${y2}`, up: [lane2, (ya2 + yb2) / 2] };
+    return { ...p, d: `M${x1} ${y1}V${ya}H${lane}V${yb}H${x2}V${y2}`, up: [lane, (ya + yb) / 2] };
   }
   function verbindeKette(A, B, spuren) {
     const s = seite(B);
@@ -1504,9 +1499,8 @@ pre.code code{font-size:inherit}
   function ausrichten(o, A, pt) {
     const s = seite(o);
     if (s) return s.ausrichten(o, A, pt);
-    const [ax, ay] = kettenAus(A, mitteVon(o)[0]), teilung = art(o.k).teilung;
+    const ax = kettenAus(A, mitteVon(o)[0])[0];
     o.x = ax - (art(o.k).einrueck || 0);
-    if (teilung !== void 0) o.y += ay + teilung - kettenEin(o, ax)[1];
   }
   function andockStelle(o) {
     const g = gruppenId(o), gruppe = gruppeVon(o);
@@ -2740,23 +2734,11 @@ pre.code code{font-size:inherit}
   }
   function avoidBreak(o) {
     if (vorlage(ED.key).einblattig) return;
-    let verschoben = false;
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 4; i++) {
       const b = umrissVon(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
-      if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) {
-        o.y += B + 70 - b.y;
-        verschoben = true;
-      } else if (verschoben && ueberdeckt(o)) o.y += 10;
+      if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) o.y += B + 70 - b.y;
       else break;
     }
-  }
-  function ueberdeckt(o) {
-    const a = umrissVon(o);
-    return ED.data.o.some((p) => {
-      if (p.id === o.id) return false;
-      const b = umrissVon(p);
-      return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h + 10 && b.y < a.y + a.h + 10;
-    });
   }
   function dockLeitung(dock) {
     const c = { a: dock.a, b: dock.b, v: "" };
@@ -3539,69 +3521,41 @@ END_CASE;`)}
     el.textContent = any ? `${s} Punkte, ${gradeOf(s)}` : "noch keine Punkte";
   }
 
-  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-aktion.js
-  var SCHRITTARTEN = ["step", "init", "macro"];
-  var AKTIONSARTEN = ["action", "actionq"];
-  var isStep = (o) => !!o && SCHRITTARTEN.includes(o.k);
-  var isTrans = (o) => !!o && o.k === "trans";
-  var isAct = (o) => !!o && AKTIONSARTEN.includes(o.k);
+  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet.js
+  var isAct = (o) => !!o && (o.k === "action" || o.k === "actionq");
   var atype = (o) => o.k === "actionq" ? "q" : o.t || "kont";
-  var spielZustand = () => ED.tool === "sim" && ED.vorlage.spiel || null;
-  var imSpiel = (menge, id) => {
-    const s = spielZustand();
-    return !!(s && s[menge] && s[menge].has(id));
-  };
-  var MIT_MARKE = { akt: () => true, deakt: () => true, ereig: () => true, kont: (o) => !!(o.b || o.hb) };
-  var hasMark = (o) => isAct(o) && !!(MIT_MARKE[atype(o)] || (() => false))(o);
-  var ACT_T = {
-    kont: "kontinuierlich wirkend",
-    akt: "speichernd bei Aktivierung ↑",
-    deakt: "speichernd bei Deaktivierung ↓",
-    ereig: "speichernd bei Ereignis",
-    q: "mit Bestimmungszeichen, S7-GRAPH (IEC 61131-3)",
-    zwang: "Zwangssteuerung eines Teil-GRAFCET"
-  };
-  var AKTION_KENNBUCHSTABEN = ["MB", "QA", "PF", "MA", "MM", "TA"];
-  var BEDINGUNG_KENNBUCHSTABEN = ["BG", "SF", "BT", "BL", "SA", "KF"];
+  var hasMark = (o) => isAct(o) && (["akt", "deakt", "ereig"].includes(atype(o)) || atype(o) === "kont" && (o.b || o.hb));
+  var ACT_T = { kont: "kontinuierlich wirkend", akt: "speichernd bei Aktivierung ↑", deakt: "speichernd bei Deaktivierung ↓", ereig: "speichernd bei Ereignis", q: "mit Bestimmungszeichen (IEC 61131-3)" };
+  var aw = (o) => Math.max(90, Math.round((tw(o.v || "Aktion") + 26 + (isAct(o) && atype(o) === "q" ? 30 : 0)) / 10) * 10);
   var BESTIMMUNG = ["N", "S", "R", "D", "L", "P", "SD", "DS", "SL"];
-  var qBreite = (o) => isAct(o) && atype(o) === "q" ? 30 : 0;
-  var aw = (o) => Math.max(90, Math.round((tw(o.v || "Aktion") + 26 + qBreite(o)) / 10) * 10);
+  var isStep = (o) => o && (o.k === "step" || o.k === "init" || o.k === "macro");
   var knick = (x1, y1, x2, y2, m, waagrecht) => waagrecht ? `M${x1} ${y1}H${m}V${y2}H${x2}` : `M${x1} ${y1}V${m}H${x2}V${y2}`;
-  var markenText = (wert, platz, x, y, edit) => wert ? SVGT(x, y, wert, "start", 12, 400) : platzhalter(edit, platz, x, y, "start");
-  var PFEIL_AUF = (mx, y) => `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 12}L${mx} ${y - 18}L${mx + 4.5} ${y - 12}" ${LINIE} fill="none"/>`;
-  var FAEHNCHEN = (mx, y) => `<path d="M${mx} ${y}V${y - 18}H${mx + 8}" ${LINIE} fill="none"/>`;
-  var PFEIL_AB = (mx, y) => `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 18}L${mx} ${y - 12}L${mx + 4.5} ${y - 18}" ${LINIE} fill="none"/>`;
-  var DOPPELRAHMEN = (o) => `<rect x="${o.x + 3}" y="${o.y + 3}" width="${aw(o) - 6}" height="24" fill="none" ${LINIE}/>`;
-  var AKTIONSMARKE = {
-    kont: (o, mx, y, edit) => o.b || o.hb ? `<path d="M${mx} ${y}V${y - 16}" ${LINIE}/>` + markenText(o.b, "Zuweisungsbedingung", mx + 6, y - 6, edit) : "",
-    akt: (o, mx, y) => PFEIL_AUF(mx, y),
-    deakt: (o, mx, y) => PFEIL_AB(mx, y),
-    zwang: (o) => DOPPELRAHMEN(o),
-    ereig: (o, mx, y, edit) => FAEHNCHEN(mx, y) + markenText(o.b, "Ereignis, z. B. ↑BG1", mx + 11, y - 14, edit)
-  };
   function zeichneAktion(o, edit) {
-    const x = o.x, y = o.y, w = aw(o), qw = qBreite(o), tc = x + qw + (w - qw) / 2, marke = AKTIONSMARKE[atype(o)];
-    const fuellung = edit && imSpiel("aktionen", o.id) ? "#DFF5E1" : "#fff";
-    let r = `<rect x="${x}" y="${y}" width="${w}" height="30" fill="${fuellung}" ${LINIE}/>`;
+    const x = o.x, y = o.y, t = atype(o), w = aw(o), qw = t === "q" ? 30 : 0, mx = x + 16, tc = x + qw + (w - qw) / 2;
+    let r = `<rect x="${x}" y="${y}" width="${w}" height="30" fill="#fff" ${LINIE}/>`;
     if (qw) r += `<path d="M${x + 30} ${y}V${y + 30}" ${LINIE}/>` + SVGT(x + 15, y + 20, o.q || "S", "middle", 12, 600);
     r += o.v ? SVGT(tc, y + 20, o.v, "middle", 13, 400) : platzhalter(edit, "Aktion", tc, y + 20);
-    return r + (marke ? marke(o, x + 16, y, edit) : "");
+    if (t === "kont" && (o.b || o.hb)) {
+      r += `<path d="M${mx} ${y}V${y - 16}" ${LINIE}/>`;
+      r += o.b ? SVGT(mx + 6, y - 6, o.b, "start", 12, 400) : platzhalter(edit, "Zuweisungsbedingung", mx + 6, y - 6, "start");
+    }
+    if (t === "akt" || t === "ereig") r += `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 12}L${mx} ${y - 18}L${mx + 4.5} ${y - 12}" ${LINIE} fill="none"/>`;
+    if (t === "deakt") r += `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 18}L${mx} ${y - 12}L${mx + 4.5} ${y - 18}" ${LINIE} fill="none"/>`;
+    if (t === "ereig") r += o.b ? SVGT(mx + 8, y - 6, o.b, "start", 12, 400) : platzhalter(edit, "Ereignis, z. B. ↑BG1", mx + 8, y - 6, "start");
+    return r;
   }
-  var AKTION_ZUSATZFELD = {
-    kont: (o) => textFeld("b", "Zuweisungsbedingung (optional)", "z. B. BG9 oder 3s/X2", o.b),
-    ereig: (o) => textFeld("b", "Ereignis", "z. B. ↑BG1", o.b),
-    zwang: () => HINWEIS("Schreib den Teil-GRAFCET mit der Situation, z. B. G2{INIT} (Anfangssituation), G2{*} (eingefroren), G2{} (alle Schritte inaktiv) oder G2{5, 7}.")
-  };
   function aktionFelder(o) {
-    const t = atype(o), zusatz = AKTION_ZUSATZFELD[t];
+    const t = atype(o);
     const arten = Object.entries(ACT_T).map(([k, n]) => `<option value="${k}" ${k === t ? "selected" : ""}>${n}</option>`).join("");
     let h = `<label class="prop">Art<select data-prop="t">${arten}</select></label>`;
     if (t === "q") {
       const zeichen = BESTIMMUNG.map((q) => `<option ${q === (o.q || "S") ? "selected" : ""}>${q}</option>`).join("");
-      h += `<label class="prop">Bestimmungszeichen (S7-GRAPH, IEC 61131-3)<select data-prop="q">${zeichen}</select></label>`;
+      h += `<label class="prop">Bestimmungszeichen<select data-prop="q">${zeichen}</select></label>`;
     }
-    h += kennzeichenFeld(o, "Aktion", "z. B. MB1 oder Z := Z + 1");
-    return h + (zusatz ? zusatz(o) : "");
+    h += textFeld("v", "Aktion", "z. B. MB1 oder Z := Z + 1", o.v);
+    if (t === "kont") h += textFeld("b", "Zuweisungsbedingung (optional)", "z. B. BG9 oder 3s/X2", o.b);
+    if (t === "ereig") h += textFeld("b", "Ereignis", "z. B. ↑BG1", o.b);
+    return h;
   }
   function setzeAktion(o, f, v) {
     if (f !== "t") return false;
@@ -3624,65 +3578,116 @@ END_CASE;`)}
       o.v = m ? m[2] : "";
     }
   };
-  var aktionsAnsatz = (A) => isTrans(A) ? [A.x + 14, A.y] : [A.x + 40, A.y + 20];
-  var stapelX = (B) => hasMark(B) ? 0 : 8;
-  function aktionNachAktion(A, B) {
-    const ax2 = A.x + aw(A);
-    if (B.x >= ax2 - 1) {
-      const y12 = A.y + 15, y22 = B.y + 15, m2 = Math.round((ax2 + B.x) / 20) * 10;
-      return { d: Math.abs(y12 - y22) < 1 ? `M${ax2} ${y12}H${B.x}` : knick(ax2, y12, B.x, y22, m2, true) };
-    }
-    const y1 = A.y + 30, y2 = B.y - (hasMark(B) ? 20 : 0), m = Math.round((y1 + y2) / 20) * 10, s = stapelX(B);
-    return { d: Math.abs(A.x - B.x) < 1 ? `M${A.x + s} ${y1}V${B.y}` : `M${A.x + s} ${y1}V${m}H${B.x + s}V${B.y}` };
-  }
-  function aktionVerbinde(A, B) {
-    if (isAct(A)) return aktionNachAktion(A, B);
-    const p1 = aktionsAnsatz(A), p2 = [B.x, B.y + 15], m = Math.round((p1[0] + p2[0]) / 20) * 10;
-    return { d: Math.abs(p1[1] - p2[1]) < 1 ? `M${p1[0]} ${p1[1]}H${p2[0]}` : knick(p1[0], p1[1], p2[0], p2[1], m, true) };
-  }
-  function letzteAktion(A) {
-    const naechste = (id) => ED.data.c.find((c) => c.a === id && isAct(objById(c.b)));
-    let cur = null, n = 0;
-    for (let c = naechste(A.id); c && n++ < 50; c = naechste(cur.id)) cur = objById(c.b);
-    return cur || A;
-  }
-  function aktionAusrichten(o, A, pt) {
-    if (isAct(A)) {
-      const right = pt && pt[0] - (A.x + aw(A)) > pt[1] - (A.y + 30);
-      if (right) {
-        o.x = A.x + aw(A);
-        o.y = A.y;
-      } else {
-        o.x = A.x;
-        o.y = A.y + 30 + (hasMark(o) ? 20 : 0);
-      }
-      return;
-    }
-    o.x = isTrans(A) ? A.x + 40 : A.x + 70;
-    o.y = isTrans(A) ? A.y - 15 : A.y + 5;
-  }
-  function aktionAndocken(o, others, take) {
-    for (const p of others) {
-      if (isStep(p) || isTrans(p)) {
-        const [px, py] = aktionsAnsatz(p), dx = o.x - px, dy = o.y + 15 - py;
-        if (dx >= 0 && dx <= 110 && Math.abs(dy) <= 30) take({ a: p.id, b: o.id, d: Math.hypot(dx - 30, dy), sx: 0, sy: -dy });
-      } else if (isAct(p)) aktionAnAktion(o, p, take);
-    }
-  }
-  function aktionAnAktion(o, p, take) {
-    const rx = p.x + aw(p), by = p.y + 30 + (hasMark(o) ? 20 : 0);
-    const stelle = (x, y) => take({ a: p.id, b: o.id, d: Math.abs(o.x - x) + Math.abs(o.y - y), sx: x - o.x, sy: y - o.y });
-    if (Math.abs(o.x - rx) <= 25 && Math.abs(o.y - p.y) <= 20) stelle(rx, p.y);
-    if (Math.abs(o.x - p.x) <= 25 && Math.abs(o.y - by) <= 20) stelle(p.x, by);
-  }
   var AKTION_SEITE = {
-    verbinde: aktionVerbinde,
-    quelle: (A) => isTrans(A) ? A : letzteAktion(A),
-    // hat der Schritt schon Aktionen, hängt die neue an die letzte
-    ausrichten: aktionAusrichten,
-    andocken: aktionAndocken,
-    punkt: (A, B) => isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + stapelX(B), B.y] : [B.x, B.y + 15]
+    verbinde(A, B) {
+      if (isAct(A)) {
+        const ax2 = A.x + aw(A);
+        if (B.x >= ax2 - 1) {
+          const y12 = A.y + 15, y22 = B.y + 15, m3 = Math.round((ax2 + B.x) / 20) * 10;
+          return { d: Math.abs(y12 - y22) < 1 ? `M${ax2} ${y12}H${B.x}` : knick(ax2, y12, B.x, y22, m3, true) };
+        }
+        const y1 = A.y + 30, y2 = B.y - (hasMark(B) ? 20 : 0), m2 = Math.round((y1 + y2) / 20) * 10;
+        return { d: Math.abs(A.x - B.x) < 1 ? `M${A.x + 8} ${y1}V${B.y}` : `M${A.x + 8} ${y1}V${m2}H${B.x + 8}V${B.y}` };
+      }
+      const p1 = A.k === "trans" ? [A.x + 14, A.y] : [A.x + 40, A.y + 20], p2 = [B.x, B.y + 15], m = Math.round((p1[0] + p2[0]) / 20) * 10;
+      return { d: Math.abs(p1[1] - p2[1]) < 1 ? `M${p1[0]} ${p1[1]}H${p2[0]}` : knick(p1[0], p1[1], p2[0], p2[1], m, true) };
+    },
+    // Hat der Schritt schon Aktionen, hängt die neue an die letzte
+    quelle(A) {
+      if (A.k === "trans") return A;
+      const naechste = (id) => ED.data.c.find((c) => c.a === id && isAct(objById(c.b)));
+      let cur = null, n = 0;
+      for (let c = naechste(A.id); c && n++ < 50; c = naechste(cur.id)) cur = objById(c.b);
+      return cur || A;
+    },
+    ausrichten(o, A, pt) {
+      if (isAct(A)) {
+        const right = pt && pt[0] - (A.x + aw(A)) > pt[1] - (A.y + 30);
+        if (right) {
+          o.x = A.x + aw(A);
+          o.y = A.y;
+        } else {
+          o.x = A.x;
+          o.y = A.y + 30 + (hasMark(o) ? 20 : 0);
+        }
+        return;
+      }
+      o.x = A.k === "trans" ? A.x + 40 : A.x + 70;
+      o.y = A.k === "trans" ? A.y - 15 : A.y + 5;
+    },
+    andocken(o, others, take) {
+      for (const p of others) {
+        if (["step", "init", "macro", "trans"].includes(p.k)) {
+          const px = p.k === "trans" ? p.x + 14 : p.x + 40, py = p.k === "trans" ? p.y : p.y + 20, dx = o.x - px, dy = o.y + 15 - py;
+          if (dx >= 0 && dx <= 110 && Math.abs(dy) <= 30) take({ a: p.id, b: o.id, d: Math.hypot(dx - 30, dy), sx: 0, sy: -dy });
+        } else if (isAct(p)) {
+          const rx = p.x + aw(p), by = p.y + 30 + (hasMark(o) ? 20 : 0);
+          if (Math.abs(o.x - rx) <= 25 && Math.abs(o.y - p.y) <= 20) take({ a: p.id, b: o.id, d: Math.abs(o.x - rx) + Math.abs(o.y - p.y), sx: rx - o.x, sy: p.y - o.y });
+          if (Math.abs(o.x - p.x) <= 25 && Math.abs(o.y - by) <= 20) take({ a: p.id, b: o.id, d: Math.abs(o.x - p.x) + Math.abs(o.y - by), sx: p.x - o.x, sy: by - o.y });
+        }
+      }
+    },
+    punkt: (A, B) => isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + 8, B.y] : [B.x, B.y + 15]
   };
+  var QUADRAT = (o) => ({ x: o.x, y: o.y, w: 40, h: 40 });
+  var naechsteSchrittNummer = () => {
+    const nums = ED.data.o.filter((q) => q.k === "step" || q.k === "init").map((q) => parseInt(q.v, 10)).filter((v) => !isNaN(v));
+    return String(nums.length ? Math.max(...nums) + 1 : 1);
+  };
+  var SCHRITT = {
+    umriss: QUADRAT,
+    aus: (o) => [o.x + 20, o.y + 40],
+    ein: (o) => [o.x + 20, o.y],
+    einrueck: 20,
+    neu(o, [px, py]) {
+      o.x = px - 20;
+      o.y = py - 20;
+      o.v = naechsteSchrittNummer();
+    },
+    verweisName: (o) => `Schritt ${o.v}`,
+    feldliste: [["v", "Schrittnummer"]],
+    beschriftung: { hinweis: "Schrittnummer" }
+  };
+  function transitionName(o, objs, cs, dir) {
+    const c = cs.find((c2) => dir === "von" ? c2.b === o.id && isStep(objs[c2.a]) : c2.a === o.id && isStep(objs[c2.b]));
+    if (c) return `Schritt ${(dir === "von" ? objs[c.a] : objs[c.b]).v}`;
+    return o.v ? `Transition ${o.v}` : "Transition";
+  }
+  var verzweigungsBreite = (o) => o.w || 200;
+  var VERZWEIGUNG = {
+    aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y],
+    ein: (o, fx) => [clamp(fx, o.x, o.x + verzweigungsBreite(o)), o.y],
+    einrueck: 100,
+    neu(o, [px, py]) {
+      o.x = px - 100;
+      o.y = py;
+      o.w = 200;
+    },
+    felder: (o) => textFeld("w", "Breite", void 0, verzweigungsBreite(o)),
+    setze: setzeBreite,
+    beschriftung: {
+      hinweis: "Breite (Standard 200)",
+      wert: (o) => String(verzweigungsBreite(o)),
+      setze: (o, v) => setzeBreite(o, "w", v)
+    }
+  };
+  registriereVorlage("grafcet", {
+    n: "GRAFCET",
+    d: "Ablauf nach DIN EN 60848 mit Symbollegende",
+    gruppen: ["grafcet"],
+    body: (ex, page) => dots(20) + (page ? "" : GRAFCET_LEGENDE)
+  });
+  var GRAFCET_LEGENDE = `<g><rect x="790" y="25" width="185" height="196" fill="#fff" stroke="${G}"/>${TX(800, 43, 10, "Symbole", "start", "#666", 600)}
+        <rect x="800" y="54" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/><rect x="803" y="57" width="16" height="16" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832, 69, 10, "Anfangsschritt")}
+        <rect x="800" y="86" width="22" height="22" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(832, 101, 10, "Schritt")}
+        <path d="M811 116V140M803 128H819" stroke="${G}" stroke-width="1.3"/>${TX(832, 132, 10, "Transition + Bedingung")}
+        <path d="M800 160H812" stroke="${G}" stroke-width="1.3"/><rect x="812" y="150" width="40" height="20" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(862, 164, 10, "Aktion")}
+        <path d="M811 180V206" stroke="${G}" stroke-width="1.3"/>${TX(832, 197, 10, "Wirkverbindung")}</g>`;
+  registriereGruppe("grafcet", {
+    name: "GRAFCET",
+    hinweis: "Anfangsschritt setzen, dann Transition, Schritt, Transition … anklicken: Jeder neue Baustein hängt sich unter den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken.",
+    kette: true
+  });
   var AKTION = {
     g: "grafcet",
     titel: "Aktion",
@@ -3701,608 +3706,100 @@ END_CASE;`)}
     felder: aktionFelder,
     setze: setzeAktion,
     umbau: ["t", "q"],
-    kennbuchstaben: AKTION_KENNBUCHSTABEN,
     beschriftung: AKTION_TEXT,
     seite: AKTION_SEITE
   };
-
-  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-kette.js
-  var TEILUNG = 100;
-  var TEXT_TRANS_TRANS = "Auf eine Transition folgt immer ein Schritt. Setz zuerst einen Schritt dazwischen, dann verbindest du ihn mit der nächsten Transition.";
-  var objIn = (d, id) => d.o.find((o) => o.id === id);
-  var verknuepfe = (d, A, B) => {
-    d.c.push({ a: A.id, b: B.id, v: "" });
-  };
-  var loeseVerbindung = (d, A, B) => {
-    d.c = d.c.filter((c) => !(c.a === A.id && c.b === B.id));
-  };
-  function transitionDazwischen(A, B, d) {
-    const [x, y1] = kettenAus(A), y = B.y > y1 ? Math.round((y1 + B.y) / 20) * 10 : y1 + 30;
-    const zwischen = { id: uid(), k: "trans", x, y, v: "" };
-    d.o.push(zwischen);
-    loeseVerbindung(d, A, B);
-    verknuepfe(d, A, zwischen);
-    verknuepfe(d, zwischen, B);
-    return zwischen;
-  }
-  var merkeHinweis = (id, text) => {
-    ED.vorlage.hinweis = { id, text };
-  };
-  function hinweisAnleitung() {
-    const h = ED.vorlage.hinweis, o = h && istMarkiert("o", h.id) && objById(h.id);
-    return o ? `<div class="props quiet"><p>${h.text}</p></div>` + FELDER_JE_ART.o(o) : null;
-  }
-  var PAAR_REGELN = [
-    { passt: (A, B) => isStep(A) && isStep(B), tue: (A, B, d, neu) => {
-      if (neu === B) B.y = Math.max(B.y, A.y + TEILUNG);
-      transitionDazwischen(A, B, d);
-    } },
-    { passt: (A, B) => isTrans(A) && isTrans(B), tue: (A, B, d, neu) => {
-      loeseVerbindung(d, A, B);
-      merkeHinweis(neu.id, TEXT_TRANS_TRANS);
-    } }
-  ];
-  function grafcetNachSetzen(o, d, { A, dock }) {
-    if (A && einfuegen(A, o, d)) return;
-    const [oben, unten] = A ? [A, o] : dock ? [objIn(d, dock.a), objIn(d, dock.b)] : [];
-    const regel = oben && unten && PAAR_REGELN.find((r) => r.passt(oben, unten));
-    if (regel) regel.tue(oben, unten, d, o);
-  }
-  function grafcetVorVerbinden(A, B) {
-    if (isTrans(A) && isTrans(B)) return { ok: false, text: TEXT_TRANS_TRANS };
-    if (isStep(A) && isStep(B)) return { ersetze: (d) => {
-      transitionDazwischen(objIn(d, A.id), objIn(d, B.id), d);
-    } };
-    return null;
-  }
-  function aktionenVon(d, id) {
-    const ids = [], offen = [id];
-    while (offen.length) {
-      const a = offen.pop();
-      for (const c of d.c) {
-        if (c.a !== a || ids.includes(c.b) || !isAct(objIn(d, c.b))) continue;
-        ids.push(c.b);
-        offen.push(c.b);
-      }
-    }
-    return ids;
-  }
-  function kettenRest(d, o) {
-    const ids = [], offen = [o];
-    while (offen.length) {
-      const A = offen.pop();
-      for (const c of d.c) {
-        const B = c.a === A.id && objIn(d, c.b);
-        if (!B || isAct(B) || B.id === o.id || ids.includes(B.id) || B.y <= A.y) continue;
-        ids.push(B.id);
-        offen.push(B);
-      }
-    }
-    return ids;
-  }
-  function grafcetMitziehen(o, { umschalt }, d) {
-    const glieder = umschalt ? kettenRest(d, o) : [];
-    return [...aktionenVon(d, o.id), ...glieder.flatMap((id) => [id, ...aktionenVon(d, id)])];
-  }
-  var nachfolgerIn = (d, A) => {
-    const c = d.c.find((c2) => c2.a === A.id && !isAct(objIn(d, c2.b)));
-    return c && objIn(d, c.b);
-  };
-  var vorgaengerIn = (d, B) => {
-    const c = d.c.find((c2) => c2.b === B.id && !isAct(objIn(d, c2.a)));
-    return c && objIn(d, c.a);
-  };
-  function verschiebeRest(d, ids, dy) {
-    const alle = new Set(ids.flatMap((id) => [id, ...aktionenVon(d, id)]));
-    d.o.forEach((o) => {
-      if (alle.has(o.id)) o.y += dy;
-    });
-  }
-  function freieSchrittNummer(d) {
-    const nums = d.o.filter((q) => ["step", "init"].includes(q.k)).map((q) => parseInt(q.v, 10)).filter((v) => !isNaN(v));
-    return String(nums.length ? Math.max(...nums) + 1 : 1);
-  }
-  var neuesGlied = (d, k, v) => {
-    const o = { id: uid(), k, x: 0, y: 0, v };
-    d.o.push(o);
-    return o;
-  };
-  function legeUnter(B, A) {
-    const [x, y] = kettenAus(A, mitteVon(A)[0]);
-    B.x = x - (art(B.k).einrueck || 0);
-    B.y += y + 30 - kettenEin(B, x)[1];
-  }
-  var EINFUEGEN = [
-    { passt: (A, o) => isTrans(A) && isStep(o), folge: (o, d) => [o, neuesGlied(d, "trans", "")] },
-    { passt: (A, o) => isStep(A) && isTrans(o), folge: (o, d) => [o, neuesGlied(d, "step", freieSchrittNummer(d))] },
-    { passt: (A, o) => isStep(A) && isStep(o), folge: (o, d) => [neuesGlied(d, "trans", ""), o] }
-  ];
-  function nachfolgerUnten(d, A, ohne = null) {
-    return d.c.filter((c) => c.a === A.id && c.b !== ohne).map((c) => objIn(d, c.b)).find((B) => B && !isAct(B) && B.y > A.y);
-  }
-  function haengeEin(A, glieder, d, nachher) {
-    if (nachher) {
-      verschiebeRest(d, [nachher.id, ...kettenRest(d, nachher)], TEILUNG);
-      loeseVerbindung(d, A, nachher);
-    }
-    let vor = A;
-    for (const B of glieder) {
-      legeUnter(B, vor);
-      verknuepfe(d, vor, B);
-      vor = B;
-    }
-    if (nachher) verknuepfe(d, vor, nachher);
-  }
-  function einfuegen(A, o, d) {
-    const nachher = nachfolgerUnten(d, A, o.id), regel = nachher && EINFUEGEN.find((r) => r.passt(A, o));
-    if (!regel) return false;
-    loeseVerbindung(d, A, o);
-    haengeEin(A, regel.folge(o, d), d, nachher);
-    return true;
-  }
-  function grafcetLoeschen(o, d) {
-    return [...aktionenVon(d, o.id), ...isStep(o) ? ketteSchliessen(o, d) : []];
-  }
-  function ketteSchliessen(o, d) {
-    const T1 = vorgaengerIn(d, o), T2 = nachfolgerIn(d, o), N = T2 && nachfolgerIn(d, T2);
-    if (!T1 || !isTrans(T2)) return [];
-    if (N && N.id !== o.id) {
-      if (N.y > o.y) verschiebeRest(d, [N.id, ...kettenRest(d, N)], o.y - N.y);
-      verknuepfe(d, T1, N);
-    }
-    return [T2.id, ...aktionenVon(d, T2.id)];
-  }
-  var KETTEN_HAKEN = {
-    nachSetzen: grafcetNachSetzen,
-    // Transition zwischen zwei Schritten, Einfügen, keine zwei Transitionen hintereinander
-    vorVerbinden: grafcetVorVerbinden,
-    loeschen: grafcetLoeschen,
-    // Aktionen gehen mit; ein gelöschter Schritt schließt die Kette
-    mitziehen: grafcetMitziehen,
-    // Aktionen ziehen mit ihrem Schritt mit, mit Umschalt auch der Rest der Kette
-    andocke: (o, andere) => andockKette(o, andere, 70)
-    // Fangweite 70 statt 140: dockt nur an den nahen Nachbarn
-  };
-
-  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-schnipsel.js
-  var ZWEIG_X = [40, 160];
-  var SCHNIPSEL = {
-    oder: { zweig: [["trans", 30], ["step", 60], ["trans", 130]], zusammen: ["alt", 160] },
-    und: { zweig: [["step", 35]], zusammen: ["par", 105] }
-  };
-  function gliedBei(d, k, x, y) {
-    const o = neuesGlied(d, k, k === "trans" ? "" : freieSchrittNummer(d));
-    Object.assign(o, k === "trans" ? { x, y } : { x: x - 20, y });
-    return o;
-  }
-  function baueSchnipsel(o, d) {
-    const s = SCHNIPSEL[o.schnipsel];
-    delete o.schnipsel;
-    if (!s) return;
-    const [k, dy] = s.zusammen, unten = neuesGlied(d, k, void 0);
-    Object.assign(unten, { x: o.x, y: o.y + dy, w: o.w });
-    for (const zx of ZWEIG_X) {
-      let vor = o;
-      for (const [gliedArt, y] of s.zweig) {
-        const B = gliedBei(d, gliedArt, o.x + zx, o.y + y);
-        verknuepfe(d, vor, B);
-        vor = B;
-      }
-      verknuepfe(d, vor, unten);
-    }
-  }
-  function schnipselNachSetzen(o, d, info) {
-    if (o.schnipsel) baueSchnipsel(o, d);
-    grafcetNachSetzen(o, d, info);
-  }
-  function linienBreiteAnpassen(d) {
-    for (const o of d.o.filter((o2) => o2.k === "alt" || o2.k === "par")) {
-      const xs = d.c.flatMap((c) => {
-        const B = c.a === o.id ? objIn(d, c.b) : c.b === o.id ? objIn(d, c.a) : null;
-        if (!B || isAct(B)) return [];
-        return [c.a === o.id ? kettenEin(B, o.x)[0] : kettenAus(B, o.x)[0]];
-      });
-      if (xs.length < 2) continue;
-      o.x = Math.min(...xs) - 40;
-      o.w = Math.max(...xs) - Math.min(...xs) + 80;
-    }
-  }
-
-  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-knoepfe.js
-  function kettenFolge(d) {
-    const glieder = d.o.filter((o) => !isAct(o)).sort((a, b) => a.y - b.y || a.x - b.x);
-    const anfang = glieder.filter((o) => o.k === "init");
-    const folge = [], gesehen = /* @__PURE__ */ new Set();
-    const besuche = (A) => {
-      if (gesehen.has(A.id)) return;
-      gesehen.add(A.id);
-      folge.push(A);
-      d.c.filter((c) => c.a === A.id).map((c) => objIn(d, c.b)).filter((B) => B && !isAct(B)).sort((a, b) => a.x - b.x).forEach(besuche);
-    };
-    [...anfang, ...glieder].forEach(besuche);
-    return folge;
-  }
-  function stammVon(d, o) {
-    for (let n = 0; isAct(o) && n < 50; n++) {
-      const c = d.c.find((c2) => c2.b === o.id);
-      o = c && objIn(d, c.a);
-    }
-    return o || null;
-  }
-  function anhaengeStelle(d) {
-    const m = markiertesObjekt();
-    if (m) return stammVon(d, m);
-    const enden = d.o.filter((o) => (isStep(o) || isTrans(o)) && !nachfolgerUnten(d, o));
-    return enden.sort((a, b) => b.y - a.y)[0] || null;
-  }
-  var transitionZuerst = (A) => isStep(A) || A.k === "alt";
-  function plusSchritt() {
-    let trans = null, schritt = null;
-    aendere((d) => {
-      let A = anhaengeStelle(d);
-      if (!A) A = Object.assign(neuesGlied(d, "init", "1"), { x: 180, y: 60 });
-      const nachher = nachfolgerUnten(d, A);
-      trans = neuesGlied(d, "trans", "");
-      schritt = neuesGlied(d, "step", freieSchrittNummer(d));
-      haengeEin(A, transitionZuerst(A) ? [trans, schritt] : [schritt, trans], d, nachher);
-    });
-    markiere("o", schritt.y > trans.y ? schritt.id : trans.id);
-    editObjLabel(objById(trans.id));
-  }
-  var legbar = (o) => isStep(o) || isTrans(o);
-  function ketteAusrichten(d) {
-    const unten = Object.fromEntries(d.o.map((o) => [o.id, o.y])), weg = {};
-    for (const A of kettenFolge(d)) {
-      weg[A.id] = weg[A.id] || [0, 0];
-      for (const c of d.c.filter((c2) => c2.a === A.id)) {
-        const B = objIn(d, c.b);
-        if (!B || isAct(B) || B.id in weg || unten[B.id] <= unten[A.id]) continue;
-        const [x0, y0] = [B.x, B.y];
-        if (legbar(A) && legbar(B)) legeUnter(B, A);
-        else {
-          B.x += weg[A.id][0];
-          B.y += weg[A.id][1];
-        }
-        weg[B.id] = [B.x - x0, B.y - y0];
-        verschiebeAktionen(d, B, weg[B.id]);
-      }
-    }
-    linienBreiteAnpassen(d);
-  }
-  function verschiebeAktionen(d, B, [dx, dy]) {
-    const ids = new Set(aktionenVon(d, B.id));
-    d.o.forEach((o) => {
-      if (ids.has(o.id)) {
-        o.x += dx;
-        o.y += dy;
-      }
-    });
-  }
-  function neuNummerieren(d) {
-    const neu = {}, mitNummer = d.o.some((o) => isTrans(o) && o.nr);
-    let n = 0, t = 0;
-    for (const o of kettenFolge(d)) {
-      if (o.k === "step" || o.k === "init") {
-        neu[o.v] = String(++n);
-        o.v = String(n);
-      } else if (isTrans(o) && mitNummer) o.nr = String(++t);
-    }
-    d.o.filter((o) => o.k === "ref" && o.v).forEach((r) => {
-      r.v = r.v.replace(/\d+/, (z) => neu[z] ?? z);
-    });
-  }
-  var KETTEN_KNOEPFE = {
-    plus: {
-      name: "+ Schritt",
-      titel: "Transition und nächsten Schritt unter dem markierten Baustein anhängen (Taste +)",
-      tue: plusSchritt
-    },
-    ausrichten: {
-      name: "Kette ausrichten",
-      titel: "Schritte und Transitionen mit Abstand 100 untereinander legen",
-      tue: () => aendere(ketteAusrichten)
-    },
-    nummern: {
-      name: "Neu nummerieren",
-      titel: "Schritte in der Reihenfolge der Kette neu nummerieren, Verweise ziehen mit",
-      tue: () => aendere(neuNummerieren)
-    }
-  };
-  var kettenKnoepfeHTML = () => Object.entries(KETTEN_KNOEPFE).map(([k, b]) => `<button type="button" class="tool" data-gc="${k}" title="${b.titel}">${b.name}</button>`).join("");
-  function kettenKlick(e) {
-    const b = e.target.closest("[data-gc]"), knopf = b && KETTEN_KNOEPFE[b.dataset.gc];
-    if (knopf) knopf.tue();
-    return !!knopf;
-  }
-  function kettenTaste(e) {
-    if (e.key !== "+" || e.ctrlKey || e.metaKey || e.altKey) return false;
-    e.preventDefault();
-    plusSchritt();
-    return true;
-  }
-
-  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-pruefen.js
-  var befundFehler = (text, wo = {}) => ({ stufe: "fehler", text, ...wo });
-  var befundHinweis = (text, wo = {}) => ({ stufe: "hinweis", text, ...wo });
-  var nummerierteSchritte = (d) => d.o.filter((o) => o.k === "step" || o.k === "init");
-  var kettenNachfolger = (d, A) => d.c.filter((c) => c.a === A.id).map((c) => objIn(d, c.b)).filter((B) => B && !isAct(B));
-  function echteNachfolger(d, A, tiefe = 0) {
-    return kettenNachfolger(d, A).flatMap((B) => isStep(B) || isTrans(B) || tiefe > 3 ? [B] : echteNachfolger(d, B, tiefe + 1));
-  }
-  function regelAnfangsschritt(d) {
-    const anfang = d.o.filter((o) => o.k === "init");
-    if (!anfang.length) return [befundFehler("Es fehlt der Anfangsschritt (doppelter Rahmen). Mit ihm startet die Kette.")];
-    return anfang.slice(1).map((o) => befundHinweis("Mehr als ein Anfangsschritt: Das stimmt nur, wenn du mehrere Teil-GRAFCETs zeichnest.", { o: o.id }));
-  }
-  function regelWechsel(d) {
-    const liste = [];
-    for (const A of d.o.filter((o) => isStep(o) || isTrans(o))) {
-      for (const B of echteNachfolger(d, A)) {
-        if (isStep(A) && isStep(B)) liste.push(befundFehler(`Auf Schritt ${A.v} folgt direkt Schritt ${B.v}. Dazwischen gehört eine Transition.`, { o: B.id }));
-        if (isTrans(A) && isTrans(B)) liste.push(befundFehler("Zwei Transitionen folgen direkt aufeinander. Dazwischen gehört ein Schritt.", { o: B.id }));
-      }
-    }
-    return liste;
-  }
-  var regelBeschriftet = (d) => d.o.filter((o) => isTrans(o) && !String(o.v || "").trim()).map((o) => befundFehler("Diese Transition hat keine Bedingung. Schreib die Übergangsbedingung daneben, z. B. BG1 · BG15.", { o: o.id }));
-  function regelNummern(d) {
-    const gesehen = /* @__PURE__ */ new Set();
-    return nummerierteSchritte(d).filter((o) => {
-      const doppelt = gesehen.has(o.v);
-      gesehen.add(o.v);
-      return doppelt;
-    }).map((o) => befundFehler(`Die Schrittnummer ${o.v} gibt es zweimal. Jeder Schritt braucht eine eigene Nummer (Knopf „Neu nummerieren“).`, { o: o.id }));
-  }
-  var regelVerwaist = (d) => d.o.filter((o) => isAct(o) && !d.c.some((c) => c.b === o.id)).map((o) => befundFehler("Diese Aktion hängt an keinem Schritt. Zieh sie rechts an ihren Schritt.", { o: o.id }));
-  function regelVerweise(d) {
-    const nummern = new Set(nummerierteSchritte(d).map((o) => String(o.v)));
-    return d.o.filter((o) => o.k === "ref").filter((o) => !nummern.has((/\d+/.exec(o.v || "") || [""])[0])).map((o) => befundFehler(o.v ? `Den Schritt ${o.v} als Sprungziel gibt es nicht.` : "Der Verweis hat kein Ziel.", { o: o.id }));
-  }
-  var kettenEnde = (d, o) => (isStep(o) || isTrans(o)) && !kettenNachfolger(d, o).length && d.c.some((c) => c.b === o.id);
-  var regelZyklus = (d) => d.o.filter((o) => kettenEnde(d, o)).map((o) => befundHinweis("Hier endet die Kette. Schließ sie mit einem Rücksprung zum Anfangsschritt oder einem Verweis.", { o: o.id }));
-  var GRAFCET_REGELN = [
-    regelAnfangsschritt,
-    regelWechsel,
-    regelBeschriftet,
-    regelNummern,
-    regelVerwaist,
-    regelVerweise,
-    regelZyklus
-  ];
-  var pruefeGrafcet = (d) => d.o.length ? GRAFCET_REGELN.flatMap((regel) => regel(d)) : [];
-
-  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-spiel.js
-  var SPIEL_KNOPF = `<button type="button" class="tool" data-tool="sim" title="Kette durchspielen: Transition anklicken, der Ablauf schaltet weiter">${IC.play}Durchspielen</button>`;
-  var SPIEL_ANLEITUNG = `<div class="props"><div class="palh">Kette durchspielen</div><p class="small" style="margin:0 0 6px">Klick auf eine <b>blaue Transition</b>: Sie schaltet, wenn ihre Bedingung erfüllt wäre. Der Punkt wandert in den nächsten Schritt, die Aktionen der aktiven Schritte werden grün.</p><p class="small muted" style="margin:0">Ein Klick auf einen Schritt schaltet ihn von Hand ein oder aus. Zum Bearbeiten wählst du „Auswählen“.</p></div>`;
-  var zielSchritt = (d, ref) => d.o.find((o) => isStep(o) && o.v === (/\d+/.exec(ref.v || "") || [""])[0]);
-  function schritteNach(d, A, tiefe = 0) {
-    return d.c.filter((c) => c.a === A.id).map((c) => objIn(d, c.b)).filter((B) => B && !isAct(B) && !isTrans(B)).flatMap((B) => isStep(B) ? [B] : B.k === "ref" ? [zielSchritt(d, B)].filter(Boolean) : tiefe < 4 ? schritteNach(d, B, tiefe + 1) : []);
-  }
-  function schritteVor(d, B, tiefe = 0) {
-    return d.c.filter((c) => c.b === B.id).map((c) => objIn(d, c.a)).filter((A) => A && !isAct(A) && !isTrans(A)).flatMap((A) => isStep(A) ? [A] : tiefe < 4 ? schritteVor(d, A, tiefe + 1) : []);
-  }
-  function schaltbar(d, aktiv, tr) {
-    const vor = schritteVor(d, tr);
-    return vor.length > 0 && vor.every((s) => aktiv.has(s.id));
-  }
-  function spielAuffrischen() {
-    const s = ED.vorlage.spiel, d = ED.data;
-    s.aktionen = new Set([...s.aktiv].flatMap((id) => aktionenVon(d, id)));
-    s.schaltbar = new Set(d.o.filter((o) => isTrans(o) && schaltbar(d, s.aktiv, o)).map((o) => o.id));
-    renderInk();
-  }
-  function spielWechsel(t) {
-    if (t !== "sim") {
-      delete ED.vorlage.spiel;
-      return;
-    }
-    clearSel();
-    ED.vorlage.spiel = { aktiv: new Set(ED.data.o.filter((o) => o.k === "init").map((o) => o.id)) };
-    spielAuffrischen();
-  }
-  var SPIEL_KLICK = [
-    { passt: isTrans, tue: (d, s, tr) => {
-      if (!schaltbar(d, s.aktiv, tr)) return;
-      schritteVor(d, tr).forEach((x) => s.aktiv.delete(x.id));
-      schritteNach(d, tr).forEach((x) => s.aktiv.add(x.id));
-    } },
-    { passt: isStep, tue: (d, s, x) => {
-      if (!s.aktiv.delete(x.id)) s.aktiv.add(x.id);
-    } }
-  ];
-  function spielKlick(e) {
-    const s = spielZustand();
-    if (!s) return false;
-    const h = e.target.closest("[data-o]"), o = h && objById(h.dataset.o), regel = o && SPIEL_KLICK.find((r) => r.passt(o));
-    if (regel) {
-      regel.tue(ED.data, s, o);
-      spielAuffrischen();
-    }
-    return true;
-  }
-  var spielAnleitung = () => spielZustand() ? SPIEL_ANLEITUNG : null;
-
-  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet.js
-  var QUADRAT = (o) => ({ x: o.x, y: o.y, w: 40, h: 40 });
-  var naechsteSchrittNummer = () => freieSchrittNummer(ED.data);
-  var SCHRITT = {
-    umriss: QUADRAT,
-    aus: (o) => [o.x + 20, o.y + 40],
-    ein: (o) => [o.x + 20, o.y],
-    einrueck: 20,
-    teilung: 30,
-    // fester Abstand unter dem Vorgänger, mit der Transition dazwischen Teilung 100
-    neu(o, [px, py]) {
-      o.x = px - 20;
-      o.y = py - 20;
-      o.v = naechsteSchrittNummer();
-    },
-    verweisName: (o) => `Schritt ${o.v}`,
-    feldliste: [["v", "Schrittnummer"], ["km", "Schrittkommentar (optional)", "z. B. Korb einhängen"]],
-    beschriftung: { hinweis: "Schrittnummer" }
-  };
-  var KASTEN = (o) => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/>`;
-  var KOMMENTAR = (o) => o.km ? SVGT(o.x - 40, o.y + 24, `„${o.km}“`, "end", 12, 400) : "";
-  var MARKE = (o, edit) => edit && imSpiel("aktiv", o.id) ? `<circle cx="${o.x + 20}" cy="${o.y + 31}" r="3" fill="${INK}"/>` : "";
-  var zeichneSchritt = (o, edit) => KASTEN(o) + SVGT(o.x + 20, o.y + 25, o.v) + MARKE(o, edit) + KOMMENTAR(o);
-  var zeichneAnfangsschritt = (o, edit) => KASTEN(o) + `<rect x="${o.x + 4}" y="${o.y + 4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v) + MARKE(o, edit) + KOMMENTAR(o);
-  var zeichneMakro = (o, edit) => KASTEN(o) + `<path d="M${o.x} ${o.y + 5}H${o.x + 40}M${o.x} ${o.y + 35}H${o.x + 40}" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v, "middle", 12) + MARKE(o, edit);
-  function transitionName(o, objs, cs, dir) {
-    const c = cs.find((c2) => dir === "von" ? c2.b === o.id && isStep(objs[c2.a]) : c2.a === o.id && isStep(objs[c2.b]));
-    if (c) return `Schritt ${(dir === "von" ? objs[c.a] : objs[c.b]).v}`;
-    return o.v ? `Transition ${o.v}` : "Transition";
-  }
-  var zeichneTransition = (o, edit) => `<path d="M${o.x - 14} ${o.y}H${o.x + 14}" stroke="${edit && imSpiel("schaltbar", o.id) ? "#2F80ED" : INK}" stroke-width="3.2"/>` + (o.nr ? SVGT(o.x - 20, o.y + 4, `(${o.nr})`, "end", 11, 400) : "") + (o.v ? SVGT(o.x + 22, o.y + 5, o.v, "start", 13, 400) : platzhalter(edit, "Bedingung", o.x + 22, o.y + 5, "start"));
-  var verzweigungsBreite = (o) => o.w || 200;
-  var VERZWEIGUNG = {
-    aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y],
-    ein: (o, fx) => [clamp(fx, o.x, o.x + verzweigungsBreite(o)), o.y],
-    einrueck: 100,
-    teilung: 20,
-    neu(o, [px, py], mk) {
-      o.x = px - 100;
-      o.y = py;
-      o.w = 200;
-      if (mk && mk.schnipsel) o.schnipsel = mk.schnipsel;
-    },
-    felder: (o) => textFeld("w", "Breite", void 0, verzweigungsBreite(o)),
-    setze: setzeBreite,
-    beschriftung: {
-      hinweis: "Breite (Standard 200)",
-      wert: (o) => String(verzweigungsBreite(o)),
-      setze: (o, v) => setzeBreite(o, "w", v)
-    }
-  };
-  var verzweigungsLinie = (o, dy = 0) => `M${o.x} ${o.y + dy}H${o.x + verzweigungsBreite(o)}`;
-  var zeichneVerweis = (o, edit) => `<path d="M${o.x} ${o.y}V${o.y + 30}M${o.x - 5} ${o.y + 23}L${o.x} ${o.y + 31}L${o.x + 5} ${o.y + 23}" ${LINIE} fill="none"/>` + (o.v ? SVGT(o.x + 9, o.y + 29, o.v, "start", 12, 500) : platzhalter(edit, "Ziel, z. B. 1", o.x + 9, o.y + 29, "start"));
-  registriereVorlage("grafcet", {
-    n: "GRAFCET",
-    d: "Ablauf nach DIN EN 60848 mit Symbollegende",
-    gruppen: ["grafcet"],
-    body: (ex, page) => dots(20) + (page ? "" : GRAFCET_LEGENDE),
-    anleitung: () => spielAnleitung() || hinweisAnleitung(),
-    werkzeugleiste: { nachVerbinden: kettenKnoepfeHTML() + SPIEL_KNOPF },
-    // + Schritt, ausrichten, nummerieren, Durchspielen
-    werkzeugWechsel: spielWechsel,
-    zeiger: { unten: spielKlick },
-    klick: kettenKlick,
-    taste: kettenTaste,
-    // Taste + wie „+ Schritt“ (Haken baut KERN)
-    pruefe: pruefeGrafcet
-    // Knopf „Prüfen“ (grafcet-pruefen.js)
-  });
-  var LEGENDE_STRICH = `stroke="${G}" stroke-width="1.3"`;
-  var GRAFCET_LEGENDE = [
-    `<g><rect x="790" y="25" width="185" height="196" fill="#fff" stroke="${G}"/>${TX(800, 43, 10, "Symbole", "start", "#666", 600)}`,
-    `<rect x="800" y="54" width="22" height="22" fill="none" ${LEGENDE_STRICH}/><rect x="803" y="57" width="16" height="16" fill="none" ${LEGENDE_STRICH}/>${TX(832, 69, 10, "Anfangsschritt")}`,
-    `<rect x="800" y="86" width="22" height="22" fill="none" ${LEGENDE_STRICH}/>${TX(832, 101, 10, "Schritt")}`,
-    `<path d="M811 116V140M803 128H819" ${LEGENDE_STRICH}/>${TX(832, 132, 10, "Transition + Bedingung")}`,
-    `<path d="M800 160H812" ${LEGENDE_STRICH}/><rect x="812" y="150" width="40" height="20" fill="none" ${LEGENDE_STRICH}/>${TX(862, 164, 10, "Aktion")}`,
-    `<path d="M811 180V206" ${LEGENDE_STRICH}/>${TX(832, 197, 10, "Wirkverbindung")}</g>`
-  ].join("\n        ");
-  registriereGruppe("grafcet", {
-    name: "GRAFCET",
-    hinweis: "Anfangsschritt setzen, dann mit „+ Schritt“ Transition und Schritt anhängen, oder Bausteine anklicken: Jeder neue Baustein hängt sich unter den markierten, zwischen zwei Schritte kommt von selbst eine Transition. Aktionen hängen sich rechts an den Schritt, eine weitere Aktion kommt darunter oder (Klick rechts daneben) dahinter. Für den Rücksprung markierst du die letzte Transition, wählst Verbinden und klickst den Anfangsschritt an. Umschalt beim Ziehen nimmt den Rest der Kette mit.",
-    kette: true,
-    ...KETTEN_HAKEN,
-    // nachSetzen, vorVerbinden, loeschen, mitziehen (grafcet-kette.js)
-    nachSetzen: schnipselNachSetzen
-    // Verzweigungs-Schnipsel ausbauen, dann die Regeln der Kette
-  });
-  var MAKRO = {
-    einrueck: 0,
-    // Makroschritt richtet sich mit der linken Kante aus (wie bisher)
-    feldliste: [["v", "Bezeichnung", "z. B. M1"]],
-    beschriftung: { hinweis: "Bezeichnung, z. B. M1" },
-    neu(o, [px, py]) {
-      o.x = px - 20;
-      o.y = py - 20;
-      o.v = "M" + (ED.data.o.filter((q) => q.k === "macro").length + 1);
-    },
-    zeichne: zeichneMakro
-  };
-  var TRANSITION = {
-    zeichne: zeichneTransition,
-    umriss: (o) => ({ x: o.x - 16, y: o.y - 9, w: 32 + (o.v ? tw(o.v) + 12 : 70), h: 18 }),
-    mitte: (o) => [o.x, o.y],
-    aus: (o) => [o.x, o.y],
-    ein: (o) => [o.x, o.y],
-    teilung: 30,
-    verweisName: transitionName,
-    kennbuchstaben: BEDINGUNG_KENNBUCHSTABEN,
-    feldliste: [["v", "Übergangsbedingung", "z. B. BG1 · BG15, 5s/X3, ↑BG40"], ["nr", "Transitionsnummer (optional)", "z. B. 1"]],
-    beschriftung: { sofort: true, ort: (o) => [o.x + 20, o.y], hinweis: "Bedingung, z. B. BG1 · BG40" }
-  };
-  var VERWEIS = {
-    zeichne: zeichneVerweis,
-    umriss: (o) => ({ x: o.x - 10, y: o.y, w: 24 + tw(o.v || "Ziel"), h: 36 }),
-    aus: (o) => [o.x, o.y + 30],
-    ein: (o) => [o.x, o.y],
-    neu(o, [px, py]) {
-      o.x = px;
-      o.y = py - 15;
-      o.v = "";
-    },
-    feldliste: [["v", "Ziel", "z. B. 1 oder Schritt 5"]],
-    beschriftung: { sofort: true, hinweis: "Ziel, z. B. 1" }
-  };
   fuelle(BAUSTEIN, {
-    init: { g: "grafcet", n: "Anfangsschritt", ...SCHRITT, zeichne: zeichneAnfangsschritt },
-    step: { g: "grafcet", n: "Schritt", ...SCHRITT, zeichne: zeichneSchritt },
-    macro: { g: "grafcet", n: "Makroschritt", ...SCHRITT, ...MAKRO },
-    trans: { g: "grafcet", n: "Transition", ...TRANSITION },
+    init: {
+      g: "grafcet",
+      n: "Anfangsschritt",
+      ...SCHRITT,
+      zeichne: (o) => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/><rect x="${o.x + 4}" y="${o.y + 4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v)
+    },
+    step: {
+      g: "grafcet",
+      n: "Schritt",
+      ...SCHRITT,
+      zeichne: (o) => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v)
+    },
+    macro: {
+      g: "grafcet",
+      n: "Makroschritt",
+      ...SCHRITT,
+      einrueck: 0,
+      // Makroschritt richtet sich mit der linken Kante aus (wie bisher)
+      feldliste: [["v", "Bezeichnung", "z. B. M1"]],
+      beschriftung: { hinweis: "Bezeichnung, z. B. M1" },
+      neu(o, [px, py]) {
+        o.x = px - 20;
+        o.y = py - 20;
+        o.v = "M" + (ED.data.o.filter((q) => q.k === "macro").length + 1);
+      },
+      zeichne: (o) => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/><path d="M${o.x} ${o.y + 5}H${o.x + 40}M${o.x} ${o.y + 35}H${o.x + 40}" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v, "middle", 12)
+    },
+    trans: {
+      g: "grafcet",
+      n: "Transition",
+      zeichne: (o, edit) => `<path d="M${o.x - 14} ${o.y}H${o.x + 14}" stroke="${INK}" stroke-width="3.2"/>` + (o.v ? SVGT(o.x + 22, o.y + 5, o.v, "start", 13, 400) : platzhalter(edit, "Bedingung", o.x + 22, o.y + 5, "start")),
+      umriss: (o) => ({ x: o.x - 16, y: o.y - 9, w: 32 + (o.v ? tw(o.v) + 12 : 70), h: 18 }),
+      mitte: (o) => [o.x, o.y],
+      aus: (o) => [o.x, o.y],
+      ein: (o) => [o.x, o.y],
+      verweisName: transitionName,
+      feldliste: [["v", "Übergangsbedingung", "z. B. BG1 · BG15, 5s/X3, ↑BG40"]],
+      beschriftung: { sofort: true, ort: (o) => [o.x + 20, o.y], hinweis: "Bedingung, z. B. BG1 · BG40" }
+    },
     action: { ...AKTION, n: "Aktion kontinuierlich", mk: { t: "kont" } },
     actc: { g: "grafcet", n: "Aktion mit Zuweisungsbedingung", mk: { k: "action", t: "kont", b: "", hb: true } },
     acta: { g: "grafcet", n: "Aktion bei Aktivierung ↑", mk: { k: "action", t: "akt" } },
     actd: { g: "grafcet", n: "Aktion bei Deaktivierung ↓", mk: { k: "action", t: "deakt" } },
     acte: { g: "grafcet", n: "Aktion bei Ereignis", mk: { k: "action", t: "ereig", b: "" } },
-    actz: { g: "grafcet", n: "Zwangssteuerung", mk: { k: "action", t: "zwang" } },
-    actionq: { ...AKTION, n: "Aktion S7-GRAPH (IEC 61131-3)", mk: { k: "action", t: "q", q: "S" } },
+    actionq: { ...AKTION, n: "Aktion mit Bestimmungszeichen", mk: { k: "action", t: "q", q: "S" } },
     alt: {
       g: "grafcet",
       n: "ODER-Verzweigung",
       ...VERZWEIGUNG,
-      zeichne: (o) => `<path d="${verzweigungsLinie(o)}" stroke="${INK}" stroke-width="1.6"/>`,
+      zeichne: (o) => `<path d="M${o.x} ${o.y}H${o.x + verzweigungsBreite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
       umriss: (o) => ({ x: o.x, y: o.y - 5, w: verzweigungsBreite(o), h: 10 })
     },
     par: {
       g: "grafcet",
       n: "UND-Verzweigung",
       ...VERZWEIGUNG,
-      zeichne: (o) => `<path d="${verzweigungsLinie(o)}${verzweigungsLinie(o, 5)}" stroke="${INK}" stroke-width="1.6"/>`,
+      zeichne: (o) => `<path d="M${o.x} ${o.y}H${o.x + verzweigungsBreite(o)}M${o.x} ${o.y + 5}H${o.x + verzweigungsBreite(o)}" stroke="${INK}" stroke-width="1.6"/>`,
       aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y + 5],
       umriss: (o) => ({ x: o.x, y: o.y - 5, w: verzweigungsBreite(o), h: 15 })
     },
-    oder2: { g: "grafcet", n: "ODER mit 2 Zweigen", mk: { k: "alt", schnipsel: "oder" } },
-    und2: { g: "grafcet", n: "UND mit 2 Zweigen", mk: { k: "par", schnipsel: "und" } },
-    ref: { g: "grafcet", n: "Verweis / Sprung", ...VERWEIS }
+    ref: {
+      g: "grafcet",
+      n: "Verweis / Sprung",
+      zeichne: (o, edit) => `<path d="M${o.x} ${o.y}V${o.y + 30}M${o.x - 5} ${o.y + 23}L${o.x} ${o.y + 31}L${o.x + 5} ${o.y + 23}" ${LINIE} fill="none"/>` + (o.v ? SVGT(o.x + 9, o.y + 29, o.v, "start", 12, 500) : platzhalter(edit, "Ziel, z. B. 1", o.x + 9, o.y + 29, "start")),
+      umriss: (o) => ({ x: o.x - 10, y: o.y, w: 24 + tw(o.v || "Ziel"), h: 36 }),
+      aus: (o) => [o.x, o.y + 30],
+      ein: (o) => [o.x, o.y],
+      neu(o, [px, py]) {
+        o.x = px;
+        o.y = py - 15;
+        o.v = "";
+      },
+      feldliste: [["v", "Ziel", "z. B. 1 oder Schritt 5"]],
+      beschriftung: { sofort: true, hinweis: "Ziel, z. B. 1" }
+    }
   });
-  var SAMPLE_LINIE = (d) => `<path d="${d}" stroke="${INK}" stroke-width="1.6"/>`;
   fuelle(SAMPLE, {
     init: [{ k: "init", x: 4, y: 4, v: "1" }, "0 0 48 48"],
     step: [{ k: "step", x: 4, y: 4, v: "2" }, "0 0 48 48"],
-    trans: [{ k: "trans", x: 24, y: 24 }, "0 0 48 48", SAMPLE_LINIE("M24 4V44")],
+    trans: [{ k: "trans", x: 24, y: 24 }, "0 0 48 48", `<path d="M24 4V44" stroke="${INK}" stroke-width="1.6"/>`],
     macro: [{ k: "macro", x: 4, y: 4, v: "M1" }, "0 0 48 48"],
     ref: [{ k: "ref", x: 16, y: 8, v: "1" }, "0 0 48 48"],
     action: [{ k: "action", t: "kont", x: 4, y: 9, v: "MB1" }, "0 0 98 48"],
     actionq: [{ k: "action", t: "q", x: 4, y: 9, q: "S", v: "MB9" }, "0 0 98 48"],
-    actz: [{ k: "action", t: "zwang", x: 4, y: 9, v: "G2{INIT}" }, "0 0 98 48"],
     actc: [{ k: "action", t: "kont", x: 4, y: 22, v: "MB1", b: "BG9" }, "0 0 98 56"],
     acta: [{ k: "action", t: "akt", x: 4, y: 22, v: "Z := 0" }, "0 0 98 56"],
     actd: [{ k: "action", t: "deakt", x: 4, y: 22, v: "Z := 0" }, "0 0 98 56"],
     acte: [{ k: "action", t: "ereig", x: 4, y: 22, v: "Z := Z+1", b: "↑BG1" }, "0 0 98 56"],
-    alt: [{ k: "alt", x: 8, y: 24, w: 72 }, "0 0 88 48", SAMPLE_LINIE("M44 4V24M18 24V44M70 24V44")],
-    par: [{ k: "par", x: 8, y: 22, w: 72 }, "0 0 88 48", SAMPLE_LINIE("M44 4V22M18 27V44M70 27V44")],
-    oder2: [
-      { k: "alt", x: 8, y: 14, w: 72 },
-      "0 0 88 64",
-      SAMPLE_LINIE("M44 2V14M18 14V52M70 14V52M8 52H80M44 52V62") + SAMPLE_LINIE("M12 24H24M64 24H76M12 42H24M64 42H76")
-    ],
-    und2: [
-      { k: "par", x: 8, y: 12, w: 72 },
-      "0 0 88 64",
-      SAMPLE_LINIE("M44 2V12M18 17V48M70 17V48M8 48H80M8 53H80M44 53V62") + `<path d="M10 26h16v12h-16zM62 26h16v12h-16z" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`
-    ]
+    alt: [{ k: "alt", x: 8, y: 24, w: 72 }, "0 0 88 48", `<path d="M44 4V24M18 24V44M70 24V44" stroke="${INK}" stroke-width="1.6"/>`],
+    par: [{ k: "par", x: 8, y: 22, w: 72 }, "0 0 88 48", `<path d="M44 4V22M18 27V44M70 27V44" stroke="${INK}" stroke-width="1.6"/>`]
   });
 
   // web/tools/uebungshandbuch/src/editor/vorlagen/zustand.js
@@ -4316,8 +3813,7 @@ END_CASE;`)}
     const ca = mitteVon(A), cb = mitteVon(B), ra = randRadius(A), rb = randRadius(B);
     if (c.a === c.b) {
       const [x, y] = ca;
-      const d2 = `M${x + ra - 3} ${y - 14}C${x + ra + 62} ${y - 45} ${x + ra + 62} ${y + 45} ${x + ra - 3} ${y + 14}`;
-      return { d: d2, arrow: true, lbl: [x + ra + 56, y + 4, "start"] };
+      return { d: `M${x + ra - 3} ${y - 14}C${x + ra + 62} ${y - 45} ${x + ra + 62} ${y + 45} ${x + ra - 3} ${y + 14}`, arrow: true, lbl: [x + ra + 56, y + 4, "start"] };
     }
     const rev = all.some((o) => o.a === c.b && o.b === c.a);
     const dx = cb[0] - ca[0], dy = cb[1] - ca[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L, off = rev ? 28 : 0;
@@ -4325,25 +3821,20 @@ END_CASE;`)}
     const s = richtung(ca, [mx, my], ra), e = richtung(cb, [mx, my], rb + 1);
     const lx = 0.25 * s[0] + 0.5 * mx + 0.25 * e[0], ly = 0.25 * s[1] + 0.5 * my + 0.25 * e[1];
     const side = Math.abs(nx) > 0.5, an = side ? nx < 0 ? "end" : "start" : "middle", k = side ? 10 : 16;
-    const d = `M${f1(s[0])} ${f1(s[1])}Q${f1(mx)} ${f1(my)} ${f1(e[0])} ${f1(e[1])}`;
-    return { d, arrow: true, lbl: [f1(lx + nx * k), f1(ly + ny * k + 4), an] };
+    return { d: `M${f1(s[0])} ${f1(s[1])}Q${f1(mx)} ${f1(my)} ${f1(e[0])} ${f1(e[1])}`, arrow: true, lbl: [f1(lx + nx * k), f1(ly + ny * k + 4), an] };
   }
   registriereVorlage("zustand", {
     n: "Zustandsdiagramm",
     d: "Zustände und Übergänge, z. B. für Übergaben und Antriebe",
     gruppen: ["zustand"],
-    body: (ex, page) => dots(20) + (page ? "" : ZUSTAND_LEGENDE),
-    pruefe: (d) => d.o.length ? ZUSTAND_REGELN.flatMap((regel) => regel(d)) : []
-    // Knopf „Prüfen“
+    body: (ex, page) => dots(20) + (page ? "" : ZUSTAND_LEGENDE)
   });
-  var ZUSTAND_LEGENDE = [
-    `<g><rect x="790" y="25" width="185" height="120" fill="#fff" stroke="${G}"/>${TX(800, 43, 10, "Symbole", "start", "#666", 600)}`,
-    `<circle cx="815" cy="72" r="15" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(840, 76, 10, "Zustand (Name)")}`,
-    `<path d="M802 112H840" stroke="${G}" stroke-width="1.3"/><path d="M834 107L842 112L834 117" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(850, 108, 10, "Übergang")}${TX(850, 122, 9, "Bedingung / Aktion")}</g>`
-  ].join("\n        ");
+  var ZUSTAND_LEGENDE = `<g><rect x="790" y="25" width="185" height="120" fill="#fff" stroke="${G}"/>${TX(800, 43, 10, "Symbole", "start", "#666", 600)}
+        <circle cx="815" cy="72" r="15" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(840, 76, 10, "Zustand (Name)")}
+        <path d="M802 112H840" stroke="${G}" stroke-width="1.3"/><path d="M834 107L842 112L834 117" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(850, 108, 10, "Übergang")}${TX(850, 122, 9, "Bedingung / Aktion")}</g>`;
   registriereGruppe("zustand", {
     name: "Zustandsdiagramm",
-    hinweis: "Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. Die Bedingung schreibst du direkt an den Pfeil, eine Aktion im Zustand ins Eigenschaftsfeld.",
+    hinweis: "Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. Die Bedingung schreiben Sie direkt an den Pfeil.",
     verbinde: verbindeZustand,
     schleife: true,
     // Übergang auf sich selbst erlaubt
@@ -4352,36 +3843,26 @@ END_CASE;`)}
     bedingung: (A) => A.k !== "start"
     // nach dem Verbinden gleich die Bedingung abfragen, im Editor Platzhalter zeigen
   });
-  var ZUSTANDSARTEN = ["state", "sinit"];
   function zustandNeu(o, [px, py]) {
     o.x = px;
     o.y = py;
-    o.v = "Z" + ED.data.o.filter((q) => ZUSTANDSARTEN.includes(q.k)).length;
+    o.v = "Z" + ED.data.o.filter((q) => q.k === "state" || q.k === "sinit").length;
   }
-  var ZUSTAND = {
-    neu: zustandNeu,
-    feldliste: [["v", "Name"], ["a", "Aktion im Zustand (optional)", "z. B. MB1"]],
-    beschriftung: { hinweis: "Name des Zustands" }
-  };
-  var KREIS = (o) => `<circle cx="${o.x}" cy="${o.y}" r="36" fill="#fff" ${LINIE}/>`;
-  function zustandsText(o) {
-    if (!o.a) return SVGT(o.x, o.y + 5, o.v);
-    return SVGT(o.x, o.y - 6, o.v) + `<path d="M${o.x - 30} ${o.y + 2}H${o.x + 30}" ${LINIE}/>` + SVGT(o.x, o.y + 19, `/ ${o.a}`, "middle", 11, 400);
-  }
+  var ZUSTAND = { neu: zustandNeu, feldliste: [["v", "Name"]], beschriftung: { hinweis: "Name des Zustands" } };
   fuelle(BAUSTEIN, {
     sinit: {
       g: "zustand",
       n: "Anfangszustand",
       ...rund(36),
       ...ZUSTAND,
-      zeichne: (o) => KREIS(o) + `<circle cx="${o.x}" cy="${o.y}" r="31" fill="none" ${LINIE}/>` + zustandsText(o)
+      zeichne: (o) => `<circle cx="${o.x}" cy="${o.y}" r="36" fill="#fff" ${LINIE}/><circle cx="${o.x}" cy="${o.y}" r="31" fill="none" ${LINIE}/>` + SVGT(o.x, o.y + 5, o.v)
     },
     state: {
       g: "zustand",
       n: "Zustand",
       ...rund(36),
       ...ZUSTAND,
-      zeichne: (o) => KREIS(o) + zustandsText(o)
+      zeichne: (o) => `<circle cx="${o.x}" cy="${o.y}" r="36" fill="#fff" ${LINIE}/>` + SVGT(o.x, o.y + 5, o.v)
     },
     start: {
       g: "zustand",
@@ -4396,33 +3877,6 @@ END_CASE;`)}
     state: [{ k: "state", x: 38, y: 38, v: "Z1" }, "0 0 76 76"],
     start: [{ k: "start", x: 24, y: 24 }, "0 0 48 48"]
   });
-  var istZustand = (o) => ZUSTANDSARTEN.includes(o.k);
-  function erreichbar(d) {
-    const offen = d.o.filter((o) => o.k === "sinit" || o.k === "start").map((o) => o.id), gesehen = new Set(offen);
-    while (offen.length) {
-      const id = offen.pop();
-      d.c.filter((c) => c.a === id && !gesehen.has(c.b)).forEach((c) => {
-        gesehen.add(c.b);
-        offen.push(c.b);
-      });
-    }
-    return gesehen;
-  }
-  function regelAnfangszustand(d) {
-    if (d.o.some((o) => o.k === "sinit" || o.k === "start")) return [];
-    return [{ stufe: "fehler", text: "Es fehlt der Anfangszustand (doppelter Kreis) oder ein Startpunkt." }];
-  }
-  function regelErreichbar(d) {
-    const da = erreichbar(d);
-    if (!d.o.some((o) => o.k === "sinit" || o.k === "start")) return [];
-    return d.o.filter((o) => istZustand(o) && !da.has(o.id)).map((o) => ({
-      stufe: "fehler",
-      o: o.id,
-      text: `Zustand ${o.v || ""} ist nicht erreichbar. Kein Übergang führt vom Anfangszustand dorthin.`
-    }));
-  }
-  var regelBedingung = (d) => d.c.map((c, i) => [c, i]).filter(([c]) => !String(c.v || "").trim() && (d.o.find((o) => o.id === c.a) || {}).k !== "start").map(([, i]) => ({ stufe: "hinweis", c: i, text: "Dieser Übergang hat keine Bedingung. Schreib sie an den Pfeil." }));
-  var ZUSTAND_REGELN = [regelAnfangszustand, regelErreichbar, regelBedingung];
 
   // web/tools/uebungshandbuch/src/editor/vorlagen/wegschritt-striche.js
   var WS_RASTER = { x0: 150, x1: 975, spalten: 12, spalte: (975 - 150) / 12, y0: 74, zeile: 62 };
