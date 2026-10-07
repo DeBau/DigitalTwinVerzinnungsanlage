@@ -9,8 +9,8 @@ export const bw = o => Math.max(110, Math.round((tw(o.v || "Block") + 30) / 10) 
 
 export function regelkreisBlatt(){
   const box = (x, y, w, h, lbl) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="#fff" stroke="${G}" stroke-width="1.3"/>` + TX(x + w/2, y - 7, 10, lbl, "middle", "#666", 600);
-  const ar = (d) => `<path d="${d}" fill="none" stroke="${G}" stroke-width="1.3" marker-end="url(#ah)"/>`;
-  let s = `<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="${G}"/></marker></defs>`;
+  const ar = (d) => `<path d="${d}" fill="none" stroke="${G}" stroke-width="1.3" marker-end="url(#rk-pfeil)"/>`;
+  let s = `<defs><marker id="rk-pfeil" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="${G}"/></marker></defs>`;
   s += `<circle cx="140" cy="200" r="16" fill="#fff" stroke="${G}" stroke-width="1.3"/><path d="M129 189L151 211M151 189L129 211" stroke="${G}"/>` + TX(126,190,11,"+","end") + TX(150,232,11,"−","start");
   s += ar("M60 200H122") + TX(60,190,12,"w","start","#555",600);
   s += box(200,165,150,70,"Regler") + ar("M156 200H198") + TX(176,190,11,"e","middle","#555");
@@ -23,7 +23,7 @@ export function regelkreisBlatt(){
   ["w Führungsgröße","x Regelgröße","e Regeldifferenz","y Stellgröße","z Störgröße"].forEach((r, i) => { const y = 470 + i*30; s += `<path d="M60 ${y+8}H975" stroke="${G2}" stroke-width=".7"/>` + TX(60, y, 12, r, "start", "#555"); });
   return s;
 }
-registriereVorlage("regelkreis", {n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: regelkreisBlatt});
+registriereVorlage("regelkreis", {n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: (ex, page) => page ? "" : regelkreisBlatt()});
 registriereGruppe("regel", {name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn.", pfeiltext: true});
 
 fuelle(BAUSTEIN, {
