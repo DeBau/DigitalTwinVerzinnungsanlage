@@ -224,11 +224,17 @@ export const tests = [
       const vorher = await t.text('#rk-sim-text');
       t.erwarte(vorher.includes('bleibt eine Regeldifferenz'), `P lässt eine Regeldifferenz: ${vorher}`);
       await t.page.fill('#props input[data-rks="kp"]', '8'); await t.ruhe();
-      const rest = (s) => +s.match(/von (-?[\d,]+) %/)[1].replace(',', '.');
+      const rest = (s) => +s.match(/von (−?[\d,]+)\s%/)[1].replace(',', '.');
       t.erwarte(rest(await t.text('#rk-sim-text')) < rest(vorher), 'größeres Kp, kleinere Regeldifferenz');
       await t.page.fill('#props input[data-rks="kp"]', '20'); await t.ruhe();
       t.erwarte((await t.text('#rk-sim-text')).includes('schwingt dauernd'), 'Kp 20: Dauerschwingung erkannt');
       t.erwarte((await t.text('#props')).includes('schwingt x dauernd'), 'Tipp warnt vor zu großem Kp');
+      await t.page.selectOption('#props select[data-rks="regler"]', '2P'); await t.ruhe();
+      const yWerte = await t.page.evaluate(() => [...document.querySelectorAll('#rk-sim-bild .rk-linie')][1].getAttribute('d')
+        .slice(1).split('L').map((q) => +q.split(' ')[1]));
+      t.gleich([...new Set(yWerte)].sort(), [12, 135], 'Zweipunktregler: y nur 0 oder 100 %');
+      t.gleich(await t.zaehle('#rk-sim-bild path[stroke-dasharray]'), 1, 'Hysterese im Bild');
+      t.erwarte((await t.text('#rk-sim-text')).includes('wegen der Totzeit'), 'Text erklärt das Pendeln');
       t.gleich(await t.daten(), null, 'Simulation speichert nichts');
       await t.klick('#editor [data-rk="simzu"]');
       t.gleich(await t.zaehle('#props #rk-sim-bild'), 0, 'Simulation geschlossen');

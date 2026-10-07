@@ -37,10 +37,11 @@ export function simuliere(sim){
   }
   return lauf.punkte;
 }
-// Start im Gleichgewicht: Der P-Regler hält x schon vor dem Sprung etwas unter w (bleibende Regeldifferenz)
+// Start im Gleichgewicht: Der P-Regler hält x schon vor dem Sprung etwas unter w (bleibende Regeldifferenz).
+// Der Zweipunktregler kennt nur 0 und 100 %: Er startet bei x = w ausgeschaltet.
 export function neuerLauf(sim){
   const s = {kp: zahlAus(sim.kp, 1), tn: zahlAus(sim.tn, 10)}, v = s.kp * STRECKE.ks;
-  const x = sim.regler === "P" ? LAUF.wVor * v / (1 + v) : LAUF.wVor, y = x / STRECKE.ks;
+  const x = sim.regler === "P" ? LAUF.wVor * v / (1 + v) : LAUF.wVor, y = sim.regler === "2P" ? 0 : x / STRECKE.ks;
   return {regler: sim.regler, s, x, z: {y, i: sim.regler === "PI" ? y / s.kp * s.tn : 0}, verzug: [], punkte: [], i: 0};
 }
 // Schritte des Laufs l bis zur Zeit ende in s
@@ -67,17 +68,27 @@ export function schwingtDauernd(p){
   const wenden = richtung.slice(1).filter((r, i) => r !== richtung[i]).length;
   return Math.max(...xs) - Math.min(...xs) > 1 && wenden >= 2;
 }
-// Zahl in % mit Komma und echtem Minuszeichen (U+2212)
-export const prozent = v => (v.toFixed(1) === "-0.0" ? "0.0" : v.toFixed(1)).replace(".", ",").replace("-", "−") + " %";
+// Zahl in % mit Komma, echtem Minuszeichen (U+2212) und geschütztem Leerzeichen vor %
+export const PROZ = " %";
+export const prozent = v => (v.toFixed(1) === "-0.0" ? "0.0" : v.toFixed(1)).replace(".", ",").replace("-", "−") + PROZ;
 export const ZU_STARK = {P: "Kp ist zu groß.", PI: "Kp ist zu groß oder Tn zu klein."};
 // Kurzer Satz zum Ergebnis: Dauerschwingung, bleibende Regeldifferenz, Überschwingen über den Endwert
 export function ergebnisText(sim, p){
   const ende = p[p.length - 1], e = ende.w - ende.x, ueber = Math.max(...p.map(q => q.x)) - ende.x;
-  if (sim.regler === "2P") return `Der Regler schaltet ganz ein und ganz aus. x pendelt um w, bis ${prozent(Math.max(0, ueber - e))} darüber.`;
+  if (sim.regler === "2P") return zweipunktText(p);
   if (schwingtDauernd(p)) return `x schwingt dauernd und kommt nicht zur Ruhe. ${ZU_STARK[sim.regler]}`;
-  return restText(sim, e, ende.t) + (ueber > 0.5 ? ` x schwingt ${prozent(ueber)} über den Endwert hinaus.` : " x schwingt nicht über.");
+  const ueberText = ueber > 0.5 ? ` x schwingt ${prozent(ueber)} über den Endwert hinaus.` : " x schwingt nicht über.";
+  return restText(sim, e, ende.t) + ueberText;
 }
 
+// Zweipunktregler: wie weit x um w pendelt, und warum weiter als die Hysterese
+export function zweipunktText(p){
+  const xs = p.slice(-Math.round(LAUF.ruhe / LAUF.dt)).map(q => q.x), w = p[p.length - 1].w;
+  const ab = prozent(Math.max(0, w - Math.min(...xs))), auf = prozent(Math.max(0, Math.max(...xs) - w));
+  return `Der Regler schaltet nur ganz ein (100${PROZ}) oder ganz aus (0${PROZ}). x pendelt um w, bis ${ab} darunter `
+    + `und ${auf} darüber. Die Hysterese ist nur ±${LAUF.hysterese}${PROZ}: Weiter pendelt x wegen der Totzeit, `
+    + `denn das Umschalten wirkt erst ${STRECKE.totzeit} s später.`;
+}
 // Regeldifferenz am Ende: weg, beim PI-Regler noch nicht fertig, beim P-Regler bleibend
 export function restText(sim, e, t){
   if (Math.abs(e) < 0.5) return `Die Regeldifferenz ist am Ende weg (nach ${Math.round(t)} s).`;
@@ -104,11 +115,19 @@ export function achsenBild(dauer){
     + t(BILD.x0 - 4, BILD.y1 + 3, "0") + t(BILD.x0 - 4, BILD.y0 + 6, "100 %")
     + t(BILD.x1, BILD.y1 + 13, `t in s (bis ${Math.round(dauer)})`) + t(BILD.x0, BILD.y1 + 13, "0", "middle");
 }
+// Hysterese des Zweipunktreglers: gestrichelte Schaltpunkte w ± LAUF.hysterese
+export function hystereseBand(p){
+  const jeder = Math.ceil(p.length / 300), dauer = p[p.length - 1].t, punkte = p.filter((q, i) => i % jeder === 0);
+  const rand = d => "M" + punkte.map(q => `${bildX(q.t, dauer).toFixed(1)} ${bildY(q.w + d).toFixed(1)}`).join("L");
+  return `<path d="${rand(LAUF.hysterese)}${rand(-LAUF.hysterese)}" fill="none" stroke="${FARBEN[1][0]}" `
+    + `stroke-width=".8" stroke-dasharray="3 2" opacity=".7"/>`;
+}
 export function verlaufSVG(sim){
   const p = sim.gestartet ? simuliere(sim) : [], dauer = p.length ? p[p.length - 1].t : LAUF.dauer;
+  const band = p.length && sim.regler === "2P" ? hystereseBand(p) : "";
   const linien = p.length ? simLinie(p, "w", FARBEN[1][0]) + simLinie(p, "y", FARBEN[2][0]) + simLinie(p, "x", FARBEN[0][0]) : "";
   return `<svg viewBox="0 0 ${BILD.b} ${BILD.h}" role="img" aria-label="Verlauf von w, x und y">${ANIMATION}${achsenBild(dauer)}`
-    + `${linien}</svg>`;
+    + `${band}${linien}</svg>`;
 }
 export const LEGENDE_SIM = `<p class="small" style="margin:4px 0 8px">`
   + FARBEN.map(([c], i) => `<span style="color:${c};font-weight:600">${["x Istwert", "w Sollwert", "y Stellgröße"][i]}</span>`)
@@ -136,7 +155,8 @@ export const SIM_TIPPS = {
   P: "Tipp: Mach Kp etwas größer, z. B. 4 oder 8. Die Regeldifferenz wird kleiner, verschwindet aber nie ganz. "
     + "Ist Kp zu groß (hier ab etwa 15), schwingt x dauernd.",
   PI: "Tipp: Mach Tn kleiner. Der Regler wird schneller, aber x schwingt stärker über. Zu klein, dann schwingt x dauernd.",
-  "2P": "Tipp: Der Zweipunktregler kennt nur ein und aus. Gut für Heizungen, wenn ein kleines Pendeln nicht stört.",
+  "2P": "Tipp: Der Zweipunktregler kennt nur ein und aus. Gut für Heizungen, wenn ein kleines Pendeln nicht stört. "
+    + "Die gestrichelten Linien sind die Schaltpunkte (Hysterese).",
 };
 // Haken anleitung: das Panel, solange die Simulation offen ist
 export const simAnleitung = () => ED.vorlage.sim ? simPanel() : null;
