@@ -6,9 +6,9 @@ import { anySel, clearSel, markiertesElement, markiertesObjekt } from './auswahl
 import { deDate } from './blaetter.js';
 import { istSignalFeld, schliesseListe, signalEingabe, signalTaste, signalWahl } from './signalfeld.js';
 import { lastProp, setLastProp, updateProps } from './eigenschaften.js';
-import { renderInk, sizeSVG } from './anzeige.js';
+import { sizeSVG } from './anzeige.js';
 import { pruefeSkizze, waehleBefund, zeigeBefunde } from './pruefung.js';
-import { aendere, redo, saveSketch, snapshot, takeMenu, takeSketch, undo } from './verlauf.js';
+import { aendere, beginne, redo, schliesse, takeMenu, takeSketch, undo } from './verlauf.js';
 import { newline } from './beschriften.js';
 import { blattPunkt, setTool } from './werkzeuge.js';
 import { applyProp, delSel, turnSel } from './bearbeiten.js';
@@ -59,17 +59,20 @@ export const AKTIONEN = {
   rot: () => turnSel("rot"),
   flip: () => turnSel("flip"),
   sfzu: () => { clearSel(); updateProps("neu"); },
-  heute: () => { const f = $('#props [data-prop="md"]'); if (f) { snapshot(); f.value = deDate(Date.now()); applyProp("md", f.value); } },
+  heute: () => { const f = $('#props [data-prop="md"]'); if (f) { f.value = deDate(Date.now()); applyProp("md", f.value); } },
   del: () => delSel(),
   grid: t => { ED.grid = !ED.grid; t.setAttribute("aria-pressed", ED.grid); },
   dock: t => { ED.dock = !ED.dock; t.setAttribute("aria-pressed", ED.dock); },
-  clear: () => {
-    if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
-    snapshot(); ED.data = {s:[], t:[], o:[], c:[]}; clearSel(); saveSketch(); renderInk();
-  },
+  clear: () => alleLeeren(),
   print: () => doPrint(sketchPage(ED.scope, ED.key, true)),
   close: () => $("#editor").close(),
 };
+// „Alles leeren“: Bausteine, Striche und Texte weg, das Schriftfeld (meta) bleibt
+export function alleLeeren(){
+  if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
+  clearSel();
+  aendere(d => ({s: [], t: [], o: [], c: [], ...(d.meta ? {meta: d.meta} : {})}));
+}
 export function klick(e){
   if (ED.klickAuslassen) { ED.klickAuslassen = false; if (e.target.closest("[data-place]")) return; }   // Klick nach Ziehen aus der Palette
   const pb = e.target.closest("[data-place]");
@@ -102,6 +105,10 @@ export function feldGeaendert(e){
   applyProp(f, e.target.value); updateProps("neu");
   const again = $(`#props [data-prop="${f}"]`); if (again) again.focus();
 }
+
+// Tippen in einem Feld ist ein Verlaufsschritt je Feld und markiertem Element (Transaktion in verlauf.js)
+export const beginneFeld = f => beginne("feld:" + (ED.markiert ? ED.markiert.art + ED.markiert.id : "") + ":" + f);
+export const schliesseFeld = () => { if (ED.tx && ED.tx.schluessel.startsWith("feld:")) schliesse(); };
 
 /* ---------- Tastatur ---------- */
 export function tasteImFeld(e){
@@ -161,13 +168,16 @@ export function init(){
   document.addEventListener("pointermove", paletteZiehen);
   document.addEventListener("pointerup", paletteLoslassen);
   dlg.addEventListener("click", klick);
-  dlg.addEventListener("focusin", e => { if (e.target.dataset && e.target.dataset.prop) { snapshot(); setLastProp(e.target); } });
+  dlg.addEventListener("focusin", e => { if (e.target.dataset && e.target.dataset.prop) setLastProp(e.target); });
   dlg.addEventListener("input", e => {
     const f = e.target.dataset && e.target.dataset.prop;
     if (istSignalFeld(e.target)) signalEingabe(e.target);   // Minuszeichen, Vorschlagsliste
-    if (f) applyProp(f, e.target.value);
+    if (f) { beginneFeld(f); applyProp(f, e.target.value); }
   });
-  dlg.addEventListener("focusout", e => { if (istSignalFeld(e.target)) schliesseListe(e.target); });
+  dlg.addEventListener("focusout", e => {
+    if (istSignalFeld(e.target)) schliesseListe(e.target);
+    if (e.target.dataset && e.target.dataset.prop) schliesseFeld();
+  });
   dlg.addEventListener("change", feldGeaendert);
   dlg.addEventListener("pointerdown", e => { if (e.target.closest(".sym")) e.preventDefault(); signalWahl(e); });   // Fokus im Feld lassen
   dlg.addEventListener("keydown", taste);

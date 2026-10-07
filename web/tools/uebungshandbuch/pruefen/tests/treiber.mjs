@@ -69,7 +69,8 @@ export class Treiber {
   }
   async objekte(k) { const d = await this.daten(); return ((d && d.o) || []).filter((o) => !k || o.k === k); }
   zaehle(sel) { return this.page.locator(sel).count(); }
-  text(sel) { return this.page.locator(sel).first().innerText(); }
+  // Sichtbarer Text; SVG-Elemente haben kein innerText, dort zählt textContent
+  text(sel) { return this.page.locator(sel).first().evaluate((el) => el.innerText ?? el.textContent); }
   // Druckansicht der geöffneten Skizze als HTML von #print
   async drucke() {
     await this.knopf('print'); await this.ruhe(200);

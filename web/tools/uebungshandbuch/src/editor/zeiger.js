@@ -12,7 +12,7 @@ import { ausrichten, kettenQuelle } from './kette.js';
 import { bausteinZeichnen, verbindungsWeg } from './zeichnen.js';
 import { updateProps } from './eigenschaften.js';
 import { checkPages, renderInk } from './anzeige.js';
-import { aendere, saveSketch, snapshot } from './verlauf.js';
+import { aendere, beginne, schliesse } from './verlauf.js';
 import { editConnLabel, editLabel, editObjLabel, editTextItem } from './beschriften.js';
 import { blattPunkt, fangen } from './werkzeuge.js';
 import { eraseAt } from './bearbeiten.js';
@@ -120,7 +120,7 @@ export function neuerText(pt){
 }
 // Strich cur aufziehen: Zeiger festhalten, Stand merken, Vorschaupfad anlegen. Auch für die Werkzeuge der Vorlagen.
 export function beginneStrich(e, cur){
-  festhalten(e); snapshot();
+  festhalten(e);
   ED.strich = cur;
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("stroke", ED.color); path.setAttribute("stroke-width", ED.w); path.setAttribute("fill", "none");
@@ -151,21 +151,30 @@ export function randScrollen(e){
   if (e.clientY > r.bottom - 36) st.scrollTop += 18;
   else if (e.clientY < r.top + 36) st.scrollTop -= 18;
 }
-// Markiertes ziehen: Griff, Text, Strich oder Baustein (mit Andocken und Hilfslinien)
+// Was beim Ziehen je Art geschieht: Griff am Strichende, Text, Strich; alles andere ist ein Baustein (zieheBaustein)
+export const ZIEHE = {
+  h: (dr, pt) => { ED.data.s[dr.i].p[dr.h] = fangen(pt); },
+  t: (dr, pt, dx, dy) => { const t = ED.data.t[dr.i]; [t.x, t.y] = snap([dr.ox + dx, dr.oy + dy]); },
+  s: (dr, pt, dx, dy) => zieheStrich(ED.data.s[dr.i], dx, dy),
+};
+// Markiertes ziehen. Die ganze Geste ist ein Verlaufsschritt (beginne hier, schliesse in ziehenEnde).
 export function ziehen(pt){
   const dr = ED.drag, dx = pt[0] - dr.sx, dy = pt[1] - dr.sy;
   if (!dr.moved && Math.hypot(dx, dy) < 3) return;   // kleines Zittern ist noch ein Klick
-  if (!dr.moved) { snapshot(); dr.moved = true; }
-  if (dr.kind === "h") { ED.data.s[dr.i].p[dr.h] = fangen(pt); renderInk(); return; }
-  if (dr.kind === "t") { const t = ED.data.t[dr.i]; [t.x, t.y] = snap([dr.ox + dx, dr.oy + dy]); renderInk(); return; }
-  if (dr.kind === "s") { zieheStrich(ED.data.s[dr.i], dx, dy); renderInk(); return; }
+  if (!dr.moved) { beginne("ziehen"); dr.moved = true; }
+  let marks = "";
+  aendere(() => { if (ZIEHE[dr.kind]) ZIEHE[dr.kind](dr, pt, dx, dy); else marks = zieheBaustein(dr, dx, dy); });
+  $(".ghost", ED.svg).innerHTML = marks;
+}
+// Baustein mit Andocken und Hilfslinien ziehen, Mitgenommene folgen; gibt die blaue Vorschau zurück
+export function zieheBaustein(dr, dx, dy){
   const o = objById(dr.id);
   [o.x, o.y] = snap([dr.ox + dx, dr.oy + dy]);
   const r = smartPos(o);
   avoidBreak(o);
   for (const m of dr.mit) { m.p.x = m.x + o.x - dr.ox; m.p.y = m.y + o.y - dr.oy; }
   dr.dock = r.dock && !linked(r.dock.a, r.dock.b) ? r.dock : null;
-  renderInk(); $(".ghost", ED.svg).innerHTML = r.marks;
+  return r.marks;
 }
 export function zieheStrich(st, dx, dy){
   const a = STRICH[st.k], o0 = ED.drag.orig[0];
@@ -197,20 +206,21 @@ export function zeigerLoslassen(){
   const zeiger = zeigerHaken(), [p0, p1] = ED.strich.p;
   if (ED.strich.k && p0[0] === p1[0] && p0[1] === p1[1]) {   // nur geklickt, nicht gezogen: kein Strich
     const k = ED.strich.k;
-    ED.strich = null; ED.hist.pop();
+    ED.strich = null;
     if (zeiger.angeklickt && zeiger.angeklickt(p0, k)) return;   // Haken zeiger.angeklickt
     renderInk(); return;
   }
   const neu = ED.strich;
-  ED.data.s.push(neu); ED.strich = null; saveSketch();
+  ED.strich = null;
+  aendere(d => { d.s.push(neu); }, {ohneRender: true});
   if (zeiger.gezogen && zeiger.gezogen(neu)) return;   // Haken zeiger.gezogen
   renderInk();
 }
 export function ziehenEnde(){
   const dk = ED.drag.dock;
   if (ED.drag.moved) {
-    if (dk && !linked(dk.a, dk.b)) ED.data.c.push(dockLeitung(dk));   // angedockt: verbinden
-    saveSketch(); renderInk();
+    aendere(d => { if (dk && !linked(dk.a, dk.b)) d.c.push(dockLeitung(dk)); });   // angedockt: verbinden
+    schliesse(); renderInk();
   }
   ED.drag = null;
   if (ED.svg) $(".ghost", ED.svg).innerHTML = "";

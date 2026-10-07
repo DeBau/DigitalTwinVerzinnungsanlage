@@ -62,7 +62,7 @@ export function holeStand(von, nach){
   if (!von.length) return;
   nach.push(JSON.stringify(ED.data));
   ED.data = JSON.parse(von.pop());
-  befundeWeg(); clearSel(); saveSketch(); renderInk();
+  befundeWeg(); clearSel(); saveSketch(); refreshTpl(); renderInk();
 }
 export const undo = () => holeStand(ED.hist, ED.zukunft);
 export const redo = () => holeStand(ED.zukunft, ED.hist);
@@ -108,8 +108,7 @@ export function takeSketch(sc){
   const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
   const frage = `Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`;
   if (has && !confirm(frage)) return;
-  snapshot();
   const d = mitListen(JSON.parse(JSON.stringify(src)));
   if (d.meta) { delete d.meta.title; delete d.meta.datum; }   // Titel und Datum gehören zur neuen Übung
-  ED.data = d; clearSel(); saveSketch(); refreshTpl(); renderInk(); updateProps(true);
+  clearSel(); aendere(() => d); updateProps(true);
 }

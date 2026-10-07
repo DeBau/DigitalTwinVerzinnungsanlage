@@ -4,14 +4,13 @@ import { STRICHFELD, art, bauteil } from './registry.js';
 import { gruppeVon } from './bausteine.js';
 import { clearSel, markiertesElement, markiertesObjekt, objById, trefferBei } from './auswahl.js';
 import { zeichnungSVG } from './zeichnen.js';
-import { refreshTpl } from './anzeige.js';
-import { aendere, saveSketch } from './verlauf.js';
+import { aendere } from './verlauf.js';
 
-// Eingabe im Eigenschaftsfeld übernehmen. f ist das Feld (data-prop), v der neue Wert.
+// Eingabe im Eigenschaftsfeld übernehmen. f ist das Feld (data-prop), v der neue Wert. Neu gezeichnet wird nur die
+// Zeichnung, damit das Feld den Fokus behält. Tippen in einem Feld ist ein Verlaufsschritt (beginneFeld, ereignisse.js).
 export function applyProp(f, v){
-  if (SCHRIFTFELD[f]) { setzeSchriftfeld(f, v); return; }
-  if (!setzeFeld(f, v)) return;
-  saveSketch(); ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
+  const geaendert = aendere(() => { if (SCHRIFTFELD[f]) setzeSchriftfeld(f, v); else setzeFeld(f, v); }, {ohneRender: true});
+  if (geaendert && !SCHRIFTFELD[f]) ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
 }
 export const SCHRIFTFELD = {mt: "title", mn: "name", md: "datum"};   // Feld → Eintrag in data.meta
 // Feld im Eigenschaftsbereich → Eigenschaft des markierten Elements je Art. Bausteine: o[Feld] oder Haken setze
@@ -23,7 +22,6 @@ export function setzeSchriftfeld(f, v){
   m[SCHRIFTFELD[f]] = v;
   Object.keys(m).forEach(k => { if (!m[k]) delete m[k]; });
   if (!Object.keys(m).length) delete ED.data.meta;
-  saveSketch(); refreshTpl();
 }
 // Feld am markierten Element setzen; false, wenn nichts Passendes markiert ist
 export function setzeFeld(f, v){

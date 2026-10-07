@@ -2371,6 +2371,7 @@ pre.code code{font-size:inherit}
     befundeWeg();
     clearSel();
     saveSketch();
+    refreshTpl();
     renderInk();
   }
   var undo = () => holeStand(ED.hist, ED.zukunft);
@@ -2421,17 +2422,13 @@ pre.code code{font-size:inherit}
     const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
     const frage = `Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`;
     if (has && !confirm(frage)) return;
-    snapshot();
     const d = mitListen(JSON.parse(JSON.stringify(src)));
     if (d.meta) {
       delete d.meta.title;
       delete d.meta.datum;
     }
-    ED.data = d;
     clearSel();
-    saveSketch();
-    refreshTpl();
-    renderInk();
+    aendere(() => d);
     updateProps(true);
   }
 
@@ -2494,11 +2491,10 @@ pre.code code{font-size:inherit}
     const at = B && B.ort ? B.ort(o) : [b.x, b.y + b.h / 2];
     const hinweis = B && (typeof B.hinweis === "function" ? B.hinweis(o) : B.hinweis);
     editLabel(at[0], at[1], wert, hinweis, (v) => {
-      snapshot();
-      if (B && B.setze) B.setze(o, v);
-      else o.v = v;
-      saveSketch();
-      renderInk();
+      aendere(() => {
+        if (B && B.setze) B.setze(o, v);
+        else o.v = v;
+      });
       updateProps(true);
     });
   }
@@ -2507,10 +2503,9 @@ pre.code code{font-size:inherit}
     if (!c || !p) return;
     const L = p.getTotalLength(), m = p.getPointAtLength(L / 2);
     editLabel(m.x + 8, m.y, c.v || "", "Bedingung / Aktion, z. B. BG1 / MB1", (v) => {
-      snapshot();
-      c.v = v;
-      saveSketch();
-      renderInk();
+      aendere(() => {
+        c.v = v;
+      });
       updateProps(true);
     });
   }
@@ -2518,14 +2513,13 @@ pre.code code{font-size:inherit}
     const t = ED.data.t[i];
     if (!t) return;
     editLabel(t.x, t.y - 5, t.v, "Text", (v) => {
-      snapshot();
-      if (v) t.v = v;
-      else {
-        ED.data.t.splice(i, 1);
-        clearSel();
-      }
-      saveSketch();
-      renderInk();
+      aendere((d) => {
+        if (v) t.v = v;
+        else {
+          d.t.splice(i, 1);
+          clearSel();
+        }
+      });
       updateProps(true);
     });
   }
@@ -2565,13 +2559,11 @@ pre.code code{font-size:inherit}
 
   // web/tools/uebungshandbuch/src/editor/bearbeiten.js
   function applyProp(f, v) {
-    if (SCHRIFTFELD[f]) {
-      setzeSchriftfeld(f, v);
-      return;
-    }
-    if (!setzeFeld(f, v)) return;
-    saveSketch();
-    ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
+    const geaendert = aendere(() => {
+      if (SCHRIFTFELD[f]) setzeSchriftfeld(f, v);
+      else setzeFeld(f, v);
+    }, { ohneRender: true });
+    if (geaendert && !SCHRIFTFELD[f]) ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
   }
   var SCHRIFTFELD = { mt: "title", mn: "name", md: "datum" };
   var FELDNAME = { t: { tv: "v", ts: "s", sc: "c" }, s: STRICHFELD, c: { cv: "v", cst: "st" } };
@@ -2583,8 +2575,6 @@ pre.code code{font-size:inherit}
       if (!m[k]) delete m[k];
     });
     if (!Object.keys(m).length) delete ED.data.meta;
-    saveSketch();
-    refreshTpl();
   }
   function setzeFeld(f, v) {
     const m = ED.markiert, el = markiertesElement();
@@ -2940,7 +2930,6 @@ pre.code code{font-size:inherit}
   }
   function beginneStrich(e, cur) {
     festhalten(e);
-    snapshot();
     ED.strich = cur;
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("stroke", ED.color);
@@ -2989,29 +2978,31 @@ pre.code code{font-size:inherit}
     if (e.clientY > r.bottom - 36) st.scrollTop += 18;
     else if (e.clientY < r.top + 36) st.scrollTop -= 18;
   }
+  var ZIEHE = {
+    h: (dr, pt) => {
+      ED.data.s[dr.i].p[dr.h] = fangen(pt);
+    },
+    t: (dr, pt, dx, dy) => {
+      const t = ED.data.t[dr.i];
+      [t.x, t.y] = snap([dr.ox + dx, dr.oy + dy]);
+    },
+    s: (dr, pt, dx, dy) => zieheStrich(ED.data.s[dr.i], dx, dy)
+  };
   function ziehen(pt) {
     const dr = ED.drag, dx = pt[0] - dr.sx, dy = pt[1] - dr.sy;
     if (!dr.moved && Math.hypot(dx, dy) < 3) return;
     if (!dr.moved) {
-      snapshot();
+      beginne("ziehen");
       dr.moved = true;
     }
-    if (dr.kind === "h") {
-      ED.data.s[dr.i].p[dr.h] = fangen(pt);
-      renderInk();
-      return;
-    }
-    if (dr.kind === "t") {
-      const t = ED.data.t[dr.i];
-      [t.x, t.y] = snap([dr.ox + dx, dr.oy + dy]);
-      renderInk();
-      return;
-    }
-    if (dr.kind === "s") {
-      zieheStrich(ED.data.s[dr.i], dx, dy);
-      renderInk();
-      return;
-    }
+    let marks = "";
+    aendere(() => {
+      if (ZIEHE[dr.kind]) ZIEHE[dr.kind](dr, pt, dx, dy);
+      else marks = zieheBaustein(dr, dx, dy);
+    });
+    $(".ghost", ED.svg).innerHTML = marks;
+  }
+  function zieheBaustein(dr, dx, dy) {
     const o = objById(dr.id);
     [o.x, o.y] = snap([dr.ox + dx, dr.oy + dy]);
     const r = smartPos(o);
@@ -3021,8 +3012,7 @@ pre.code code{font-size:inherit}
       m.p.y = m.y + o.y - dr.oy;
     }
     dr.dock = r.dock && !linked(r.dock.a, r.dock.b) ? r.dock : null;
-    renderInk();
-    $(".ghost", ED.svg).innerHTML = r.marks;
+    return r.marks;
   }
   function zieheStrich(st, dx, dy) {
     const a = STRICH[st.k], o0 = ED.drag.orig[0];
@@ -3063,23 +3053,25 @@ pre.code code{font-size:inherit}
     if (ED.strich.k && p0[0] === p1[0] && p0[1] === p1[1]) {
       const k = ED.strich.k;
       ED.strich = null;
-      ED.hist.pop();
       if (zeiger.angeklickt && zeiger.angeklickt(p0, k)) return;
       renderInk();
       return;
     }
     const neu = ED.strich;
-    ED.data.s.push(neu);
     ED.strich = null;
-    saveSketch();
+    aendere((d) => {
+      d.s.push(neu);
+    }, { ohneRender: true });
     if (zeiger.gezogen && zeiger.gezogen(neu)) return;
     renderInk();
   }
   function ziehenEnde() {
     const dk = ED.drag.dock;
     if (ED.drag.moved) {
-      if (dk && !linked(dk.a, dk.b)) ED.data.c.push(dockLeitung(dk));
-      saveSketch();
+      aendere((d) => {
+        if (dk && !linked(dk.a, dk.b)) d.c.push(dockLeitung(dk));
+      });
+      schliesse();
       renderInk();
     }
     ED.drag = null;
@@ -5450,7 +5442,6 @@ END_CASE;`)}
     heute: () => {
       const f = $('#props [data-prop="md"]');
       if (f) {
-        snapshot();
         f.value = deDate(Date.now());
         applyProp("md", f.value);
       }
@@ -5464,17 +5455,15 @@ END_CASE;`)}
       ED.dock = !ED.dock;
       t.setAttribute("aria-pressed", ED.dock);
     },
-    clear: () => {
-      if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
-      snapshot();
-      ED.data = { s: [], t: [], o: [], c: [] };
-      clearSel();
-      saveSketch();
-      renderInk();
-    },
+    clear: () => alleLeeren(),
     print: () => doPrint(sketchPage(ED.scope, ED.key, true)),
     close: () => $("#editor").close()
   };
+  function alleLeeren() {
+    if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
+    clearSel();
+    aendere((d) => ({ s: [], t: [], o: [], c: [], ...d.meta ? { meta: d.meta } : {} }));
+  }
   function klick(e) {
     if (ED.klickAuslassen) {
       ED.klickAuslassen = false;
@@ -5523,6 +5512,10 @@ END_CASE;`)}
     const again = $(`#props [data-prop="${f}"]`);
     if (again) again.focus();
   }
+  var beginneFeld = (f) => beginne("feld:" + (ED.markiert ? ED.markiert.art + ED.markiert.id : "") + ":" + f);
+  var schliesseFeld = () => {
+    if (ED.tx && ED.tx.schluessel.startsWith("feld:")) schliesse();
+  };
   function tasteImFeld(e) {
     if (e.key !== "Enter" || !e.target.dataset.prop) return;
     e.preventDefault();
@@ -5615,18 +5608,19 @@ END_CASE;`)}
     document.addEventListener("pointerup", paletteLoslassen);
     dlg.addEventListener("click", klick);
     dlg.addEventListener("focusin", (e) => {
-      if (e.target.dataset && e.target.dataset.prop) {
-        snapshot();
-        setLastProp(e.target);
-      }
+      if (e.target.dataset && e.target.dataset.prop) setLastProp(e.target);
     });
     dlg.addEventListener("input", (e) => {
       const f = e.target.dataset && e.target.dataset.prop;
       if (istSignalFeld(e.target)) signalEingabe(e.target);
-      if (f) applyProp(f, e.target.value);
+      if (f) {
+        beginneFeld(f);
+        applyProp(f, e.target.value);
+      }
     });
     dlg.addEventListener("focusout", (e) => {
       if (istSignalFeld(e.target)) schliesseListe(e.target);
+      if (e.target.dataset && e.target.dataset.prop) schliesseFeld();
     });
     dlg.addEventListener("change", feldGeaendert);
     dlg.addEventListener("pointerdown", (e) => {

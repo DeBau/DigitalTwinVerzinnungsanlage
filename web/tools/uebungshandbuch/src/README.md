@@ -184,10 +184,12 @@ anders ist) und die Zeichnung (außer mit `ohneRender`). Gibt die Änderung eine
 
 Ziehen und Tippen fasst du mit `beginne(schluessel)` und `schliesse()` zu einem Schritt zusammen: Dazwischen legt
 `aendere` keinen eigenen Schritt an, `schliesse` legt einen an, wenn sich etwas geändert hat. `undo` und `redo`
-schließen eine offene Transaktion. `snapshot()` und danach `saveSketch()` ist der alte Weg (legt immer einen Stand
-ab). Er steht noch beim Beschriften, Ziehen, Strichzeichnen, Tippen im Eigenschaftsfeld (focusin), „Alles leeren“,
-in der Kopie aus einer früheren Übung
-und im Weg-Schritt-Diagramm. Neue Stellen nehmen nur `aendere`.
+schließen eine offene Transaktion. Im Kern ist ein Ziehen (Baustein, Text, Strich, Griff) ein Schritt
+(`beginne("ziehen")` beim ersten Bewegen, `schliesse` beim Loslassen), Tippen in einem Feld ist ein Schritt je Feld
+und markiertem Element (`beginneFeld` beim ersten `input`, `schliesseFeld` bei `focusout`, ereignisse.js). Ein
+Fokus ohne Eingabe legt keinen Schritt an. `undo` und `redo` zeichnen auch das Schriftfeld neu. „Alles leeren“
+behält `meta`. `snapshot()` und danach `saveSketch()` ist der alte Weg (legt immer einen Stand ab), er steht nur
+noch im Weg-Schritt-Diagramm. Neue Stellen nehmen nur `aendere`.
 
 Wann was neu gezeichnet wird:
 
