@@ -3701,6 +3701,7 @@ END_CASE;`)}
     } }
   ];
   function grafcetNachSetzen(o, d, { A, dock }) {
+    if (A && einfuegen(A, o, d)) return;
     const [oben, unten] = A ? [A, o] : dock ? [objIn(d, dock.a), objIn(d, dock.b)] : [];
     const regel = oben && unten && PAAR_REGELN.find((r) => r.passt(oben, unten));
     if (regel) regel.tue(oben, unten, d, o);
@@ -3755,6 +3756,41 @@ END_CASE;`)}
       if (alle.has(o.id)) o.y += dy;
     });
   }
+  function freieSchrittNummer(d) {
+    const nums = d.o.filter((q) => ["step", "init"].includes(q.k)).map((q) => parseInt(q.v, 10)).filter((v) => !isNaN(v));
+    return String(nums.length ? Math.max(...nums) + 1 : 1);
+  }
+  var neuesGlied = (d, k, v) => {
+    const o = { id: uid(), k, x: 0, y: 0, v };
+    d.o.push(o);
+    return o;
+  };
+  function legeUnter(B, A) {
+    const [x, y] = kettenAus(A);
+    B.x = x - (art(B.k).einrueck || 0);
+    B.y += y + 30 - kettenEin(B, x)[1];
+  }
+  var EINFUEGEN = [
+    { passt: (A, o) => isTrans(A) && isStep(o), folge: (o, d) => [o, neuesGlied(d, "trans", "")] },
+    { passt: (A, o) => isStep(A) && isTrans(o), folge: (o, d) => [o, neuesGlied(d, "step", freieSchrittNummer(d))] },
+    { passt: (A, o) => isStep(A) && isStep(o), folge: (o, d) => [neuesGlied(d, "trans", ""), o] }
+  ];
+  function einfuegen(A, o, d) {
+    const S2 = d.c.filter((c) => c.a === A.id && c.b !== o.id).map((c) => objIn(d, c.b)).find((B) => B && !isAct(B) && B.y > A.y);
+    const regel = S2 && EINFUEGEN.find((r) => r.passt(A, o));
+    if (!regel) return false;
+    verschiebeRest(d, [S2.id, ...kettenRest(d, S2)], TEILUNG);
+    loeseVerbindung(d, A, S2);
+    loeseVerbindung(d, A, o);
+    let vor = A;
+    for (const B of regel.folge(o, d)) {
+      legeUnter(B, vor);
+      verknuepfe(d, vor, B);
+      vor = B;
+    }
+    verknuepfe(d, vor, S2);
+    return true;
+  }
   function grafcetLoeschen(o, d) {
     return [...aktionenVon(d, o.id), ...isStep(o) ? ketteSchliessen(o, d) : []];
   }
@@ -3767,14 +3803,19 @@ END_CASE;`)}
     }
     return [T2.id, ...aktionenVon(d, T2.id)];
   }
+  var KETTEN_HAKEN = {
+    nachSetzen: grafcetNachSetzen,
+    // Transition zwischen zwei Schritten, Einfügen, keine zwei Transitionen hintereinander
+    vorVerbinden: grafcetVorVerbinden,
+    loeschen: grafcetLoeschen,
+    // Aktionen gehen mit; ein gelöschter Schritt schließt die Kette
+    mitziehen: grafcetMitziehen
+    // Aktionen ziehen mit ihrem Schritt mit, mit Umschalt auch der Rest der Kette
+  };
 
   // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet.js
   var QUADRAT = (o) => ({ x: o.x, y: o.y, w: 40, h: 40 });
-  var NUMMERIERT = ["step", "init"];
-  var naechsteSchrittNummer = () => {
-    const nums = ED.data.o.filter((q) => NUMMERIERT.includes(q.k)).map((q) => parseInt(q.v, 10)).filter((v) => !isNaN(v));
-    return String(nums.length ? Math.max(...nums) + 1 : 1);
-  };
+  var naechsteSchrittNummer = () => freieSchrittNummer(ED.data);
   var SCHRITT = {
     umriss: QUADRAT,
     aus: (o) => [o.x + 20, o.y + 40],
@@ -3838,13 +3879,8 @@ END_CASE;`)}
     name: "GRAFCET",
     hinweis: "Anfangsschritt setzen, dann Transition, Schritt, Transition … anklicken: Jeder neue Baustein hängt sich unter den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken.",
     kette: true,
-    nachSetzen: grafcetNachSetzen,
-    // Transition zwischen zwei Schritten, keine zwei Transitionen hintereinander
-    vorVerbinden: grafcetVorVerbinden,
-    loeschen: grafcetLoeschen,
-    // Aktionen gehen mit; ein gelöschter Schritt schließt die Kette
-    mitziehen: grafcetMitziehen
-    // Aktionen ziehen mit ihrem Schritt mit, mit Umschalt auch der Rest der Kette
+    ...KETTEN_HAKEN
+    // nachSetzen, vorVerbinden, loeschen, mitziehen (grafcet-kette.js)
   });
   var AKTION = {
     g: "grafcet",

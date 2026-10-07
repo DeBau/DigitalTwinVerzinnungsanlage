@@ -8,15 +8,11 @@ import { G, TX, dots } from '../vorlagen-svg.js';
 import { LINIE, platzhalter, setzeBreite } from '../bausteine.js';
 import { textFeld } from '../eigenschaften.js';
 import { AKTION_SEITE, AKTION_TEXT, aktionFelder, aw, hasMark, isStep, setzeAktion, zeichneAktion } from './grafcet-aktion.js';
-import { grafcetLoeschen, grafcetMitziehen, grafcetNachSetzen, grafcetVorVerbinden, hinweisAnleitung } from './grafcet-kette.js';
+import { KETTEN_HAKEN, freieSchrittNummer, hinweisAnleitung } from './grafcet-kette.js';
 
 /* ---------- Schritte, Transitionen, Verzweigungen ---------- */
 export const QUADRAT = o => ({x: o.x, y: o.y, w: 40, h: 40});
-export const NUMMERIERT = ["step", "init"];   // Schritte mit Nummer (Makroschritte heißen M1, M2 …)
-export const naechsteSchrittNummer = () => {
-  const nums = ED.data.o.filter(q => NUMMERIERT.includes(q.k)).map(q => parseInt(q.v, 10)).filter(v => !isNaN(v));
-  return String(nums.length ? Math.max(...nums) + 1 : 1);
-};
+export const naechsteSchrittNummer = () => freieSchrittNummer(ED.data);
 export const SCHRITT = {
   umriss: QUADRAT,
   aus: o => [o.x+20, o.y+40],
@@ -83,10 +79,7 @@ registriereGruppe("grafcet", {
     + "den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts "
     + "daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken.",
   kette: true,
-  nachSetzen: grafcetNachSetzen,     // Transition zwischen zwei Schritten, keine zwei Transitionen hintereinander
-  vorVerbinden: grafcetVorVerbinden,
-  loeschen: grafcetLoeschen,         // Aktionen gehen mit; ein gelöschter Schritt schließt die Kette
-  mitziehen: grafcetMitziehen,       // Aktionen ziehen mit ihrem Schritt mit, mit Umschalt auch der Rest der Kette
+  ...KETTEN_HAKEN,                    // nachSetzen, vorVerbinden, loeschen, mitziehen (grafcet-kette.js)
 });
 
 export const AKTION = {

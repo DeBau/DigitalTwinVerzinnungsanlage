@@ -1,8 +1,10 @@
 // GRAFCET: Regeln beim Bearbeiten der Ablaufkette. Haken der Gruppe grafcet (registriert in vorlagen/grafcet.js):
 // nachSetzen und vorVerbinden halten den Wechsel von Schritt und Transition ein (zwischen zwei Schritten kommt von selbst
 // eine Transition, zwei Transitionen hintereinander lehnt der Editor mit Hinweis ab).
+import { S } from '../../app/basis.js';
 import { ED, istMarkiert } from '../status.js';
-import { kettenAus } from '../bausteine.js';
+import { art } from '../registry.js';
+import { kettenAus, kettenEin } from '../bausteine.js';
 import { objById, uid } from '../auswahl.js';
 import { FELDER_JE_ART } from '../eigenschaften.js';
 import { isAct, isStep, isTrans } from './grafcet-aktion.js';
@@ -47,6 +49,7 @@ export const PAAR_REGELN = [
   }},
 ];
 export function grafcetNachSetzen(o, d, {A, dock}){
+  if (A && einfuegen(A, o, d)) return;
   const [oben, unten] = A ? [A, o] : dock ? [objIn(d, dock.a), objIn(d, dock.b)] : [];
   const regel = oben && unten && PAAR_REGELN.find(r => r.passt(oben, unten));
   if (regel) regel.tue(oben, unten, d, o);
@@ -97,6 +100,39 @@ export function verschiebeRest(d, ids, dy){
   d.o.forEach(o => { if (alle.has(o.id)) o.y += dy; });
 }
 
+/* ---------- Einfügen ---------- */
+// Freie Schrittnummer in d und neue Bausteine für das Einfügen (Lage setzt legeUnter)
+export function freieSchrittNummer(d){
+  const nums = d.o.filter(q => ["step", "init"].includes(q.k)).map(q => parseInt(q.v, 10)).filter(v => !isNaN(v));
+  return String(nums.length ? Math.max(...nums) + 1 : 1);
+}
+export const neuesGlied = (d, k, v) => { const o = {id: uid(), k, x: 0, y: 0, v}; d.o.push(o); return o; };
+// B unter A legen: Kettenanschluss von B 30 unter dem von A (feste Teilung)
+export function legeUnter(B, A){
+  const [x, y] = kettenAus(A);
+  B.x = x - (art(B.k).einrueck || 0);
+  B.y += y + 30 - kettenEin(B, x)[1];
+}
+// Was zwischen A und seinen bisherigen Nachfolger kommt, damit Schritt und Transition sich abwechseln
+export const EINFUEGEN = [
+  {passt: (A, o) => isTrans(A) && isStep(o), folge: (o, d) => [o, neuesGlied(d, "trans", "")]},
+  {passt: (A, o) => isStep(A) && isTrans(o), folge: (o, d) => [o, neuesGlied(d, "step", freieSchrittNummer(d))]},
+  {passt: (A, o) => isStep(A) && isStep(o), folge: (o, d) => [neuesGlied(d, "trans", ""), o]},
+];
+// Echtes Einfügen: Hatte A schon einen Nachfolger S, kommt o (mit Partner) zwischen A und S, S rückt mit dem Rest der
+// Kette um eine Teilung nach unten. false, wenn A keinen Nachfolger hat oder die Arten nicht passen.
+export function einfuegen(A, o, d){
+  const S = d.c.filter(c => c.a === A.id && c.b !== o.id).map(c => objIn(d, c.b)).find(B => B && !isAct(B) && B.y > A.y);
+  const regel = S && EINFUEGEN.find(r => r.passt(A, o));
+  if (!regel) return false;
+  verschiebeRest(d, [S.id, ...kettenRest(d, S)], TEILUNG);
+  loeseVerbindung(d, A, S); loeseVerbindung(d, A, o);
+  let vor = A;
+  for (const B of regel.folge(o, d)) { legeUnter(B, vor); verknuepfe(d, vor, B); vor = B; }
+  verknuepfe(d, vor, S);
+  return true;
+}
+
 /* ---------- Löschen ---------- */
 // Haken loeschen: Aktionen gehen mit ihrem Baustein, ein Schritt schließt dazu die Kette
 export function grafcetLoeschen(o, d){
@@ -112,3 +148,11 @@ export function ketteSchliessen(o, d){
   }
   return [T2.id, ...aktionenVon(d, T2.id)];
 }
+
+// Haken der Gruppe grafcet (Anmeldung in vorlagen/grafcet.js)
+export const KETTEN_HAKEN = {
+  nachSetzen: grafcetNachSetzen,     // Transition zwischen zwei Schritten, Einfügen, keine zwei Transitionen hintereinander
+  vorVerbinden: grafcetVorVerbinden,
+  loeschen: grafcetLoeschen,         // Aktionen gehen mit; ein gelöschter Schritt schließt die Kette
+  mitziehen: grafcetMitziehen,       // Aktionen ziehen mit ihrem Schritt mit, mit Umschalt auch der Rest der Kette
+};

@@ -136,4 +136,27 @@ export const tests = [
       t.gleich(nach(d1, '3', 'step').y, s2.y, 'Schritt 3 rückt an die Stelle von Schritt 2');
     },
   },
+  {
+    name: 'G5 Einfügen zwischen zwei Bausteinen, der Rest rückt nach unten',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await kurzeKette(t);
+      await t.klick([220, 240]); await transition(t, 220, 330, 'BG2');
+      await t.setze('step', 220, 380);
+      const d0 = await t.daten(), t1 = nach(d0, 'BG1');
+      await t.klick([t1.x, t1.y]);   // Transition BG1 markieren, Schritt einfügen
+      await t.setze('step', 520, 400);
+      const d1 = await t.daten(), neu = d1.o.find((o) => !d0.o.some((p) => p.id === o.id) && o.k === 'step');
+      t.erwarte(neu, 'neuer Schritt');
+      t.gleich([neu.x, neu.y], [t1.x - 20, t1.y + 30], 'neuer Schritt unter BG1');
+      for (const v of ['2', 'BG2', '3', 'MB1']) t.gleich(nach(d1, v).y - nach(d0, v).y, 100, `${v} rückt nach unten`);
+      const k = Object.fromEntries(d1.o.map((o) => [o.id, o.v || o.k]));
+      const kette = []; let id = nach(d1, '1').id;
+      for (let i = 0; i < 8 && id; i++) {
+        kette.push(k[id]);
+        const c = d1.c.find((c) => c.a === id && d1.o.find((o) => o.id === c.b).k !== 'action'); id = c && c.b;
+      }
+      t.gleich(kette, ['1', 'BG1', neu.v, 'trans', '2', 'BG2', '3'], 'Reihenfolge der Kette');
+    },
+  },
 ];
