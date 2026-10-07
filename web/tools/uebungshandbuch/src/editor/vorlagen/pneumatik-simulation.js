@@ -2,12 +2,11 @@
 // Ventile per Klick schalten. Die Bauteile beschreiben ihr Verhalten im Haken sim(o, stellung, hatDruck) ihres Bausteineintrags.
 // Benutzt von vorlagen/pneumatik.js (Werkzeug „Simulation“).
 import { ED } from '../status.js';
-import { art } from '../registry.js';
-import { pressed, simOn } from '../bauteile.js';
-import { umrissVon } from '../bausteine.js';
+import { art, bauteil } from '../registry.js';
+import { drehung, pressed, simOn } from '../bauteile.js';
 import { clearSel, objById } from '../auswahl.js';
 import { zeichnungSVG } from '../zeichnen.js';
-import { vstate } from './pneumatik-symbole.js';
+import { VALVE, vstate } from './pneumatik-symbole.js';
 
 export function simCompute(){
   const d = ED.data, adj = new Map(), add = (a, b) => { if (!adj.has(a)) adj.set(a, []); if (!adj.has(b)) adj.set(b, []); adj.get(a).push(b); adj.get(b).push(a); };
@@ -37,15 +36,24 @@ export function simStep(t){
   if (moving && ED.svg) ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
   requestAnimationFrame(simStep);
 }
+// Klick auf ein Bauteil in der Simulation: Kugelhahn auf/zu, Wegeventil links bzw. rechts betätigen
 export function simClick(o, pt){
-  if (o.k === "kh") { ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf"; simCompute(); ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key); return; }
-  if (!["v22","v32","v52","v53"].includes(o.k)) return;
-  const b = umrissVon(o), left = pt[0] < b.x + b.w / 2, s = vstate(o), mono = (o.ar || "feder") === "feder";
-  let ns = s;
-  if (o.k === "v53") ns = left ? (s === "act" ? "center" : "act") : (s === "b" ? "center" : "b");
-  else if (mono) ns = left ? (s === "act" ? "rest" : "act") : s;
-  else ns = left ? "act" : "rest";
-  ED.sim.st[o.id] = ns; simCompute(); ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
+  if (o.k === "kh") ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf";
+  else if (VALVE[o.k]) ED.sim.st[o.id] = neueStellung(o, linkeSeite(o, pt));
+  else return;
+  simCompute(); ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
+}
+// Liegt der Blattpunkt pt auf der linken Seite des ungedrehten, ungespiegelten Ventils?
+export function linkeSeite(o, pt){
+  const X = drehung(o), [x] = X ? X.zurueck(pt[0], pt[1]) : pt, b = bauteil(o.k);
+  return x < o.x + (b.bx || 0) + b.w / 2;
+}
+// Schaltstellung nach einem Klick links (links = true) oder rechts
+export function neueStellung(o, links){
+  const s = vstate(o), mono = (o.ar || "feder") === "feder";
+  if (o.k === "v53") return links ? (s === "act" ? "center" : "act") : (s === "b" ? "center" : "b");
+  if (mono) return links ? (s === "act" ? "rest" : "act") : s;
+  return links ? "act" : "rest";
 }
 
 export const SIM_ANLEITUNG = `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren leuchten grün.</p><p class="small muted" style="margin:0">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;

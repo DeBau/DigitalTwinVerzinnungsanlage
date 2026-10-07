@@ -1329,11 +1329,15 @@ pre.code code{font-size:inherit}
       const dx = (x - cx) * f, dy = y - cy;
       return [cx + dx * c - dy * sn, cy + dx * sn + dy * c];
     };
+    const zurueck = (x, y) => {
+      const u = x - cx, v = y - cy;
+      return [cx + (u * c + v * sn) * f, cy - u * sn + v * c];
+    };
     const dir = (d) => {
       const [vx, vy] = DIRV[d], ux = vx * f, wx = ux * c - vy * sn, wy = ux * sn + vy * c;
       return wx > 0.5 ? "r" : wx < -0.5 ? "l" : wy > 0.5 ? "d" : "u";
     };
-    return { r, f, c, cx, cy, x0, pt, dir };
+    return { r, f, c, cx, cy, x0, pt, zurueck, dir };
   }
   function portsOf(o) {
     if (!o) return [];
@@ -4776,21 +4780,21 @@ END_CASE;`)}
     requestAnimationFrame(simStep);
   }
   function simClick(o, pt) {
-    if (o.k === "kh") {
-      ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf";
-      simCompute();
-      ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
-      return;
-    }
-    if (!["v22", "v32", "v52", "v53"].includes(o.k)) return;
-    const b = umrissVon(o), left = pt[0] < b.x + b.w / 2, s = vstate(o), mono = (o.ar || "feder") === "feder";
-    let ns = s;
-    if (o.k === "v53") ns = left ? s === "act" ? "center" : "act" : s === "b" ? "center" : "b";
-    else if (mono) ns = left ? s === "act" ? "rest" : "act" : s;
-    else ns = left ? "act" : "rest";
-    ED.sim.st[o.id] = ns;
+    if (o.k === "kh") ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf";
+    else if (VALVE[o.k]) ED.sim.st[o.id] = neueStellung(o, linkeSeite(o, pt));
+    else return;
     simCompute();
     ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
+  }
+  function linkeSeite(o, pt) {
+    const X = drehung(o), [x] = X ? X.zurueck(pt[0], pt[1]) : pt, b = bauteil(o.k);
+    return x < o.x + (b.bx || 0) + b.w / 2;
+  }
+  function neueStellung(o, links) {
+    const s = vstate(o), mono = (o.ar || "feder") === "feder";
+    if (o.k === "v53") return links ? s === "act" ? "center" : "act" : s === "b" ? "center" : "b";
+    if (mono) return links ? s === "act" ? "rest" : "act" : s;
+    return links ? "act" : "rest";
   }
   var SIM_ANLEITUNG = `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren leuchten grün.</p><p class="small muted" style="margin:0">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;
   function simulationWechsel(t) {

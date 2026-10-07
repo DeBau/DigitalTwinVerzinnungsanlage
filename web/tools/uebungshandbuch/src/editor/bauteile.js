@@ -19,7 +19,7 @@ export const pressed = (o, p) => simOn() && ED.sim.P && ED.sim.P.has(o.id + ":" 
 /* Drehen (o.rot = 0/90/180/270) und Spiegeln (o.flip) um die Bauteilmitte – Schrift bleibt aufrecht */
 export const DIRV = {u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0]};
 // Drehung und Spiegelung eines Bauteils; null, wenn es ungedreht ist oder nicht drehbar (drehbar: false).
-// pt bildet einen Punkt ab, dir eine Anschlussrichtung.
+// pt bildet einen Punkt ab, zurueck rechnet einen Blattpunkt in die ungedrehte Lage zurück, dir eine Anschlussrichtung.
 export function drehung(o){
   const pc = bauteil(o.k);
   if (!pc || pc.drehbar === false) return null;
@@ -28,11 +28,12 @@ export function drehung(o){
   const x0 = o.x + (pc.bx || 0), cx = x0 + pc.w / 2, cy = o.y + pc.h / 2;
   const c = Math.round(Math.cos(r * Math.PI / 180)), sn = Math.round(Math.sin(r * Math.PI / 180));
   const pt = (x, y) => { const dx = (x - cx) * f, dy = y - cy; return [cx + dx*c - dy*sn, cy + dx*sn + dy*c]; };
+  const zurueck = (x, y) => { const u = x - cx, v = y - cy; return [cx + (u*c + v*sn) * f, cy - u*sn + v*c]; };
   const dir = d => {
     const [vx, vy] = DIRV[d], ux = vx * f, wx = ux*c - vy*sn, wy = ux*sn + vy*c;
     return wx > .5 ? "r" : wx < -.5 ? "l" : wy > .5 ? "d" : "u";
   };
-  return {r, f, c, cx, cy, x0, pt, dir};
+  return {r, f, c, cx, cy, x0, pt, zurueck, dir};
 }
 // Anschlüsse eines Objekts als [{n, x, y, d}] auf dem Blatt, gedreht wie das Bauteil (Haken anschluesse)
 export function portsOf(o){

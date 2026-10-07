@@ -14,6 +14,9 @@ function deckungsgleich([a1, b1, a2, b2], [c1, d1, c2, d2]) {
   return false;
 }
 // Pfade der Leitungen auf dem Blatt
+const BLAU = '#2F80ED';
+// Farbe der Leitung i (blau = führt Druck in der Simulation)
+const farbe = (t, i) => t.page.$eval(`#edstage .ink [data-c="${i}"] > path`, (p) => p.getAttribute('stroke'));
 const leitungen = (t) => t.page.$$eval('#edstage .ink [data-c] > path:first-child', (ps) => ps.map((p) => p.getAttribute('d')));
 
 export const tests = [
@@ -25,6 +28,18 @@ export const tests = [
       const wege = (await leitungen(t)).map(abschnitte);
       t.gleich(wege.length, 2, 'zwei Leitungen');
       for (const a of wege[0]) for (const b of wege[1]) t.erwarte(!deckungsgleich(a, b), `deckungsgleich: ${a} und ${b}`);
+    },
+  },
+  {
+    name: 'P2 Simulation: Klick auf gespiegeltes Ventil schaltet die angeklickte Seite',
+    daten: 'pneu-gespiegelt',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      await t.werkzeug('sim');
+      t.gleich(await farbe(t, 2), BLAU, 'Grundstellung: B belüftet');
+      await t.klick([525, 410]);   // sichtbar rechts = Spule 14 (gespiegelt)
+      t.gleich(await farbe(t, 1), BLAU, 'nach Klick auf Spule 14: A belüftet');
+      t.erwarte(await farbe(t, 2) !== BLAU, 'B entlüftet');
     },
   },
 ];
