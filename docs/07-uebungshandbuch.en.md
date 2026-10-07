@@ -101,7 +101,7 @@ It also appears on the blank printout, but not on the printout with your entries
 
 Each template belongs to one step and stays editable in the later steps of the exercise. For
 example, you enter what you expect during planning and what you measure during execution. Some
-documents carry on across many exercises, such as the output assignment plan (Schreibstellenplan)
+documents carry on across many exercises, such as the output list (Ausgangsliste)
 or the `PlantData` tag list: the rows from earlier exercises are shown read-only at the top, your
 new rows below. If an exercise needs an earlier document, it shows it to you with a link to the
 exercise where you edit it.

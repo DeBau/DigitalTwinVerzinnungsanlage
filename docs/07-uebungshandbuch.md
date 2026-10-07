@@ -100,7 +100,7 @@ einträgst. Sie steht auch auf dem leeren Ausdruck, aber nicht auf dem Ausdruck 
 
 Eine Vorlage gehört zu einem Schritt und bleibt in den späteren Schritten der Übung bearbeitbar. So
 trägst du zum Beispiel erst im Planen ein, was du erwartest, und im Ausführen, was du misst. Manche
-Unterlagen schreibst du über viele Übungen fort, etwa den Schreibstellenplan oder die Variablenliste
+Unterlagen schreibst du über viele Übungen fort, etwa die Ausgangsliste oder die Variablenliste
 `PlantData`: Die Zeilen aus früheren Übungen stehen oben zum Lesen, deine neuen darunter. Braucht
 eine Übung ein früheres Dokument, zeigt sie es dir mit einem Link in die Übung, in der du es
 bearbeitest.

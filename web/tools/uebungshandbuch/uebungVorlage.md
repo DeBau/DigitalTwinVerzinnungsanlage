@@ -112,6 +112,10 @@ gewählten Zeile**: oben der Steckbrief (die festen Spalten), darunter je Eingab
 fertig, springt das Popup selbst zur nächsten offenen Zeile. Die Filter „Offen“ und „Abweichung“ helfen beim
 Nacharbeiten. Mit Tasten: 0 und 1, J und N füllen das nächste freie Feld, die Pfeiltasten wechseln die Zeile.
 
+Oben schaltet man zwischen **Karten** und **Übersicht** um. Die Übersicht zeigt die ganze Tabelle mit allen Werten
+und dem Status jeder Zeile, ein Klick auf eine Zeile öffnet ihre Karte. Sind alle Zeilen fertig, meldet die Karte
+„Geschafft!“ und bietet die Übersicht an.
+
 Jede Vorlage bekommt `fw`: die Fachwissen-Themen, die erklären, was die Vorlage ist und warum man sie ausfüllt, das
 wichtigste zuerst. Sie stehen als Chips auf der Karte und oben im Popup. Ist die Vorlage neu, ist das erste Thema ihr
 eigenes (siehe 4).
@@ -145,6 +149,10 @@ dritte sie beschreibt. Daraus entsteht die Zeilenliste. Vorlagen, die ein frühe
 - **Keine Gedankenstriche** als Satzzeichen („ – “, „—“, „--“). Stattdessen Punkt, Komma, Doppelpunkt oder Klammer.
   Das „−“ vor Kennzeichen wie −BG9 bleibt.
 - **Kurze Sätze**, ein Gedanke je Satz.
+- **Keine erfundenen Fachbegriffe.** Jeder Fachbegriff muss in Siemens-Unterlagen, der TIA-Hilfe oder einer Norm
+  vorkommen. Braucht das Handbuch einen eigenen Namen (z. B. „Ausgangsliste“), steht im Fachwissen ausdrücklich, dass es
+  ein Name dieses Handbuchs ist, und in `q` „nicht Siemens-belegt“. Dazu wird der echte Siemens-Begriff genannt
+  (z. B. Querverweisliste).
 - **Fachbegriffe und Bausteinnamen nie unerklärt** verwenden. Englische Namen im Programm (`Indication`) bekommen
   beim ersten Auftreten die deutsche Bedeutung dazu.
 - **Kennzeichen** nach DIN EN 81346-2 immer mit „−“ schreiben (−BG9, −PF2). Die App macht daraus Chips.
@@ -187,5 +195,5 @@ Alles wird strukturiert, wartbar, einfach und nach Best Practice gebaut.
 - [ ] In Schritt 1 sind alle Fachwissen-Themen zugeklappt.
 - [ ] Jede Vorlage hat `felder` mit passenden Typen, wo sinnvoll 0/1 oder ja/nein statt Text.
 - [ ] Jede Aufgabe ist in TIA Portal und am Zwilling machbar.
-- [ ] Du-Form, keine Gedankenstriche, keine unerklärten Begriffe.
+- [ ] Du-Form, keine Gedankenstriche, keine unerklärten und keine erfundenen Begriffe.
 - [ ] Im Browser geprüft: Schritt 1, Schritt 4 mit Popups, schmales Fenster.
