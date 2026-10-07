@@ -137,21 +137,29 @@ export function markierungsRahmen(o){
   return `<rect x="${b.x-5}" y="${b.y-5}" width="${b.w+10}" height="${b.h+10}" rx="4" fill="transparent" `
     + `${istHervorgehoben(o) ? strich : ""}/>`;
 }
-// Abzweigpunkte der Leitungen: auf einer Schiene immer, an einem Anschluss ab zwei Leitungen.
+// Abzweigpunkte der Leitungen: auf einer Schiene immer, an einem Anschluss ab zwei Leitungen. Eine angedockte
+// Kettenverbindung zwischen Bauteilen zählt mit (unterer Anschluss von a, oberer von b).
 // Rückgabe: SVG und die Zählung cnt["id:Anschluss"] = {n, q} der verdrahteten Anschlüsse
 export function abzweigpunkte(cs, objs){
   let s = "";
   const cnt = {}, dot = q => `<circle cx="${q.x}" cy="${q.y}" r="2.8" fill="${INK}"/>`;
   cs.forEach(c => {
-    if (c.pa === undefined && c.pb === undefined) return;
-    const e = wireEnds(c, objs); if (!e) return;
+    const e = c.pa === undefined && c.pb === undefined ? kettenLeitung(c, objs) : wireEnds(c, objs);
+    if (!e) return;
     [[c.a, c.pa, e[0]], [c.b, c.pb, e[1]]].forEach(([id, pn, q]) => {
       if (q.rail) s += dot(q);
-      else { const k = id + ":" + pn; (cnt[k] = cnt[k] || {n: 0, q}).n++; }
+      else { const k = id + ":" + (pn ?? q.n); (cnt[k] = cnt[k] || {n: 0, q}).n++; }
     });
   });
   Object.values(cnt).forEach(v => { if (v.n >= 2) s += dot(v.q); });
   return {svg: s, cnt};
+}
+// Anschlüsse einer Kettenverbindung zwischen zwei Bauteilen (Strompfad) als Leitungsenden, sonst null
+export function kettenLeitung(c, objs){
+  const A = objs[c.a], B = objs[c.b];
+  if (!bauteil(A && A.k) || !bauteil(B && B.k) || istSchiene(A) || istSchiene(B)) return null;
+  const pa = portsOf(A)[1], pb = portsOf(B)[0];
+  return pa && pb ? [pa, pb] : null;
 }
 // Verbindungspunkte (zwei Leitungen an einem Anschluss, Leitung auf Schiene), Zusätze der Bauteile (Haken zusatz)
 // und beim Verbinden die Anschlusskreise

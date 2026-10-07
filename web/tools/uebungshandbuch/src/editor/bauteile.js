@@ -89,5 +89,17 @@ export function wireEnds(c, objs){
   const pa = sA ? null : portsOf(A).find(p => p.n === c.pa), pb = sB ? null : portsOf(B).find(p => p.n === c.pb);
   if ((!pa && !sA) || (!pb && !sB) || (!pa && !pb)) return null;
   const onRail = (r, p) => ({x: clamp(p.x, r.x, r.x + (r.w || 400)), y: r.y, d: p.y > r.y ? "d" : "u", rail: true});
-  return [pa || onRail(A, pb), pb || onRail(B, pa)];
+  const e = [pa || onRail(A, pb), pb || onRail(B, pa)];
+  if (art(A.k).g === "elektro" && art(B.k).g === "elektro") querUeber(e[0], e[1]);
+  return e;
+}
+const senkrecht = p => p.d === "u" || p.d === "d";
+// Querverbindung im Strompfad: Zwischen zwei senkrechten Anschlüssen nebeneinander läuft die Leitung waagrecht über
+// den Anschluss (gleiche Höhe: beide; sonst der obere, wenn er nach unten zeigt, bzw. der untere nach oben)
+export function querUeber(p, q){
+  if (Math.abs(p.x - q.x) < 1 || !senkrecht(p) || !senkrecht(q)) return;
+  const zu = (a, b) => { a.d = b.x > a.x ? "r" : "l"; };
+  if (Math.abs(p.y - q.y) < 1) { zu(p, q); zu(q, p); return; }
+  const [oben, unten] = p.y < q.y ? [p, q] : [q, p];
+  if (oben.d === "d") zu(oben, unten); else if (unten.d === "u") zu(unten, oben);
 }

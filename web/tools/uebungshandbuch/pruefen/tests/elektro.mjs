@@ -15,6 +15,17 @@ async function setzeEinzeln(t, k, x, y) {
   await t.setze(k, x, y); await t.taste('Escape');
   return (await t.objekte()).find((o) => !vorher.has(o.id));
 }
+// Steuerstromkreis mit Selbsthaltung: Not-Halt, Aus, Ein, Spule −QA1 in Pfad 1, Haltekontakt −QA1 in Pfad 2 verdrahtet
+export async function selbsthaltung(t) {
+  await t.oeffne('stromlauf');
+  for (const [k, y] of [['estop', 120], ['tnc', 220], ['tno', 320], ['coil', 450]]) await t.setze(k, PFAD(1), y);
+  await t.taste('Escape');
+  await t.setze('no', PFAD(2), 320); await t.taste('Escape');
+  await t.werkzeug('conn');
+  await t.klick([PFAD(2), 290]); await t.klick([PFAD(1), 290]);
+  await t.klick([PFAD(2), 350]); await t.klick([PFAD(1), 350]);
+  await t.werkzeug('sel');
+}
 // Auswahl aufheben, damit der nächste Baustein keine Kette fortsetzt
 const lose = (t) => t.taste('Escape');
 
@@ -118,6 +129,21 @@ export const tests = [
       await t.klick([m.x + 100, m.y]);
       const c = (await t.daten()).c.at(-1);
       t.gleich([c.pa, c.pb], ['PE2', 'PE'], 'Schutzleiter Umrichter → Motor verdrahtet');
+    },
+  },
+  {
+    name: 'E5 Querverbindung über den Anschlüssen, Abzweigpunkte an angedockten Verbindungen',
+    lauf: async (t) => {
+      await selbsthaltung(t);
+      const wege = await t.page.$$eval('#edstage .ink [data-c] path:first-child', (ps) => ps.map((p) => p.getAttribute('d')));
+      const quer = wege.filter((d) => d.includes(String(PFAD(2))));
+      t.gleich(quer.length, 2, 'zwei Querverbindungen');
+      for (const d of quer) {
+        const ys = new Set(d.match(/-?[\d.]+/g).filter((_, i) => i % 2).map(Number));
+        t.gleich(ys.size, 1, `waagrecht auf Anschlusshöhe: ${d}`);
+      }
+      const punkte = await t.page.$$eval('#edstage .ink circle[r="2.8"]', (cs) => cs.map((c) => [+c.getAttribute('cx'), +c.getAttribute('cy')]));
+      for (const y of [290, 350]) t.erwarte(punkte.some(([x, py]) => x === PFAD(1) && py === y), `Abzweigpunkt bei ${y}`);
     },
   },
 ];
