@@ -3547,7 +3547,7 @@ END_CASE;`)}
     akt: "speichernd bei Aktivierung ↑",
     deakt: "speichernd bei Deaktivierung ↓",
     ereig: "speichernd bei Ereignis",
-    q: "mit Bestimmungszeichen (IEC 61131-3)"
+    q: "mit Bestimmungszeichen, S7-GRAPH (IEC 61131-3)"
   };
   var BESTIMMUNG = ["N", "S", "R", "D", "L", "P", "SD", "DS", "SL"];
   var qBreite = (o) => isAct(o) && atype(o) === "q" ? 30 : 0;
@@ -3555,12 +3555,13 @@ END_CASE;`)}
   var knick = (x1, y1, x2, y2, m, waagrecht) => waagrecht ? `M${x1} ${y1}H${m}V${y2}H${x2}` : `M${x1} ${y1}V${m}H${x2}V${y2}`;
   var markenText = (wert, platz, x, y, edit) => wert ? SVGT(x, y, wert, "start", 12, 400) : platzhalter(edit, platz, x, y, "start");
   var PFEIL_AUF = (mx, y) => `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 12}L${mx} ${y - 18}L${mx + 4.5} ${y - 12}" ${LINIE} fill="none"/>`;
+  var FAEHNCHEN = (mx, y) => `<path d="M${mx} ${y}V${y - 18}H${mx + 8}" ${LINIE} fill="none"/>`;
   var PFEIL_AB = (mx, y) => `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 18}L${mx} ${y - 12}L${mx + 4.5} ${y - 18}" ${LINIE} fill="none"/>`;
   var AKTIONSMARKE = {
     kont: (o, mx, y, edit) => o.b || o.hb ? `<path d="M${mx} ${y}V${y - 16}" ${LINIE}/>` + markenText(o.b, "Zuweisungsbedingung", mx + 6, y - 6, edit) : "",
     akt: (o, mx, y) => PFEIL_AUF(mx, y),
     deakt: (o, mx, y) => PFEIL_AB(mx, y),
-    ereig: (o, mx, y, edit) => PFEIL_AUF(mx, y) + markenText(o.b, "Ereignis, z. B. ↑BG1", mx + 8, y - 6, edit)
+    ereig: (o, mx, y, edit) => FAEHNCHEN(mx, y) + markenText(o.b, "Ereignis, z. B. ↑BG1", mx + 11, y - 14, edit)
   };
   function zeichneAktion(o, edit) {
     const x = o.x, y = o.y, w = aw(o), qw = qBreite(o), tc = x + qw + (w - qw) / 2, marke = AKTIONSMARKE[atype(o)];
@@ -3579,7 +3580,7 @@ END_CASE;`)}
     let h = `<label class="prop">Art<select data-prop="t">${arten}</select></label>`;
     if (t === "q") {
       const zeichen = BESTIMMUNG.map((q) => `<option ${q === (o.q || "S") ? "selected" : ""}>${q}</option>`).join("");
-      h += `<label class="prop">Bestimmungszeichen<select data-prop="q">${zeichen}</select></label>`;
+      h += `<label class="prop">Bestimmungszeichen (S7-GRAPH, IEC 61131-3)<select data-prop="q">${zeichen}</select></label>`;
     }
     h += textFeld("v", "Aktion", "z. B. MB1 oder Z := Z + 1", o.v);
     return h + (zusatz ? zusatz(o) : "");
@@ -3606,14 +3607,15 @@ END_CASE;`)}
     }
   };
   var aktionsAnsatz = (A) => isTrans(A) ? [A.x + 14, A.y] : [A.x + 40, A.y + 20];
+  var stapelX = (B) => hasMark(B) ? 0 : 8;
   function aktionNachAktion(A, B) {
     const ax2 = A.x + aw(A);
     if (B.x >= ax2 - 1) {
       const y12 = A.y + 15, y22 = B.y + 15, m2 = Math.round((ax2 + B.x) / 20) * 10;
       return { d: Math.abs(y12 - y22) < 1 ? `M${ax2} ${y12}H${B.x}` : knick(ax2, y12, B.x, y22, m2, true) };
     }
-    const y1 = A.y + 30, y2 = B.y - (hasMark(B) ? 20 : 0), m = Math.round((y1 + y2) / 20) * 10;
-    return { d: Math.abs(A.x - B.x) < 1 ? `M${A.x + 8} ${y1}V${B.y}` : `M${A.x + 8} ${y1}V${m}H${B.x + 8}V${B.y}` };
+    const y1 = A.y + 30, y2 = B.y - (hasMark(B) ? 20 : 0), m = Math.round((y1 + y2) / 20) * 10, s = stapelX(B);
+    return { d: Math.abs(A.x - B.x) < 1 ? `M${A.x + s} ${y1}V${B.y}` : `M${A.x + s} ${y1}V${m}H${B.x + s}V${B.y}` };
   }
   function aktionVerbinde(A, B) {
     if (isAct(A)) return aktionNachAktion(A, B);
@@ -3661,7 +3663,7 @@ END_CASE;`)}
     // hat der Schritt schon Aktionen, hängt die neue an die letzte
     ausrichten: aktionAusrichten,
     andocken: aktionAndocken,
-    punkt: (A, B) => isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + 8, B.y] : [B.x, B.y + 15]
+    punkt: (A, B) => isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + stapelX(B), B.y] : [B.x, B.y + 15]
   };
 
   // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-kette.js
@@ -3948,7 +3950,7 @@ END_CASE;`)}
     acta: { g: "grafcet", n: "Aktion bei Aktivierung ↑", mk: { k: "action", t: "akt" } },
     actd: { g: "grafcet", n: "Aktion bei Deaktivierung ↓", mk: { k: "action", t: "deakt" } },
     acte: { g: "grafcet", n: "Aktion bei Ereignis", mk: { k: "action", t: "ereig", b: "" } },
-    actionq: { ...AKTION, n: "Aktion mit Bestimmungszeichen", mk: { k: "action", t: "q", q: "S" } },
+    actionq: { ...AKTION, n: "Aktion S7-GRAPH (IEC 61131-3)", mk: { k: "action", t: "q", q: "S" } },
     alt: {
       g: "grafcet",
       n: "ODER-Verzweigung",

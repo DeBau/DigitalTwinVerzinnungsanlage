@@ -21,7 +21,7 @@ export const MIT_MARKE = {akt: () => true, deakt: () => true, ereig: () => true,
 export const hasMark = o => isAct(o) && !!(MIT_MARKE[atype(o)] || (() => false))(o);
 export const ACT_T = {
   kont: "kontinuierlich wirkend", akt: "speichernd bei Aktivierung ↑", deakt: "speichernd bei Deaktivierung ↓",
-  ereig: "speichernd bei Ereignis", q: "mit Bestimmungszeichen (IEC 61131-3)",
+  ereig: "speichernd bei Ereignis", q: "mit Bestimmungszeichen, S7-GRAPH (IEC 61131-3)",
 };
 export const BESTIMMUNG = ["N", "S", "R", "D", "L", "P", "SD", "DS", "SL"];
 export const qBreite = o => isAct(o) && atype(o) === "q" ? 30 : 0;   // Feld für das Bestimmungszeichen
@@ -33,6 +33,8 @@ export const markenText = (wert, platz, x, y, edit) =>
   wert ? SVGT(x, y, wert, "start", 12, 400) : platzhalter(edit, platz, x, y, "start");
 export const PFEIL_AUF = (mx, y) =>
   `<path d="M${mx} ${y}V${y-18}M${mx-4.5} ${y-12}L${mx} ${y-18}L${mx+4.5} ${y-12}" ${LINIE} fill="none"/>`;
+// Ereignis-Aktion nach DIN EN 60848: Fähnchen aus senkrechtem Strich und kurzem waagrechtem Strich oben, Ereignis daneben
+export const FAEHNCHEN = (mx, y) => `<path d="M${mx} ${y}V${y-18}H${mx+8}" ${LINIE} fill="none"/>`;
 export const PFEIL_AB = (mx, y) =>
   `<path d="M${mx} ${y}V${y-18}M${mx-4.5} ${y-18}L${mx} ${y-12}L${mx+4.5} ${y-18}" ${LINIE} fill="none"/>`;
 // Marke über dem Kasten je Art; mx ist die Lage der senkrechten Marke
@@ -41,7 +43,7 @@ export const AKTIONSMARKE = {
     ? `<path d="M${mx} ${y}V${y-16}" ${LINIE}/>` + markenText(o.b, "Zuweisungsbedingung", mx+6, y-6, edit) : "",
   akt: (o, mx, y) => PFEIL_AUF(mx, y),
   deakt: (o, mx, y) => PFEIL_AB(mx, y),
-  ereig: (o, mx, y, edit) => PFEIL_AUF(mx, y) + markenText(o.b, "Ereignis, z. B. ↑BG1", mx+8, y-6, edit),
+  ereig: (o, mx, y, edit) => FAEHNCHEN(mx, y) + markenText(o.b, "Ereignis, z. B. ↑BG1", mx+11, y-14, edit),
 };
 export function zeichneAktion(o, edit){
   const x = o.x, y = o.y, w = aw(o), qw = qBreite(o), tc = x + qw + (w - qw)/2, marke = AKTIONSMARKE[atype(o)];
@@ -61,7 +63,7 @@ export function aktionFelder(o){
   let h = `<label class="prop">Art<select data-prop="t">${arten}</select></label>`;
   if (t === "q") {
     const zeichen = BESTIMMUNG.map(q => `<option ${q === (o.q || "S") ? "selected" : ""}>${q}</option>`).join("");
-    h += `<label class="prop">Bestimmungszeichen<select data-prop="q">${zeichen}</select></label>`;
+    h += `<label class="prop">Bestimmungszeichen (S7-GRAPH, IEC 61131-3)<select data-prop="q">${zeichen}</select></label>`;
   }
   h += textFeld("v", "Aktion", "z. B. MB1 oder Z := Z + 1", o.v);
   return h + (zusatz ? zusatz(o) : "");
@@ -90,6 +92,8 @@ export const AKTION_TEXT = {
 /* ---------- Haken seite: Aktionen am Schritt bzw. an der Transition ---------- */
 // Wo die Aktionslinie am Kettenglied ansetzt: Transition rechts am Strich, Schritt rechts in der Mitte
 export const aktionsAnsatz = A => isTrans(A) ? [A.x + 14, A.y] : [A.x + 40, A.y + 20];
+// Linie zu einer gestapelten Aktion: am linken Rand, wenn die Aktion oben eine Marke trägt (sonst kreuzt sie den Pfeil)
+export const stapelX = B => hasMark(B) ? 0 : 8;
 // Linie von Aktion A zur Aktion B dahinter (rechts) bzw. darunter
 export function aktionNachAktion(A, B){
   const ax2 = A.x + aw(A);
@@ -97,8 +101,8 @@ export function aktionNachAktion(A, B){
     const y1 = A.y + 15, y2 = B.y + 15, m = Math.round((ax2 + B.x)/20)*10;
     return {d: Math.abs(y1 - y2) < 1 ? `M${ax2} ${y1}H${B.x}` : knick(ax2, y1, B.x, y2, m, true)};
   }
-  const y1 = A.y + 30, y2 = B.y - (hasMark(B) ? 20 : 0), m = Math.round((y1 + y2)/20)*10;   // darunter
-  return {d: Math.abs(A.x - B.x) < 1 ? `M${A.x+8} ${y1}V${B.y}` : `M${A.x+8} ${y1}V${m}H${B.x+8}V${B.y}`};
+  const y1 = A.y + 30, y2 = B.y - (hasMark(B) ? 20 : 0), m = Math.round((y1 + y2)/20)*10, s = stapelX(B);   // darunter
+  return {d: Math.abs(A.x - B.x) < 1 ? `M${A.x+s} ${y1}V${B.y}` : `M${A.x+s} ${y1}V${m}H${B.x+s}V${B.y}`};
 }
 export function aktionVerbinde(A, B){
   if (isAct(A)) return aktionNachAktion(A, B);
@@ -142,5 +146,5 @@ export const AKTION_SEITE = {
   quelle: A => isTrans(A) ? A : letzteAktion(A),   // hat der Schritt schon Aktionen, hängt die neue an die letzte
   ausrichten: aktionAusrichten,
   andocken: aktionAndocken,
-  punkt: (A, B) => isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + 8, B.y] : [B.x, B.y + 15],
+  punkt: (A, B) => isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + stapelX(B), B.y] : [B.x, B.y + 15],
 };

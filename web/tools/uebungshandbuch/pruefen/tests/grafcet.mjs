@@ -159,4 +159,27 @@ export const tests = [
       t.gleich(kette, ['1', 'BG1', neu.v, 'trans', '2', 'BG2', '3'], 'Reihenfolge der Kette');
     },
   },
+  {
+    name: 'G6 Ereignis als Fähnchen, gestapelte Aktionen ohne Kollision, S7-GRAPH gekennzeichnet',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      t.erwarte((await t.text('#editor [data-place="actionq"]')).includes('S7-GRAPH'), 'Palette nennt S7-GRAPH');
+      await t.setze('step', 220, 140);
+      await t.setze('acte', 320, 145);
+      await t.tippe('Z := Z + 1'); await t.taste('Enter');
+      const a = (await t.objekte('action'))[0], mx = a.x + 16;
+      const pfade = await t.page.locator(`#edstage .ink [data-o="${a.id}"] path`).evaluateAll((ps) => ps.map((p) => p.getAttribute('d')));
+      t.erwarte(pfade.includes(`M${mx} ${a.y}V${a.y - 18}H${mx + 8}`), `Fähnchen fehlt: ${pfade}`);
+      await t.klick([a.x + 30, a.y + 15]);
+      await t.setze('acta', a.x + 30, a.y + 70);   // darunter
+      await t.tippe('MB2'); await t.taste('Enter');
+      const b = (await t.objekte('action')).find((o) => o.t === 'akt');
+      t.gleich([b.x, b.y], [a.x, a.y + 50], 'gestapelt unter der Ereignis-Aktion');
+      const linien = await t.page.locator('#edstage .ink [data-c] path').evaluateAll((ps) => ps.map((p) => p.getAttribute('d')));
+      t.erwarte(linien.includes(`M${a.x} ${a.y + 30}V${b.y}`), `Stapellinie am linken Rand: ${linien}`);
+      await t.klick([b.x + 30, b.y + 15]);
+      await t.page.locator('#props [data-prop="t"]').selectOption('q');
+      t.erwarte((await t.text('#props')).includes('S7-GRAPH'), 'Eigenschaftsfeld nennt S7-GRAPH');
+    },
+  },
 ];

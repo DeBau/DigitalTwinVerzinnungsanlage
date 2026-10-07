@@ -124,7 +124,7 @@ fuelle(BAUSTEIN, {
   acta: {g: "grafcet", n: "Aktion bei Aktivierung ↑", mk: {k: "action", t: "akt"}},
   actd: {g: "grafcet", n: "Aktion bei Deaktivierung ↓", mk: {k: "action", t: "deakt"}},
   acte: {g: "grafcet", n: "Aktion bei Ereignis", mk: {k: "action", t: "ereig", b: ""}},
-  actionq: {...AKTION, n: "Aktion mit Bestimmungszeichen", mk: {k: "action", t: "q", q: "S"}},
+  actionq: {...AKTION, n: "Aktion S7-GRAPH (IEC 61131-3)", mk: {k: "action", t: "q", q: "S"}},
   alt: {g: "grafcet", n: "ODER-Verzweigung", ...VERZWEIGUNG,
     zeichne: o => `<path d="${verzweigungsLinie(o)}" stroke="${INK}" stroke-width="1.6"/>`,
     umriss: o => ({x: o.x, y: o.y-5, w: verzweigungsBreite(o), h: 10})},
