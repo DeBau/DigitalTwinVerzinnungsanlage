@@ -192,6 +192,7 @@ export const tests = [
       for (const k of ['P', 'I', 'PT1', 'PT2', 'Tt', 'PI', 'PID', '2P']) {
         t.gleich(await t.zaehle(`#editor [data-place="glied_${k}"]`), 1, `Palette ${k}`);
       }
+      t.gleich(await t.zaehle('#editor [data-place="glied_2P"] path[d="M14 44H46V18M68 18H34V44"]'), 1, 'Hystereseschleife geschlossen');
       await setzeRuhig(t, 'glied_PT1', 400, 200);
       t.gleich((await t.objekte('box')).map((o) => o.typ), ['PT1'], 'Glied als Block mit typ');
       t.gleich(await t.zaehle('#edstage .ink [data-o] rect[width="80"][height="60"]'), 1, 'Glied 80 × 60');

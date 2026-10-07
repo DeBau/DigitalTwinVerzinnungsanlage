@@ -18,7 +18,7 @@ export const GLIED = {
       + "In der S7 macht das PID_Compact."],
   PID: ["PID-Regler", "M12 50H24V12L28 36L66 20",
     "Wie PI, dazu der D-Anteil: Er reagiert auf schnelle Änderungen (Vorhaltzeit Tv). In der S7 macht das PID_Compact."],
-  "2P": ["Zweipunktregler", "M14 44H46V18H68M34 18V44",
+  "2P": ["Zweipunktregler", "M14 44H46V18M68 18H34V44",   // geschlossene Hystereseschleife zwischen x 34 und 46
     "Er schaltet ganz ein oder ganz aus. Die Hysterese (Abstand der beiden Schaltpunkte) verhindert dauerndes Schalten."],
 };
 export const GLIED_OPTIONEN = [["", "nur Text"], ...Object.entries(GLIED).map(([k, [n]]) => [k, n])];
