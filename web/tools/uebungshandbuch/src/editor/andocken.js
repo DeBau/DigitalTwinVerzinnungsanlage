@@ -94,13 +94,13 @@ export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blatt
 // Verbindungen, die beim Andocken entstehen; Leitungen zwischen Anschlüssen, wenn der Haken andocke pa und pb nennt
 export function dockLeitung(dock){
   if (dock.pa === undefined) return [{a: dock.a, b: dock.b, v: ""}];
-  return leitungenZwischen(dock.a, dock.pa, dock.b, dock.pb);
+  return leitungenZwischen(dock.a, dock.pa, dock.b, dock.pb, {andocken: true});
 }
 // Leitungen für eine Verbindung von Anschluss pa an a nach pb an b. Der Gruppen-Haken mehrpolig(a, pa, b, pb) darf
-// stattdessen alle Leitungen nennen, z. B. drei Pole auf einmal (vorlagen/leistung.js)
-export function leitungenZwischen(a, pa, b, pb){
+// stattdessen alle Leitungen nennen, z. B. drei Pole auf einmal (vorlagen/leistung.js). wie = {andocken: true} beim Andocken
+export function leitungenZwischen(a, pa, b, pb, wie = {}){
   const o = objById(a) || objById(b), mehr = o && gruppeVon(o).mehrpolig;
-  return ((mehr && mehr(a, pa, b, pb)) || [{a, pa, b, pb}]).map(w => ({...w, v: ""}));
+  return ((mehr && mehr(a, pa, b, pb, wie)) || [{a, pa, b, pb}]).map(w => ({...w, v: ""}));
 }
 export const linked = (a, b) => ED.data.c.some(c => (c.a === a && c.b === b) || (c.a === b && c.b === a));
 export function placeObj(k, pt){

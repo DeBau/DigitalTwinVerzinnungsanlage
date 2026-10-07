@@ -272,10 +272,11 @@ export const tests = [
       await t.klick([k2.x + 10, 50]); await t.klick([k2.x + 10, k2.y]);
       t.gleich(await leitungen(k2.id), ['_L1@0:~-5', '_L2@0:~-3', '_L3@0:~-1'], 'L1 und L3 getauscht');
       await t.werkzeug('sel');
-      await t.klick('#editor [data-pole="tauschen"]');
+      // „L1 ↔ L3“ ist noch an: Andocken verbindet trotzdem Pol für Pol
+      t.gleich(await t.page.$eval('#editor [data-pole="tauschen"]', (k) => k.getAttribute('aria-pressed')), 'true', 'Tauschen an');
       const m = await setzeEinzeln(t, 'm3', k1.x + 55, k1.y + 135);
       t.gleich([m.x, m.y], [k1.x, k1.y + 80], 'Motor dockt unter dem Schütz an');
-      t.gleich(await leitungen(m.id), [`${k1.id}:2-U1`, `${k1.id}:4-V1`, `${k1.id}:6-W1`], 'drei Leitungen beim Andocken');
+      t.gleich(await leitungen(m.id), [`${k1.id}:2-U1`, `${k1.id}:4-V1`, `${k1.id}:6-W1`], 'drei Leitungen 1:1 beim Andocken');
     },
   },
   {

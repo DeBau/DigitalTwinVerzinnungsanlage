@@ -17,11 +17,12 @@ export function polgruppe(id, n){
   const o = objById(id), g = o && (art(o.k).pole || []).find(t => t.includes(n));
   return g ? {pole: g.map(p => [id, p]), i: g.indexOf(n)} : null;
 }
-// Gruppen-Haken mehrpolig: alle drei Leitungen, Pol für Pol oder mit L1 ↔ L3 getauscht; null für eine Leitung
-export function mehrpolig(a, pa, b, pb){
+// Gruppen-Haken mehrpolig: alle drei Leitungen, Pol für Pol oder mit L1 ↔ L3 getauscht; null für eine Leitung.
+// Getauscht wird nur beim bewussten Verbinden, Andocken (wie.andocken) verbindet immer Pol für Pol.
+export function mehrpolig(a, pa, b, pb, wie = {}){
   const A = polgruppe(a, pa), B = polgruppe(b, pb);
   if (ED.vorlage.einpolig || !A || !B) return null;
-  const ziel = j => (ED.vorlage.tauschen ? 2 - j : j);
+  const tauschen = ED.vorlage.tauschen && !wie.andocken, ziel = j => (tauschen ? 2 - j : j);
   return [0, 1, 2].map(j => ({a: A.pole[j][0], pa: A.pole[j][1], b: B.pole[ziel(j)][0], pb: B.pole[ziel(j)][1]}));
 }
 
