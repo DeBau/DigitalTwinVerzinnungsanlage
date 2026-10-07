@@ -182,4 +182,17 @@ export const tests = [
       t.erwarte((await t.text('#props')).includes('S7-GRAPH'), 'Eigenschaftsfeld nennt S7-GRAPH');
     },
   },
+  {
+    name: 'G9 Andocken nur bis 70 Abstand',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('step', 200, 100);
+      await t.klick([700, 500]);
+      await transition(t, 200, 240, 'weit');   // 120 unter dem Schritt: dockt nicht
+      t.gleich((await verbindungen(t)).length, 0, 'weit weg ohne Verbindung');
+      await t.klick([700, 500]);
+      await transition(t, 200, 170, 'nah');    // 50 unter dem Schritt: dockt an
+      t.gleich(await verbindungen(t), ['step>trans'], 'nah angedockt');
+    },
+  },
 ];

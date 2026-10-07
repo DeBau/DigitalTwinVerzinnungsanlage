@@ -6,6 +6,7 @@ import { ED, istMarkiert } from '../status.js';
 import { art } from '../registry.js';
 import { kettenAus, kettenEin } from '../bausteine.js';
 import { objById, uid } from '../auswahl.js';
+import { andockKette } from '../kette.js';
 import { FELDER_JE_ART } from '../eigenschaften.js';
 import { isAct, isStep, isTrans } from './grafcet-aktion.js';
 
@@ -155,4 +156,5 @@ export const KETTEN_HAKEN = {
   vorVerbinden: grafcetVorVerbinden,
   loeschen: grafcetLoeschen,         // Aktionen gehen mit; ein gelöschter Schritt schließt die Kette
   mitziehen: grafcetMitziehen,       // Aktionen ziehen mit ihrem Schritt mit, mit Umschalt auch der Rest der Kette
+  andocke: (o, andere) => andockKette(o, andere, 70),   // Fangweite 70 statt 140: dockt nur an den nahen Nachbarn
 };

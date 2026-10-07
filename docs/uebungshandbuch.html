@@ -3811,8 +3811,10 @@ END_CASE;`)}
     vorVerbinden: grafcetVorVerbinden,
     loeschen: grafcetLoeschen,
     // Aktionen gehen mit; ein gelöschter Schritt schließt die Kette
-    mitziehen: grafcetMitziehen
+    mitziehen: grafcetMitziehen,
     // Aktionen ziehen mit ihrem Schritt mit, mit Umschalt auch der Rest der Kette
+    andocke: (o, andere) => andockKette(o, andere, 70)
+    // Fangweite 70 statt 140: dockt nur an den nahen Nachbarn
   };
 
   // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet.js
