@@ -1,7 +1,7 @@
 // Registry der Skizzenvorlagen, Bausteingruppen, Bausteine und Stricharten.
 // Der Editor-Kern und die App lesen nur diese Tabellen. Befüllt werden sie beim Laden von src/editor/vorlagen/*.js.
 // Die Vorlagen laden nach dem Kern (siehe main.js), der Kern liest die Tabellen also erst zur Laufzeit.
-// Der Vertrag mit allen Haken steht in vorlagen/README.md.
+// Der Vertrag mit allen Haken steht in src/README.md.
 // Die Reihenfolge der Einträge zählt: VORL ergibt die Reihenfolge der Kacheln, BAUSTEIN die Reihenfolge in der Palette.
 // Es gibt ein Bausteinmodell: Bauteile mit Anschlüssen (registriereBauteile) sind Einträge in BAUSTEIN mit bauteil: true
 // und den Maßen w, h. Der Kern dreht und spiegelt sie und leitet ihr Kennzeichenfeld ab.
@@ -11,7 +11,7 @@ export const VORL = {};       // Vorlage → ganze Anmeldung {n, d, gruppen, sch
 
 /* ---------- Bausteingruppen ---------- */
 export const GRUPPE = {};     // Gruppe → ganze Anmeldung {name, hinweis, kette, verbinde, andocke, mitziehen, loeschen,
-                              //   kennzeichen, nachSetzen, vorVerbinden, …}; Signaturen in vorlagen/README.md
+                              //   kennzeichen, nachSetzen, vorVerbinden, …}; Signaturen in src/README.md
 
 // Eintrag einer Vorlage; {} für einen unbekannten Schlüssel, damit Haken ohne weitere Prüfung abfragbar sind
 export const vorlage = key => VORL[key] || {};

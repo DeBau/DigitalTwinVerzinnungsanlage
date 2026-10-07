@@ -56,7 +56,7 @@ export function nearestPort(o, pt){
   return b ? b.n : null;
 }
 // Virtuelle Schienen der Vorlage (Haken schienen) auf jedem Blatt. Sie sind Objekte der Bauteilart rail aus vorlagen/leistung.js.
-// Offener Sonderfall: Der Kern kennt hier die Bauteilart "rail" beim Namen (siehe vorlagen/README.md).
+// Offener Sonderfall: Der Kern kennt hier die Bauteilart "rail" beim Namen (siehe src/README.md).
 export function virtuelleSchienen(key, n){
   const r = [];
   (vorlage(key).schienen || []).forEach(([v, y, x, w]) => {

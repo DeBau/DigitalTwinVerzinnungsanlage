@@ -1,6 +1,6 @@
 // Editor-Kern: Eingabefeld für Kennzeichen mit Vorschlagsliste (Combobox nach WAI-ARIA).
 // Die Vorschläge kommen aus der Signalliste (SIG) und den Anlagenteilen (EXTRA), die Signale der Übung zuerst.
-// Welche Kennbuchstaben passen, sagt der Bausteineintrag: kennbuchstaben: ["QA", "KF"] (siehe vorlagen/README.md).
+// Welche Kennbuchstaben passen, sagt der Bausteineintrag: kennbuchstaben: ["QA", "KF"] (siehe src/README.md).
 // objektFelder (eigenschaften.js) nimmt dieses Feld für das Kennzeichen, sobald der Baustein kennbuchstaben hat.
 // Die Listener hängt editor/ereignisse.js an: signalEingabe (input), signalTaste (keydown), signalWahl (pointerdown).
 import { EXTRA, SIG } from '../app/daten.js';
