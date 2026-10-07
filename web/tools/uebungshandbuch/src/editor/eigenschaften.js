@@ -46,7 +46,7 @@ export function textFelder(t){
 export function strichFelder(st){
   const a = STRICH[st.k];
   if (a && a.felder) return `<div class="props"><div class="palh">${a.titel}</div>${a.felder(st)}${loeschKnopf()}</div>`;
-  const titel = st.k === "l" ? "Linie" : st.k === "r" ? "Kasten" : "Freihandstrich";
+  const titel = st.k ? (STRICH[st.k] || STRICH.r).titel : "Freihandstrich";
   const griffe = st.k ? `<p class="small muted" style="margin:0 0 8px">Die runden Griffe an den Enden ziehen.</p>` : "";
   return `<div class="props"><div class="palh">${titel}</div>${auswahlFeld("sc", "Farbe", FARBEN, st.c)}${auswahlFeld("sw", "Strichstärke", STAERKEN, st.w)}${griffe}${loeschKnopf()}</div>`;
 }

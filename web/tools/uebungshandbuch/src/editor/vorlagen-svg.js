@@ -2,7 +2,7 @@
 import { esc } from '../app/basis.js';
 import { tw } from './svg.js';
 import { ED, istMarkiert } from './status.js';
-import { STRICH } from './registry.js';
+import { STRICH, fuelle } from './registry.js';
 
 export const G = "#9AA4AD", G2 = "#C9D0D5";
 export function grid(step, color, x0=15, y0=15, x1=985, y1=630){
@@ -29,13 +29,13 @@ export function frame(meta){
 }
 export const TX = (x, y, s, txt, a="start", f=G, w=400) => `<text x="${x}" y="${y}" font-size="${s}" text-anchor="${a}" fill="${f}" font-weight="${w}" font-family="Plex Sans,Segoe UI,sans-serif">${esc(txt)}</text>`;
 export const snap = ([x, y]) => ED.grid ? [Math.round(x/10)*10, Math.round(y/10)*10] : [Math.round(x), Math.round(y)];
-// Umriss eines Strichs mit Art (Linie, Kasten oder eine Strichart aus STRICH) als Pfad
-export function shapeD(st){
-  const a = STRICH[st.k];
-  if (a && a.form) return a.form(st);
-  const [[x1, y1], [x2, y2]] = st.p;
-  return st.k === "l" ? `M${x1} ${y1}L${x2} ${y2}` : `M${x1} ${y1}H${x2}V${y2}H${x1}Z`;
-}
+// Stricharten des Kerns: gerade Linie (Werkzeug line) und Kasten (Werkzeug rect)
+fuelle(STRICH, {
+  l: {titel: "Linie", form: ({p: [[x1, y1], [x2, y2]]}) => `M${x1} ${y1}L${x2} ${y2}`},
+  r: {titel: "Kasten", form: ({p: [[x1, y1], [x2, y2]]}) => `M${x1} ${y1}H${x2}V${y2}H${x1}Z`},
+});
+// Umriss eines Strichs mit Art st.k als Pfad; eine Strichart ohne Haken form gilt als Kasten
+export const shapeD = st => ((STRICH[st.k] || {}).form || STRICH.r.form)(st);
 // Freihand-Glättung: Punkte mit quadratischen Kurven über die Mittelpunkte verbinden
 export function glatterPfad(pts){
   if (!pts.length) return "";

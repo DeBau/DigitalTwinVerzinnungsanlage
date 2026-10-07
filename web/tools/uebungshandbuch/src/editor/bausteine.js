@@ -10,6 +10,13 @@ export const platzhalter = (edit, t, x, y, a = "middle") => edit ? SVGT(x, y, t,
 
 // Runder Baustein mit Radius r (Zustand, Summierstelle): Umriss und Radius für Pfeile an den Rand
 export const rund = r => ({radius: r, umriss: o => ({x: o.x - r, y: o.y - r, w: 2*r, h: 2*r})});
+// Haken setze für ein Breitenfeld w (Verzweigung, Schiene): ganze Zahl ab 40, im 10er-Raster
+export function setzeBreite(o, f, v){
+  if (f !== "w") return false;
+  const w = parseInt(v, 10);
+  if (w >= 40) o.w = Math.round(w / 10) * 10;
+  return true;
+}
 export const gruppenId = o => o && BAUSTEIN[o.k] ? BAUSTEIN[o.k].g : null;
 export const gruppeVon = o => GRUPPE[gruppenId(o)] || {};
 

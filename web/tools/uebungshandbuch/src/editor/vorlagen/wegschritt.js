@@ -15,15 +15,15 @@ import { aendere, saveSketch, snapshot } from '../verlauf.js';
 import { editLabel } from '../beschriften.js';
 import { fangen, setTool } from '../werkzeuge.js';
 import { beginneStrich } from '../zeiger.js';
-import { WS_SPALTE, WS_X0, WS_Y0, WS_ZEILE, wsAus } from './wegschritt-striche.js';
+import { WS_BAUGLIEDER, WS_RASTER, spalteBei, wsAus, zeileBei } from './wegschritt-striche.js';
 
 /* ---------- Formular ---------- */
-export const wsRows = () => (CYL[ED.scope] || ["","","",""]).length + 2;
+export const wsRows = () => (CYL[ED.scope] || WS_BAUGLIEDER).length + 2;
 
 export function wegschrittBlatt(ex, page = 0, meta = null){
-  const rows = CYL[ex?.id] || ["−MM1","−MM2","−MM3","−MM4"];
+  const rows = CYL[ex?.id] || WS_BAUGLIEDER;
   const all = [...rows, "", ""].map((r, i) => meta && meta.rows && meta.rows[i] !== undefined && meta.rows[i] !== null ? meta.rows[i] : r);
-  const x0 = 30, xs = 150, cols = 12, cw = (975 - xs) / cols, y0 = 40, hh = 34, rh = 62;
+  const x0 = 30, xs = WS_RASTER.x0, cols = WS_RASTER.spalten, cw = WS_RASTER.spalte, y0 = 40, hh = WS_RASTER.y0 - y0, rh = WS_RASTER.zeile;
   let s = `<rect x="${x0}" y="${y0}" width="${975-x0}" height="${hh + all.length*rh + 3*40}" fill="none" stroke="${G}" stroke-width="1"/>`;
   s += TX(x0+10, y0+22, 12, "Bauglied", "start", "#666", 600);
   for (let c = 0; c <= cols; c++) { const x = xs + c*cw; s += `<path d="M${x} ${y0}V${y0 + hh + all.length*rh + 120}" stroke="${G}" stroke-width="${c===0?1:.5}"/>`; if (c < cols) s += TX(x + cw/2, y0+22, 12, String(c+1), "middle", "#666", 600); }
@@ -85,14 +85,14 @@ export function wsAnleitung(){
 export function wsFang(pt){
   const j = ED.data.s.find(q => q.k === "vk" && Math.hypot(q.p[0][0] - pt[0], q.p[0][1] - pt[1]) < 12);
   if (j) return [...j.p[0]];
-  const rows = wsRows(), yEnd = WS_Y0 + rows * WS_ZEILE;
-  const imDiagramm = pt[0] >= WS_X0 - 30 && pt[0] <= 990 && pt[1] >= WS_Y0 - 10 && pt[1] <= yEnd + 10;
+  const rows = wsRows(), yEnd = WS_RASTER.y0 + rows * WS_RASTER.zeile;
+  const imDiagramm = pt[0] >= WS_RASTER.x0 - 30 && pt[0] <= 990 && pt[1] >= WS_RASTER.y0 - 10 && pt[1] <= yEnd + 10;
   if (!imDiagramm) return [Math.round(pt[0]/10)*10, Math.round(pt[1]/10)*10];
-  const c = Math.max(0, Math.min(12, Math.round((pt[0] - WS_X0) / WS_SPALTE)));
+  const c = Math.max(0, Math.min(12, spalteBei(pt[0])));
   const lv = [];
-  for (let i = 0; i < rows; i++) lv.push(WS_Y0 + i*WS_ZEILE + 16, WS_Y0 + i*WS_ZEILE + 50);
+  for (let i = 0; i < rows; i++) lv.push(WS_RASTER.y0 + i*WS_RASTER.zeile + 16, WS_RASTER.y0 + i*WS_RASTER.zeile + 50);
   const ny = lv.reduce((a, v) => Math.abs(v - pt[1]) < Math.abs(a - pt[1]) ? v : a, lv[0]);
-  return [+(WS_X0 + c*WS_SPALTE).toFixed(2), ny];
+  return [+(WS_RASTER.x0 + c*WS_RASTER.spalte).toFixed(2), ny];
 }
 // Neue Signallinie markieren und das Feld für den Signalgeber fokussieren
 export function signalMarkieren(){
@@ -103,11 +103,11 @@ export const punktMarke = p => `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="#2
 // Auswählen: Klick links auf den Zeilennamen benennt die Zeile um
 export function zeilennameKlick(e, pt){
   const hitS = e.target.closest("[data-i]"), hitT = e.target.closest("[data-ti]");
-  if (hitS || hitT || pt[0] < 30 || pt[0] >= 140 || pt[1] < WS_Y0 || pt[1] >= WS_Y0 + wsRows() * WS_ZEILE) return false;
+  if (hitS || hitT || pt[0] < 30 || pt[0] >= 140 || pt[1] < WS_RASTER.y0 || pt[1] >= WS_RASTER.y0 + wsRows() * WS_RASTER.zeile) return false;
   e.preventDefault();
-  const i = Math.floor((pt[1] - WS_Y0) / WS_ZEILE), cur = (skMeta(ED.scope, ED.key, ED.data).rows || [])[i];
-  const def = [...(CYL[ED.scope] || ["−MM1","−MM2","−MM3","−MM4"]), "", ""][i];
-  editLabel(40, WS_Y0 + i * WS_ZEILE + 31, cur ?? def, "Bauglied, z. B. −MM1 Zylinder oder −MB1 Ventil", v => {
+  const i = zeileBei(pt[1]), cur = (skMeta(ED.scope, ED.key, ED.data).rows || [])[i];
+  const def = [...(CYL[ED.scope] || WS_BAUGLIEDER), "", ""][i];
+  editLabel(40, WS_RASTER.y0 + i * WS_RASTER.zeile + 31, cur ?? def, "Bauglied, z. B. −MM1 Zylinder oder −MB1 Ventil", v => {
     snapshot();
     const m = ED.data.meta = ED.data.meta || {};
     m.rows = m.rows || []; m.rows[i] = v;
@@ -125,10 +125,10 @@ export function setzeVerknuepfung(pt){
 }
 // Zyklusende: die angeklickte Spalte wird zu „n = 1“, ein früheres Zyklusende entfällt
 export function setzeZyklusende(pt){
-  const j = Math.max(1, Math.min(11, Math.floor((pt[0] - WS_X0) / WS_SPALTE)));
+  const j = Math.max(1, Math.min(11, Math.floor((pt[0] - WS_RASTER.x0) / WS_RASTER.spalte)));
   snapshot();
   ED.data.s = ED.data.s.filter(q => q.k !== "eq");
-  ED.data.s.push({k: "eq", c: ED.color, w: 2.6, p: [[+(WS_X0 + j * WS_SPALTE).toFixed(2), 57]], y2: WS_Y0 + wsRows() * WS_ZEILE});
+  ED.data.s.push({k: "eq", c: ED.color, w: 2.6, p: [[+(WS_RASTER.x0 + j * WS_RASTER.spalte).toFixed(2), 57]], y2: WS_RASTER.y0 + wsRows() * WS_RASTER.zeile});
   clearSel(); saveSketch(); setTool("sel");
 }
 export function setzeStart(pt){

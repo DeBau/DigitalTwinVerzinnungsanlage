@@ -5,7 +5,7 @@ import { INK, SVGT, clamp, tw } from '../svg.js';
 import { ED } from '../status.js';
 import { BAUSTEIN, SAMPLE, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, TX, dots } from '../vorlagen-svg.js';
-import { LINIE, platzhalter } from '../bausteine.js';
+import { LINIE, platzhalter, setzeBreite } from '../bausteine.js';
 import { objById } from '../auswahl.js';
 import { textFeld } from '../eigenschaften.js';
 
@@ -146,10 +146,11 @@ export const VERZWEIGUNG = {
   einrueck: 100,
   neu(o, [px, py]){ o.x = px - 100; o.y = py; o.w = 200; },
   felder: o => textFeld("w", "Breite", undefined, verzweigungsBreite(o)),
+  setze: setzeBreite,
   beschriftung: {
     hinweis: "Breite (Standard 200)",
     wert: o => String(verzweigungsBreite(o)),
-    setze(o, v){ const w = parseInt(v, 10); if (w >= 40) o.w = Math.round(w/10)*10; },
+    setze: (o, v) => setzeBreite(o, "w", v),
   },
 };
 

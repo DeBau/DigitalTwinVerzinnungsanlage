@@ -6,13 +6,16 @@ import { STRICH, STRICHFELD, fuelle } from '../registry.js';
 import { shapeD } from '../vorlagen-svg.js';
 import { FARBEN, auswahlFeld, textFeld } from '../eigenschaften.js';
 
-// Raster: Spalte 150 bis 975 in 12 Schritten, erste Zeile bei 74, Zeilenhöhe 62
-export const WS_X0 = 150, WS_SPALTE = (975 - 150) / 12, WS_Y0 = 74, WS_ZEILE = 62;
+// Raster des Formulars: Schrittspalten von x0 bis x1 in 12 Schritten, erste Zeile bei y0, Zeilenhöhe zeile
+export const WS_RASTER = {x0: 150, x1: 975, spalten: 12, spalte: (975 - 150) / 12, y0: 74, zeile: 62};
+export const spalteBei = x => Math.round((x - WS_RASTER.x0) / WS_RASTER.spalte);   // nächste Schrittgrenze
+export const zeileBei = y => Math.floor((y - WS_RASTER.y0) / WS_RASTER.zeile);      // Zeile, in der y liegt
+export const WS_BAUGLIEDER = ["−MM1", "−MM2", "−MM3", "−MM4"];   // Zeilen ohne Zylinderliste der Übung (CYL)
 
 /* ---------- Linien im Schrittfeld ---------- */
 /* Weg-Schritt-Diagramm: Stellung 1 liegt 16 unter dem Zeilenanfang, Stellung 0 bei 50 (Zeilenhöhe 62, erste Zeile bei 74).
    "aus" = Richtung aus dem Zeilenbereich heraus (Stellung 1: nach oben, Stellung 0: nach unten), "ein" = in die Zeile hinein. */
-export const wsAus = y => (((y - 74) % 62) + 62) % 62 < 33 ? -1 : 1;
+export const wsAus = y => (((y - WS_RASTER.y0) % WS_RASTER.zeile) + WS_RASTER.zeile) % WS_RASTER.zeile < 33 ? -1 : 1;
 export const halo = t => t.replace("<text ", '<text stroke="#fff" stroke-width="4" stroke-linejoin="round" paint-order="stroke" ');
 export const sigLoop = st => { const [x, y] = st.p[0], [x2, y2] = st.p[1] || st.p[0]; return Math.abs(x - x2) < .5 && Math.abs(y - y2) < .5; };
 export function startGeo(st){ const [x, y] = st.p[0], e = -wsAus(y), cy = y + e * 23; return {x, y, e, cy}; }   // freie Ecke des Schrittfelds unter bzw. über der Bewegungslinie
@@ -44,8 +47,8 @@ export function zeichneVerknuepfung(st){
   return `<circle cx="${x}" cy="${y}" r="1.6" fill="${c}"/><path d="M${x - 8} ${y + 6}L${x + 8} ${y - 6}" stroke="${c}" stroke-width="2" stroke-linecap="round"/>`;
 }
 export function zeichneZyklusende(st){
-  const [x] = st.p[0], c = st.c || INK, j = Math.round((x - WS_X0) / WS_SPALTE);
-  return `<rect x="${(x + 1).toFixed(1)}" y="41" width="${(WS_SPALTE - 2).toFixed(1)}" height="32" fill="#fff"/>` + SVGT(x + WS_SPALTE/2, 62, `${j + 1} = 1`, "middle", 12, 700, c) + `<path d="M${x} 40V${st.y2 || 446}" stroke="${c}" stroke-width="2.6"/>`;
+  const [x] = st.p[0], c = st.c || INK, j = spalteBei(x);
+  return `<rect x="${(x + 1).toFixed(1)}" y="41" width="${(WS_RASTER.spalte - 2).toFixed(1)}" height="32" fill="#fff"/>` + SVGT(x + WS_RASTER.spalte/2, 62, `${j + 1} = 1`, "middle", 12, 700, c) + `<path d="M${x} 40V${st.y2 || 446}" stroke="${c}" stroke-width="2.6"/>`;
 }
 export function zeichneStart(st){
   const {x, y, e, cy} = startGeo(st), c = st.c || INK;
@@ -98,7 +101,7 @@ export function zieheVerknuepfung(st, drag, dx, dy){
     drag.attDone = true;
     ED.data.s.forEach((q, j) => q.k === "sig" && q.p.forEach((v, h) => Math.hypot(v[0] - o0[0], v[1] - o0[1]) < .6 && drag.att.push([j, h])));
   }
-  const cx = 150 + Math.round((o0[0] + dx - 150) / 68.75) * 68.75;
+  const cx = WS_RASTER.x0 + spalteBei(o0[0] + dx) * WS_RASTER.spalte;
   const q = [Math.abs(cx - o0[0] - dx) < 10 ? cx : Math.round((o0[0] + dx) / 4) * 4, Math.round((o0[1] + dy) / 4) * 4];
   st.p = [q];
   drag.att.forEach(([j, h]) => ED.data.s[j].p[h] = [...q]);

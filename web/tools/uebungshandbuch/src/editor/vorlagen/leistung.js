@@ -4,6 +4,7 @@ import { INK, SVGT } from '../svg.js';
 import { BAUSTEIN, SAMPLE, fuelle, registriereBauteile, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, TX, grid } from '../vorlagen-svg.js';
 import { LB, PD, PN, PP, SK } from '../bauteile.js';
+import { setzeBreite } from '../bausteine.js';
 import { textFeld } from '../eigenschaften.js';
 
 export const LEITER = [["L1",50],["L2",70],["L3",90],["N",110],["PE",130]];
@@ -27,6 +28,7 @@ export const SCHIENE = {
   schiene: true, drehbar: false,
   umriss: o => ({x: o.x, y: o.y - 6, w: o.w || 400, h: 12}),
   neu(o, [px, py]){ o.w = 400; o.x = px - 200; o.y = py; },
+  setze: setzeBreite,
   felder: o => textFeld("v", "Potenzial, z. B. L+, M, L1, PE", BAUSTEIN.rail.lbl, o.v) + textFeld("w", "Länge", "", o.w || 400),
 };
 registriereBauteile({
