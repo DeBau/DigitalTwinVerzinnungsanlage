@@ -119,4 +119,21 @@ export const tests = [
       for (const o of d1.o) t.gleich(weg(o), weg(i0), `${o.k} ${o.v} mit Umschalt mitgezogen`);
     },
   },
+  {
+    name: 'G4 Schritt löschen nimmt Aktionen mit und schließt die Kette',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await kurzeKette(t);
+      await t.klick([220, 240]); await t.setze('trans', 220, 330);   // Schritt 2 markieren, Transition darunter
+      await t.tippe('BG2'); await t.taste('Enter');
+      await t.setze('step', 220, 380);
+      const d0 = await t.daten(), s2 = nach(d0, '2', 'step');
+      await t.klick([s2.x + 20, s2.y + 20]);
+      await t.taste('Delete');
+      const d1 = await t.daten();
+      t.gleich(d1.o.map((o) => `${o.k} ${o.v}`), ['init 1', 'trans BG1', 'step 3'], 'Bausteine nach dem Löschen');
+      t.gleich(await verbindungen(t), ['init>trans', 'trans>step'], 'Kette geschlossen');
+      t.gleich(nach(d1, '3', 'step').y, s2.y, 'Schritt 3 rückt an die Stelle von Schritt 2');
+    },
+  },
 ];

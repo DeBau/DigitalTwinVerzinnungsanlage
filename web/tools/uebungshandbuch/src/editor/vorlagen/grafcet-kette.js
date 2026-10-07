@@ -88,3 +88,27 @@ export function grafcetMitziehen(o, {umschalt}, d){
   const glieder = umschalt ? kettenRest(d, o) : [];
   return [...aktionenVon(d, o.id), ...glieder.flatMap(id => [id, ...aktionenVon(d, id)])];
 }
+// Erstes Kettenglied nach bzw. vor A (Aktionen zählen nicht)
+export const nachfolgerIn = (d, A) => { const c = d.c.find(c => c.a === A.id && !isAct(objIn(d, c.b))); return c && objIn(d, c.b); };
+export const vorgaengerIn = (d, B) => { const c = d.c.find(c => c.b === B.id && !isAct(objIn(d, c.a))); return c && objIn(d, c.a); };
+// Kettenglieder ids samt ihren Aktionen um dy senkrecht verschieben
+export function verschiebeRest(d, ids, dy){
+  const alle = new Set(ids.flatMap(id => [id, ...aktionenVon(d, id)]));
+  d.o.forEach(o => { if (alle.has(o.id)) o.y += dy; });
+}
+
+/* ---------- Löschen ---------- */
+// Haken loeschen: Aktionen gehen mit ihrem Baustein, ein Schritt schließt dazu die Kette
+export function grafcetLoeschen(o, d){
+  return [...aktionenVon(d, o.id), ...(isStep(o) ? ketteSchliessen(o, d) : [])];
+}
+// Schritt o in T1 → o → T2 → N: T2 geht mit, T1 hängt sich an N, und N rückt mit dem Rest der Kette an die Stelle von o
+export function ketteSchliessen(o, d){
+  const T1 = vorgaengerIn(d, o), T2 = nachfolgerIn(d, o), N = T2 && nachfolgerIn(d, T2);
+  if (!T1 || !isTrans(T2)) return [];
+  if (N && N.id !== o.id) {
+    if (N.y > o.y) verschiebeRest(d, [N.id, ...kettenRest(d, N)], o.y - N.y);
+    verknuepfe(d, T1, N);
+  }
+  return [T2.id, ...aktionenVon(d, T2.id)];
+}

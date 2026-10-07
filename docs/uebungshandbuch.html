@@ -3741,6 +3741,32 @@ END_CASE;`)}
     const glieder = umschalt ? kettenRest(d, o) : [];
     return [...aktionenVon(d, o.id), ...glieder.flatMap((id) => [id, ...aktionenVon(d, id)])];
   }
+  var nachfolgerIn = (d, A) => {
+    const c = d.c.find((c2) => c2.a === A.id && !isAct(objIn(d, c2.b)));
+    return c && objIn(d, c.b);
+  };
+  var vorgaengerIn = (d, B) => {
+    const c = d.c.find((c2) => c2.b === B.id && !isAct(objIn(d, c2.a)));
+    return c && objIn(d, c.a);
+  };
+  function verschiebeRest(d, ids, dy) {
+    const alle = new Set(ids.flatMap((id) => [id, ...aktionenVon(d, id)]));
+    d.o.forEach((o) => {
+      if (alle.has(o.id)) o.y += dy;
+    });
+  }
+  function grafcetLoeschen(o, d) {
+    return [...aktionenVon(d, o.id), ...isStep(o) ? ketteSchliessen(o, d) : []];
+  }
+  function ketteSchliessen(o, d) {
+    const T1 = vorgaengerIn(d, o), T2 = nachfolgerIn(d, o), N = T2 && nachfolgerIn(d, T2);
+    if (!T1 || !isTrans(T2)) return [];
+    if (N && N.id !== o.id) {
+      if (N.y > o.y) verschiebeRest(d, [N.id, ...kettenRest(d, N)], o.y - N.y);
+      verknuepfe(d, T1, N);
+    }
+    return [T2.id, ...aktionenVon(d, T2.id)];
+  }
 
   // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet.js
   var QUADRAT = (o) => ({ x: o.x, y: o.y, w: 40, h: 40 });
@@ -3815,6 +3841,8 @@ END_CASE;`)}
     nachSetzen: grafcetNachSetzen,
     // Transition zwischen zwei Schritten, keine zwei Transitionen hintereinander
     vorVerbinden: grafcetVorVerbinden,
+    loeschen: grafcetLoeschen,
+    // Aktionen gehen mit; ein gelöschter Schritt schließt die Kette
     mitziehen: grafcetMitziehen
     // Aktionen ziehen mit ihrem Schritt mit, mit Umschalt auch der Rest der Kette
   });
