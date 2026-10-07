@@ -47,7 +47,7 @@ export function verbindungsWeg(c, objs, all, spuren = neueSpuren()){
     return {d: wireD(e[0], e[1], spuren), wire: true, ends: e, lbl: [e[0].x + 5, Math.round((e[0].y + e[1].y) / 2), "start"]};
   }
   const gruppe = gruppeVon(A);
-  if (gruppe.kette) return verbindeKette(A, B, spuren);
+  if (gruppe.kette) return verbindeKette(A, B, spuren, objs);
   if (gruppe.verbinde) return gruppe.verbinde(c, A, B, objs, all, spuren);
   return verbindeRechtwinklig(A, B);
 }

@@ -4,7 +4,7 @@
 // Benutzt von zeichnen.js (Verbindungslinien) und andocken.js (Setzen, Ziehen).
 import { ED } from './status.js';
 import { BAUSTEIN, art } from './registry.js';
-import { gruppeVon, gruppenId, kettenAus, kettenEin, mitteVon } from './bausteine.js';
+import { gruppeVon, gruppenId, kettenAus, kettenEin, mitteVon, umrissVon } from './bausteine.js';
 import { markiertesObjekt } from './auswahl.js';
 
 // Seitenbaustein-Haken eines Objekts bzw. eines Paletteneintrags (Palettenvarianten zeigen über mk.k auf die Grundart)
@@ -17,30 +17,43 @@ export function seitenArt(k){
 
 // Senkrechte Verbindung von unten aus A nach oben in B, bei Rücksprüngen links vorbei mit Pfeil nach oben.
 // Rücksprünge melden ihre Bahn in spuren (spuren.js) an: Zwei Rücksprünge liegen dann nie deckungsgleich übereinander.
-export function routeV([x1, y1], [x2, y2], spuren){
+// objs (Liste der Bausteine, optional): Die Bahn des Rücksprungs läuft links an allen vorbei, die sie kreuzen würde.
+export function routeV([x1, y1], [x2, y2], spuren, objs){
   const p = {p1: [x1, y1], p2: [x2, y2]};
   if (y2 > y1 + 4) {
     if (Math.abs(x1 - x2) < 1) return {...p, d: `M${x1} ${y1}V${y2}`};
     const m = Math.round((y1 + y2) / 20) * 10;
     return {...p, d: `M${x1} ${y1}V${m}H${x2}V${y2}`};
   }
-  return {...p, ...ruecksprung([x1, y1], [x2, y2], spuren)};
+  const bahn = freieBahn(objs, Math.min(x1, x2) - 50, y2 - 20, y1 + 20);
+  return {...p, ...ruecksprung([x1, y1], [x2, y2], spuren, bahn)};
 }
-// Rücksprung: 20 unter A nach links auf die Bahn 50 neben der Kette, hoch bis 20 über B, hinein in B.
-// Netz ist der Startpunkt; die Bahn und die waagrechten Stücke weichen auf eine freie Spur aus.
-export function ruecksprung([x1, y1], [x2, y2], spuren){
-  const lane = Math.min(x1, x2) - 50, ya = y1 + 20, yb = y2 - 20;
+// Senkrechte Bahn bei x zwischen oben und unten: Kreuzt sie einen Baustein (mit 10 Abstand), weicht sie 30 links
+// an ihm vorbei, so lange, bis sie frei ist (z. B. am linken Zweig einer UND-Verzweigung vorbei). Fände sie erst
+// links vom Blattrand Platz, bleibt sie bei x.
+export function freieBahn(objs, x, oben, unten){
+  const boxen = (objs || []).map(umrissVon).filter(b => b.y < unten && b.y + b.h > oben);
+  let bahn = x;
+  for (let b = null; (b = boxen.find(q => q.x - 10 < bahn && bahn < q.x + q.w + 10)); ) bahn = b.x - 30;
+  return bahn >= 20 ? bahn : x;
+}
+// Rücksprung: 20 unter A nach links auf die Bahn (50 neben der Kette oder links an den Zweigen vorbei), hoch bis
+// 20 über B, hinein in B. Netz ist der Startpunkt; die Bahn und die waagrechten Stücke weichen auf eine freie Spur aus.
+export function ruecksprung([x1, y1], [x2, y2], spuren, lane = Math.min(x1, x2) - 50){
+  const ya = y1 + 20, yb = y2 - 20;
   const roh = [[x1, y1], [x1, ya], [lane, ya], [lane, yb], [x2, yb], [x2, y2]];
   const [, [, ya2], [lane2], [, yb2]] = spuren ? spuren.knick(roh, `${x1}:${y1}`) : roh;
   return {d: `M${x1} ${y1}V${ya2}H${lane2}V${yb2}H${x2}V${y2}`, up: [lane2, (ya2 + yb2) / 2]};
 }
 
-// Linie von A nach B innerhalb einer Kette; spuren geht an routeV bzw. den Haken seite.verbinde
-export function verbindeKette(A, B, spuren){
+// Linie von A nach B innerhalb einer Kette; spuren geht an routeV bzw. den Haken seite.verbinde. Hat die Gruppe den
+// Haken ruecksprungFrei (GRAFCET), bekommt routeV die Bausteine der Gruppe: Die Rücksprungbahn weicht ihnen aus.
+export function verbindeKette(A, B, spuren, objs){
   const s = seite(B);
   if (s) return s.verbinde(A, B, spuren);
   const von = kettenAus(A, mitteVon(B)[0]);
-  return routeV(von, kettenEin(B, von[0]), spuren);
+  const g = gruppenId(A), hindernisse = gruppeVon(A).ruecksprungFrei && Object.values(objs || {}).filter(o => gruppenId(o) === g);
+  return routeV(von, kettenEin(B, von[0]), spuren, hindernisse || null);
 }
 
 // An welchen Baustein hängt sich ein neuer Baustein der Palettenart k? Der markierte, wenn er zur selben Kette gehört.

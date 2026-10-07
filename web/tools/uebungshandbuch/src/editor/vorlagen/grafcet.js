@@ -103,6 +103,7 @@ registriereGruppe("grafcet", {
     + "markierst du die letzte Transition, wählst Verbinden und klickst den Anfangsschritt an. Umschalt beim Ziehen nimmt den "
     + "Rest der Kette mit.",
   kette: true,
+  ruecksprungFrei: true,              // Rücksprünge links an Verzweigungen und Schritten vorbei (kette.js, freieBahn)
   ...KETTEN_HAKEN,                    // nachSetzen, vorVerbinden, loeschen, mitziehen (grafcet-kette.js)
   nachSetzen: schnipselNachSetzen,    // Verzweigungs-Schnipsel ausbauen, dann die Regeln der Kette
 });

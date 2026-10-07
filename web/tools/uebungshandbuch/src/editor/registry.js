@@ -11,7 +11,7 @@ export const VORL = {};       // Vorlage → ganze Anmeldung {n, d, gruppen, sch
 
 /* ---------- Bausteingruppen ---------- */
 export const GRUPPE = {};     // Gruppe → ganze Anmeldung {name, hinweis, kette, verbinde, andocke, mitziehen, loeschen,
-                              //   kennzeichen, nachSetzen, vorVerbinden, …}; Signaturen in src/README.md
+                              //   kennzeichen, nachSetzen, vorVerbinden, ruecksprungFrei, …}; Signaturen in src/README.md
 
 // Eintrag einer Vorlage; {} für einen unbekannten Schlüssel, damit Haken ohne weitere Prüfung abfragbar sind
 export const vorlage = key => VORL[key] || {};

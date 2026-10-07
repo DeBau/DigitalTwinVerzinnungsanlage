@@ -1,6 +1,6 @@
 // GRAFCET-Tests an Verzweigungen: „+ Schritt“ nach einer Zusammenführung, Neu nummerieren, Prüfregel Linienart,
 // Rücksprung an den Zweigen vorbei.
-import { setzeSichtbar, transition } from './hilfen.mjs';
+import { nach, setzeSichtbar, transition, wege } from './hilfen.mjs';
 
 // Arten der Kette ab A: A und die n ersten Kettennachfolger (ohne Aktionen)
 async function kettenArten(t, A, n) {
@@ -76,6 +76,24 @@ export const tests = [
       text = await befunde(t);
       t.erwarte(text.includes('ODER-Verzweigung: Zeichne sie mit einfacher Linie'), `Befund ODER fehlt: ${text}`);
       t.erwarte(!text.includes('UND-Verzweigung:'), `UND-Zusammenführung fälschlich gemeldet: ${text}`);
+    },
+  },
+  {
+    name: 'Rücksprung läuft links an den Zweigen einer UND-Verzweigung vorbei',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 320, 100);
+      await transition(t, 320, 170, 'BG1');
+      await setzeSichtbar(t, 'und2', 320, 200);
+      await plusNachLinie(t, 'par');
+      const s = (await t.objekte('step')).sort((a, b) => b.y - a.y)[0];
+      await setzeSichtbar(t, 'trans', s.x + 20, s.y + 70); await t.tippe('BG3'); await t.taste('Enter');
+      const d = await t.daten(), init = nach(d, '1', 'init'), t3 = nach(d, 'BG3');
+      await t.werkzeug('conn'); await t.klick([t3.x, t3.y]); await t.klick([init.x + 20, init.y + 20]);
+      const rueck = (await wege(t)).map((w) => /^M[\d.]+ [\d.]+V[\d.]+H([\d.-]+)V[\d.]+H[\d.]+V[\d.]+$/.exec(w)).filter(Boolean);
+      t.gleich(rueck.length, 1, 'ein Rücksprung');
+      const links = Math.min(...d.o.map((o) => (o.k === 'trans' ? o.x - 16 : o.x)));
+      t.erwarte(+rueck[0][1] <= links - 20, `Bahn bei x ${rueck[0][1]}, linkester Baustein bei x ${links}`);
     },
   },
 ];

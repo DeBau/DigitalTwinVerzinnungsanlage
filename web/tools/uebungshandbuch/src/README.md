@@ -305,6 +305,7 @@ und `fuelle(tabelle, einträge)`.
 | --- | --- | --- | --- |
 | `name`, `hinweis` | Text | Palette (`paletteHTML`) | |
 | `kette` | `true` | `kettenQuelle`, `andockStelle` (kette.js), `verbindungsWeg` | kein Fortsetzen, kein Andocken |
+| `ruecksprungFrei` | `true` | `verbindeKette` (kette.js): `routeV` bekommt die Bausteine, die Rücksprungbahn läuft links an allen vorbei, die sie kreuzen würde (`freieBahn`) | Bahn 50 links neben der Kette |
 | `verbinde` | `(c, A, B, objs, alle, spuren) → {d, arrow, lbl}` | `verbindungsWeg` (zeichnen.js) nach der Gruppe von A | rechtwinklig von Rand zu Rand |
 | `schleife` | `true` | `connect` (andocken.js) | keine Verbindung auf sich selbst |
 | `pfeiltext` | `true` | `verbindungFelder` (eigenschaften.js) | Verbindung ohne Beschriftung |
