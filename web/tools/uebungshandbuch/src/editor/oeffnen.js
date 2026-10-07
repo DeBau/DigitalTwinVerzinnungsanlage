@@ -61,6 +61,12 @@ export const VERLAUFSKNOEPFE = [
 export const ABSCHLUSS = `<button type="button" class="btn small" data-ed="print">${IC.print}Drucken</button>`
   + `<button type="button" class="btn primary small" data-ed="close">Fertig</button>`;
 
+export const FORM_ZEILEN = [
+  [werkzeugKnopf("rect", IC.rect + "Kasten", titelAttr("Rechteck, rastet im 10er-Raster"))],
+  [werkzeugKnopf("text", IC.text + "Text")],
+  [werkzeugKnopf("erase", IC.eraser + "Radierer")],
+  [TRENNER],
+];
 // Zeilen der Werkzeugleiste; jede Zeile ist eine Gruppe von Knöpfen
 export function werkzeugleisteZeilen(v, key, mitPalette){
   const ex = BY[ED.scope], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
@@ -72,10 +78,7 @@ export function werkzeugleisteZeilen(v, key, mitPalette){
     FARBEN.map(farbKnopf),
     [werkzeugKnopf("line", IC.line + linie.name, titelAttr(linie.titel))],
     [leiste.nachLinie || ""],
-    [werkzeugKnopf("rect", IC.rect + "Kasten", titelAttr("Rechteck, rastet im 10er-Raster"))],
-    [werkzeugKnopf("text", IC.text + "Text")],
-    [werkzeugKnopf("erase", IC.eraser + "Radierer")],
-    [TRENNER],
+    ...FORM_ZEILEN,
     [aktionsKnopf("grid", IC.grid + "Raster fangen",
       ` aria-pressed="${ED.grid}"` + titelAttr("Bausteine und Linien rasten im 10er-Raster ein"))],
     [mitPalette ? aktionsKnopf("dock", IC.magnet + "Andocken", ` aria-pressed="${ED.dock}"`
