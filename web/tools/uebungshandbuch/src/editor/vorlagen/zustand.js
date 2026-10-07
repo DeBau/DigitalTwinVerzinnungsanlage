@@ -63,7 +63,7 @@ export function zustandNeu(o, [px, py]){
 }
 export const ZUSTAND = {
   neu: zustandNeu,
-  feldliste: [["v", "Name"], ["a", "Aktion im Zustand (optional)", "z. B. MB1"]],
+  feldliste: [["v", "Name"], ["a", "Aktion im Zustand (optional)", "z. B. −MB1"]],
   beschriftung: {hinweis: "Name des Zustands"},
 };
 export const KREIS = o => `<circle cx="${o.x}" cy="${o.y}" r="36" fill="#fff" ${LINIE}/>`;

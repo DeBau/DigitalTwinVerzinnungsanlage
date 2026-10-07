@@ -123,8 +123,8 @@ export const TRANSITION = {
   teilung: 30,
   verweisName: transitionName,
   kennbuchstaben: BEDINGUNG_KENNBUCHSTABEN,
-  feldliste: [["v", "Übergangsbedingung", "z. B. BG1 · BG15, 5s/X3, ↑BG40"], ["nr", "Transitionsnummer (optional)", "z. B. 1"]],
-  beschriftung: {sofort: true, ort: o => [o.x + 20, o.y], hinweis: "Bedingung, z. B. BG1 · BG40"},
+  feldliste: [["v", "Übergangsbedingung", "z. B. −BG1 · −BG15, 5s/X3, ↑−BG40"], ["nr", "Transitionsnummer (optional)", "z. B. 1"]],
+  beschriftung: {sofort: true, ort: o => [o.x + 20, o.y], hinweis: "Bedingung, z. B. −BG1 · −BG40"},
 };
 export const VERWEIS = {
   zeichne: zeichneVerweis,

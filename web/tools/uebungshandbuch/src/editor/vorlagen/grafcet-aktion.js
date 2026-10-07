@@ -54,7 +54,7 @@ export const AKTIONSMARKE = {
   akt: (o, mx, y) => PFEIL_AUF(mx, y),
   deakt: (o, mx, y) => PFEIL_AB(mx, y),
   zwang: o => DOPPELRAHMEN(o),
-  ereig: (o, mx, y, edit) => FAEHNCHEN(mx, y) + markenText(o.b, "Ereignis, z. B. ↑BG1", mx+11, y-14, edit),
+  ereig: (o, mx, y, edit) => FAEHNCHEN(mx, y) + markenText(o.b, "Ereignis, z. B. ↑−BG1", mx+11, y-14, edit),
 };
 export function zeichneAktion(o, edit){
   const x = o.x, y = o.y, w = aw(o), qw = qBreite(o), tc = x + qw + (w - qw)/2, marke = AKTIONSMARKE[atype(o)];
@@ -66,8 +66,8 @@ export function zeichneAktion(o, edit){
 }
 // Eigenschaftsfeld: Art, Bestimmungszeichen, Aktion und je nach Art Zuweisungsbedingung bzw. Ereignis
 export const AKTION_ZUSATZFELD = {
-  kont: o => textFeld("b", "Zuweisungsbedingung (optional)", "z. B. BG9 oder 3s/X2", o.b),
-  ereig: o => textFeld("b", "Ereignis", "z. B. ↑BG1", o.b),
+  kont: o => textFeld("b", "Zuweisungsbedingung (optional)", "z. B. −BG9 oder 3s/X2", o.b),
+  ereig: o => textFeld("b", "Ereignis", "z. B. ↑−BG1", o.b),
   zwang: () => HINWEIS("Schreib den Teil-GRAFCET mit der Situation, z. B. G2{INIT} (Anfangssituation), G2{*} "
     + "(eingefroren), G2{} (alle Schritte inaktiv) oder G2{5, 7}."),
 };
@@ -79,7 +79,7 @@ export function aktionFelder(o){
     const zeichen = BESTIMMUNG.map(q => `<option ${q === (o.q || "S") ? "selected" : ""}>${q}</option>`).join("");
     h += `<label class="prop">Bestimmungszeichen (S7-GRAPH, IEC 61131-3)<select data-prop="q">${zeichen}</select></label>`;
   }
-  h += kennzeichenFeld(o, "Aktion", "z. B. MB1 oder Z := Z + 1");   // Vorschläge nach AKTION_KENNBUCHSTABEN
+  h += kennzeichenFeld(o, "Aktion", "z. B. −MB1 oder Z := Z + 1");   // Vorschläge nach AKTION_KENNBUCHSTABEN
   return h + (zusatz ? zusatz(o) : "");
 }
 // Art der Aktion wechseln; eine alte Aktion „actionq“ wird dabei zur Aktion mit Art q
@@ -94,7 +94,7 @@ export function setzeAktion(o, f, v){
 export const AKTION_TEXT = {
   sofort: true,
   wert: o => atype(o) === "q" ? `${o.q || "S"} ${o.v || ""}`.trim() : (o.v || ""),
-  hinweis: o => atype(o) === "q" ? "Bestimmungszeichen und Aktion, z. B. S MB9" : "Aktion, z. B. MB1",
+  hinweis: o => atype(o) === "q" ? "Bestimmungszeichen und Aktion, z. B. S −MB9" : "Aktion, z. B. −MB1",
   setze(o, v){
     if (atype(o) !== "q") { o.v = v; return; }
     const m = v.match(/^(\S+)\s*(.*)$/);

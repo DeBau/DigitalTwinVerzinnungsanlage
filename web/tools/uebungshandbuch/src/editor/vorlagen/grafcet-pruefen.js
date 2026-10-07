@@ -26,7 +26,7 @@ export function regelWechsel(d){
   return liste;
 }
 export const regelBeschriftet = d => d.o.filter(o => isTrans(o) && !String(o.v || "").trim())
-  .map(o => befundFehler("Diese Transition hat keine Bedingung. Schreib die Übergangsbedingung daneben, z. B. BG1 · BG15.", {o: o.id}));
+  .map(o => befundFehler("Diese Transition hat keine Bedingung. Schreib die Übergangsbedingung daneben, z. B. −BG1 · −BG15.", {o: o.id}));
 export function regelNummern(d){
   const gesehen = new Set();
   return nummerierteSchritte(d).filter(o => { const doppelt = gesehen.has(o.v); gesehen.add(o.v); return doppelt; })
