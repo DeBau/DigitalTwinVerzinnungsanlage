@@ -1,6 +1,6 @@
 // GRAFCET-Tests der Werkzeuge: Prüfen, Kennzeichen-Vorschläge, Verzweigungs-Schnipsel, Durchspielen, Zustandsdiagramm,
 // Zwangssteuerung und Taste +.
-import { nach, kurzeKette, setzeSichtbar, transition } from './hilfen.mjs';
+import { nach, kurzeKette, setzeSichtbar, transition, wege } from './hilfen.mjs';
 
 // Der Kern ruft den Vorlagen-Haken taste noch nicht auf (baut KERN). Solange hängt Taste + nichts an: Der Test meldet
 // das im Namen als „übersprungen“, statt still zu bestehen. lauf.mjs gibt den Namen erst nach dem Lauf aus.
@@ -139,6 +139,35 @@ export const tests = [
       t.gleich(rahmen, 1, 'innerer Rahmen');
     },
   },
+  {
+    name: 'Durchspielen: ohne Folgeschritt bleibt die Marke, dazu ein Hinweis',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 220, 120);
+      await transition(t, 220, 190, 'BG1');   // Kette endet mit der Transition
+      const d = await t.daten(), init = nach(d, '1', 'init'), t1 = nach(d, 'BG1');
+      await t.werkzeug('sim');
+      await t.klick([t1.x, t1.y]);
+      t.gleich(await t.zaehle(`#edstage .ink [data-o="${init.id}"] circle`), 1, 'Schritt 1 bleibt aktiv');
+      t.erwarte((await t.text('#props')).includes('kommt kein Schritt'), 'Hinweis im Eigenschaftsfeld');
+    },
+  },
+  {
+    name: 'Schrittkommentar liegt links von zwei Rücksprungbahnen',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 220, 120);
+      await t.page.locator('#props [data-prop="km"]').fill('Grundstellung'); await t.ruhe();
+      for (const b of ['BG1', 'BG2', 'BG3']) { await t.klick('#editor [data-gc="plus"]'); await t.tippe(b); await t.taste('Enter'); }
+      const d = await t.daten(), init = nach(d, '1', 'init');
+      await t.werkzeug('conn');
+      for (const v of ['BG2', 'BG3']) { const q = nach(d, v); await t.klick([q.x, q.y]); await t.klick([init.x + 20, init.y + 20]); }
+      const bahnen = (await wege(t)).map((w) => /^M[\d.]+ [\d.]+V[\d.]+H([\d.-]+)V[\d.]+H/.exec(w)).filter(Boolean).map((m) => +m[1]);
+      t.gleich(bahnen.length, 2, 'zwei Rücksprünge');
+      const text = await t.page.locator(`#edstage .ink [data-o="${init.id}"] text`).evaluateAll((ts) => ts
+        .filter((x) => x.textContent.startsWith('„')).map((x) => { const b = x.getBBox(); return b.x + b.width; }));
+      t.erwarte(text.length === 1 && text[0] < Math.min(...bahnen) - 4, `Kommentar endet bei ${text}, Bahnen bei ${bahnen}`);
+    },
+  },
   TASTE_PLUS,
 ];
-

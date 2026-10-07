@@ -29,8 +29,9 @@ export const SCHRITT = {
   beschriftung: {hinweis: "Schrittnummer"},
 };
 export const KASTEN = o => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/>`;
-// Schrittkommentar links neben dem Schritt in Anführungszeichen (DIN EN 60848), links von der Rücksprungbahn (x − 30)
-export const KOMMENTAR = o => o.km ? SVGT(o.x-40, o.y+24, `„${o.km}“`, "end", 12, 400) : "";
+// Schrittkommentar links neben dem Schritt in Anführungszeichen (DIN EN 60848). Er endet 60 links vom Schritt, links von
+// den ersten drei Rücksprungbahnen (x − 30, Spuren x − 40 und x − 50).
+export const KOMMENTAR = o => o.km ? SVGT(o.x-60, o.y+24, `„${o.km}“`, "end", 12, 400) : "";
 // Beim Durchspielen trägt ein aktiver Schritt einen Punkt (Marke)
 export const MARKE = (o, edit) => edit && imSpiel("aktiv", o.id) ? `<circle cx="${o.x+20}" cy="${o.y+31}" r="3" fill="${INK}"/>` : "";
 export const zeichneSchritt = (o, edit) => KASTEN(o) + SVGT(o.x+20, o.y+25, o.v) + MARKE(o, edit) + KOMMENTAR(o);

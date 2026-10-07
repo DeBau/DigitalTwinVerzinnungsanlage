@@ -5,6 +5,7 @@
 import { IC } from '../../app/basis.js';
 import { ED } from '../status.js';
 import { clearSel, objById } from '../auswahl.js';
+import { updateProps } from '../eigenschaften.js';
 import { renderInk } from '../anzeige.js';
 import { isAct, isStep, isTrans, spielZustand } from './grafcet-aktion.js';
 import { aktionenVon, nachfolgerUeberLinien, objIn } from './grafcet-kette.js';
@@ -46,8 +47,10 @@ export function spielWechsel(t){
 export const SPIEL_KLICK = [
   {passt: isTrans, tue: (d, s, tr) => {
     if (!schaltbar(d, s.aktiv, tr)) return;
+    const nach = schritteNach(d, tr);
+    if (!nach.length) { s.hinweis = KEIN_FOLGESCHRITT; return; }   // Marke bleibt, statt zu verschwinden
     schritteVor(d, tr).forEach(x => s.aktiv.delete(x.id));
-    schritteNach(d, tr).forEach(x => s.aktiv.add(x.id));
+    nach.forEach(x => s.aktiv.add(x.id));
   }},
   {passt: isStep, tue: (d, s, x) => { if (!s.aktiv.delete(x.id)) s.aktiv.add(x.id); }},
 ];
@@ -56,7 +59,11 @@ export function spielKlick(e){
   const s = spielZustand();
   if (!s) return false;
   const h = e.target.closest("[data-o]"), o = h && objById(h.dataset.o), regel = o && SPIEL_KLICK.find(r => r.passt(o));
-  if (regel) { regel.tue(ED.data, s, o); spielAuffrischen(); }
+  delete s.hinweis;
+  if (regel) { regel.tue(ED.data, s, o); spielAuffrischen(); updateProps(true); }
   return true;
 }
-export const spielAnleitung = () => spielZustand() ? SPIEL_ANLEITUNG : null;
+export const KEIN_FOLGESCHRITT = "Nach dieser Transition kommt kein Schritt. Verbinde sie mit dem nächsten Schritt "
+  + "oder mit einem Rücksprung, dann schaltet sie weiter.";
+export const spielHinweis = s => s.hinweis ? `<div class="props quiet"><p>${s.hinweis}</p></div>` : "";
+export const spielAnleitung = () => { const s = spielZustand(); return s ? spielHinweis(s) + SPIEL_ANLEITUNG : null; };
