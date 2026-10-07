@@ -2,7 +2,9 @@ import * as THREE from 'three';
 import { anlage } from '../core/szene.js';
 import { M } from '../core/materialien.js';
 import { V, box, cached, mesh, zyl } from '../core/geometrie.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { label, platte, tafel } from '../core/beschriftung.js';
+import { canvasTextur } from '../core/texturen.js';
 import { t as tr } from '../core/sprache.js';
 import { profil, stellfuss } from '../bauteile/aluprofil.js';
 import { profilZylinder, steckverschraubung } from '../bauteile/zylinder.js';
@@ -237,6 +239,17 @@ function trichterGeo(o, u) {
   for (const s of [-1, 1]) box(BL, 50, 10, M.profil, bx, yB - 27, z + s * 57);
   box(BL - 40, 6, 100, M.alu, bx, yB - 5, z);                                     // Gleitbett
   box(BL - 36, 2, 100, gurtMat, bx, yB - 1, z);                                    // Obertrum
+  // Laufrichtungspfeile auf den Gurt gedruckt (Teilung 200 mm), wandern mit dem Gurtweg (pruefstationZeichnen)
+  {
+    const tex = canvasTextur(256, 128, (c) => {
+      c.clearRect(0, 0, 256, 128); c.fillStyle = '#d9eadf';
+      c.beginPath(); c.moveTo(70, 34); c.lineTo(150, 64); c.lineTo(70, 94); c.lineTo(70, 80); c.lineTo(112, 64); c.lineTo(70, 48); c.closePath(); c.fill();
+    }, true);
+    tex.repeat.set((BL - 36) / 200, 1);
+    ST.gurtPfeile = tex;
+    const pf = new THREE.Mesh(new THREE.PlaneGeometry(BL - 36, 100), new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.4, roughness: 0.7, depthWrite: false }));
+    pf.rotation.x = -Math.PI / 2; pf.position.set(bx, yB + 0.15, z); pf.receiveShadow = true; anlage.add(pf);
+  }
   box(BL - 36, 2, 100, gurtMat, bx, yB - 39, z);                                   // Untertrum
   for (const x of [B0 + 18, B1 - 18]) { zyl(20, 96, gurtMat, x, yB - 20, z, 'z', anlage, 24); zyl(8, 126, M.stahl, x, yB - 20, z, 'z', anlage, 12); }   // Umlenkung 2 mm innerhalb der Gurtkante
   // Seitenführungen (Edelstahl), Lücken für Lichtschranke, Düse und Ausschleusung
@@ -253,12 +266,9 @@ function trichterGeo(o, u) {
     for (const s of [-1, 1]) { profil(45, 45, yB - 52 - 50, 'y', x, 50 + (yB - 102) / 2, z + s * 57); stellfuss(x, z + s * 57); }
     profil(45, 45, 69, 'z', x, 110, z);
   }
-  // Getriebemotor am Antriebsende (Bedienerseite)
-  box(60, 70, 56, M.anthrazit, B1 - 18, yB - 20, z - 90);
-  zyl(34, 120, M.anthrazit, B1 - 18, yB - 20, z - 178, 'z', anlage, 24);
-  zyl(35, 14, M.schwarz, B1 - 18, yB - 20, z - 245, 'z', anlage, 24);
-  box(40, 26, 50, M.anthrazit, B1 - 18, yB + 27, z - 170);
-  A.ma5 = V(B1 - 18, yB + 40, z - 170);
+  // Getriebemotor am Antriebsende (Bedienerseite): SEW-EURODRIVE Stirnradgetriebemotor R07 DRN63MS4 (0,12 kW),
+  //  Getriebe mit Abtrieb auf der Antriebstrommel, Motor achsversetzt darüber (koaxiale Bauart), RAL 7031
+  A.ma5 = pruefbandMotor(V(B1 - 18, yB - 20, z - 57));
   label('Prüfband −MA5', anlage, bx - 200, yB + 60, z + 70, 'klein');
   // Reflexionslichtschranke −BG32 am Prüfplatz: Sensor vorn, Reflektor hinten, Strahl 6 mm über dem Gurt
   {
@@ -373,3 +383,34 @@ function fuellFlaeche(x, z, w, d, farbe, y0 = 0) {
   m.position.set(x, y0 + 8, z); m.visible = false; m.userData.dyn = true; m.userData.y0 = y0; anlage.add(m); return m;
 }
 
+
+// SEW R07 DRN63: o = Abtriebsachse an der Außenseite des Seitenprofils, Motor nach −z. Rückgabe: Kabelanschluss (Klemmenkasten)
+function pruefbandMotor(o) {
+  const lack = new THREE.MeshStandardMaterial({ color: 0x55616b, roughness: 0.5, metalness: 0.1 });
+  const g = new THREE.Group(); g.position.copy(o); anlage.add(g);
+  const yM = 34;                                                                                   // Motorachse über der Abtriebsachse
+  mesh(cached('sewR07', () => new RoundedBoxGeometry(84, 118, 58, 2, 10)), lack, g).position.set(0, 17, -36.5);   // Getriebegehäuse (1 mm Luft zum Seitenprofil, Trommelwelle steckt darin)
+  for (const [x, y] of [[-30, -32], [30, -32], [-30, 66], [30, 66]]) zyl(3.5, 3, M.stahl, x, y, -65.5, 'z', g, 6);   // Gehäuseschrauben
+  zyl(3, 5, M.messing, 0, 77, -35, null, g, 6);                                                    // Entlüftung
+  zyl(48, 10, lack, 0, yM, -69, 'z', g, 32);                                                       // Motorflansch
+  zyl(42, 110, lack, 0, yM, -129, 'z', g, 32);                                                     // Motorgehäuse DRN63
+  for (let i = 0; i < 14; i++) {                                                                   // Kühlrippen, oben frei für den Klemmenkasten
+    const a = i / 14 * Math.PI * 2;
+    if (Math.abs(a - Math.PI / 2) < 0.45) continue;
+    const f = box(2.5, 6, 98, lack, Math.cos(a) * 44, yM + Math.sin(a) * 44, -129, g); f.rotation.z = a - Math.PI / 2;
+  }
+  zyl(45, 40, lack, 0, yM, -204, 'z', g, 32);                                                      // Lüfterhaube
+  zyl(41, 1, M.schwarz, 0, yM, -224.6, 'z', g, 32);                                                // Lüfterraum hinter dem Gitter
+  for (const r of [12, 24, 36]) zyl(r + 2, 1.4, lack, 0, yM, -225.2, 'z', g, 32);                  // Gitterringe
+  box(56, 30, 62, lack, 0, yM + 57, -125, g);                                                      // Klemmenkasten
+  box(52, 4, 58, lack, 0, yM + 74, -125, g);                                                       // Deckel
+  zyl(7, 12, M.kunststoff, 34, yM + 57, -125, 'x', g, 12);                                         // Kabelverschraubung M16 seitlich
+  platte(tafel('sewR07', 40, 22, (c) => {
+    c.fillStyle = '#d8dbde'; c.fillRect(0, 0, 40, 22); c.fillStyle = '#c8102e'; c.font = '700 4px Arial'; c.fillText('SEW', 2, 5);
+    c.fillStyle = '#222'; c.font = '600 2.6px Arial'; c.fillText('EURODRIVE', 11, 5);
+    c.fillText('R07 DRN63MS4', 2, 10); c.fillText('0,12 kW  230/400 V', 2, 14.5); c.fillText('i = 15,6   na = 90 1/min', 2, 19);
+  }, 8), 40, 22, g, -42.4, 17, -35, -Math.PI / 2);
+  label('Antrieb Prüfband −MA5', g, 0, 150, -120, 'klein');
+  g.updateMatrixWorld(true);
+  return anlage.worldToLocal(g.localToWorld(V(40, yM + 57, -125)));
+}

@@ -18,7 +18,7 @@ let angehaengt = null;
 let spawnSperre = 0;
 let nhAlt = new Set();
 let pufferLage = null, korbXMax = Infinity;          // Korbpuffer unter/über dem Hebel −MM5, Grenze für −MM2 beim Absenken
-export function prozessZuruecksetzen() { angehaengt = null; spawnSperre = 0; nhAlt = new Set(); pufferLage = null; korbXMax = Infinity; BAND.anschlagDefekt = false; }
+export function prozessZuruecksetzen() { angehaengt = null; vSchlittenAlt = 0; spawnSperre = 0; nhAlt = new Set(); pufferLage = null; korbXMax = Infinity; BAND.anschlagDefekt = false; }
 // Korb hängt mit dem Bügel (Mitte 158 über Korbboden) in den Hakenmulden (Bügelmitte im Haken bei 446);
 // über dem Band steht er so lange auf dem Gurt, bis der Haken die 12 mm Spiel überwunden hat
 export function korbUnterkante() { const u = (1 - ZYL.MM2.pos) * 300 + 446 - 158; return ZYL.MM3.pos < 0.05 ? Math.max(BAND_Y, u) : u; }
@@ -130,6 +130,7 @@ export function prozess(dt) {
     k.z = Math.max(Math.min(k.z, g.min), Math.min(Math.max(k.z, g.max), k.z + vBand1(k) * dt));   // an der Kurve gemeinsam mit −MA6
   }
   korbAnschlagKollision(dt);
+  korbPendel(dt);
   // −BG40 in der Anschlagleiste: sieht den Eckstab des Korbs, solange er anliegt (auch am Haken, bis er ca. 25 mm angehoben ist)
   BAND.bg40 = !BAND.anschlagDefekt && BAND.anschlagPos < 0.03 && (bandKoerbe.some(k => Math.abs(k.z) < 1) || (!!angehaengt && p3 < 0.05 && korbHoehe() < 25));
   uebergabeUndBand2(dt);
@@ -142,7 +143,7 @@ export function prozess(dt) {
   const amBandUnten = p2 > 0.97 && p3 < 0.02;
   if (!angehaengt && ZYL.MM1.pos < 0.5 && amBandUnten) {
     const k = koerbe.find(k => k.zustand === 'band' && Math.abs(k.z) < 3);
-    if (k) { k.zustand = 'haken'; k.z = 0; k.kipp = 0; k.kippV = 0; angehaengt = k; }
+    if (k) { k.zustand = 'haken'; k.z = 0; k.kipp = 0; k.kippV = 0; k.pendel = 0; k.pendelV = 0; angehaengt = k; }
   }
   if (angehaengt && ZYL.MM1.pos > 0.5) {
     const k = angehaengt;
@@ -240,6 +241,30 @@ function hebelUeberPuffer() {
 function kippAufHebel(h, oben) {
   const R = Math.hypot(157, PUFFER_Z), phi = Math.atan2(PUFFER_Z, 157), c = (h + BUEGEL - oben) / R;
   return c >= 157 / R ? 0 : Math.acos(Math.max(-1, c)) - phi;
+}
+// ----------------------------------------------------------------------------
+// Pendeln am Bügel beim Verfahren von −MM3: Der Bügel liegt in den Hakenmulden (Drehachse z), der Korb schwingt
+// als physikalisches Pendel in Fahrtrichtung x. Im Schlittensystem wirkt die Schlittenbeschleunigung a als Scheinkraft:
+//   φ'' = −(g·sin φ + a·cos φ) / L − 2·ζ·ω·φ'      (φ > 0: Unterkante nach +x)
+// L = I / (m·d) ≈ 128 mm (Schwerpunkt ca. 93 mm unter dem Bügel, Korb 150 × 130 mm) → ω ≈ 8,8 1/s, f ≈ 1,4 Hz.
+// Bei 180 mm/s Fahrgeschwindigkeit schwingt der Korb nach Anfahren und Abbremsen etwa ±8°.
+// Steht der Korb noch auf dem Gurt, pendelt er nicht; im flüssigen Zinn ist er stark gedämpft.
+// ----------------------------------------------------------------------------
+const PENDEL_L = 128, PENDEL_W0 = Math.sqrt(9810 / PENDEL_L), DAEMPF_LUFT = 0.06, DAEMPF_ZINN = 1.5;
+let vSchlittenAlt = 0;
+function korbPendel(dt) {
+  const v = ZYL.MM3.v || 0, a = dt > 0 ? (v - vSchlittenAlt) / dt : 0;
+  vSchlittenAlt = v;
+  const k = angehaengt;
+  if (!k) return;
+  k.pendel ??= 0; k.pendelV ??= 0;
+  if (korbHoehe() < 1) { k.pendel = 0; k.pendelV = 0; return; }         // steht auf dem Gurt
+  const zeta = ueberBad() && korbUnterkante() < zinnY() ? DAEMPF_ZINN : DAEMPF_LUFT;
+  const n = Math.ceil(dt / 0.005), h = dt / n;                            // Teilschritte: stabil auch bei großen Zeitschritten
+  for (let i = 0; i < n; i++) {
+    k.pendelV += (-(9810 * Math.sin(k.pendel) + a * Math.cos(k.pendel)) / PENDEL_L - 2 * zeta * PENDEL_W0 * k.pendelV) * h;
+    k.pendel += k.pendelV * h;
+  }
 }
 function korbAnschlagKollision(dt) {
   const k = angehaengt;

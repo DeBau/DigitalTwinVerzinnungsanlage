@@ -120,6 +120,7 @@ export function pruefstation(dt) {
 
   // --- Teilefluss ---
   const vR = 70 * ST.vRinne, vB = 150 * ST.vBand;
+  ST.gurtWeg = (ST.gurtWeg || 0) + vB * dt;
   ST.rinneZeit -= dt;
   const rinneStartFrei = !ST.teile.some(t => t.zustand === 'rinne' && t.x < ST.rinne0 + 45);
   if (ST.vRinne && ST.trichter.length && rinneStartFrei && ST.rinneZeit <= 0) {
@@ -191,6 +192,7 @@ function korbSummeMelden(nr, s) {
 export function pruefstationZeichnen() {
   // Kipper und Zylinder: Kolbenweg → Kippwinkel (Geometrie), Zylinder schwenkt um den Lagerbock, Stange um den Kolbenweg
   kipperKinematik(MM8.x);
+  if (ST.gurtPfeile) ST.gurtPfeile.offset.x = -(ST.gurtWeg || 0) / 200;   // Pfeile laufen mit dem Gurt
   for (const f of ST.zeichnen) f();
   const k = kipperKorb();
   if (k) k.g.position.set(k.kx - ST.kipX, BAND_Y - ST.kipY, 0);

@@ -10,18 +10,40 @@ import { profilZylinder } from '../bauteile/zylinder.js';
 // Portal: Säulen 90x90, Traverse mit Linearführung, Verschiebezylinder −MM3
 // ----------------------------------------------------------------------------
 export const PORTAL_Y = 1250, PORTAL_Z = -260;
-for (const x of [-700, 760]) {
+// Winkelverbinder 90 × 90 (Alu-Druckguss, Schenkel 6 mm, Breite 60, Mittelrippe) in der Innenecke Säule/Traverse:
+// Säule und Traverse sind vorn und hinten bündig (vorn laufen die Führungsschienen, hinten sitzt die Kettenwanne),
+// die Verbindung sitzt deshalb an der Säuleninnenseite unter der Traverse. s = Richtung zur Portalmitte.
+const winkelGeo = cached('portalWinkel', () => {
+  const sh = new THREE.Shape();
+  [[0, 0], [90, 0], [90, -6], [6, -6], [6, -90], [0, -90]].forEach(([u, v], i) => i ? sh.lineTo(u, v) : sh.moveTo(u, v));
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 60, bevelEnabled: false }); g.translate(0, 0, -30);
+  return g;
+});
+const rippeGeo = cached('portalWinkelRippe', () => {
+  const sh = new THREE.Shape(); sh.moveTo(6, -6); sh.lineTo(70, -6); sh.lineTo(6, -70); sh.closePath();
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 6, bevelEnabled: false }); g.translate(0, 0, -3);
+  return g;
+});
+function portalWinkel(xSaeule, s) {
+  const g = new THREE.Group(); g.position.set(xSaeule + s * 45, PORTAL_Y - 45, PORTAL_Z); g.scale.x = s; anlage.add(g);
+  mesh(winkelGeo, M.deckel, g); mesh(rippeGeo, M.deckel, g);
+  for (const sz of [-1, 1]) {                                                       // je Schenkel 2 × DIN 912 M8 in Nutensteine
+    zyl(6.5, 4, M.stahl, 60, -8, sz * 20, null, g, 12);                              // unter der Traverse
+    zyl(6.5, 4, M.stahl, 8, -60, sz * 20, 'x', g, 12);                               // an der Säule
+  }
+}
+for (const [x, s] of [[-700, 1], [760, -1]]) {
   profil(90, 90, PORTAL_Y - 45 - 15 - 2, 'y', x, (PORTAL_Y - 45 + 15 - 2) / 2, PORTAL_Z);   // Säule endet unter der Traverse (Endkappe 2 mm)
   box(180, 15, 180, M.deckel, x, 7.5, PORTAL_Z);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) zyl(7, 6, M.stahl, x + sx * 70, 18, PORTAL_Z + sz * 70, null, anlage, 6);
-  // Knotenbleche Säule/Traverse
-  for (const sz of [-1, 1]) box(120, 150, 4, M.deckel, x, PORTAL_Y - 60, PORTAL_Z + sz * 47);     // Knotenbleche vorn/hinten über Säule und Traverse
+  portalWinkel(x, s);
 }
 profil(90, 90, 1550, 'x', 30, PORTAL_Y, PORTAL_Z);
 // Linearführung HIWIN: 2 × Profilschiene HGR15 auf der Traversen-Vorderseite (z −215), mittig über den Nuten 10
 // (Raster 45 → y = 1250 ± 22,5). Befestigung je Bohrung mit Zylinderschraube DIN 912 M4×16 in der Flachsenkung
-// (Ø 7,5 × 5,3) und Nutenstein Nut 10 M4 im Profil. Teilung P = 60, Randabstand E = 20, L = 23 × 60 + 2 × 20 = 1420.
-export const HG = { y: [PORTAL_Y - 22.5, PORTAL_Y + 22.5], z: PORTAL_Z + 45, L: 1420, xm: 30, P: 60, E: 20, wagenX: 70 };
+// (Ø 7,5 × 5,3) und Nutenstein Nut 10 M4 im Profil. Teilung P = 60, Randabstand E = 20, L = 22 × 60 + 2 × 20 = 1360.
+// Schienen x −620 … 740: links enden sie vor den Steigleitungen der Ventilinsel −QM1 (x −718 … −645 vor der Säule).
+export const HG = { y: [PORTAL_Y - 22.5, PORTAL_Y + 22.5], z: PORTAL_Z + 45, L: 1360, xm: 60, P: 60, E: 20, wagenX: 70 };
 // Querschnitt (u = quer, v = Höhe über Anschraubfläche) entlang der Fahrachse x extrudieren: u → y, v → +z, Länge → x
 function hgGeo(key, punkte, len) {
   return cached(key, () => {
@@ -156,6 +178,7 @@ for (const sx of [-1, 1]) for (const y of [1300]) {                             
 }
 export const mm2 = profilZylinder(schlitten, {
   laenge: 440, bohrung: 50, position: new THREE.Vector3(0, 1480, 0), rotation: new THREE.Euler(0, 0, -Math.PI / 2), name: '−MM2 Tauchen', drossel: 'MM2',
+  anschlussSeite: 'vorne',                                                        // seitlich laufen die Führungsstangen x = ±62
   sensoren: [{ x: 40, signal: 'BG3_MM2_oben', text: '−BG3', dir: -1 }, { x: 400, signal: 'BG4_MM2_unten', text: '−BG4', dir: 1 }],
 });
 

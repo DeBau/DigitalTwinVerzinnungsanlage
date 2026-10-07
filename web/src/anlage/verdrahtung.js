@@ -12,7 +12,8 @@ import { stecker, steckerWinkel } from '../bauteile/stecker.js';
 import { B2, BAND, BAND_Y, KURVE, LS_POS } from './baender.js';
 import { B1_MOTOR, KANAL1, QM2 } from './band1.js';
 import './rollenkurve.js';
-import { B2_MOTOR } from './band2.js';
+import { B2_MOTOR, b2g } from './band2.js';
+import { inB2, inWanneB2 } from './wanne-band2.js';
 import { BG9_KOPF, BG10_KOPF, bad } from './zinnbad.js';
 import { KETTE, haken, schlitten } from './portal.js';
 import { HK1, SPUR, WANNE, dummy, inAnlage, wannenWeg } from './pneumatik.js';
@@ -161,7 +162,7 @@ KETTE_KABEL.push({ dz: -16, port: XD1.ports[0] });
 kabel([V(HK1.x + 19, HK1.yC0 - 4, HK1.zM + 8), V(140, HK1.yC0 - 4, HK1.zM + 8), V(140, 640, HK1.zM + 8), V(Y_VERT.x + 9 + 32, 640, Y_VERT.z), V(Y_VERT.x + 9 + 32, Y_VERT.y, Y_VERT.z)], haken, M.kabelGrau, 2.2, 16, false);
 
 // Festseite der Energiekette: in der Kettenwanne bis hinter die Säule, durch eine Kabeltülle im Wannenboden
-// senkrecht hinunter (unter den Knotenblechen) und vor die Säule zu −XD1
+// senkrecht hinter der Säule hinunter und vor die Säule zu −XD1
 box(30, 6, 26, M.kunststoff, -634, 1303, KETTE.z);                                  // Kabeltülle im Wannenboden
 KETTE_KABEL.forEach(({ dz, port }, k) => {
   const z = KETTE.z + dz, x = -640 + k * 6;
@@ -192,21 +193,19 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
   }
   // Inkrementalgeber −BG18: Leitung nach oben, unter dem Band hindurch in den Kanal (direkt auf −X5, nicht über Feldverteiler)
   { const g = BAND.geberStecker, a = steckerWinkel(anlage, g, '+y', '+x'); kabel([a, V(-148, a.y, g.z), V(-148, KANAL1.oben - 4, g.z)], anlage, M.kabelGrau, 2.8, 14); }
-  // Band 2: Kabelkanal auf der Rückseite, Lichtschranken −BG21…−BG24, Pyrometer −BT2, Luftmesser −MB14 → Kanal → Kabelbrücke
+  // Band 2: Lichtschranken −BG21…−BG24 und Pyrometer −BT2 → Kabelwanne hinter Band 2 (wanne-band2.js) → Kabelbrücke
   {
-    const zk = B2.z - 160;
-    const xk = B2.x0 + 80;
-    box(B2.x1 - xk - 80, 30, 30, M.pvc, (xk + B2.x1 - 80) / 2, 250, zk);
-    box(B2.x1 - xk - 80, 3, 34, M.pvcHell, (xk + B2.x1 - 80) / 2, 266.5, zk);
-    for (const x of [600, 1100, 1700, 2300]) box(6, 26, 24, M.anthrazit, x, 250, zk + 14);
-    for (const sig of ['BG21_B2_Anfang', 'BG22_B2_Kuehlung', 'BG24_B2_Ende']) {
-      const q = BAND.stecker[sig];
-      const a = steckerWinkel(anlage, q, '-z', '-y');
-      kabel([a, V(a.x, a.y - 30, a.z), V(a.x, a.y - 30, zk), V(q.x, 262, zk)], anlage, M.kabelGrau, 2.2, 10, false);
+    for (const [sig, spur, lage2] of [['BG21_B2_Anfang', 5, 1], ['BG22_B2_Kuehlung', 3, 1], ['BG24_B2_Ende', 0, 0]]) {
+      const a = inB2(steckerWinkel(anlage, BAND.stecker[sig], '-z', '+y'));
+      const weg = [a, V(a.x, 385, a.z)];
+      if (sig === 'BG22_B2_Kuehlung') {                                       // im Kühltunnel: versetzt, durch eine Kabelverschraubung in der Rückwand
+        weg.push(V(a.x, 385, a.z + 40));
+        box(14, 12, 12, M.kunststoff, 152, 385, a.z + 40, b2g);
+      }
+      inWanneB2(spur, lage2, weg);
     }
-    const b = BAND.bt2Stecker;
-    kabel([b, V(b.x, b.y, zk), V(b.x, 262, zk)], anlage, M.kabelGrau, 2.6, 10, false);
-    [M.kabelGrau, M.kabelGrau, M.kabelGrau].forEach((mat, i) => { const d = lage(); kabel([V(xk + 10 + i * 6, 240, zk), V(xk + 10 + i * 6, 14, zk), V(xk + 10 + i * 6, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)], anlage, mat, 2.4, 20, false); });
+    const b = inB2(BAND.bt2Stecker);                                          // Pyrometer: hinter dem Pumpenkabel vorbei über den Tank
+    inWanneB2(4, 0, [b, V(250, b.y, b.z), V(250, b.y, b.z + 10.5), V(250, 420, b.z + 10.5)]);
     const m = B2_MOTOR.abgang, mb = m[m.length - 1];
     { const d = lage(); kabel([...m, V(mb.x, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)], anlage, M.kabel, 4.5, 30, false); }
     const g2 = BAND.geber2Stecker;
@@ -317,5 +316,6 @@ export function ketteAktualisieren() {
     kettenGlieder.setMatrixAt(i, dummy.matrix);
   }
   kettenGlieder.instanceMatrix.needsUpdate = true;
+  kettenGlieder.computeBoundingSphere();                                  // sonst bleibt die Hüllkugel der Startlage und die Kette wird beim Verfahren weggeschnitten
 }
 

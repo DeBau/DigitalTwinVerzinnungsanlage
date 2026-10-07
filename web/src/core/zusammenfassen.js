@@ -11,6 +11,7 @@ import { haken, hakenKoerper, mm1Piv, mm1Stange, schlitten } from '../anlage/por
 import { SCHRANK } from '../anlage/schaltschrank.js';
 import { Q, STUFEN, stufeSetzen, stufenVorbereiten } from './grafik.js';
 import { t } from './sprache.js';
+import { freieProfilendenAbdecken } from '../bauteile/aluprofil.js';
 import { eckenMaterial, eckenwerteAnhaengen, eckenwerteMoeglich, oberflaeche } from './eckenwerte.js';
 
 // ----------------------------------------------------------------------------
@@ -19,6 +20,7 @@ import { eckenMaterial, eckenwerteAnhaengen, eckenwerteMoeglich, oberflaeche } f
 // Teile mit eigener Bewegung, Klickfläche, Materialwechsel oder neu berechneter Geometrie bleiben einzeln.
 // ----------------------------------------------------------------------------
 function szeneZusammenfassen() {
+  freieProfilendenAbdecken(anlage);                                          // vor dem Zusammenfassen: Kappen gehören zu den Profilen
   const wurzeln = [anlage, schlitten, haken, deckel, hakenKoerper, mm1Piv, mm1Stange, BAND.anschlag, BAND.vereinzeler, ...BAND.stopperNocken, ...KURVE.rollen, ST.kipper, ST.zylBody, ST.zylStange, ST.rinneGruppe,
     ...BAND.trommeln, ...BAND2.trommeln, ...SCHRANK.tueren, ...KNEBEL.map(k => k.knebel)];
   const wurzelSet = new Set(wurzeln);

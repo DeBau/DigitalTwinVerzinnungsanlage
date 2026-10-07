@@ -1,10 +1,12 @@
 import * as THREE from 'three';
 import { anlage } from '../core/szene.js';
 import { M } from '../core/materialien.js';
-import { V, box, zyl } from '../core/geometrie.js';
-import { label } from '../core/beschriftung.js';
+import { V, box, cached, mesh, zyl } from '../core/geometrie.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { label, platte, tafel } from '../core/beschriftung.js';
 import { sensorLed } from '../core/leds.js';
 import { leitung, rohr as starrRohr } from '../bauteile/leitungen.js';
+import { inWanneB2 } from './wanne-band2.js';
 import { steckerWinkel } from '../bauteile/stecker.js';
 import { KLICK, PULT_TASTER } from './register.js';
 import { profil, stellfuss } from '../bauteile/aluprofil.js';
@@ -69,17 +71,22 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   const tz = zc + 60;
   box(160, 300, 360, M.edelstahl, 260, 160, tz, b2g);
   box(164, 6, 364, M.edelstahl, 260, 313, tz, b2g);
-  zyl(45, 50, new THREE.MeshStandardMaterial({ color: 0x2f5fa8, roughness: 0.45 }), 300, 341, tz - 80, null, b2g, 24);   // Pumpengehäuse auf der Tankplatte
-  zyl(55, 140, M.anthrazit, 300, 436, tz - 80, null, b2g, 24);                                     // Pumpenmotor darüber
-  box(60, 30, 60, M.anthrazit, 300, 521, tz - 80, b2g);                                             // Klemmenkasten
-  starrRohr([V(240, 335, tz - 80), V(200, 335, tz - 80), V(200, BAND_Y + 225, tz - 80), V(182, BAND_Y + 225, tz - 80)], new THREE.MeshStandardMaterial({ color: 0x2f5fa8, roughness: 0.4 }), 12, 30, b2g);
-  const ventil = new THREE.Group(); ventil.position.set(200, BAND_Y + 120, tz - 80); b2g.add(ventil);
-  box(50, 40, 50, M.messing, 0, 0, 0, ventil);
-  box(36, 44, 36, M.kunststoff, 0, 42, 0, ventil);                                                 // Magnetspule −MB13
-  const vled = sensorLed(ventil, -19, 52, 0, 'MB13_Spruehwasser', 1, 4, 5); vled.emissive.setHex(0xffb000);
+  // Pumpe im hinteren Tankbereich (z tz − 125): neben dem Pyrometer −BT2 (z zc ± 30) und unter dem Wrasenrohr (ab y 586)
+  const PX = 265, PZ = tz - 125;
+  umwaelzpumpe(PX, PZ);
+  // Druckleitung DN15: waagrecht aus dem Pumpenkopf über den Tankrand, senkrecht von unten in das Verteilerrohr (x 175, y BAND_Y + 225)
+  starrRohr([V(PX - 50, 350, PZ), V(175, 350, PZ), V(175, BAND_Y + 225 - 12, PZ)], M.edelstahl, 10, 22, b2g);
+  zyl(17, 46, M.edelstahl, 175, BAND_Y + 225, PZ, 'z', b2g, 20);                                 // T-Stück im Verteilerrohr (Durchgang)
+  zyl(13, 20, M.edelstahl, 175, BAND_Y + 225 - 22, PZ, null, b2g, 16);                            // Abzweig nach unten, Steigleitung eingeschweißt
+  // Sprühventil −MB13 (2/2 NC, G1/2) in der Steigleitung, Spule zur Seite +z (nicht zur Pumpe)
+  const ventil = new THREE.Group(); ventil.position.set(175, 405, PZ); b2g.add(ventil);
+  box(36, 40, 36, M.messing, 0, 0, 0, ventil);
+  box(34, 34, 36, M.kunststoff, 0, 0, 36, ventil);                                                 // Magnetspule −MB13
+  box(22, 24, 12, M.kunststoff, 0, -4, 60, ventil);                                                // Gerätestecker
+  const vled = sensorLed(ventil, 0, 4, 66.2, 'MB13_Spruehwasser', 4, 5, 1); vled.emissive.setHex(0xffb000);
   KUEHL.ventilLed = vled;
-  label('Sprühventil −MB13', ventil, 0, 90, 0, 'klein');
-  label('Kühlwassertank, Umwälzpumpe −MA3', b2g, 260, 580, tz - 80, 'klein');
+  label('Sprühventil −MB13', ventil, 0, 60, 30, 'klein');
+  label('Kühlwassertank, Umwälzpumpe −MA3', b2g, 260, 640, tz - 125, 'klein');
   tankAusruestung(tz);
   label('Sprühkühlung (Abschrecken)', b2g, 0, yU + H + 90, zc, 'cyl');
   // Pyrometer −BT2 mit Spülluftvorsatz, misst durch die Rückwand auf den Korb am Kühlplatz
@@ -128,8 +135,8 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   leitung([V(XP + 40, BAND_Y + 140, lz + 22), V(XP + 40, BAND_Y + 140, lz + 45), V(XP + 40, YK, lz + 90), V(158, YK, lz + 90), V(158, YK, lz)], luft, 4, 25, b2g);   // PU 8×1,25
   leitung([V(XP + 40, BAND_Y + 100, lz + 22), V(XP + 40, BAND_Y + 100, lz + 80), V(XP + 40, BAND_Y - 40, lz + 80), V(140, BAND_Y - 40, lz + 80), V(140, BAND_Y - 40, lz)], luft, 4, 25, b2g);
   zyl(9, 12, M.stahl, 136, BAND_Y - 40, lz, 'x', b2g, 6);                                             // Schottverschraubung
-  // Ventilkabel am Pfosten hinunter in den Kabelkanal von Band 2
-  leitung([V(XP + 40, BAND_Y + 38, lz - 27), V(XP + 40, BAND_Y + 38, lz - 55), V(160, BAND_Y + 38, lz - 55), V(160, BAND_Y - 34, lz - 55)], M.kabelGrau, 2.6, 14, b2g);
+  // Ventilkabel aus dem Gerätestecker nach hinten in die Kabelwanne hinter Band 2
+  inWanneB2(0, 1, [V(XP + 40, BAND_Y + 158, lz - 27), V(XP + 40, BAND_Y + 158, lz - 50)]);
   KUEHL.luftschleier = new THREE.Mesh(new THREE.PlaneGeometry(240, 180), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12, depthWrite: false, side: THREE.DoubleSide }));
   KUEHL.luftschleier.position.set(0, BAND_Y + 95, lz - 40); KUEHL.luftschleier.rotation.x = 0.5; KUEHL.luftschleier.visible = false; b2g.add(KUEHL.luftschleier);
   label('Luftmesser −MB14', b2g, 0, YO + 60, lz, 'klein');
@@ -184,12 +191,12 @@ function tankAusruestung(tz) {
   // Einschraubstutzen 1½", Gehäuse PVDF mit Antenne nach unten, Typschild, M12-Winkelstecker oben
   const ux = 228, uz = tz + 130;
   zyl(26, 10, M.edelstahl, ux, 321, uz, null, b2g, 24);                                            // Stutzen
-  zyl(24, 8, M.edelstahl, ux, 330, uz, null, b2g, 6);                                              // Kontermutter
+  zyl(24, 8, M.edelstahl, ux, 329, uz, null, b2g, 6);                                              // Kontermutter
   zyl(30, 96, M.kunststoff, ux, 382, uz, null, b2g, 28);                                           // Gehäuse
-  zyl(31, 10, M.blau, ux, 425, uz, null, b2g, 28);                                                 // Kopfring (E+H-Blau)
+  zyl(31, 10, M.blau, ux, 426, uz, null, b2g, 28);                                                 // Kopfring (E+H-Blau)
   zyl(12, 10, M.kunststoff, ux, 435, uz, null, b2g, 16);
-  box(1.5, 30, 26, M.blech, ux + 30.5, 385, uz, b2g);                                              // Typschild
-  const bl2 = steckerWinkel(b2g, V(ux, 440, uz), '+y', '-x');
+  box(1.5, 30, 26, M.blech, ux + 31.2, 385, uz, b2g);                                              // Typschild
+  const bl2 = steckerWinkel(b2g, V(ux, 440, uz), '+y', '+x');                              // Abgang zur Kabelwanne (Tankrückseite)
   label('−BL2 Füllstand (Micropilot FMR20B, Radar)', b2g, ux, 500, uz, 'klein');
   // Frischwasser-Fallleitung (Edelstahl DN15) von der Hallendecke in den Deckel
   const fx = 300, fz = tz + 60, YD = 2600;
@@ -204,27 +211,98 @@ function tankAusruestung(tz) {
   box(26, 22, 12, M.kunststoff, 0, -6, 67, mb17);
   KUEHL.mb17Led = sensorLed(mb17, 0, 8, 73.5, 'MB17_Nachspeisen', 4, 4, 1.5); KUEHL.mb17Led.emissive.setHex(0xffb000);
   label('Magnetventil −MB17', mb17, 0, 50, 60, 'klein');
-  // Regelventil −MB18: Ventilkörper in der Leitung, Joch mit Spindel, Stellantrieb 24 V (Stellsignal und
-  //  Rückmeldung 0…10 V), Stellungsanzeige am Joch (Zeiger wandert mit der Spindel)
+  // Regelventil −MB18: Siemens Acvatix Durchgangsventil VVG44.15-4 (DN15, PN16, kvs 4, Rotguss Rg5, Außengewinde G1" B,
+  //  Hub 5,5 mm) mit elektromotorischem Stellantrieb SAS61.03 (AC/DC 24 V, Stellsignal und Rückmeldung DC 0…10 V,
+  //  400 N, 30 s) – Maße nach Datenblatt CE1N4581: B 80, C 106,5 (Spindel 21,9 von der Rückseite, 84,6 nach vorn),
+  //  A 137,6 / 151 mit Handversteller, Kupplungsteil E 29,9. Einbau in der senkrechten Fallleitung, Spindel waagrecht.
   const mb18 = new THREE.Group(); mb18.position.set(fx, 600, fz); b2g.add(mb18);
-  zyl(26, 60, M.anthrazit, 0, 0, 0, null, mb18, 20);
-  for (const y of [-34, 34]) zyl(22, 8, M.anthrazit, 0, y, 0, null, mb18, 6);                     // Flansche
-  zyl(18, 20, M.anthrazit, 0, 0, 30, 'z', mb18, 16);
-  for (const dx of [-14, 14]) zyl(3, 60, M.stahl, dx, 0, 70, 'z', mb18, 8);                        // Jochstangen
-  zyl(2.5, 60, M.stahl, 0, 0, 70, 'z', mb18, 8);                                                   // Spindel
-  box(70, 64, 70, M.blau, 0, 0, 135, mb18);                                                        // Stellantrieb
-  box(30, 18, 3, M.schwarz, 0, 18, 171.5, mb18);
-  box(2, 24, 50, M.blech, 24, 0, 70, mb18);                                                        // Skala 0…100 % (zur Rückseite)
-  for (let i = 0; i <= 4; i++) box(1.2, i % 2 ? 6 : 12, 1.2, M.schwarz, 25.5, 6, 48 + i * 11, mb18);
-  const zeiger = box(4, 10, 4, M.gelb, 17, -4, 48, mb18); zeiger.userData.dyn = true;
-  KUEHL.mb18Zeiger = { m: zeiger, z0: 48, hub: 44 };
-  label('Regelventil −MB18', mb18, 0, 60, 135, 'klein');
+  regelventilSiemens(mb18);
   label('Frischwasser', b2g, fx, 1330, fz, 'klein');
-  // Leitungen an der Fallleitung hinunter, über den Deckel nach vorn und in den Kabelkanal von Band 2 (lokal x = 160)
-  const zuKanal = (y, z) => [V(165, y, z), V(165, 262, z)];
-  leitung([V(fx, 974, fz + 73), V(fx, 974, fz + 105), V(fx, 330, fz + 105), ...zuKanal(330, fz + 105)], M.kabelGrau, 2.6, 14, b2g);
-  leitung([V(fx, 568, fz + 135), V(fx, 334, fz + 135), ...zuKanal(334, fz + 135)], M.kabelGrau, 2.6, 14, b2g);
-  leitung([bl2, ...zuKanal(bl2.y, uz)], M.kabelGrau, 2.6, 14, b2g);
-  // Liquiphant: Stecker nach unten, Leitung mit Tropfschlaufe nach oben über den Deckel
-  for (const s of [bg39, bg38]) leitung([s.a, V(s.a.x, s.a.y - 46, s.a.z), V(s.a.x + 46, s.a.y - 46, s.a.z), V(s.a.x + 46, 362, s.a.z), ...zuKanal(362, s.a.z)], M.kabelGrau, 2.2, 12, b2g);
+  // Leitungen in die Kabelwanne hinter Band 2 (wanne-band2.js): Spur/Lage nach Einlegestelle, siehe dort
+  const PX = 265, PZ = tz - 125;                                                                   // Pumpenlage wie oben
+  // Liquiphant −BG38/−BG39: Stecker nach unten, unter dem Gerät zur Wand, an der Wand (Schellen) hoch und von oben in die Wanne
+  [[bg38, 3], [bg39, 2]].forEach(([sn, spur]) => {
+    const a2 = sn.a, yu = a2.y - 40, zw = a2.z + 21;                                               // neben dem Sechskant des Sensors
+    inWanneB2(spur, 0, [a2, V(a2.x, yu, a2.z), V(a2.x, yu, zw), V(352, yu, zw), V(352, 360, zw)], M.kabelGrau, 2.2);
+    for (let y = yu + 40; y < 290; y += 120) box(10, 8, 12, M.kunststoff, 350, y, zw, b2g);       // Kabelschellen an der Tankwand
+  });
+  // −MA3: Klemmenkasten unten, über den Deckel nach hinten in die Wanne
+  inWanneB2(4, 1, [V(PX, 437, PZ + 66), V(PX, 400, PZ + 66)], M.kabel, 3.5);
+  // −MB13: Gerätestecker der Spule (Seite +z), unter der Motorleitung neben der Pumpe vorbei
+  inWanneB2(5, 0, [V(175, 389, PZ + 60), V(175, 380, PZ + 60), V(175, 380, PZ + 52)]);
+  // −BL2: Winkelstecker oben, direkt nach hinten
+  inWanneB2(1, 1, [bl2, V(bl2.x + 14, bl2.y, uz)]);
+  // −MB18: aus M16 unten am Stellantrieb
+  inWanneB2(1, 0, [V(fx + 12, 550, fz + 92), V(fx + 12, 500, fz + 92)]);
+  // −MB17: Gerätestecker nach vorn, neben der Fallleitung hinunter (Rohrschellen mit Kabelhalter)
+  inWanneB2(2, 1, [V(fx, 974, fz + 73), V(fx, 974, fz + 92), V(330, 974, fz + 92), V(330, 974, fz + 20), V(330, 420, fz + 20)]);
+  for (const y of [880, 760, 470]) box(32, 8, 24, M.kunststoff, fx + 18, y, fz + 12, b2g);
+}
+
+// Umwälzpumpe −MA3: kleine senkrechte Eintauchpumpe auf dem Tankdeckel (Bauart Grundfos MTH 2), 0,37 kW:
+//  Befestigungsflansch Ø110 (ganz auf dem Deckel), Pumpenkopf mit Druckstutzen nach −x, Laterne mit Kupplungsfenstern,
+//  Motor IEC 63 (B14) mit Kühlrippen, Lüfterhaube mit Gitter oben (Oberkante y 553), Klemmenkasten zur Seite +z
+function umwaelzpumpe(x, z) {
+  const blau = new THREE.MeshStandardMaterial({ color: 0x2f5fa8, roughness: 0.45 });
+  const motor = new THREE.MeshStandardMaterial({ color: 0x5d6770, roughness: 0.5, metalness: 0.15 });
+  zyl(55, 10, blau, x, 321, z, null, b2g, 32);                                                     // Befestigungsflansch
+  for (let i = 0; i < 4; i++) { const a = Math.PI / 4 + i * Math.PI / 2; zyl(5, 5, M.stahl, x + Math.cos(a) * 45, 328.5, z + Math.sin(a) * 45, null, b2g, 6); }
+  zyl(38, 46, blau, x, 349, z, null, b2g, 28);                                                     // Pumpenkopf
+  zyl(14, 16, blau, x - 44, 350, z, 'x', b2g, 16);                                                 // Druckstutzen (Rohrleitung ab x − 50)
+  for (const y of [375, 413]) zyl(34, 6, blau, x, y, z, null, b2g, 24);                           // Laterne: Ringe
+  for (const s of [-1, 1]) box(14, 32, 16, blau, x, 394, z + s * 27, b2g);                         // Laternenstege
+  zyl(12, 30, M.stahl, x, 394, z, null, b2g, 16);                                                  // Wellenkupplung
+  zyl(44, 8, motor, x, 420, z, null, b2g, 32);                                                     // Motorflansch B14
+  zyl(40, 90, motor, x, 469, z, null, b2g, 32);                                                    // Motorgehäuse IEC 63
+  for (let i = 0; i < 14; i++) {                                                                   // Kühlrippen (Klemmenkastenseite +z frei)
+    const a = i / 14 * Math.PI * 2;
+    if (Math.abs(a - Math.PI / 2) < 0.35) continue;
+    const f = box(2.5, 80, 6, motor, x + Math.cos(a) * 42, 470, z + Math.sin(a) * 42, b2g); f.rotation.y = -a;
+  }
+  zyl(43, 38, motor, x, 533, z, null, b2g, 32);                                                    // Lüfterhaube
+  zyl(39, 1, M.schwarz, x, 552.4, z, null, b2g, 32);                                               // Lüfterraum unter dem Gitter
+  for (const r of [12, 24, 34]) zyl(r + 2, 1.2, motor, x, 552.9, z, null, b2g, 32);
+  box(50, 56, 34, motor, x, 470, z + 59, b2g);                                                     // Klemmenkasten
+  box(46, 52, 3, motor, x, 470, z + 77.5, b2g);                                                    // Deckel
+  zyl(7, 10, M.kunststoff, x, 437, z + 66, null, b2g, 12);                                         // Kabelverschraubung M16 unten
+  box(1.5, 20, 30, M.blech, x - 41.6, 480, z, b2g);                                                // Typschild
+}
+// Siemens VVG44.15-4 + SAS61.03 in der Gruppe g (Rohrachse = y, Spindel = +z, Stellantrieb nach −x versetzt)
+function regelventilSiemens(g) {
+  const rg5 = new THREE.MeshStandardMaterial({ color: 0xa9824f, metalness: 0.6, roughness: 0.35 });   // Rotguss
+  const grau = new THREE.MeshStandardMaterial({ color: 0xd7d9d4, roughness: 0.45 });                  // Gehäuse hellgrau
+  const dunkel = new THREE.MeshStandardMaterial({ color: 0x2a2d31, roughness: 0.5 });                  // Kupplungsteil, Deckel
+  const knopf = new THREE.MeshStandardMaterial({ color: 0x2f7fc1, roughness: 0.4 });                   // Handversteller blau
+  // Ventilkörper: Mittelteil, Anschlussstutzen G1" B, Verschraubungen zum Rohr DN15
+  zyl(24, 50, rg5, 0, 0, 0, null, g, 24);
+  for (const s of [-1, 1]) {
+    zyl(16.5, 18, rg5, 0, s * 34, 0, null, g, 24);                                                  // Außengewinde G1"
+    zyl(22, 14, M.messing, 0, s * 50, 0, null, g, 6);                                               // Überwurfmutter
+    zyl(13, 10, M.messing, 0, s * 62, 0, null, g, 6);                                               // Einschraubteil zum Rohr
+  }
+  zyl(17, 26, rg5, 0, 0, 23, 'z', g, 20);                                                           // Ventiloberteil
+  // Stellantrieb SAS61.03: Überwurfmutter und Kupplungsteil (E 29,9), Gehäuse 80 × 106,5, Höhe ab Kupplung 137,6
+  const z0 = 36, zG = z0 + 29.9, hG = 137.6 - 29.9 - 12, xc = (-84.6 + 21.9) / 2;
+  zyl(19, 10, dunkel, 0, 0, z0 + 5, 'z', g, 6);
+  zyl(17, 20, dunkel, 0, 0, z0 + 20, 'z', g, 20);
+  mesh(cached('sasGeh', () => new RoundedBoxGeometry(106.5, 80, hG, 3, 7)), grau, g).position.set(xc, 0, zG + hG / 2);
+  mesh(cached('sasDeckel', () => new RoundedBoxGeometry(104, 78, 12, 3, 6)), dunkel, g).position.set(xc, 0, zG + hG + 6);
+  zyl(14, 13.4, knopf, 0, 0, z0 + 137.6 + 6.7, 'z', g, 24);                                        // Handversteller über der Spindel
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; box(2, 2, 13.4, knopf, Math.cos(a) * 14.5, Math.sin(a) * 14.5, z0 + 137.6 + 6.7, g); }
+  // Kabelverschraubungen M16 / M20 an der Unterseite (−y)
+  zyl(8, 10, M.kunststoff, 12, -45, zG + 26, null, g, 12);
+  zyl(10, 10, M.kunststoff, -40, -45, zG + 26, null, g, 12);
+  // Typschild auf der Rückseite (+x)
+  platte(tafel('sas6103', 60, 40, (c) => {
+    c.fillStyle = '#d7d9d4'; c.fillRect(0, 0, 60, 40);
+    c.fillStyle = '#009999'; c.font = '700 8px Arial'; c.fillText('SIEMENS', 4, 11);
+    c.fillStyle = '#222'; c.font = '600 5px Arial'; c.fillText('SAS61.03', 4, 21);
+    c.font = '400 3.4px Arial'; c.fillText('AC/DC 24 V · DC 0…10 V', 4, 28); c.fillText('400 N · 5,5 mm · 30 s', 4, 33);
+  }, 8), 60, 40, g, 21.9 + 0.3, 0, zG + hG / 2, Math.PI / 2);
+  // Hubanzeige am Kupplungsteil: Zeiger wandert mit dem echten Hub 5,5 mm
+  box(2, 10, 14, M.blech, 17.5, 0, z0 + 20, g);
+  for (const dz of [-2.75, 2.75]) box(0.8, 10, 0.8, M.schwarz, 18.9, 0, z0 + 20 + dz, g);
+  const zeiger = box(2, 6, 1.6, M.gelb, 19.2, 0, z0 + 20 - 2.75, g); zeiger.userData.dyn = true;
+  KUEHL.mb18Zeiger = { m: zeiger, z0: z0 + 20 - 2.75, hub: 5.5 };
+  label('Regelventil −MB18 (Siemens VVG44.15 + SAS61.03)', g, xc, 70, zG + 60, 'klein');
 }

@@ -8,6 +8,44 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.15.0 – 2026-10-07
+
+The twin changes (`web\index.html`). In the bridge only the version number changes, so twin and bridge have the
+same minor version again. Signal list and TIA tag tables stay the same.
+
+**Why**
+Many assemblies were not yet shown as they are really built: parts intersected, cables hung in mid-air,
+motors and valves were only hinted at.
+
+**New**
+- **Swinging basket:** when the gantry −MM3 travels, the basket swings physically on its handle (start and stop),
+  lightly damped in air, settled at once in the tin.
+- **Cable tray behind conveyor 2:** perforated cable tray 60 × 35 on floor supports and tank brackets instead of
+  the PVC duct. All cables of conveyor 2, cooling water tank, pump and valves lie in it, each in its own lane.
+  A drop section leads them into the floor cable bridge at the start of the conveyor.
+- **Control valve −MB18** as Siemens VVG44.15-4 with actuator SAS61.03 (dimensions from data sheet CE1N4581),
+  stroke indicator with the real 5.5 mm stroke.
+- **Direction arrows** on the belt of the test conveyor −MA5, moving with the belt.
+- **End caps** on all free ends of the aluminium profiles (detected automatically).
+
+**Changed**
+- **Circulation pump −MA3** as a small immersion pump with lantern, IEC 63 motor and fan cover; pressure line
+  into the manifold through a tee, spray valve −MB13 turned.
+- **Test conveyor motor −MA5** as SEW helical gearmotor R07 DRN63.
+- **Gearmotors:** nameplate on a smooth pad instead of between the cooling fins.
+- **Roller curve:** round belts as closed loops around the belt heads, own drive groove.
+- **Keyence camera:** compact stand with mounting bracket, ring light directly below the lens.
+- **Local control stations:** housing centred on the column, cable inside.
+- **Control cabinet:** S7 wires into the duct slots, HMI cables on the connectors, door hoses past the frame,
+  reversing contactors with bridge wires, slotted door duct, PROFINET at the drives in front of the power module.
+- **Gantry:** angle brackets instead of gusset plates (the guide rails ran through them), guide rails shorter on
+  the left (in front of the hoses), ports of −MM2 at the front instead of at the guide rod.
+- **Enclosure:** top profiles reach into the corners. **Tin bath:** exhaust pipe with a bend.
+- **Level sensor −BL2:** no more flicker, connector towards the cable tray.
+
+**Fixed**
+- The X energy chain could disappear from some viewing angles while travelling.
+
 ## 1.14.1 – 2026-10-07
 
 Only the twin changes (`web\index.html`). Bridge, signal list and TIA tag tables stay the same, the bridge does

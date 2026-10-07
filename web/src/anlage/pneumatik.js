@@ -253,9 +253,11 @@ export function wannenWeg(sp, r, yEnde = 1398) {
 // vom Kettenmitnehmer (Schlitten) zu −MM2
 {
   const A = inSchlitten(mm2.g, mm2.portA), B = inSchlitten(mm2.g, mm2.portB);
-  // aus der Querwanne nach unten, unter der Wanne nach vorn vor die Grundplatte, zwischen oberer Lagereinheit (x ≤ 85) und Kettenrinne (x ≥ 104) hinunter
+  // aus der Querwanne nach unten, unter der Wanne nach vorn vor die Grundplatte, zwischen oberer Lagereinheit (x ≤ 85) und Kettenrinne (x ≥ 104) hinunter,
+  // auf Anschlusshöhe vor der Führungsstange (z 0, Ø16) vorbei nach vorn und von vorn in die Drosselrückschlagventile
   for (const [ziel, mat, sp] of [[A, ZYL.MM2.matA, SPUR.MM2A], [B, ZYL.MM2.matB, SPUR.MM2B]]) {
-    leitung([...wannenWeg(sp, 2.8), V(sp.ab, 1515, sp.z), V(sp.ab, 1515, -30), V(sp.ab, ziel.y, -30), V(sp.ab, ziel.y, ziel.z), ziel], mat, 2.8, 8, schlitten);
+    const zv = ziel.z + 22;
+    leitung([...wannenWeg(sp, 2.8), V(sp.ab, 1515, sp.z), V(sp.ab, 1515, -30), V(sp.ab, ziel.y, -30), V(sp.ab, ziel.y, zv), V(ziel.x, ziel.y, zv), ziel], mat, 2.8, 8, schlitten);
   }
   for (const y of [1200, 1400]) box(14, 8, 12, M.kunststoff, 95, y, -31, schlitten);     // Schlauchhalter x 88 … 102 (Rinne ab x 104), auf der Grundplatte
 }

@@ -29,6 +29,7 @@ import { t as tr } from '../core/sprache.js';
 // Visualisierung
 // ----------------------------------------------------------------------------
 let reglerTakt = 0, rauchTakt = 0;
+const BUEGEL = new THREE.Vector3();                                       // Bügelmitte im Korb, je Bild neu gedreht
 export function visual(dt) {
   schlitten.position.x = ZYL.MM3.pos * BAD_X;
   haken.position.y = (1 - ZYL.MM2.pos) * 300;
@@ -69,9 +70,10 @@ export function visual(dt) {
   for (const k of koerbe) {
     if (k.zustand === 'kipper') { /* Position in pruefstationZeichnen */ }
     else if (k.zustand === 'haken') {
-      // gekippt (Puffer am Anschlag −MM5): Drehung um die Bügelmitte, 158 über der Unterkante
-      const a = k.kipp || 0;
-      k.g.position.set(schlitten.position.x, korbUnterkante() + 158 * (1 - Math.cos(a)), -158 * Math.sin(a)); k.g.rotation.set(a, 0, 0);
+      // Drehung um die Bügelmitte (158 über der Unterkante): gekippt am Anschlag −MM5 (um x), Pendeln in Fahrtrichtung (um z)
+      k.g.rotation.set(k.kipp || 0, 0, k.pendel || 0);
+      const buegel = BUEGEL.set(0, 158, 0).applyEuler(k.g.rotation);
+      k.g.position.set(schlitten.position.x - buegel.x, korbUnterkante() + 158 - buegel.y, -buegel.z);
     }
     else if (k.zustand === 'kurve') { const p = kurvenPunkt(k.s); k.g.position.set(p.x, BAND_Y, p.z); k.g.rotation.set(0, p.winkel, 0); }   // Korb dreht sich mit der Kurve
     else if (k.zustand === 'band2') { k.g.position.set(k.x, BAND_Y, B2.z); k.g.rotation.set(0, Math.PI / 2, 0); }

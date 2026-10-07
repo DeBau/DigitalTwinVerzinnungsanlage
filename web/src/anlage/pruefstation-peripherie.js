@@ -220,7 +220,7 @@ zuXD([MULTIPOL, V(MULTIPOL.x, KY + 50, MULTIPOL.z), V(MULTIPOL.x, KY + 50, KI), 
   zumSchrank([V(gx2 + 25, 250, gz), V(gx2 + 25, KY, gz)], M.kabel, 4);
 }
 zumSchrank([FM, V(2962, 75, FM.z), ...imKanal(2962)], M.kabel, 3.5);                         // Muldenantrieb −MA7 (−QA12/−QA13, −FA8)
-zumSchrank([A.ma5, V(A.ma5.x, A.ma5.y + 50, A.ma5.z), V(A.ma5.x, A.ma5.y + 50, KZ - 12), V(A.ma5.x, KY, KZ - 12)], M.kabel, 4.5);
+zumSchrank([A.ma5, V(A.ma5.x + 30, A.ma5.y, A.ma5.z), V(A.ma5.x + 30, A.ma5.y - 60, A.ma5.z), V(A.ma5.x + 30, A.ma5.y - 60, KZ - 12), V(A.ma5.x + 30, KY, KZ - 12)], M.kabel, 4.5);   // seitlich aus dem Klemmenkasten, neben dem Motor zum Kanal
 zumSchrank([A.kf10, V(A.kf10.x, KY, A.kf10.z), V(A.kf10.x, KY, KI)], M.kabelGruen, 3.5);   // Keyence-Kabel an der Stativsäule nach unten zum Controller im Schrank
 for (const y of [200, 320]) halter(A.kf10.x, y, A.kf10.z + 4, 'y');
 // Vor-Ort-Steuerstelle −S40: aus dem Säulenfuß am Boden unter dem Prüfband (zwischen den Beinen) zum Kanal, dort hoch in den Kanal

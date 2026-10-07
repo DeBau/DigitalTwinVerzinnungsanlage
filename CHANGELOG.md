@@ -8,6 +8,44 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.15.0 – 2026-10-07
+
+Der Zwilling ändert sich (`web\index.html`). In der Bridge ändert sich nur die Versionsnummer, damit Zwilling und
+Bridge wieder dieselbe Nebenversion haben. Signalliste und TIA-Variablentabellen bleiben gleich.
+
+**Warum**
+Viele Baugruppen waren noch nicht so dargestellt, wie sie real gebaut werden: Teile liefen ineinander,
+Leitungen hingen frei in der Luft, Motoren und Ventile waren nur angedeutet.
+
+**Neu**
+- **Korb pendelt:** Beim Verfahren des Portals −MM3 schwingt der Korb physikalisch am Bügel (Anfahren und
+  Abbremsen), in Luft leicht gedämpft, im Zinn sofort beruhigt.
+- **Kabelwanne hinter Band 2:** Gelochte Kabelwanne 60 × 35 auf Bodenstützen und Tankkonsolen statt des
+  PVC-Kanals. Alle Leitungen von Band 2, Kühlwassertank, Pumpe und Ventilen liegen darin, jede in einer eigenen
+  Spur. Ein Fallstück führt sie am Bandanfang in die Kabelbrücke.
+- **Regelventil −MB18** als Siemens VVG44.15-4 mit Stellantrieb SAS61.03 (Maße nach Datenblatt CE1N4581),
+  Hubanzeige mit dem echten Hub 5,5 mm.
+- **Laufrichtungspfeile** auf dem Gurt des Prüfbands −MA5, sie laufen mit dem Gurt mit.
+- **Abdeckkappen** auf allen freien Enden der Aluprofile (automatisch erkannt).
+
+**Geändert**
+- **Umwälzpumpe −MA3** als kleine Eintauchpumpe mit Laterne, Motor IEC 63 und Lüfterhaube; Druckleitung über
+  ein T-Stück ins Verteilerrohr, Sprühventil −MB13 gedreht.
+- **Prüfbandmotor −MA5** als SEW-Stirnradgetriebemotor R07 DRN63.
+- **Getriebemotoren:** Typenschild auf glattem Sockel statt zwischen den Kühlrippen.
+- **Rollenkurve:** Rundriemen als geschlossene Schlaufen um die Riemenköpfe, eigene Antriebsrille.
+- **Keyence-Kamera:** kompaktes Stativ mit Halterwinkel, Ringlicht direkt unter dem Objektiv.
+- **Vor-Ort-Steuerstellen:** Gehäuse mittig auf der Säule, Leitung innen.
+- **Schaltschrank:** Adern der S7 in die Kanalschlitze, HMI-Leitungen an den Steckern, Türschläuche am Rahmen
+  vorbei, Wendekombinationen mit Brückenadern, geschlitzter Türkanal, PROFINET am Umrichter vor dem Leistungsteil.
+- **Portal:** Winkelverbinder statt Knotenbleche (die Führungsschienen liefen hindurch), Führungsschienen links
+  kürzer (vor den Schlauchleitungen), Anschlüsse von −MM2 vorne statt an der Führungsstange.
+- **Umhausung:** obere Profile bis in die Ecken. **Zinnbad:** Abluftrohr mit Rohrbogen.
+- **Füllstandsensor −BL2:** kein Flackern mehr, Stecker zur Kabelwanne.
+
+**Behoben**
+- Die X-Energiekette konnte beim Verfahren aus manchen Blickwinkeln verschwinden.
+
 ## 1.14.1 – 2026-10-07
 
 Nur der Zwilling ändert sich (`web\index.html`). Bridge, Signalliste und TIA-Variablentabellen bleiben gleich,

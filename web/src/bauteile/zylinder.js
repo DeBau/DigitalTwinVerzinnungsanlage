@@ -80,7 +80,8 @@ function typSchild(bohrung, hub) {
   }, 8);
 }
 // ISO-15552-Profilzylinder (Festo DSBC) entlang lokaler +x (Boden bei x = 0, Stange tritt bei x = laenge aus)
-export function profilZylinder(parent, { laenge, bohrung, position, rotation, name, sensoren = [], fuesse = false, seite = 1, drossel = null }) {
+// anschlussSeite: 'oben' (lokal +y, Standard) oder 'vorne' (lokal +z, z. B. wenn neben dem Zylinder Führungsstangen laufen)
+export function profilZylinder(parent, { laenge, bohrung, position, rotation, name, sensoren = [], fuesse = false, seite = 1, drossel = null, anschlussSeite = 'oben' }) {
   const g = new THREE.Group();
   g.position.copy(position);
   if (rotation) g.rotation.copy(rotation);
@@ -110,7 +111,13 @@ export function profilZylinder(parent, { laenge, bohrung, position, rotation, na
   zyl(iso.B / 2, 4, M.deckel, laenge + 2, 0, 0, 'x', g, 28);
   zyl(bohrung * 0.26, 1.6, M.schwarz, laenge + 4.6, 0, 0, 'x', g, 20);
   // drossel = Kurzname des Zylinders: Drosselrückschlagventile statt einfacher Steckverschraubungen
-  const anschluss = (px) => drossel ? drosselVentil(g, px, a / 2 + 0.3, 0, a * 0.1, drossel) : steckverschraubung(g, px, a / 2 + 0.3, 0, a * 0.1);
+  // Anschlüsse in einer um x gedrehten Gruppe aufbauen (lokal +y → +z), Schlauchpunkt zurück in Zylinderkoordinaten
+  const ag = anschlussSeite === 'vorne' ? new THREE.Group() : g;
+  if (ag !== g) { ag.rotation.x = Math.PI / 2; g.add(ag); }
+  const anschluss = (px) => {
+    const p = drossel ? drosselVentil(ag, px, a / 2 + 0.3, 0, a * 0.1, drossel) : steckverschraubung(ag, px, a / 2 + 0.3, 0, a * 0.1);
+    return ag === g ? p : new THREE.Vector3(p.x, -p.z, p.y);
+  };
   const portA = anschluss(kap / 2);
   const portB = anschluss(laenge - kap / 2);
   // Laserbeschriftung auf der sensorfreien Seite (unterhalb der Seitennut)

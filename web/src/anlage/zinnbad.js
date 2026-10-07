@@ -3,7 +3,8 @@ import { FUELL_MIN, TEMP_SOLL, st } from '../logik/zustand.js';
 import { anlage } from '../core/szene.js';
 import { TEX, canvasTextur } from '../core/texturen.js';
 import { M } from '../core/materialien.js';
-import { box, mesh, zyl } from '../core/geometrie.js';
+import { V, box, mesh, zyl } from '../core/geometrie.js';
+import { rohr } from '../bauteile/leitungen.js';
 import { label, schildPlatte } from '../core/beschriftung.js';
 import { t as tr } from '../core/sprache.js';
 import { SENSOREN } from './register.js';
@@ -82,10 +83,10 @@ for (const dx of [-110, 110]) {
   box(24, 40, 3, M.edelstahl, BAD_X + dx, RAND_Y - 36, -171.5, bad);                       // Schenkel an der Rückwand
 }
 box(130, 100, 40, M.edelstahl, BAD_X, RAND_Y + 30, -252, bad);                              // Sammelhaube
-zyl(45, 340, M.edelstahl, BAD_X, RAND_Y + 30, -430, 'z', bad, 32);       // Abluftkanal nach hinten durch die Rückwand
-zyl(47, 16, M.edelstahl, BAD_X, RAND_Y + 30, -560, 'z', bad, 32);
-zyl(45, 900, M.edelstahl, BAD_X, RAND_Y + 30 + 405, -650, null, bad, 32);
-zyl(47, 16, M.edelstahl, BAD_X, RAND_Y + 30, -650, null, bad, 32);
+// Abluftrohr Ø90: von der Sammelhaube nach hinten, Rohrbogen 90° (R 1,5 × D) und senkrecht nach oben
+rohr([V(BAD_X, RAND_Y + 30, -260), V(BAD_X, RAND_Y + 30, -650), V(BAD_X, RAND_Y + 30 + 855, -650)], M.edelstahl, 45, 135, bad);
+zyl(47, 16, M.edelstahl, BAD_X, RAND_Y + 30, -440, 'z', bad, 32);                          // Rohrschelle / Muffe waagrecht
+zyl(47, 16, M.edelstahl, BAD_X, RAND_Y + 30 + 400, -650, null, bad, 32);                   // Muffe senkrecht
 label('Randabsaugung', bad, BAD_X, RAND_Y + 110, -240, 'klein');
 // Thermoelement −BG9 (Anschlusskopf) und Niveauelektrode −BG10: waagrecht durch die Rückwand eingebaut,
 // Köpfe hinten unterhalb des Randes – oben über dem Bad fährt die Abdeckung (−MM4) über die ganze Breite
