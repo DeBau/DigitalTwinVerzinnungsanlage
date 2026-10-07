@@ -196,6 +196,8 @@ export function init(){
   dlg.addEventListener("change", feldGeaendert);
   dlg.addEventListener("pointerdown", e => { if (e.target.closest(".sym")) e.preventDefault(); signalWahl(e); });   // Fokus im Feld lassen
   dlg.addEventListener("keydown", taste);
+  // Liegt der Fokus nach einem Klick auf eine leere Fläche auf body, kommen die Tasten trotzdem im Editor an
+  document.addEventListener("keydown", e => { if (ED.svg && !dlg.contains(e.target)) taste(e); });
   dlg.addEventListener("cancel", e => e.preventDefault());   // Esc schließt den Editor nie, nur „Fertig“
   dlg.addEventListener("close", () => { ED.svg = null; ED.sim = {on: false, st: {}, pos: {}}; route(); });
 }
