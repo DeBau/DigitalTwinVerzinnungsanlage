@@ -20,7 +20,7 @@ export function gegenueber(d, o, n){
     if (c.b === o.id && pb === n && objs[c.a]) r.push(ziel(objs[c.a], pa));
   });
   autoLeitungen(d, cs).forEach(a => { if (a.o.id === o.id && a.p.n === n) r.push(a.y % PH === 70 ? "L+" : "M"); });
-  return r.join(", ") || "frei";
+  return [...new Set(r)].join(", ") || "frei";   // alte Zeichnungen haben Leitungen teils doppelt
 }
 const ZELLE = ' style="padding:3px 4px;text-align:left"';
 const KOPF = ["Klemme", "oben", "unten", "Pfad"].map(t => `<th${ZELLE}>${t}</th>`).join("");

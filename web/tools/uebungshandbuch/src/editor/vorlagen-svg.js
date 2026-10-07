@@ -1,6 +1,7 @@
 // Editor-Kern: Vorgedrucktes der Blätter (Raster, Punkte, Rahmen, Schriftfeld) und Striche und Texte als SVG.
 import { esc } from '../app/basis.js';
-import { SCHRIFT, tw } from './svg.js';
+import { SCHRIFT } from '../symbole/grund.js';
+import { tw } from './svg.js';
 import { ED, istMarkiert } from './status.js';
 import { STRICH, fuelle } from './registry.js';
 

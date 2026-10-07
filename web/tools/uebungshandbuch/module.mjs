@@ -100,7 +100,12 @@ if (cmd === 'imports' || cmd === 'check') {
   let fehler = 0;
   for (const m of M) {
     const imp = new Map();
-    for (const s of m.ast.body) for (const r of refs(s)) { const g = wo.get(r); if (g && g !== m && !m.eigen.has(r) && !m.lokal.has(r)) (imp.get(g) || imp.set(g, new Set()).get(g)).add(r); }
+    for (const s of m.ast.body) {
+      for (const r of refs(s)) {
+        const g = wo.get(r);
+        if (g && g !== m && !m.eigen.has(r) && !m.lokal.has(r)) (imp.get(g) || imp.set(g, new Set()).get(g)).add(r);
+      }
+    }
     const auf = [...imp].filter(([g]) => g.i > m.i);
     if (auf.length) { fehler++; console.log(`SCHICHT: ${m.n} benutzt aus später geladenen Modulen ${auf.map(([g, s]) => `${g.n} (${[...s].join(', ')})`).join('; ')}`); }
     if (cmd === 'imports' && !istGeteilt(m.n)) {

@@ -27,7 +27,6 @@ registriereVorlage("stromlauf", {
   n: "Stromlaufplan", d: "Steuerstromkreis zwischen L+ und M: Taster, Not-Halt, SPS, Sicherheitsrelais",
   gruppen: ["elektro", "geraete", "leistung"], schienen: [["L+", 70, 40, 935], ["M", 590, 40, 935]],
   body: stromlaufBlatt,
-  // Haken hintergrund: Ordnungsziffern merken (vor dem Zeichnen der Kontakte), automatische Leitungen
   hintergrund: stromlaufHintergrund,
   werkzeugleiste: {get nachVerbinden(){ return simKnopf() + pfadKnopf(); }},
   // Haken anleitung: Hilfe zur Simulation; ohne Markierung der Klemmenplan
@@ -35,7 +34,7 @@ registriereVorlage("stromlauf", {
   werkzeugWechsel: simWechsel,
   zeiger: {unten: simUnten},
   klick: pfadKlick,
-  pruefe: pruefeStromlauf,   // Knopf „Breite Pfade“
+  pruefe: pruefeStromlauf,   // Knopf „Prüfen“ (elektro-pruefen.js)
   // Glieder des Steuerstromkreises rasten auf die Strompfad-Spalten
   fangBaustein(o){ if (gruppenId(o) === "elektro") o.x = pfadX(pfadNummer(o.x)); },
   // Abbruchstellen nennen zusätzlich den Strompfad
@@ -82,9 +81,10 @@ const notHalt2 = (x, y) => SYM.nh.zeichne(x, y, {an: ["11", "12"]}) + SYM.nc.zei
   + wirklinie(`M${x + 5} ${y + 29}H${x + 35}`);
 const NOT_HALT_2 = {...glied("Not-Halt zweikanalig", "−SF0", notHalt2, ["11", "12"], {links: 40, kb: ["SF"]}), w: 90, bx: -40,
   anschluesse: [["11", 0, 0, "u"], ["12", 0, 60, "d"], ["21", 30, 0, "u"], ["22", 30, 60, "d"]]};
-// Hilfsöffner 95/96 des Motorschutzschalters, betätigt vom Überlastauslöser (Kasten I>); in der Simulation auslösbar
-const motorschutzOeffner = (x, y, g) => SYM.nc.zeichne(x, y, g) + wirklinie(`M${x + 5} ${y + 29}H${x - 24}`)
-  + kasten(x - 42, y + 22, 18, 14) + text(x - 33, y + 32.5, "I>", {a: "middle", g: 8, w: 600});
+// Hilfsöffner 95/96 des Motorschutzschalters, betätigt vom Auslöser (Kasten I> ϑ wie im Hauptstromkreis);
+// in der Simulation auslösbar
+const motorschutzOeffner = (x, y, g) => SYM.nc.zeichne(x, y, g) + wirklinie(`M${x + 5} ${y + 29}H${x - 20}`)
+  + kasten(x - 44, y + 22, 24, 14) + text(x - 32, y + 32.5, "I> ϑ", {a: "middle", g: 8, w: 600});
 // Zeitrelais: Spule mit Zusatzkasten links, anzugsverzögert mit Kreuz, abfallverzögert gefüllt (IEC 60617-7)
 const zeitrelaisBild = gefuellt => (x, y, g) => SYM.coil.zeichne(x, y, g) + kasten(x - 27, y + 18, 12, 24, gefuellt ? TINTE : "#fff")
   + (gefuellt ? "" : linie(`M${x - 27} ${y + 18}L${x - 15} ${y + 42}M${x - 15} ${y + 18}L${x - 27} ${y + 42}`));
@@ -115,7 +115,7 @@ registriereBauteile({
   sens: {...glied("Näherungsschalter PNP", "−BG2", naeherungsschalter, ["BN", "BU"], {links: 20, kb: GEBER}), w: 56,
     anschluesse: [["BN", 0, 0, "u"], ["BU", 0, 60, "d"], ["BK", 30, 30, "r"]]},
   mbv: glied("Ventilspule", "−MB1", SCHALTZEICHEN("mbv"), ["A1", "A2"], {links: 22, kb: ["MB"]}),
-  msk: glied("Motorschutz Hilfsöffner", "−FA1", motorschutzOeffner, ["95", "96"], {links: 48, kb: ["FA", "QA"]}),
+  msk: glied("Motorschutz Hilfsöffner", "−FA1", motorschutzOeffner, ["95", "96"], {links: 50, kb: ["FA", "QA"]}),
   term: glied("Klemme", "−X1:1", klemme, ["1", "2"], {links: 10}),
   fuse: glied("Sicherung", "−FA2", SCHALTZEICHEN("sicherung"), ["1", "2"], {links: 12, kb: ["FA"]}),
 });

@@ -1,9 +1,9 @@
 // Editor-Kern: SVG-Grundlagen für alle Zeichnungen (Farben, Text, Pfeilspitze, Blatthöhe).
 import { esc } from '../app/basis.js';
+import { SCHRIFT } from '../symbole/grund.js';
 
 export const INK = "#17212B", MUTE = "#9AA4AD";
 export const tw = (s, px=13) => Math.max(...String(s ?? "").split("\n").map(l => l.length)) * px * .58;
-export const SCHRIFT = "Plex Sans,Segoe UI,sans-serif";
 // Text an x, y mit Ausrichtung a, Größe sz, Stärke w, Farbe f. Mehrzeilig: Zeilen durch Zeilenumbruch getrennt,
 // zentrierte Beschriftungen bleiben dabei mittig.
 export const SVGT = (x, y, t, a="middle", sz=13, w=500, f=INK) => {

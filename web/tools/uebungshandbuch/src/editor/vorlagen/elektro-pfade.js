@@ -84,12 +84,14 @@ function bereiche(o){
   };
 }
 const schneidet = (a, b) => a[0] < b[1] && b[0] < a[1] && a[2] < b[3] && b[2] < a[3];
+const RAHMEN = 20;   // linke Rahmenlinie: Ein Kennzeichen davor gilt als nicht frei
 export function merkePfade(d){
   PFAD.breite = breiteVon(d.meta);
   SEITE.clear();
   const glieder = (d.o || []).filter(o => imPfad(o) && o.v && !o.rot && !o.flip).sort((a, b) => a.x - b.x || a.y - b.y);
   const B = new Map(glieder.map(o => [o.id, bereiche(o)])), belegt = [];
-  const frei = (o, r) => !belegt.some(q => schneidet(q, r)) && !glieder.some(p => p !== o && schneidet(B.get(p.id).koerper, r));
+  const frei = (o, r) => r[0] >= RAHMEN && !belegt.some(q => schneidet(q, r))
+    && !glieder.some(p => p !== o && schneidet(B.get(p.id).koerper, r));
   glieder.forEach(o => {
     const b = B.get(o.id), rechts = !frei(o, b.links) && frei(o, b.rechts);
     if (rechts) SEITE.set(o.id, "r");

@@ -192,6 +192,26 @@ export const tests = [
     },
   },
   {
+    name: 'Kennzeichen in Pfad 1 bleibt im Rahmen',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      const o = await setzeEinzeln(t, 'estop', PFAD(1), 200);
+      const lage = await t.page.$eval(`#edstage .ink [data-o="${o.id}"]`, (g, v) => [...g.querySelectorAll('text')]
+        .filter((x) => x.textContent === v).map((x) => [+x.getAttribute('x'), x.getAttribute('text-anchor')])[0], o.v);
+      t.erwarte(lage[0] > PFAD(1) && lage[1] === 'start', `Kennzeichen rechts statt über dem Rahmen: ${lage}`);
+    },
+  },
+  {
+    name: 'Klemmenplan ohne doppelte Einträge bei alten Zeichnungen',
+    daten: 'elektro-klemme-doppelt',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      const zeilen = await t.page.$$eval('#props table.klemmenplan tbody tr',
+        (rs) => rs.map((r) => [...r.cells].map((c) => c.textContent)));
+      t.gleich(zeilen.map((z) => z.slice(0, 3)), [['-X1:1', 'L+', '-MB1:A1']], 'Ventilspule nur einmal');
+    },
+  },
+  {
     name: 'E7 Not-Halt zweikanalig 11/12 und 21/22',
     lauf: async (t) => {
       await t.oeffne('stromlauf');
