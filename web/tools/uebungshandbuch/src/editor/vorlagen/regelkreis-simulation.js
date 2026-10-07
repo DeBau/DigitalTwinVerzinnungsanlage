@@ -5,9 +5,11 @@
 import { $, esc } from '../../app/basis.js';
 import { ED } from '../status.js';
 import { FARBEN, HINWEIS, auswahlFeld, updateProps } from '../eigenschaften.js';
+import { richtung } from './zustand.js';
 
 export const STRECKE = {t1: 10, totzeit: 1, ks: 1};     // Zeitkonstante und Totzeit in s, Verstärkung
-export const LAUF = {dauer: 60, dt: 0.05, sprungBei: 5, wVor: 20, wNach: 60, hysterese: 2};   // Zeiten in s, Werte in %
+export const LAUF = {dauer: 60, dt: 0.05, sprungBei: 5, wVor: 20, wNach: 60, hysterese: 2,
+  ruhe: 15};   // Zeiten in s, Werte in %; ruhe: so lange muss x am Ende ruhig sein
 export const SIM_REGLER = [["P", "P-Regler"], ["PI", "PI-Regler"], ["2P", "Zweipunktregler"]];
 // Regler aus der Zeichnung übernehmen (PID rechnet hier wie PI), sonst PI
 export function startRegler(d){
@@ -42,13 +44,23 @@ export function simuliere(sim){
   }
   return punkte;
 }
-// Kurzer Satz zum Ergebnis: bleibende Regeldifferenz und Überschwingen
+// Schwingt x am Ende dauernd? In den letzten LAUF.ruhe Sekunden schwankt x um mehr als 1 % und kehrt dabei
+// mindestens zweimal um (ein langsames Ansteigen ist kein Schwingen).
+export function schwingtDauernd(p){
+  const xs = p.slice(-Math.round(LAUF.ruhe / LAUF.dt)).filter((q, i) => i % 10 === 0).map(q => q.x);
+  const richtung = xs.slice(1).map((x, i) => Math.sign(x - xs[i])).filter(r => r);
+  const wenden = richtung.slice(1).filter((r, i) => r !== richtung[i]).length;
+  return Math.max(...xs) - Math.min(...xs) > 1 && wenden >= 2;
+}
+export const prozent = v => v.toFixed(1).replace(".", ",") + " %";
+export const ZU_STARK = {P: "Kp ist zu groß.", PI: "Kp ist zu groß oder Tn zu klein."};
+// Kurzer Satz zum Ergebnis: Dauerschwingung, bleibende Regeldifferenz, Überschwingen über den Endwert
 export function ergebnisText(sim, p){
-  const ende = p[p.length - 1], e = ende.w - ende.x, ueber = Math.max(...p.map(q => q.x)) - LAUF.wNach;
-  const pr = v => v.toFixed(1).replace(".", ",") + " %";
-  if (sim.regler === "2P") return `Der Regler schaltet ganz ein und ganz aus. x pendelt um w, bis ${pr(Math.max(0, ueber))} darüber.`;
-  const rest = Math.abs(e) < 0.5 ? "Die Regeldifferenz ist am Ende weg." : `Am Ende bleibt eine Regeldifferenz von ${pr(e)}.`;
-  return rest + (ueber > 0.5 ? ` x schwingt ${pr(ueber)} über w hinaus.` : " x schwingt nicht über.");
+  const ende = p[p.length - 1], e = ende.w - ende.x, ueber = Math.max(...p.map(q => q.x)) - ende.x;
+  if (sim.regler === "2P") return `Der Regler schaltet ganz ein und ganz aus. x pendelt um w, bis ${prozent(Math.max(0, ueber - e))} darüber.`;
+  if (schwingtDauernd(p)) return `x schwingt dauernd und kommt nicht zur Ruhe. ${ZU_STARK[sim.regler]}`;
+  const rest = Math.abs(e) < 0.5 ? "Die Regeldifferenz ist am Ende weg." : `Am Ende bleibt eine Regeldifferenz von ${prozent(e)}.`;
+  return rest + (ueber > 0.5 ? ` x schwingt ${prozent(ueber)} über den Endwert hinaus.` : " x schwingt nicht über.");
 }
 
 /* ---------- Zeichnen ---------- */
@@ -98,8 +110,9 @@ export function simPanel(){
     + HINWEIS(SIM_TIPPS[sim.regler]) + `</div>`;
 }
 export const SIM_TIPPS = {
-  P: "Tipp: Mach Kp größer. Die Regeldifferenz wird kleiner, aber sie verschwindet nie ganz.",
-  PI: "Tipp: Mach Tn kleiner. Der Regler wird schneller, aber x schwingt stärker über.",
+  P: "Tipp: Mach Kp etwas größer, z. B. 4 oder 8. Die Regeldifferenz wird kleiner, verschwindet aber nie ganz. "
+    + "Ist Kp zu groß (hier ab etwa 15), schwingt x dauernd.",
+  PI: "Tipp: Mach Tn kleiner. Der Regler wird schneller, aber x schwingt stärker über. Zu klein, dann schwingt x dauernd.",
   "2P": "Tipp: Der Zweipunktregler kennt nur ein und aus. Gut für Heizungen, wenn ein kleines Pendeln nicht stört.",
 };
 // Haken anleitung: das Panel, solange die Simulation offen ist

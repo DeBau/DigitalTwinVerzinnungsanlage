@@ -220,6 +220,9 @@ export const tests = [
       await t.page.fill('#props input[data-rks="kp"]', '8'); await t.ruhe();
       const rest = (s) => +s.match(/von (-?[\d,]+) %/)[1].replace(',', '.');
       t.erwarte(rest(await t.text('#rk-sim-text')) < rest(vorher), 'größeres Kp, kleinere Regeldifferenz');
+      await t.page.fill('#props input[data-rks="kp"]', '20'); await t.ruhe();
+      t.erwarte((await t.text('#rk-sim-text')).includes('schwingt dauernd'), 'Kp 20: Dauerschwingung erkannt');
+      t.erwarte((await t.text('#props')).includes('schwingt x dauernd'), 'Tipp warnt vor zu großem Kp');
       t.gleich(await t.daten(), null, 'Simulation speichert nichts');
       await t.klick('#editor [data-rk="simzu"]');
       t.gleich(await t.zaehle('#props #rk-sim-bild'), 0, 'Simulation geschlossen');
