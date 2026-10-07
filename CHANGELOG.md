@@ -10,7 +10,7 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 ## 1.13.0 – 2026-10-08
 
-Bridge neu bauen (`Bridgeuild.bat`): Die Bridge liefert jetzt auch den Ordner `docs/` aus.
+Bridge neu bauen (`Bridge\build.bat`): Die Bridge liefert jetzt auch den Ordner `docs/` aus.
 Signalliste und TIA-Variablentabellen bleiben gleich. Am 3D-Modell ändert sich nichts.
 
 **Warum**

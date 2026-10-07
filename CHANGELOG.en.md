@@ -10,7 +10,7 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 ## 1.13.0 – 2026-10-08
 
-Rebuild the bridge (`Bridgeuild.bat`): the bridge now also serves the `docs/` folder.
+Rebuild the bridge (`Bridge\build.bat`): the bridge now also serves the `docs/` folder.
 The signal list and TIA tag tables stay the same. The 3D model is unchanged.
 
 **Why**
