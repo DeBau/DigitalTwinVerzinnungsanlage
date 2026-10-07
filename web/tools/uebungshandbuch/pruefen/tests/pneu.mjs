@@ -240,6 +240,17 @@ export const tests = [
     },
   },
   {
+    name: 'W1 Nach erfolgreicher Eingabe verschwindet die alte Fehlermeldung',
+    lauf: async (t) => {
+      await t.oeffne('wegschritt');
+      t.erwarte((await schnelleingabe(t, 'MM2 vor')).includes('verstehe ich nicht'), 'Fehler bei MM2 vor');
+      const hinweis = await schnelleingabe(t, 'MM2-, MM3+');
+      t.erwarte(!hinweis.includes('verstehe ich nicht') && hinweis.includes('fährt aus'), `alter Fehler steht noch: ${hinweis}`);
+      const farbe = await t.page.$eval('#editor [data-wsablaufhinweis]', (p) => p.style.color);
+      t.gleich(farbe, '', 'Ausgangsfarbe');
+    },
+  },
+  {
     name: 'W2 Bedeutung 1/0 vorbelegt, Prüfung: Auslöser und Grundstellung',
     daten: 'ws-fehler',
     lauf: async (t) => {

@@ -121,17 +121,17 @@ export function ablaufZeichnen(text){
 }
 
 /* ---------- Bedienung in der Seitenleiste ---------- */
+const EINGABE_HINWEIS = "+ fährt aus (1), − fährt ein (0). Sensoren und Zeilen kommen aus der Anlage.";
 export const EINGABE_HTML = `<div class="palg"><div class="palh">Schnelleingabe</div>`
   + `<label class="prop">Ablauf, Schritt für Schritt<input type="text" data-wsablauf placeholder="MM2−, MM3+, MM2+, t = 10 s" `
   + `autocomplete="off"></label><button type="button" class="tool" data-wsablaufknopf>Diagramm zeichnen</button>`
-  + `<p class="small muted" data-wsablaufhinweis style="margin:6px 0 0">+ fährt aus (1), − fährt ein (0). Sensoren und Zeilen `
-  + `kommen aus der Anlage.</p></div>`;
-// Haken klick: Knopf „Diagramm zeichnen“; true, wenn erledigt
+  + `<p class="small muted" data-wsablaufhinweis style="margin:6px 0 0">${EINGABE_HINWEIS}</p></div>`;
+// Haken klick: Knopf „Diagramm zeichnen“; true, wenn erledigt. Ohne Fehler steht wieder der Ausgangshinweis da.
 export function eingabeKlick(e){
   if (!e.target.closest("[data-wsablaufknopf]")) return false;
   const feld = $("#editor [data-wsablauf]"), hinweis = $("#editor [data-wsablaufhinweis]");
   const fehler = ablaufZeichnen(feld ? feld.value : "");
-  if (fehler && hinweis) { hinweis.textContent = fehler; hinweis.style.color = "#C0392B"; }
+  if (hinweis) { hinweis.textContent = fehler || EINGABE_HINWEIS; hinweis.style.color = fehler ? "#C0392B" : ""; }
   return true;
 }
 
