@@ -2,12 +2,24 @@
 // Verzweigung (gefüllter Punkt) und Signal (offenes Ende mit Namen, z. B. w oder x). Alle stehen im 10er-Raster
 // mit der Mitte auf einem Rasterpunkt, damit gerade Pfeile auch wirklich gerade sind.
 import { INK, MUTE, SVGT, tw } from '../svg.js';
-import { BAUSTEIN, SAMPLE, fuelle } from '../registry.js';
+import { BAUSTEIN, SAMPLE, fuelle, registriereGruppe } from '../registry.js';
 import { LINIE, platzhalter, rund } from '../bausteine.js';
+import { HINWEIS, listenFeld } from '../eigenschaften.js';
+import { GLIED, GLIED_B, GLIED_OPTIONEN, gliedInfo, gliedSVG } from './regelkreis-glieder.js';
 
 export const BLOCK_H = 60;
-// Blockbreite nach Text, in 20er-Schritten (die Mitte liegt so im 10er-Raster)
-export const bw = o => Math.max(120, Math.round((tw(o.v || "Block") + 30) / 20) * 20);
+// Blockbreite: Glied fest, sonst nach Text in 20er-Schritten (die Mitte liegt so im 10er-Raster)
+export const bw = o => GLIED[o.typ] ? GLIED_B : Math.max(120, Math.round((tw(o.v || "Block") + 30) / 20) * 20);
+export function blockSVG(o, edit){
+  const w = bw(o), rahmen = `<rect x="${o.x}" y="${o.y}" width="${w}" height="${BLOCK_H}" rx="3" fill="#fff" ${LINIE}/>`;
+  if (GLIED[o.typ]) return rahmen + gliedSVG(o, edit);
+  return rahmen + (o.v ? SVGT(o.x + w/2, o.y + 35, o.v) : platzhalter(edit, "Block", o.x + w/2, o.y + 35));
+}
+// Eigenschaftsfeld eines Blocks: Bezeichnung, Verhalten und was das Glied tut
+export function blockFelder(o){
+  const a = BAUSTEIN.box, info = gliedInfo(o.typ);
+  return a.feldliste.map(f => listenFeld(o, a, f)).join("") + (info ? HINWEIS(info) : "");
+}
 
 /* ---------- Summierstelle ---------- */
 export const VZ_STANDARD = {vl: "+", vo: "", vu: "−"};   // + an w (links), − an x (unten)
@@ -35,14 +47,13 @@ export function signal(o, edit){
 }
 
 fuelle(BAUSTEIN, {
-  box: {g: "regel", n: "Block",
-    zeichne(o, edit){
-      const w = bw(o), text = o.v ? SVGT(o.x + w/2, o.y + 35, o.v) : platzhalter(edit, "Block", o.x + w/2, o.y + 35);
-      return `<rect x="${o.x}" y="${o.y}" width="${w}" height="${BLOCK_H}" rx="3" fill="#fff" ${LINIE}/>` + text;
-    },
+  box: {g: "regel", n: "Block", zeichne: blockSVG,
     umriss: o => ({x: o.x, y: o.y, w: bw(o), h: BLOCK_H}),
-    neu(o, [px, py]){ o.x = px - 60; o.y = py - BLOCK_H / 2; o.v = ""; },
-    feldliste: [["v", "Bezeichnung"]],
+    neu(o, [px, py], mk){
+      if (mk && mk.typ) o.typ = mk.typ;
+      o.v = ""; o.x = px - bw(o) / 2; o.y = py - BLOCK_H / 2;
+    },
+    feldliste: [["v", "Bezeichnung"], ["typ", "Verhalten", GLIED_OPTIONEN]], felder: blockFelder, umbau: ["typ"],
     beschriftung: {sofort: true, hinweis: "Bezeichnung, z. B. Regler"}},
   sum: {g: "regel", n: "Summierstelle", ...rund(15), beschriftung: false, zeichne: summierstelle,
     def: VZ_STANDARD,
@@ -63,3 +74,10 @@ fuelle(SAMPLE, {
   abzw: [{k: "abzw", x: 24, y: 24}, "0 0 48 48", `<path d="M0 24H48M24 24V48" stroke="${INK}" stroke-width="1.6"/>`],
   sig: [{k: "sig", x: 24, y: 34, v: "w"}, "0 0 48 48", `<path d="M24 34H48" stroke="${INK}" stroke-width="1.6"/>`],
 });
+// Übertragungsglieder als Palettenvarianten des Blocks (Gruppe regelglied, nur für die Palette).
+// "typ" steht in Anführungszeichen, sonst trägt module.mjs imports einen Import des gleichnamigen Exports ein.
+registriereGruppe("regelglied", {name: "Übertragungsglieder"});
+for (const [gt, [n]] of Object.entries(GLIED)) {
+  fuelle(BAUSTEIN, {["glied_" + gt]: {g: "regelglied", n, mk: {k: "box", "typ": gt}}});
+  fuelle(SAMPLE, {["glied_" + gt]: [{k: "box", "typ": gt, x: 2, y: 14}, "0 0 84 76"]});
+}

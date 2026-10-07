@@ -148,4 +148,24 @@ export const tests = [
       t.erwarte(Math.abs(mm - 5) < 0.05, `Kästchen im Druck ${mm.toFixed(2)} mm statt 5 mm`);
     },
   },
+  {
+    name: 'R4 Übertragungsglieder mit Piktogramm, PID_Compact-Hinweise',
+    lauf: async (t) => {
+      await t.oeffne('regelkreis');
+      for (const k of ['P', 'I', 'PT1', 'PT2', 'Tt', 'PI', 'PID', '2P']) {
+        t.gleich(await t.zaehle(`#editor [data-place="glied_${k}"]`), 1, `Palette ${k}`);
+      }
+      await setzeRuhig(t, 'glied_PT1', 400, 200);
+      t.gleich((await t.objekte('box')).map((o) => o.typ), ['PT1'], 'Glied als Block mit typ');
+      t.gleich(await t.zaehle('#edstage .ink [data-o] rect[width="80"][height="60"]'), 1, 'Glied 80 × 60');
+      await t.werkzeug('sel'); await t.klick([400, 200]);
+      await t.page.selectOption('#props select[data-prop="typ"]', 'PID'); await t.ruhe();
+      t.gleich((await t.objekte('box')).map((o) => o.typ), ['PID'], 'Verhalten umgestellt');
+      t.erwarte((await t.text('#props')).includes('PID_Compact'), 'Hinweis auf PID_Compact beim PID-Regler');
+      await setzeRuhig(t, 'sig', 200, 200);
+      await t.werkzeug('sel'); await t.klick([200, 200]);
+      t.erwarte((await t.text('#props')).includes('Setpoint'), 'Signal nennt die PID_Compact-Namen');
+      t.gleich(await texte(t, '#edstage .ink', 'PID_Compact: Setpoint'), 1, 'Hinweis am Signal w');
+    },
+  },
 ];

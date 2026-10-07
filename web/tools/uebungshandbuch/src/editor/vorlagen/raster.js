@@ -12,7 +12,7 @@ export const aufKaestchen = v => +(RASTER_URSPRUNG + Math.round((v - RASTER_URSP
 
 registriereVorlage("raster", {
   n: "Kästchenraster", d: "5-mm-Raster für alles Weitere",
-  gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel"],
+  gruppen: ["grafcet", "zustand", "elektro", "geraete", "leistung", "pneu", "regel", "regelglied"],
   body: () => grid(KAESTCHEN, G2),
   fangPunkt: ([x, y]) => [aufKaestchen(x), aufKaestchen(y)],
 });

@@ -97,7 +97,7 @@ export const MUSTERKNOPF = `<button type="button" class="tool" data-rk="muster" 
 // Knöpfe der Vorlage (data-rk)
 export const AKTIONEN_RK = {muster: musterUebernehmen};
 registriereVorlage("regelkreis", {
-  n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"],
+  n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel", "regelglied"],
   body: (ex, page) => page ? "" : regelkreisBlatt(),
   werkzeugleiste: {nachVerbinden: MUSTERKNOPF},
   klick(e){
