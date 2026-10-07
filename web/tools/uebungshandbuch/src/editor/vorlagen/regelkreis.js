@@ -9,8 +9,10 @@ import { uid } from '../auswahl.js';
 import { zeichnungSVG } from '../zeichnen.js';
 import { zeigeHinweis } from '../eigenschaften.js';
 import { aendere } from '../verlauf.js';
+import { istRegler } from './regelkreis-glieder.js';
 import { eintrittsSeite, istPunkt, pfeilZug, verbindeRegelkreis } from './regelkreis-wege.js';
 import { SIMKNOPF, SIM_AKTIONEN, simAnleitung, simEingabe } from './regelkreis-simulation.js';
+import { pruefeRegelkreis } from './regelkreis-pruefen.js';
 
 /* ---------- Muster und Vordruck ---------- */
 // Der Standard-Regelkreis als Zeichnung: Mitten im 10er-Raster, Blöcke 60 hoch
@@ -56,8 +58,6 @@ export function musterUebernehmen(){
 }
 
 /* ---------- Gruppe: Vorschläge und Verzweigungen ---------- */
-export const REGLERTYPEN = ["P", "I", "PI", "PID", "2P"];
-export const istRegler = o => o.k === "box" && (REGLERTYPEN.includes(o.typ) || /regler/i.test(o.v || ""));
 // Vorschlag für den Namen am Pfeil von A nach B: e hinter der Summierstelle, x an der Rückführung, y hinter dem Regler.
 // An einem Signal steht der Name schon am Signal (w, z, x).
 export function signalVorschlag(A, B){
@@ -102,6 +102,7 @@ registriereVorlage("regelkreis", {
   body: (ex, page) => page ? "" : regelkreisBlatt(),
   werkzeugleiste: {nachVerbinden: MUSTERKNOPF + SIMKNOPF},
   anleitung: simAnleitung,
+  pruefe: pruefeRegelkreis,
   eingabe: simEingabe,
   klick(e){
     const k = e.target.closest("[data-rk]"), aktion = k && AKTIONEN_RK[k.dataset.rk];

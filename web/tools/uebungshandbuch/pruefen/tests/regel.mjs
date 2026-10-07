@@ -211,4 +211,29 @@ export const tests = [
       t.gleich(await texte(t, '#edstage .ink', 'Toleranz ±2 °C'), 1, 'Beschriftung am Band');
     },
   },
+  {
+    name: '6e Prüfen: Muster ist in Ordnung',
+    lauf: async (t) => {
+      await t.oeffne('regelkreis');
+      await t.knopf('pruefen');
+      t.erwarte((await t.text('#props')).includes('Noch keine Bausteine'), 'Hinweis bei leerem Blatt');
+      await t.klick('#editor [data-rk="muster"]');
+      await t.knopf('pruefen');
+      t.erwarte((await t.text('#props')).includes('Keine Auffälligkeiten'), `Muster ohne Befund: ${await t.text('#props')}`);
+    },
+  },
+  {
+    name: '6e Prüfen: offener Kreis ohne Rückführung',
+    daten: 'regel-offen',
+    lauf: async (t) => {
+      await t.oeffne('regelkreis');
+      await t.knopf('pruefen');
+      const liste = await t.text('#props');
+      for (const s of ['Es fehlt die Rückführung', 'nicht geschlossen', 'als Regler', 'keinen Ausgang']) {
+        t.erwarte(liste.includes(s), `Befund „${s}“ fehlt: ${liste}`);
+      }
+      t.erwarte(!liste.includes('Es fehlt die Strecke'), 'Strecke ist da');
+      t.erwarte(await t.zaehle('#edstage .befund rect') >= 3, 'rote Markierungen');
+    },
+  },
 ];

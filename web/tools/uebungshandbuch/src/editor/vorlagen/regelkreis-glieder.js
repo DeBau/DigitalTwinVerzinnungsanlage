@@ -31,3 +31,6 @@ export function gliedSVG(o, edit){
     + (name ? SVGT(o.x + GLIED_B / 2, o.y - 7, name, "middle", 11, 600, o.v ? INK : MUTE) : "");
 }
 export const gliedInfo = t => GLIED[t] ? GLIED[t][2] : "";
+// Regler: ein Reglerglied oder ein Block, der "Regler" heißt
+export const REGLERTYPEN = ["P", "I", "PI", "PID", "2P"];
+export const istRegler = o => o.k === "box" && (REGLERTYPEN.includes(o.typ) || /regler/i.test(o.v || ""));

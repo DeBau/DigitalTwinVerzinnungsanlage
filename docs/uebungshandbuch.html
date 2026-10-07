@@ -434,7 +434,7 @@ pre.code code{font-size:inherit}
 
 <script>
 (() => {
-  // src/app/daten.js
+  // web/tools/uebungshandbuch/src/app/daten.js
   var SIG = {"MB1":[{"n":"MB1_Einhaengen","a":"%Q0.0","k":"Einhängezylinder -MM1: Korb einhängen (fährt ein, Haken schwenkt unter den Bügel)"}],"MB2":[{"n":"MB2_Loesen","a":"%Q0.1","k":"Einhängezylinder -MM1: Korb lösen (fährt aus, Haken schwenkt frei)"}],"MB3":[{"n":"MB3_Senken","a":"%Q0.2","k":"Tauchzylinder -MM2: senken (fährt aus)"}],"MB4":[{"n":"MB4_Anheben","a":"%Q0.3","k":"Tauchzylinder -MM2: anheben (fährt ein)"}],"MB5":[{"n":"MB5_Zinnbad","a":"%Q0.4","k":"Verschiebezylinder -MM3: zum Zinnbad (fährt aus)"}],"MB6":[{"n":"MB6_Foerderband","a":"%Q0.5","k":"Verschiebezylinder -MM3: zum Förderband (fährt ein)"}],"MB7":[{"n":"MB7_Schliessen","a":"%Q0.6","k":"Abstreifzylinder -MM4: Bad abdecken (fährt aus)"}],"MB8":[{"n":"MB8_Oeffnen","a":"%Q0.7","k":"Abstreifzylinder -MM4: Bad öffnen (fährt ein)"}],"PF1":[{"n":"PF1_Automatik","a":"%Q1.0","k":"Meldeleuchte Anlage läuft (Automatik-Dauerbetrieb aktiv)"}],"PF2":[{"n":"PF2_Temperatur","a":"%Q1.1","k":"Meldeleuchte Zinnbad Betriebstemperatur erreicht"}],"PF3":[{"n":"PF3_Fuellhoehe","a":"%Q1.2","k":"Meldeleuchte Füllhöhe unterschritten"}],"PF4":[{"n":"PF4_Korb","a":"%Q1.3","k":"Meldeleuchte Materialkorb vorhanden"}],"PF5":[{"n":"PF5_Quittieren","a":"%Q1.4","k":"Leuchttaster Quittieren -SF4 Bedienpult (blinkt: Not-Halt quittieren)"}],"PF6":[{"n":"PF6_VorOrt","a":"%Q1.5","k":"Leuchte Vor-Ort-Steuerstelle aktiv"}],"PF7":[{"n":"PF7_Handbetrieb","a":"%Q1.6","k":"Leuchte Handbetrieb aktiv (Schaltschranktür)"}],"QA1":[{"n":"QA1_Band_Rechts","a":"%Q2.0","k":"Schütz Bandmotor Rechtslauf (Förderrichtung)"}],"QA2":[{"n":"QA2_Band_Links","a":"%Q2.1","k":"Schütz Bandmotor Linkslauf (Wendeschütz, mech. verriegelt)"}],"MB9":[{"n":"MB9_Anschlag_auf","a":"%Q2.2","k":"Anschlag -MM5 Übergabeplatz öffnen (5/2 monostabil, Feder schließt)"}],"MB10":[{"n":"MB10_Vereinzeler_zu","a":"%Q2.3","k":"Vereinzeler -MM6 sperren (5/2 monostabil, Feder öffnet)"}],"TB1":[{"n":"TB1_Heizung","a":"%Q2.4","k":"Heizung Zinnbad über Halbleiterrelais (2-Punkt oder Impuls/PWM)"}],"MB11":[{"n":"MB11_Nachfuellen","a":"%Q2.5","k":"Zinn-Nachfülleinrichtung öffnen (ca. 2 %/s)"}],"QA5":[{"n":"QA5_B2_Rechts","a":"%Q2.6","k":"Schütz Band 2 Rechtslauf (Förderrichtung)"}],"QA6":[{"n":"QA6_B2_Links","a":"%Q2.7","k":"Schütz Band 2 Linkslauf (Wendeschütz, mech. verriegelt)"}],"QA10":[{"n":"QA10_Kurve_Rechts","a":"%Q3.0","k":"Schütz Rollenkurve -MA6 Rechtslauf (Förderrichtung)"}],"QA7":[{"n":"QA7_Pumpe","a":"%Q3.1","k":"Schütz Umwälzpumpe Sprühkühlung -MA3"}],"KF10":[{"n":"KF10_Kamera_Trigger","a":"%Q3.2","k":"Keyence CV-X Trigger je Teil (Flanke)"}],"PF8":[{"n":"PF8_VorOrt2","a":"%Q3.3","k":"Leuchte Vor-Ort-Steuerstelle Band 2 aktiv"}],"MB13":[{"n":"MB13_Spruehwasser","a":"%Q3.4","k":"Sprühventil Abschrecken (wirkt nur bei laufender Pumpe -QA7)"}],"MB14":[{"n":"MB14_Luftmesser","a":"%Q3.5","k":"Luftmesser am Tunnelauslauf (bläst das Wasser ab)"}],"MB15":[{"n":"MB15_Kippen","a":"%Q3.6","k":"Korbkipper -MM8 kippen (5/2 monostabil)"}],"QA8":[{"n":"QA8_Vibro","a":"%Q3.7","k":"Vibrorinne -MA4 (vereinzelt die Teile)"}],"QA9":[{"n":"QA9_Pruefband","a":"%Q4.0","k":"Prüfband -MA5"}],"MB16":[{"n":"MB16_Ausblasen","a":"%Q4.1","k":"Ausblasdüse n.i.O.-Teile in den Ausschussbehälter"}],"QA11":[{"n":"QA11_Kurve_Links","a":"%Q4.2","k":"Schütz Rollenkurve -MA6 Linkslauf (Wendeschütz, mech. verriegelt)"}],"PF9":[{"n":"PF9_VorOrt3","a":"%Q4.3","k":"Leuchte Vor-Ort-Steuerstelle -S30 Rollenkurve aktiv"}],"QA12":[{"n":"QA12_Mulde_Vor","a":"%Q4.4","k":"Schütz Muldenrollen -MA7 vorwärts zum Endanschlag (Wendeschütz, mech. verriegelt)"}],"QA13":[{"n":"QA13_Mulde_Zurueck","a":"%Q4.5","k":"Schütz Muldenrollen -MA7 zurück (Wendeschütz, mech. verriegelt)"}],"PF11":[{"n":"PF11_VorOrt4","a":"%Q4.6","k":"Leuchte Vor-Ort-Steuerstelle -S40 Prüfstation aktiv"}],"PF12":[{"n":"PF12_Quitt_S10","a":"%Q4.7","k":"Leuchttaster Quittieren -SF41 an -S10 (blinkt: Not-Halt quittieren)"}],"PF13":[{"n":"PF13_Quitt_S20","a":"%Q5.0","k":"Leuchttaster Quittieren -SF42 an -S20 (blinkt: Not-Halt quittieren)"}],"PF14":[{"n":"PF14_Quitt_S30","a":"%Q5.1","k":"Leuchttaster Quittieren -SF43 an -S30 (blinkt: Not-Halt quittieren)"}],"PF15":[{"n":"PF15_Quitt_S40","a":"%Q5.2","k":"Leuchttaster Quittieren -SF44 an -S40 (blinkt: Not-Halt quittieren)"}],"BG1":[{"n":"BG1_MM1_eingehaengt","a":"%I0.0","k":"Endlage -MM1 eingefahren = Korb eingehängt"}],"BG2":[{"n":"BG2_MM1_geloest","a":"%I0.1","k":"Endlage -MM1 ausgefahren = Haken gelöst (Grundstellung)"}],"BG3":[{"n":"BG3_MM2_oben","a":"%I0.2","k":"Endlage -MM2 eingefahren = angehoben"}],"BG4":[{"n":"BG4_MM2_unten","a":"%I0.3","k":"Endlage -MM2 ausgefahren = abgesenkt (Grundstellung)"}],"BG5":[{"n":"BG5_MM3_Band","a":"%I0.4","k":"Endlage -MM3 eingefahren = über Förderband (Grundstellung)"}],"BG6":[{"n":"BG6_MM3_Bad","a":"%I0.5","k":"Endlage -MM3 ausgefahren = über Zinnbad"}],"BG7":[{"n":"BG7_MM4_offen","a":"%I0.6","k":"Endlage -MM4 eingefahren = Bad offen"}],"BG8":[{"n":"BG8_MM4_zu","a":"%I0.7","k":"Endlage -MM4 ausgefahren = Bad abgedeckt (Grundstellung)"}],"BG9":[{"n":"BG9_Temperatur","a":"%I1.0","k":"Betriebstemperatur Zinn erreicht (1 = ok, ab 250 °C)"}],"BG10":[{"n":"BG10_Fuellhoehe","a":"%I1.1","k":"Füllhöhe Zinnbad ausreichend (1 = ok, ab 40 %)"}],"BG11":[{"n":"BG11_Korb","a":"%I1.2","k":"Lichtschranke Einlauf Übergabeplatz (Korb kommt, liegt aber noch nicht am Anschlag)"}],"SF1":[{"n":"SF1_Start","a":"%I1.3","k":"Taster START (Schließer)"}],"SF2":[{"n":"SF2_Stop","a":"%I1.4","k":"Taster STOP (Öffner: 1 = nicht betätigt)"}],"SA3":[{"n":"SA3_Handbetrieb","a":"%I1.5","k":"Wahlschalter Schaltschranktür (1 = Hand, 0 = Auto)"}],"KF2":[{"n":"KF2_NotHalt_OK","a":"%I1.6","k":"Sicherheitsrelais -KF2 Rückmeldung (1 = Freigabe, 0 = Not-Halt)"}],"SF4":[{"n":"SF4_Quittieren","a":"%I1.7","k":"Taster Quittieren Bedienpult (Schließer, parallel auf -KF2 Start)"}],"SA1":[{"n":"SA1_Dauerbetrieb","a":"%I2.0","k":"Wahlschalter Betriebsart (1 = Automatik/Dauer, 0 = Einzelzyklus)"}],"SA2":[{"n":"SA2_VorOrt","a":"%I2.1","k":"Schlüsselschalter Vor-Ort-Steuerstelle -S10 (1 = aktiv)"}],"SF5":[{"n":"SF5_Band_Rechts","a":"%I2.2","k":"Vor-Ort Taster Band Rechtslauf (Schließer)"}],"SF6":[{"n":"SF6_Band_Links","a":"%I2.3","k":"Vor-Ort Taster Band Linkslauf (Schließer)"}],"SF7":[{"n":"SF7_Band_Halt","a":"%I2.4","k":"Vor-Ort Taster Band Halt (Öffner: 1 = nicht betätigt)"}],"BG12":[{"n":"BG12_Bandanfang","a":"%I2.5","k":"Lichtschranke Korb am Bandanfang"}],"BG13":[{"n":"BG13_Bandende","a":"%I2.6","k":"Lichtschranke Korb am Ende von Band 1 (Übergabe an die Rollenkurve)"}],"FA1":[{"n":"FA1_Motorschutz","a":"%I2.7","k":"Motorschutzschalter Band Hilfskontakt (1 = OK)"}],"SF11":[{"n":"SF11_MM1_Einhaengen","a":"%I3.0","k":"Handtaster -MM1 einhängen"}],"SF12":[{"n":"SF12_MM1_Loesen","a":"%I3.1","k":"Handtaster -MM1 lösen"}],"SF13":[{"n":"SF13_MM2_Senken","a":"%I3.2","k":"Handtaster -MM2 senken"}],"SF14":[{"n":"SF14_MM2_Anheben","a":"%I3.3","k":"Handtaster -MM2 anheben"}],"SF15":[{"n":"SF15_MM3_Zinnbad","a":"%I3.4","k":"Handtaster -MM3 zum Zinnbad"}],"SF16":[{"n":"SF16_MM3_Band","a":"%I3.5","k":"Handtaster -MM3 zum Band"}],"SF17":[{"n":"SF17_MM4_Schliessen","a":"%I3.6","k":"Handtaster -MM4 Bad abdecken"}],"SF18":[{"n":"SF18_MM4_Oeffnen","a":"%I3.7","k":"Handtaster -MM4 Bad öffnen"}],"BG14":[{"n":"BG14_MM5_zu","a":"%I4.0","k":"Anschlag -MM5 geschlossen (Finger über dem Band)"}],"BG15":[{"n":"BG15_MM5_offen","a":"%I4.1","k":"Anschlag -MM5 offen (90 Grad, erst dann Korb anheben oder absenken)"}],"BG16":[{"n":"BG16_MM6_zu","a":"%I4.2","k":"Vereinzeler -MM6 geschlossen (sperrt)"}],"BG17":[{"n":"BG17_MM6_offen","a":"%I4.3","k":"Vereinzeler -MM6 offen"}],"BG18":[{"n":"BG18_Geber_A","a":"%I4.4","k":"Inkrementalgeber Band Spur A (10 Imp/U, 24,5 mm Bandweg je Impuls)"},{"n":"BG18_Geber_B","a":"%I4.5","k":"Inkrementalgeber Band Spur B (90 Grad versetzt, vorwärts: B = 1 bei steigender Flanke A)"},{"n":"BG18_Geber_N","a":"%I4.6","k":"Inkrementalgeber Band Nullimpuls (1 je Umdrehung = 245 mm)"}],"SF19":[{"n":"SF19_MM5_Oeffnen","a":"%I5.0","k":"Handtaster -MM5 Anschlag öffnen"}],"SF20":[{"n":"SF20_MM5_Schliessen","a":"%I5.1","k":"Handtaster -MM5 Anschlag schließen"}],"SF21":[{"n":"SF21_MM6_Schliessen","a":"%I5.2","k":"Handtaster -MM6 Vereinzeler schließen"}],"SF22":[{"n":"SF22_MM6_Oeffnen","a":"%I5.3","k":"Handtaster -MM6 Vereinzeler öffnen"}],"BG20":[{"n":"BG20_Lichtvorhang_frei","a":"%I4.7","k":"Sicherheitslichtvorhang -BG20 Schutzfeld frei (1 = frei, Abschaltung über -KF2)"}],"BG21":[{"n":"BG21_B2_Anfang","a":"%I5.4","k":"Lichtschranke Band 2 Anfang (Korb von der Rollenkurve übernommen)"}],"BG22":[{"n":"BG22_B2_Kuehlung","a":"%I5.5","k":"Lichtschranke Kühlplatz"}],"BG32":[{"n":"BG32_Teil_Pruefplatz","a":"%I5.6","k":"Lichtschranke Teil am Kameraplatz (Prüfband)"}],"BG24":[{"n":"BG24_B2_Ende","a":"%I5.7","k":"Lichtschranke Band 2 Ende (Korb an der Übergabe zur Kippmulde)"}],"BG35":[{"n":"BG35_Kurve_Anfang","a":"%I6.0","k":"Lichtschranke Rollenkurve Anfang (Korb von Band 1 übernommen)"}],"BG36":[{"n":"BG36_Kurve_Ende","a":"%I6.1","k":"Lichtschranke Rollenkurve Ende (Korb vor der Übergabe auf Band 2)"}],"BG27":[{"n":"BG27_Geber2_A","a":"%I6.2","k":"Inkrementalgeber Band 2 Spur A (10 Imp/U)"},{"n":"BG27_Geber2_B","a":"%I6.3","k":"Inkrementalgeber Band 2 Spur B (90 Grad versetzt)"},{"n":"BG27_Geber2_N","a":"%I6.4","k":"Inkrementalgeber Band 2 Nullimpuls"}],"BG28":[{"n":"BG28_Pruefung_iO","a":"%I6.5","k":"Keyence CV-X Ergebnis Teil i.O. (0,3 s gültig)"}],"BG29":[{"n":"BG29_Pruefung_niO","a":"%I6.6","k":"Keyence CV-X Ergebnis Teil n.i.O. (0,3 s gültig)"}],"SA4":[{"n":"SA4_VorOrt2","a":"%I6.7","k":"Schlüsselschalter Vor-Ort-Steuerstelle -S20 (1 = aktiv)"}],"SF23":[{"n":"SF23_B2_Rechts","a":"%I7.0","k":"Vor-Ort Band 2 Rechtslauf (Schließer)"}],"SF24":[{"n":"SF24_B2_Links","a":"%I7.1","k":"Vor-Ort Band 2 Linkslauf (Schließer)"}],"SF25":[{"n":"SF25_B2_Halt","a":"%I7.2","k":"Vor-Ort Band 2 Halt (Öffner: 1 = nicht betätigt)"}],"FA5":[{"n":"FA5_Motorschutz2","a":"%I7.3","k":"Motorschutzschalter Band 2 Hilfskontakt (1 = OK)"}],"BG30":[{"n":"BG30_MM8_unten","a":"%I7.4","k":"Kipper -MM8 unten (Grundstellung)"}],"BG31":[{"n":"BG31_MM8_gekippt","a":"%I7.5","k":"Kipper -MM8 gekippt"}],"BG33":[{"n":"BG33_Kipper_Korb","a":"%I7.6","k":"Korb am Endanschlag der Kippmulde"}],"BG34":[{"n":"BG34_KLT_voll","a":"%I7.7","k":"KLT i.O.-Teile voll (144 Teile)"}],"BG40":[{"n":"BG40_Korb_am_Anschlag","a":"%I8.0","k":"Korb liegt am Anschlag -MM5 an (induktiver Sensor M12 bündig in der Anschlagleiste)"}],"SF28":[{"n":"SF28_MM8_Kippen","a":"%I8.2","k":"Handtaster -MM8 Kipper kippen"}],"SF29":[{"n":"SF29_MM8_Zurueck","a":"%I8.3","k":"Handtaster -MM8 Kipper zurück"}],"SA5":[{"n":"SA5_VorOrt3","a":"%I8.4","k":"Schlüsselschalter Vor-Ort-Steuerstelle -S30 (1 = aktiv)"}],"SF30":[{"n":"SF30_Kurve_Rechts","a":"%I8.5","k":"Vor-Ort Rollenkurve Rechtslauf (Schließer)"}],"SF31":[{"n":"SF31_Kurve_Links","a":"%I8.6","k":"Vor-Ort Rollenkurve Linkslauf (Schließer)"}],"SF32":[{"n":"SF32_Kurve_Halt","a":"%I8.7","k":"Vor-Ort Rollenkurve Halt (Öffner: 1 = nicht betätigt)"}],"FA7":[{"n":"FA7_Motorschutz3","a":"%I9.0","k":"Motorschutzschalter Rollenkurve -FA7 Hilfskontakt (1 = OK)"}],"SF0":[{"n":"SF0_NotHalt_frei","a":"%I9.1","k":"Not-Halt -SF0 Bedienpult Meldekontakt (Öffner: 1 = entriegelt, 0 = betätigt)"}],"SF8":[{"n":"SF8_NotHalt_frei","a":"%I9.2","k":"Not-Halt -SF8 Vor-Ort -S10 Band 1 Meldekontakt (Öffner: 1 = entriegelt, 0 = betätigt)"}],"SF9":[{"n":"SF9_NotHalt_frei","a":"%I9.3","k":"Not-Halt -SF9 Vor-Ort -S20 Band 2 Meldekontakt (Öffner: 1 = entriegelt, 0 = betätigt)"}],"SF10":[{"n":"SF10_NotHalt_frei","a":"%I9.4","k":"Not-Halt -SF10 Vor-Ort -S30 Rollenkurve Meldekontakt (Öffner: 1 = entriegelt, 0 = betätigt)"}],"SF33":[{"n":"SF33_NotHalt_frei","a":"%I9.5","k":"Not-Halt -SF33 Vor-Ort -S40 Prüfstation Meldekontakt (Öffner: 1 = entriegelt, 0 = betätigt)"}],"SA6":[{"n":"SA6_VorOrt4","a":"%I9.6","k":"Schlüsselschalter Vor-Ort-Steuerstelle -S40 (1 = aktiv, Automatik der Station ruht)"}],"SF34":[{"n":"SF34_Pruef_Ein","a":"%I9.7","k":"Vor-Ort -S40 Vibrorinne + Prüfband EIN (Schließer, Selbsthaltung in der SPS)"}],"SF35":[{"n":"SF35_Pruef_Halt","a":"%I10.0","k":"Vor-Ort -S40 Vibrorinne + Prüfband AUS (Öffner: 1 = nicht betätigt)"}],"SF36":[{"n":"SF36_Mulde_Vor","a":"%I10.1","k":"Vor-Ort -S40 Muldenrollen vorwärts tippen (Schließer)"}],"SF37":[{"n":"SF37_Mulde_Zurueck","a":"%I10.2","k":"Vor-Ort -S40 Muldenrollen zurück tippen (Schließer)"}],"SF38":[{"n":"SF38_Kipper_Kippen","a":"%I10.3","k":"Vor-Ort -S40 Kipper kippen (Schließer, nur mit Korb an -BG33 oder leerer Mulde)"}],"SF39":[{"n":"SF39_Kipper_Zurueck","a":"%I10.4","k":"Vor-Ort -S40 Kipper zurück (Schließer)"}],"FA8":[{"n":"FA8_Motorschutz4","a":"%I10.5","k":"Motorschutzschalter Muldenantrieb -MA7 -FA8 Hilfskontakt (1 = OK)"}],"SF41":[{"n":"SF41_Quittieren_S10","a":"%I10.6","k":"Taster Quittieren Vor-Ort -S10 Band 1 (Schließer, parallel zu -SF4 an -KF2)"}],"SF42":[{"n":"SF42_Quittieren_S20","a":"%I10.7","k":"Taster Quittieren Vor-Ort -S20 Band 2 (Schließer, parallel zu -SF4 an -KF2)"}],"SF43":[{"n":"SF43_Quittieren_S30","a":"%I11.0","k":"Taster Quittieren Vor-Ort -S30 Rollenkurve (Schließer, parallel zu -SF4 an -KF2)"}],"SF44":[{"n":"SF44_Quittieren_S40","a":"%I11.1","k":"Taster Quittieren Vor-Ort -S40 Prüfstation (Schließer, parallel zu -SF4 an -KF2)"}],"BG37":[{"n":"BG37_Kipper_Einlauf","a":"%I11.7","k":"Lichtschranke Einlauf Kippmulde (Korb in der Mulde, schwenkt mit)"}],"BT1":[{"n":"BT1_Temperatur","a":"%IW64","k":"Zinntemperatur analog 0…27648 = 0…400 °C"}],"BL1":[{"n":"BL1_Fuellstand","a":"%IW66","k":"Füllstand analog 0…27648 = 0…100 %"}],"BT2":[{"n":"BT2_Korbtemperatur","a":"%IW68","k":"Pyrometer Kühlplatz: Korbtemperatur 0…27648 = 0…400 °C"}],"TA2":[{"n":"TA2_STW1","a":"%QW256","k":"Umrichter -TA2 Steuerwort 1 (STW1)"},{"n":"TA2_NSOLL_A","a":"%QW258","k":"Umrichter -TA2 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 100 mm/s)"},{"n":"TA2_ZSW1","a":"%IW256","k":"Umrichter -TA2 Zustandswort 1 (ZSW1)"},{"n":"TA2_NIST_A","a":"%IW258","k":"Umrichter -TA2 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 100 mm/s)"}],"TA3":[{"n":"TA3_STW1","a":"%QW260","k":"Umrichter -TA3 Steuerwort 1 (STW1)"},{"n":"TA3_NSOLL_A","a":"%QW262","k":"Umrichter -TA3 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 120 mm/s)"},{"n":"TA3_ZSW1","a":"%IW260","k":"Umrichter -TA3 Zustandswort 1 (ZSW1)"},{"n":"TA3_NIST_A","a":"%IW262","k":"Umrichter -TA3 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 120 mm/s)"}],"TA4":[{"n":"TA4_STW1","a":"%QW264","k":"Umrichter -TA4 Steuerwort 1 (STW1)"},{"n":"TA4_NSOLL_A","a":"%QW266","k":"Umrichter -TA4 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 110 mm/s)"},{"n":"TA4_ZSW1","a":"%IW264","k":"Umrichter -TA4 Zustandswort 1 (ZSW1)"},{"n":"TA4_NIST_A","a":"%IW266","k":"Umrichter -TA4 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 110 mm/s)"}],"TA5":[{"n":"TA5_STW1","a":"%QW268","k":"Umrichter -TA5 Steuerwort 1 (STW1)"},{"n":"TA5_NSOLL_A","a":"%QW270","k":"Umrichter -TA5 Drehzahlsollwert NSOLL_A (16#4000 = 1500 1/min = 150 mm/s)"},{"n":"TA5_ZSW1","a":"%IW268","k":"Umrichter -TA5 Zustandswort 1 (ZSW1)"},{"n":"TA5_NIST_A","a":"%IW270","k":"Umrichter -TA5 Drehzahlistwert NIST_A (16#4000 = 1500 1/min = 150 mm/s)"}],"SA7":[{"n":"SA7_VorOrt5","a":"%I11.2","k":"Schlüsselschalter Vor-Ort-Steuerstelle Prüfband -S50 (1 = Vor-Ort)"}],"SF45":[{"n":"SF45_Pruefband_Ein","a":"%I11.3","k":"Vor-Ort -S50 Prüfband EIN (Schließer)"}],"SF46":[{"n":"SF46_Pruefband_Aus","a":"%I11.4","k":"Vor-Ort -S50 Prüfband AUS (Öffner: 1 = nicht betätigt)"}],"SF47":[{"n":"SF47_Pruefband_Drehzahl","a":"%IW70","k":"Vor-Ort -S50 Drehzahlpotentiometer Prüfband 0…27648 = 0…100 %"}],"PF16":[{"n":"PF16_VorOrt5","a":"%Q5.3","k":"Leuchte Vor-Ort-Steuerstelle Prüfband -S50 aktiv"}],"MB17":[{"n":"MB17_Nachspeisen","a":"%Q5.4","k":"Magnetventil Frischwasser -MB17 Nachspeisen (2/2 NC, in Reihe mit Regelventil -MB18)"}],"MB18":[{"n":"MB18_Regelventil","a":"%QW80","k":"Regelventil Frischwasser -MB18 Stellwert 0…27648 = 0…100 % (AQ 4 Kanal 0, Stellzeit 8 s)"},{"n":"MB18_Stellung","a":"%IW74","k":"Regelventil -MB18 Stellungsrückmeldung 0…27648 = 0…100 %"}],"BL2":[{"n":"BL2_Wasserstand","a":"%IW72","k":"Füllstand Kühlwassertank Radar Micropilot FMR20B analog 0…27648 = 0…100 %"}],"BG38":[{"n":"BG38_Wasser_Min","a":"%I11.5","k":"Grenzschalter Liquiphant FTL31 Kühlwassertank MIN (1 = Gabel bedeckt über 25 %, Trockenlaufschutz Pumpe -MA3)"}],"BG39":[{"n":"BG39_Wasser_Max_frei","a":"%I11.6","k":"Grenzschalter Liquiphant FTL31 Kühlwassertank MAX (1 = Gabel frei unter 90 %, 0 = voll oder Drahtbruch)"}]};
   var EXTRA = {
     MM1: "Einhängezylinder: Korb einhängen / lösen",
@@ -990,7 +990,7 @@ pre.code code{font-size:inherit}
   var critOf = () => CRIT, TYPN = { erkunden: "Erkunden", programmieren: "Programmieren", auslegen: "Auslegen", projekt: "Projekt" };
   var gradeOf = (p) => p >= 92 ? "1 sehr gut" : p >= 81 ? "2 gut" : p >= 67 ? "3 befriedigend" : p >= 50 ? "4 ausreichend" : p >= 30 ? "5 mangelhaft" : "6 ungenügend";
 
-  // src/app/basis.js
+  // web/tools/uebungshandbuch/src/app/basis.js
   var $ = (s, r = document) => r.querySelector(s);
   var $$ = (s, r = document) => [...r.querySelectorAll(s)];
   var BY = Object.fromEntries(SHEETS.map((s) => [s.id, s]));
@@ -1074,7 +1074,7 @@ pre.code code{font-size:inherit}
   var USES = {};
   SHEETS.forEach((s) => s.sig.split(" ").forEach((t) => (USES[t] ||= []).push(s.id)));
 
-  // src/app/fortschritt.js
+  // web/tools/uebungshandbuch/src/app/fortschritt.js
   var filled = (key) => String(S.get(key) ?? "").trim().length > 0;
   var prDone = (k, i) => {
     const v = S.get(k + ":p" + i);
@@ -1101,7 +1101,7 @@ pre.code code{font-size:inherit}
   var doneCount = (s) => [1, 2, 3, 4, 5, 6].filter((p) => phaseDone(s, p)).length;
   var nextSheet = () => SHEETS.find((s) => doneCount(s) < 6);
 
-  // src/editor/svg.js
+  // web/tools/uebungshandbuch/src/editor/svg.js
   var INK = "#17212B", MUTE = "#9AA4AD";
   var tw = (s, px = 13) => Math.max(...String(s ?? "").split("\n").map((l) => l.length)) * px * 0.58;
   var SCHRIFT = "Plex Sans,Segoe UI,sans-serif";
@@ -1119,7 +1119,7 @@ pre.code code{font-size:inherit}
   var PH = 707;
   var clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-  // src/editor/status.js
+  // web/tools/uebungshandbuch/src/editor/status.js
   var ED = {
     scope: null,
     // Übung (z. B. "L08") oder "frei": Bereich, zu dem die Zeichnung gehört
@@ -1181,7 +1181,7 @@ pre.code code{font-size:inherit}
   var istMarkiert = (welche, id) => !!ED.markiert && ED.markiert.art === welche && ED.markiert.id === id;
   var markiertId = (welche) => ED.markiert && ED.markiert.art === welche ? ED.markiert.id : null;
 
-  // src/editor/registry.js
+  // web/tools/uebungshandbuch/src/editor/registry.js
   var VORL = {};
   var GRUPPE = {};
   var vorlage = (key) => VORL[key] || {};
@@ -1204,7 +1204,7 @@ pre.code code{font-size:inherit}
   }
   var fuelle = (tabelle, eintraege) => Object.assign(tabelle, eintraege);
 
-  // src/editor/spuren.js
+  // web/tools/uebungshandbuch/src/editor/spuren.js
   var SPUR_FOLGE = [0, 1, -1, 2, -2, 3];
   function neueSpuren(raster = 10) {
     const belegt = { h: [], v: [] };
@@ -1241,7 +1241,7 @@ pre.code code{font-size:inherit}
   }
   var pfadD = (punkte) => "M" + punkte.map((q) => q.join(" ")).join("L");
 
-  // src/editor/vorlagen-svg.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen-svg.js
   var G = "#9AA4AD", G2 = "#C9D0D5";
   function grid(step, color, x0 = 15, y0 = 15, x1 = 985, y1 = 630) {
     let s = "";
@@ -1308,7 +1308,7 @@ pre.code code{font-size:inherit}
     return striche + (d.t || []).map((t, i) => textSVG(t, i, edit)).join("");
   }
 
-  // src/editor/bauteile.js
+  // web/tools/uebungshandbuch/src/editor/bauteile.js
   var SK = `stroke="${INK}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
   var PP = (d) => `<path d="${d}" ${SK}/>`;
   var PD = (d) => `<path d="${d}" ${SK} stroke-dasharray="3 2.5"/>`;
@@ -1393,7 +1393,7 @@ pre.code code{font-size:inherit}
     return [pa || onRail(A, pb), pb || onRail(B, pa)];
   }
 
-  // src/editor/bausteine.js
+  // web/tools/uebungshandbuch/src/editor/bausteine.js
   var LINIE = `stroke="${INK}" stroke-width="1.6"`;
   var platzhalter = (edit, t, x, y, a = "middle") => edit ? SVGT(x, y, t, a, 12, 400, MUTE) : "";
   var rund = (r) => ({ radius: r, umriss: (o) => ({ x: o.x - r, y: o.y - r, w: 2 * r, h: 2 * r }) });
@@ -1432,7 +1432,7 @@ pre.code code{font-size:inherit}
     return [b.x + b.w / 2, b.y];
   }
 
-  // src/editor/auswahl.js
+  // web/tools/uebungshandbuch/src/editor/auswahl.js
   var objById = (id) => ED.data.o.find((o) => o.id === id) || (String(id).startsWith("_") ? virtuelleSchienen(ED.key, ED.blattzahl || 1).find((r) => r.id === id) : void 0);
   var uid = () => "o" + Math.random().toString(36).slice(2, 9);
   var anySel = () => !!ED.markiert;
@@ -1465,7 +1465,7 @@ pre.code code{font-size:inherit}
     return null;
   }
 
-  // src/editor/kette.js
+  // web/tools/uebungshandbuch/src/editor/kette.js
   var seite = (o) => o && art(o.k).seite;
   function seitenArt(k) {
     if (!BAUSTEIN[k]) return null;
@@ -1535,7 +1535,7 @@ pre.code code{font-size:inherit}
     return kettenEin(B, kettenAus(A, mitteVon(B)[0])[0]);
   }
 
-  // src/editor/zeichnen.js
+  // web/tools/uebungshandbuch/src/editor/zeichnen.js
   function bausteinZeichnen(o, edit) {
     const a = art(o.k);
     return a.zeichne ? gedreht(o, a.zeichne(o, edit)) : "";
@@ -1715,7 +1715,7 @@ pre.code code{font-size:inherit}
     return [o, `0 0 ${w + 8} ${h + 8}`, ""];
   }
 
-  // src/editor/blaetter.js
+  // web/tools/uebungshandbuch/src/editor/blaetter.js
   function pagesSVG(key, ex, meta, n, edit) {
     const body = vorlage(key).body;
     let h = "";
@@ -1747,7 +1747,7 @@ pre.code code{font-size:inherit}
     };
   };
 
-  // src/app/start.js
+  // web/tools/uebungshandbuch/src/app/start.js
   var app = $("#app");
   function setNav(r) {
     $$("#nav a").forEach((a2) => a2.toggleAttribute("aria-current", false));
@@ -1804,7 +1804,7 @@ pre.code code{font-size:inherit}
     return 6;
   }
 
-  // src/app/skizzen-kacheln.js
+  // web/tools/uebungshandbuch/src/app/skizzen-kacheln.js
   function sketchCards(scope, keys, ex) {
     return keys.map((key) => {
       const d = S.get(skKey(scope, key));
@@ -1821,7 +1821,7 @@ pre.code code{font-size:inherit}
     if (el) el.innerHTML = sketchCards(s.id, EXVORL[s.id] || ["raster"], s);
   }
 
-  // src/app/variablen.js
+  // web/tools/uebungshandbuch/src/app/variablen.js
   var typeOf = (a) => /^%[IQEA]W/.test(a) ? "Int" : /^%[IQEA]/.test(a) ? "Bool" : "";
   function paintVars(s) {
     const el = $("#vars");
@@ -1830,7 +1830,7 @@ pre.code code{font-size:inherit}
     el.innerHTML = rows.length ? rows.map((r, i) => `<tr>${["n", "t", "a", "k"].map((f) => `<td><input type="text" data-var="${i}" data-f="${f}" value="${esc(r[f])}" aria-label="${{ n: "Name", t: "Datentyp", a: "Adresse", k: "Kommentar" }[f]}, Zeile ${i + 1}"></td>`).join("")}<td><button class="del" type="button" data-act="var-del" data-i="${i}" aria-label="Zeile ${i + 1} löschen">${IC.trash}</button></td></tr>`).join("") : `<tr><td colspan="5" class="muted small" style="padding:14px 6px">Noch keine Variablen. Übernehmen Sie die Signale dieser Übung oder fügen Sie eine Zeile hinzu.</td></tr>`;
   }
 
-  // src/app/uebung.js
+  // web/tools/uebungshandbuch/src/app/uebung.js
   var timerId = null, timerEx = null, timerStart = 0;
   function fmtTime(sec) {
     const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
@@ -2028,7 +2028,7 @@ pre.code code{font-size:inherit}
     }
   }
 
-  // src/editor/signalfeld.js
+  // web/tools/uebungshandbuch/src/editor/signalfeld.js
   var VORSCHLAEGE_MAX = 12;
   var normKennzeichen = (v) => String(v ?? "").replace(/^[-–]/, "−");
   var ohneMinus = (t) => normKennzeichen(t).replace(/^−/, "").trim().toLowerCase();
@@ -2116,7 +2116,7 @@ pre.code code{font-size:inherit}
     return true;
   }
 
-  // src/editor/eigenschaften.js
+  // web/tools/uebungshandbuch/src/editor/eigenschaften.js
   var ZEICHEN = [
     ["·", "UND"],
     ["+", "ODER"],
@@ -2230,7 +2230,7 @@ pre.code code{font-size:inherit}
   var DREHKNOEPFE = `<div class="propact" style="justify-content:flex-start;gap:6px;margin-bottom:8px"><button type="button" class="tool" data-ed="rot" title="Taste R">↻ Drehen 90°</button><button type="button" class="tool" data-ed="flip" title="Taste M">⇋ Spiegeln</button></div>`;
   var HINWEIS = (t) => `<p class="small muted" style="margin:0 0 8px">${t}</p>`;
 
-  // src/editor/anzeige.js
+  // web/tools/uebungshandbuch/src/editor/anzeige.js
   function sizeSVG() {
     const st = $("#edstage"), svg = ED.svg;
     if (!st || !svg) return;
@@ -2258,7 +2258,7 @@ pre.code code{font-size:inherit}
     updateProps();
   }
 
-  // src/editor/pruefung.js
+  // web/tools/uebungshandbuch/src/editor/pruefung.js
   var ROT = "#C0392B";
   var befunde = [];
   var hatPruefung = (key) => !!vorlage(key).pruefe;
@@ -2318,7 +2318,7 @@ pre.code code{font-size:inherit}
     updateProps(true);
   }
 
-  // src/editor/verlauf.js
+  // web/tools/uebungshandbuch/src/editor/verlauf.js
   function ablegen(stand) {
     ED.hist.push(stand);
     if (ED.hist.length > 80) ED.hist.shift();
@@ -2435,7 +2435,7 @@ pre.code code{font-size:inherit}
     updateProps(true);
   }
 
-  // src/editor/beschriften.js
+  // web/tools/uebungshandbuch/src/editor/beschriften.js
   function newline(el) {
     const a = el.selectionStart, b = el.selectionEnd;
     el.value = el.value.slice(0, a) + "\n" + el.value.slice(b);
@@ -2530,7 +2530,7 @@ pre.code code{font-size:inherit}
     });
   }
 
-  // src/editor/werkzeuge.js
+  // web/tools/uebungshandbuch/src/editor/werkzeuge.js
   var BLATTKLASSEN = ["erase", "text", "sel", "conn", "place", "sim"];
   function setTool(t) {
     ED.vorlage.angefangen = null;
@@ -2563,7 +2563,7 @@ pre.code code{font-size:inherit}
     return snap(pt);
   }
 
-  // src/editor/bearbeiten.js
+  // web/tools/uebungshandbuch/src/editor/bearbeiten.js
   function applyProp(f, v) {
     if (SCHRIFTFELD[f]) {
       setzeSchriftfeld(f, v);
@@ -2642,7 +2642,7 @@ pre.code code{font-size:inherit}
     });
   }
 
-  // src/editor/andocken.js
+  // web/tools/uebungshandbuch/src/editor/andocken.js
   function nextLabel(l) {
     const m = /^(.*?)(\d+)$/.exec(l);
     if (!m || l.includes(":")) return l;
@@ -2796,7 +2796,7 @@ pre.code code{font-size:inherit}
     if (fragtBedingung(A)) editConnLabel(ED.data.c.length - 1);
   }
 
-  // src/editor/zeiger.js
+  // web/tools/uebungshandbuch/src/editor/zeiger.js
   var zeigerHaken = () => vorlage(ED.key).zeiger || {};
   var festhalten = (e) => ED.svg.setPointerCapture(e.pointerId);
   var UNTEN = {
@@ -3086,7 +3086,7 @@ pre.code code{font-size:inherit}
     if (ED.svg) $(".ghost", ED.svg).innerHTML = "";
   }
 
-  // src/editor/oeffnen.js
+  // web/tools/uebungshandbuch/src/editor/oeffnen.js
   var IC_REDO = '<svg class="ic" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>';
   var PRUEFKNOPF = (key) => hatPruefung(key) ? `<button type="button" class="tool" data-ed="pruefen" title="Zeichnung auf typische Fehler prüfen">Prüfen</button>` : "";
   var LINIE_STANDARD = { titel: "Gerade Linie, rastet im 10er-Raster", name: "Linie" };
@@ -3203,7 +3203,7 @@ pre.code code{font-size:inherit}
     });
   }
 
-  // src/app/druck.js
+  // web/tools/uebungshandbuch/src/app/druck.js
   function pageHead(ex, what) {
     const st = ex ? STUFEN[ex.st] : null;
     return `<div class="ph"><div class="c">${ex ? ex.id : "SPS"}</div><div><div class="t">${ex ? esc(ex.t) : what}</div><div class="u">${ex ? `${what}, Stufe ${ex.st} ${st.n}, ${ex.ue} UE` : "Übungshandbuch SPS-Technik"}</div></div><div class="r">Übungshandbuch<br>SPS-Technik</div></div>`;
@@ -3315,7 +3315,7 @@ pre.code code{font-size:inherit}
     $("#dlg").showModal();
   }
 
-  // src/app/seiten.js
+  // web/tools/uebungshandbuch/src/app/seiten.js
   function viewVorlagen() {
     setNav("vorlagen");
     app.innerHTML = `<div class="page"><h1>Vorlagen</h1><p class="lead">Alle Skizzenvorlagen mit Schriftfeld. Zeichnen Sie direkt darin oder drucken Sie sie leer für die Arbeit auf Papier. Was Sie hier zeichnen, gehört zu keiner Übung.</p>
@@ -3521,7 +3521,7 @@ END_CASE;`)}
     el.textContent = any ? `${s} Punkte, ${gradeOf(s)}` : "noch keine Punkte";
   }
 
-  // src/editor/vorlagen/grafcet.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet.js
   var isAct = (o) => !!o && (o.k === "action" || o.k === "actionq");
   var atype = (o) => o.k === "actionq" ? "q" : o.t || "kont";
   var hasMark = (o) => isAct(o) && (["akt", "deakt", "ereig"].includes(atype(o)) || atype(o) === "kont" && (o.b || o.hb));
@@ -3802,7 +3802,7 @@ END_CASE;`)}
     par: [{ k: "par", x: 8, y: 22, w: 72 }, "0 0 88 48", `<path d="M44 4V22M18 27V44M70 27V44" stroke="${INK}" stroke-width="1.6"/>`]
   });
 
-  // src/editor/vorlagen/zustand.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/zustand.js
   var f1 = (n) => n.toFixed(1);
   var richtung = (p, q, r) => {
     const vx = q[0] - p[0], vy = q[1] - p[1], l = Math.hypot(vx, vy) || 1;
@@ -3878,7 +3878,7 @@ END_CASE;`)}
     start: [{ k: "start", x: 24, y: 24 }, "0 0 48 48"]
   });
 
-  // src/editor/vorlagen/wegschritt-striche.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/wegschritt-striche.js
   var WS_RASTER = { x0: 150, x1: 975, spalten: 12, spalte: (975 - 150) / 12, y0: 74, zeile: 62 };
   var spalteBei = (x) => Math.round((x - WS_RASTER.x0) / WS_RASTER.spalte);
   var zeileBei = (y) => Math.floor((y - WS_RASTER.y0) / WS_RASTER.zeile);
@@ -4023,7 +4023,7 @@ END_CASE;`)}
   });
   fuelle(STRICHFELD, { sl: "lbl", sg: "sg", tz: "tz", vt: "t" });
 
-  // src/editor/vorlagen/wegschritt.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/wegschritt.js
   var wsRows = () => (CYL[ED.scope] || WS_BAUGLIEDER).length + 2;
   function wegschrittBlatt(ex, page = 0, meta = null) {
     const rows = CYL[ex?.id] || WS_BAUGLIEDER;
@@ -4245,7 +4245,7 @@ END_CASE;`)}
     zeiger: WS_ZEIGER
   });
 
-  // src/editor/vorlagen/elektro.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/elektro.js
   var cNO = (x, y) => `M${x} ${y}V${y + 20}M${x} ${y + 60}V${y + 42}L${x - 13} ${y + 19}`;
   var cNC = (x, y) => `M${x} ${y}V${y + 20}H${x + 9}M${x} ${y + 60}V${y + 42}L${x + 12} ${y + 16}`;
   var pfadNummer = (x) => Math.max(1, Math.min(20, Math.round((x - 40) / 46)));
@@ -4493,7 +4493,7 @@ END_CASE;`)}
     }
   });
 
-  // src/editor/vorlagen/leistung.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/leistung.js
   var LEITER = [["L1", 50], ["L2", 70], ["L3", 90], ["N", 110], ["PE", 130]];
   function leistungBlatt() {
     let r = "";
@@ -4593,7 +4593,7 @@ END_CASE;`)}
   });
   fuelle(SAMPLE, { rail: [{ k: "rail", x: 4, y: 10, v: "", w: 70 }, "0 0 78 20", ""] });
 
-  // src/editor/vorlagen/pneumatik-symbole.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/pneumatik-symbole.js
   var posOf = (o) => simOn() && ED.sim.pos[o.id] !== void 0 ? ED.sim.pos[o.id] : 0;
   var vstate = (o) => simOn() && ED.sim.st[o.id] || (o.k === "v53" ? "center" : "rest");
   var VB = 40;
@@ -4705,7 +4705,7 @@ END_CASE;`)}
     }).join("");
   }
 
-  // src/editor/vorlagen/pneumatik-simulation.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/pneumatik-simulation.js
   function simCompute() {
     const d = ED.data, adj = /* @__PURE__ */ new Map(), add = (a, b) => {
       if (!adj.has(a)) adj.set(a, []);
@@ -4801,7 +4801,7 @@ END_CASE;`)}
     return true;
   }
 
-  // src/editor/vorlagen/pneumatik.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/pneumatik.js
   registriereVorlage("pneumatik", {
     n: "Pneumatikschaltplan",
     d: "Zylinder, Wegeventile, Drosseln nach ISO 1219 – mit Simulation",
@@ -5099,7 +5099,7 @@ END_CASE;`)}
     }
   });
 
-  // src/editor/vorlagen/regelkreis-glieder.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/regelkreis-glieder.js
   var GLIED_B = 80;
   var GLIED = {
     P: ["P-Glied", "M12 50H24V26H70", "Der Ausgang folgt dem Eingang sofort, verstärkt um Kp."],
@@ -5134,8 +5134,10 @@ END_CASE;`)}
     return `<g transform="translate(${o.x} ${o.y})"><path d="${ACHSEN_PIKTO}" stroke="${G}" stroke-width="1" fill="none"/><path d="${kurve}" stroke="${INK}" stroke-width="1.8" fill="none" stroke-linejoin="round"/></g>` + (name ? SVGT(o.x + GLIED_B / 2, o.y - 7, name, "middle", 11, 600, o.v ? INK : MUTE) : "");
   }
   var gliedInfo = (t) => GLIED[t] ? GLIED[t][2] : "";
+  var REGLERTYPEN = ["P", "I", "PI", "PID", "2P"];
+  var istRegler = (o) => o.k === "box" && (REGLERTYPEN.includes(o.typ) || /regler/i.test(o.v || ""));
 
-  // src/editor/vorlagen/regelkreis-bausteine.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/regelkreis-bausteine.js
   var BLOCK_H = 60;
   var bw = (o) => GLIED[o.typ] ? GLIED_B : Math.max(120, Math.round((tw(o.v || "Block") + 30) / 20) * 20);
   function blockSVG(o, edit) {
@@ -5228,7 +5230,7 @@ END_CASE;`)}
     fuelle(SAMPLE, { ["glied_" + gt]: [{ k: "box", "typ": gt, x: 2, y: 14 }, "0 0 84 76"] });
   }
 
-  // src/editor/vorlagen/regelkreis-wege.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/regelkreis-wege.js
   var PUNKTARTEN = ["abzw", "sig"];
   var istPunkt = (o) => PUNKTARTEN.includes(o.k);
   var RICHTUNG = { l: [-1, 0], r: [1, 0], u: [0, -1], d: [0, 1], p: [0, 0] };
@@ -5319,7 +5321,7 @@ END_CASE;`)}
     return { d: pfadD(zug), arrow: B.k !== "abzw", lbl: beschriftungsOrt(zug) };
   }
 
-  // src/editor/vorlagen/regelkreis-simulation.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/regelkreis-simulation.js
   var STRECKE = { t1: 10, totzeit: 1, ks: 1 };
   var LAUF = { dauer: 60, dt: 0.05, sprungBei: 5, wVor: 20, wNach: 60, hysterese: 2 };
   var SIM_REGLER = [["P", "P-Regler"], ["PI", "PI-Regler"], ["2P", "Zweipunktregler"]];
@@ -5424,7 +5426,64 @@ END_CASE;`)}
   };
   var SIMKNOPF = `<button type="button" class="tool" data-rk="sim" title="Kleine Simulation: Regler und Strecke im Zeitverlauf">Ausprobieren</button>`;
 
-  // src/editor/vorlagen/regelkreis.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/regelkreis-pruefen.js
+  var STRECKENTYPEN = ["PT1", "PT2", "Tt", "I"];
+  var istStrecke = (o) => o.k === "box" && (STRECKENTYPEN.includes(o.typ) || /strecke/i.test(o.v || ""));
+  var VZ_FELD = { l: "vl", u: "vo", d: "vu" };
+  var rkFehler = (text, ort = {}) => ({ stufe: "fehler", text, ...ort });
+  var rkHinweis = (text, ort = {}) => ({ stufe: "hinweis", text, ...ort });
+  function pfeileVon(d) {
+    const objs = Object.fromEntries(d.o.map((o) => [o.id, o]));
+    return d.c.map((c, i) => ({ c, i, A: objs[c.a], B: objs[c.b] })).filter((p) => p.A && p.B && p.c.pa === void 0);
+  }
+  var eingangsVorzeichen = (p) => vorzeichen(p.B, VZ_FELD[eintrittsSeite(p.B, mitteVon(p.A))]);
+  function kreisGeschlossen(start, pfeile) {
+    const gesehen = /* @__PURE__ */ new Set(), offen = [start.id];
+    while (offen.length) {
+      const id = offen.pop();
+      for (const p of pfeile.filter((q) => q.A.id === id)) {
+        if (p.B.id === start.id) return true;
+        if (!gesehen.has(p.B.id)) {
+          gesehen.add(p.B.id);
+          offen.push(p.B.id);
+        }
+      }
+    }
+    return false;
+  }
+  function pruefeSummierstelle(s, pfeile) {
+    const ein = pfeile.filter((p) => p.B === s), zeichen = ein.map(eingangsVorzeichen), b = [];
+    ein.forEach((p, j) => {
+      if (!zeichen[j]) b.push(rkFehler("Dieser Pfeil läuft ohne Vorzeichen in die Summierstelle. Stell + oder − ein.", { c: p.i }));
+    });
+    if (!zeichen.includes("+")) b.push(rkFehler("Die Summierstelle braucht ein + am Sollwert w.", { o: s.id }));
+    if (!zeichen.includes("−")) {
+      b.push(rkFehler("Es fehlt die Rückführung: Der Istwert x muss mit − zur Summierstelle zurück.", { o: s.id }));
+    }
+    if (!kreisGeschlossen(s, pfeile)) {
+      b.push(rkFehler("Der Kreis ist nicht geschlossen: Von der Summierstelle führt kein Weg über die Pfeile zurück.", { o: s.id }));
+    }
+    return b;
+  }
+  function pruefeBloecke(d, pfeile) {
+    return d.o.filter((o) => o.k === "box").flatMap((o) => {
+      const rein = pfeile.some((p) => p.B === o), raus = pfeile.some((p) => p.A === o);
+      if (rein && raus) return [];
+      const name = o.v || (GLIED[o.typ] || [""])[0], wer = name ? `Der Block „${name}“` : "Ein Block";
+      return [rkHinweis(`${wer} hat ${rein ? "keinen Ausgang" : "keinen Eingang"}.`, { o: o.id })];
+    });
+  }
+  function pruefeRegelkreis(d) {
+    if (!d.o.length) return [rkHinweis("Noch keine Bausteine. Mit „Muster übernehmen“ bekommst du einen Regelkreis zum Anpassen.")];
+    const pfeile = pfeileVon(d), summen = d.o.filter((o) => o.k === "sum"), b = [];
+    if (!summen.length) b.push(rkFehler("Es fehlt die Summierstelle. Dort vergleicht der Regler Sollwert und Istwert: e = w − x."));
+    summen.forEach((s) => b.push(...pruefeSummierstelle(s, pfeile)));
+    if (!d.o.some(istStrecke)) b.push(rkFehler("Es fehlt die Strecke: ein Block „Strecke“ oder ein PT1-, PT2-, I- oder Totzeitglied."));
+    if (!d.o.some(istRegler)) b.push(rkHinweis("Kein Block ist als Regler zu erkennen. Nenn ihn „Regler“ oder nimm ein Reglerglied."));
+    return [...b, ...pruefeBloecke(d, pfeile)];
+  }
+
+  // web/tools/uebungshandbuch/src/editor/vorlagen/regelkreis.js
   var MUSTER = {
     o: [
       { id: "w", k: "sig", x: 70, y: 200, v: "w" },
@@ -5470,8 +5529,6 @@ END_CASE;`)}
       d.c.push(...MUSTER.c.map((c) => ({ ...c, a: neu[c.a], b: neu[c.b] })));
     });
   }
-  var REGLERTYPEN = ["P", "I", "PI", "PID", "2P"];
-  var istRegler = (o) => o.k === "box" && (REGLERTYPEN.includes(o.typ) || /regler/i.test(o.v || ""));
   function signalVorschlag(A, B) {
     if (istPunkt(A) && A.k === "sig") return "";
     if (A.k === "sum") return "e";
@@ -5511,6 +5568,7 @@ END_CASE;`)}
     body: (ex, page) => page ? "" : regelkreisBlatt(),
     werkzeugleiste: { nachVerbinden: MUSTERKNOPF + SIMKNOPF },
     anleitung: simAnleitung,
+    pruefe: pruefeRegelkreis,
     eingabe: simEingabe,
     klick(e) {
       const k = e.target.closest("[data-rk]"), aktion = k && AKTIONEN_RK[k.dataset.rk];
@@ -5519,7 +5577,7 @@ END_CASE;`)}
     }
   });
 
-  // src/editor/vorlagen/trend-striche.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/trend-striche.js
   function kurvenPfad(p) {
     const r = (v) => +v.toFixed(1), q = (i) => p[Math.max(0, Math.min(p.length - 1, i))];
     const zwischen = (v, a, b) => Math.max(Math.min(a, b), Math.min(Math.max(a, b), v));
@@ -5626,7 +5684,7 @@ END_CASE;`)}
     return `<div class="props"><div class="palh">${STRICH[ED.tool].titel}</div><ol style="margin:0;padding-left:18px;font-size:13.5px;line-height:1.45">${schritte.map((t) => `<li style="margin:0 0 6px">${t}</li>`).join("")}</ol></div>`;
   }
 
-  // src/editor/vorlagen/trend.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/trend.js
   var TREND = { x0: 80, x1: 965, spalten: 16, diagramme: [
     { y0: 40, h: 380, zeilen: 8, symbol: "x, w", n: 1, jeder: 1 },
     { y0: 470, h: 130, zeilen: 8, symbol: "y", n: 2, jeder: 2 }
@@ -5723,7 +5781,7 @@ END_CASE;`)}
     fangPunkt: trendFang
   });
 
-  // src/editor/vorlagen/raster.js
+  // web/tools/uebungshandbuch/src/editor/vorlagen/raster.js
   var DRUCK_MM_JE_EINHEIT = 192 / 707;
   var KAESTCHEN = 5 / DRUCK_MM_JE_EINHEIT;
   var RASTER_URSPRUNG = 15;
@@ -5736,7 +5794,7 @@ END_CASE;`)}
     fangPunkt: ([x, y]) => [aufKaestchen(x), aufKaestchen(y)]
   });
 
-  // src/app/tooltip.js
+  // web/tools/uebungshandbuch/src/app/tooltip.js
   var tip = $("#tip");
   function showTip(el) {
     const t = el.dataset.tag, list = SIG[t], ex = EXTRA[t];
@@ -5766,7 +5824,7 @@ END_CASE;`)}
     addEventListener("scroll", hideTip, { passive: true });
   }
 
-  // src/app/router.js
+  // web/tools/uebungshandbuch/src/app/router.js
   function route() {
     hideTip();
     const h = location.hash.replace(/^#\/?/, "").split("/");
@@ -5814,7 +5872,7 @@ END_CASE;`)}
     route();
   }
 
-  // src/app/ereignisse.js
+  // web/tools/uebungshandbuch/src/app/ereignisse.js
   var curEx = () => (location.hash.match(/^#\/(L\d\d)/) || [])[1];
   function openDataDialog() {
     $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>Meine Daten</h2><p class="muted">Alle Eingaben, Häkchen und Skizzen bleiben nur in diesem Browser. Sichern Sie sie als Datei, um sie abzugeben oder auf einem anderen Rechner weiterzuarbeiten.</p>
@@ -5963,7 +6021,7 @@ END_CASE;`)}
     });
   }
 
-  // src/editor/ereignisse.js
+  // web/tools/uebungshandbuch/src/editor/ereignisse.js
   var palDrag = null;
   var overSheet = (e) => {
     const r = ED.svg && $("#edstage").getBoundingClientRect();
@@ -6213,7 +6271,7 @@ END_CASE;`)}
     });
   }
 
-  // src/main.js
+  // web/tools/uebungshandbuch/src/main.js
   init4();
   init3();
   init();
