@@ -9,7 +9,7 @@ import { STRICH, STRICHFELD, fuelle } from '../registry.js';
 import { shapeD } from '../vorlagen-svg.js';
 import { FARBEN, auswahlFeld, textFeld, updateProps } from '../eigenschaften.js';
 import { renderInk } from '../anzeige.js';
-import { aendere } from '../verlauf.js';
+import { aendere, beginne, schliesse } from '../verlauf.js';
 import { fangen } from '../werkzeuge.js';
 import { beginneStrich } from '../zeiger.js';
 
@@ -48,14 +48,18 @@ fuelle(STRICH, {
 });
 
 /* ---------- Werkzeuge ---------- */
+// Offenen Verlaufsschritt des Trends abschließen: Tippen in einem Achsenfeld (trend.js) oder eine angefangene Kurve.
+// Aufrufer: Verlassen des Felds, Klick aufs Blatt außer beim Weiterzeichnen der Kurve, Werkzeugwechsel, Kurve fertig.
+export function trendSchrittEnde(){ if (ED.tx && ED.tx.schluessel.startsWith("trend:")) schliesse(); }
 export const gleicherPunkt = (a, b) => Math.abs(a[0] - b[0]) < .5 && Math.abs(a[1] - b[1]) < .5;
 // Klick mit dem Werkzeug Kurve: erster Punkt merken, ab dem zweiten wächst der Strich; derselbe Punkt beendet die Kurve
 export function kurvenKlick(pt){
   const q = fangen(pt), a = ED.vorlage.angefangen;
   if (!a) { ED.vorlage.angefangen = {punkte: [q]}; kurvenVorschau(q); return; }
   const st = a.i !== undefined && ED.data.s[a.i], letzter = st ? st.p[st.p.length - 1] : a.punkte[0];
-  if (gleicherPunkt(letzter, q)) { ED.vorlage.angefangen = null; $(".ghost", ED.svg).innerHTML = ""; return; }
+  if (gleicherPunkt(letzter, q)) { ED.vorlage.angefangen = null; $(".ghost", ED.svg).innerHTML = ""; trendSchrittEnde(); return; }
   if (st) { aendere(d => { d.s[a.i].p.push(q); }); return; }
+  beginne("trend:kurve");   // alle Punkte einer Kurve sind ein Verlaufsschritt
   aendere(d => { d.s.push({k: "kurve", c: ED.color, w: ED.w, p: [letzter, q]}); a.i = d.s.length - 1; });
 }
 export function kurvenVorschau(q){
@@ -65,6 +69,7 @@ export function kurvenVorschau(q){
 }
 export const TREND_ZEIGER = {
   unten(e, pt){
+    if (ED.tool !== "kurve" || !ED.vorlage.angefangen) trendSchrittEnde();   // Klick aufs Blatt beendet den offenen Schritt
     if (ED.tool === "kurve") { e.preventDefault(); kurvenKlick(pt); return true; }
     if (ED.tool !== "band") return false;
     e.preventDefault();

@@ -133,6 +133,26 @@ export const tests = [
     },
   },
   {
+    name: 'P1-1 Trend: Achsenfeld und jede Kurve sind je ein Verlaufsschritt',
+    lauf: async (t) => {
+      await t.oeffne('trend');
+      await t.klick('#editor [data-tr="g1"]'); await t.tippe('Temp');
+      for (const x0 of [80, 400]) {
+        await t.werkzeug('kurve');
+        for (const q of [[x0, 420], [x0 + 110, 230], [x0 + 220, 135], [x0 + 220, 135]]) await t.klick(q);
+      }
+      t.gleich((await t.daten()).s.length, 2, 'zwei Kurven');
+      await t.taste('Control+z');
+      const d = await t.daten();
+      t.gleich([d.s.length, d.meta.achsen.g1], [1, 'Temp'], 'Strg+Z entfernt nur die letzte Kurve');
+      await t.taste('Control+z'); await t.taste('Control+z');
+      t.gleich(await t.daten(), null, 'Rückgängig bis zum leeren Blatt');
+      t.gleich(await t.page.inputValue('#editor [data-tr="g1"]'), '', 'Achsenfeld nach Rückgängig leer');
+      await t.klick('#editor [data-tr="g1"]'); await t.tippe('X');
+      t.gleich((await t.daten()).meta.achsen.g1, 'X', 'kein alter Text im Feld');
+    },
+  },
+  {
     name: 'T2 Kästchenraster im Druck echt 5 mm',
     lauf: async (t) => {
       await t.oeffne('raster');

@@ -8,7 +8,7 @@ import { registriereVorlage } from '../registry.js';
 import { G, G2, TX, snap } from '../vorlagen-svg.js';
 import { FARBEN } from '../eigenschaften.js';
 import { aendere, beginne } from '../verlauf.js';
-import { TREND_WERKZEUGE, TREND_ZEIGER, trendAnleitung } from './trend-striche.js';
+import { TREND_WERKZEUGE, TREND_ZEIGER, trendAnleitung, trendSchrittEnde } from './trend-striche.js';
 
 // Diagramme: linke Kante x0, rechte Kante x1, 16 Zeitspalten; je Diagramm Oberkante y0, Höhe h, 8 Zeilen
 export const TREND = {x0: 80, x1: 965, spalten: 16, diagramme: [
@@ -56,11 +56,13 @@ export const achsFeld = ([f, lbl, ph]) => `<label class="prop">${lbl}<input type
   + `value="${esc(achsen(ED.data)[f] || "")}" placeholder="${esc(ph)}" autocomplete="off"></label>`;
 export const achsenHTML = () => ACHSFELDER.map(([titel, felder]) =>
   `<div class="palg"><div class="palh">${titel}</div>` + felder.map(achsFeld).join("") + `</div>`).join("");
-// Haken eingabe: Achsenfeld übernehmen; leere Einträge entfallen. Tippen in einem Feld ist ein Verlaufsschritt.
+// Haken eingabe: Achsenfeld übernehmen; leere Einträge entfallen. Tippen in einem Feld ist ein Verlaufsschritt,
+// er endet beim Verlassen des Felds oder beim nächsten Klick aufs Blatt (trendSchrittEnde).
 export function achsEingabe(e){
   const f = e.target.dataset && e.target.dataset.tr;
   if (!f) return false;
   beginne("trend:" + f);
+  e.target.addEventListener("focusout", trendSchrittEnde, {once: true});
   aendere(d => {
     const m = d.meta = d.meta || {}, a = m.achsen = m.achsen || {};
     a[f] = e.target.value.trim();
@@ -69,6 +71,14 @@ export function achsEingabe(e){
     if (!Object.keys(m).length) delete d.meta;
   });
   return true;
+}
+// Nach Rückgängig und Wiederholen: Felder ohne Fokus zeigen wieder die Werte aus meta.achsen der Zeichnung im Editor
+export function achsFelderFuellen(d){
+  if (d !== ED.data) return;
+  const a = achsen(d);
+  document.querySelectorAll("#editor [data-tr]").forEach(el => {
+    if (el !== document.activeElement) el.value = a[el.dataset.tr] || "";
+  });
 }
 
 /* ---------- Eingetragene Achsen auf dem Blatt (Haken hintergrund) ---------- */
@@ -115,6 +125,7 @@ registriereVorlage("trend", {
   anleitung: trendAnleitung,
   seitenleiste: achsenHTML,
   eingabe: achsEingabe,
-  hintergrund: d => achsenSVG(d),
+  hintergrund: d => { achsFelderFuellen(d); return achsenSVG(d); },
   fangPunkt: trendFang,
+  werkzeugWechsel: trendSchrittEnde,
 });
