@@ -1,5 +1,5 @@
-// Editor-Kern: Spurbelegung für Leitungen und Verbindungen. inkSVG legt je Zeichnung eine Belegung an und reicht sie
-// an connGeom weiter (Leitungen: wireD, Ketten: routeV, Gruppen: Haken verbinde, Seitenbausteine: seite.verbinde).
+// Editor-Kern: Spurbelegung für Leitungen und Verbindungen. zeichnungSVG legt je Zeichnung eine Belegung an und reicht sie
+// an verbindungsWeg weiter (Leitungen: wireD, Ketten: routeV, Gruppen: Haken verbinde, Seitenbausteine: seite.verbinde).
 // Ein Weg meldet seine Abschnitte an und bekommt eine freie Spur: Abschnitte verschiedener Netze liegen dann nicht
 // deckungsgleich übereinander. Ein Netz ist ein Text wie "a:pa" (Objekt-ID und Anschluss).
 // Solange niemand belege oder knick aufruft, ändert sich kein Weg.

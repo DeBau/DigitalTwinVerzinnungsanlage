@@ -19,7 +19,7 @@ export const pressed = (o, p) => simOn() && ED.sim.P && ED.sim.P.has(o.id + ":" 
 export const DIRV = {u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0]};
 // Drehung und Spiegelung eines Bauteils; null, wenn es ungedreht ist oder nicht drehbar (drehbar: false).
 // pt bildet einen Punkt ab, dir eine Anschlussrichtung.
-export function xform(o){
+export function drehung(o){
   const pc = bauteil(o.k);
   if (!pc || pc.drehbar === false) return null;
   const r = (((o.rot || 0) % 360) + 360) % 360, f = o.flip ? -1 : 1;
@@ -38,7 +38,7 @@ export function portsOf(o){
   if (!o) return [];
   const P = art(o.k).anschluesse;
   if (!P) return [];
-  const X = xform(o);
+  const X = drehung(o);
   return (typeof P === "function" ? P(o) : P).map(([n, dx, dy, d]) => {
     if (!X) return {n, x: o.x + dx, y: o.y + dy, d};
     const [x, y] = X.pt(o.x + dx, o.y + dy);
@@ -57,7 +57,7 @@ export function nearestPort(o, pt){
 }
 // Virtuelle Schienen der Vorlage (Haken schienen) auf jedem Blatt. Sie sind Objekte der Bauteilart rail aus vorlagen/leistung.js.
 // Offener Sonderfall: Der Kern kennt hier die Bauteilart "rail" beim Namen (siehe vorlagen/README.md).
-export function vrails(key, n){
+export function virtuelleSchienen(key, n){
   const r = [];
   (vorlage(key).schienen || []).forEach(([v, y, x, w]) => {
     for (let i = 0; i < n; i++) r.push({id: `_${v}@${i}`, k: "rail", v, x, y: y + i*PH, w, virt: true});

@@ -3,7 +3,7 @@ import { ED, markiertId } from './status.js';
 import { STRICHFELD, art, bauteil } from './registry.js';
 import { gruppeVon } from './bausteine.js';
 import { clearSel, markiertesElement, markiertesObjekt, objById, trefferBei } from './auswahl.js';
-import { inkSVG } from './zeichnen.js';
+import { zeichnungSVG } from './zeichnen.js';
 import { refreshTpl } from './anzeige.js';
 import { aendere, saveSketch } from './verlauf.js';
 
@@ -11,7 +11,7 @@ import { aendere, saveSketch } from './verlauf.js';
 export function applyProp(f, v){
   if (SCHRIFTFELD[f]) { setzeSchriftfeld(f, v); return; }
   if (!setzeFeld(f, v)) return;
-  saveSketch(); ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+  saveSketch(); ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
 }
 export const SCHRIFTFELD = {mt: "title", mn: "name", md: "datum"};   // Feld → Eintrag in data.meta
 // Feld im Eigenschaftsbereich → Eigenschaft des markierten Elements je Art. Bausteine: o[Feld] oder Haken setze

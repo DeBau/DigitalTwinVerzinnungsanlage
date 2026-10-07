@@ -3,14 +3,14 @@
 import { $, $$, BY, IC, S } from '../app/basis.js';
 import { ED } from './status.js';
 import { BAUSTEIN, GRUPPE, SAMPLE, vorlage } from './registry.js';
-import { drawObj, pageCount, pcSample } from './zeichnen.js';
+import { bausteinZeichnen, pageCount, pcSample } from './zeichnen.js';
 import { skKey, skMeta, sketchSVG } from './blaetter.js';
 import { FARBEN, STAERKEN } from './eigenschaften.js';
 import { sizeSVG } from './anzeige.js';
 import { hatPruefung } from './pruefung.js';
 import { mitListen } from './verlauf.js';
 import { setTool } from './werkzeuge.js';
-import { edDown, edMove, edUp } from './zeiger.js';
+import { zeigerBewegen, zeigerLoslassen, zeigerUnten } from './zeiger.js';
 
 // Bild für Wiederholen: gespiegeltes Rückgängig (IC.undo). Der Knopf bleibt aus, bis KERN K2 ihn schaltet.
 export const IC_REDO = '<svg class="ic" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>';
@@ -102,7 +102,7 @@ export function seitenleisteHTML(v, pal){
 export function paletteKnopf([k, b]){
   const [o, vb, extra] = SAMPLE[k] || pcSample(k);
   return `<button type="button" class="palb" data-place="${k}" title="${b.n} setzen"><svg viewBox="${vb}" aria-hidden="true">`
-    + `${extra || ""}${drawObj(o, false)}</svg><span>${b.n}</span></button>`;
+    + `${extra || ""}${bausteinZeichnen(o, false)}</svg><span>${b.n}</span></button>`;
 }
 export function paletteHTML(groups){
   const gruppeHTML = g => `<div class="palg"><div class="palh">${GRUPPE[g].name}</div>`
@@ -116,7 +116,7 @@ export function paintEditor(){
   ED.blattzahl = pageCount(ED.key, ED.data); ED.zusatzY = 0;
   $("#edstage").innerHTML = sketchSVG(ED.key, BY[ED.scope], ED.data, skMeta(ED.scope, ED.key, ED.data), true);
   const svg = ED.svg = $("#edstage svg"); sizeSVG();
-  svg.addEventListener("pointerdown", edDown); svg.addEventListener("pointermove", edMove);
-  svg.addEventListener("pointerup", edUp); svg.addEventListener("pointercancel", edUp);
+  svg.addEventListener("pointerdown", zeigerUnten); svg.addEventListener("pointermove", zeigerBewegen);
+  svg.addEventListener("pointerup", zeigerLoslassen); svg.addEventListener("pointercancel", zeigerLoslassen);
   svg.addEventListener("pointerleave", () => { $(".ghost", svg).innerHTML = ""; });
 }

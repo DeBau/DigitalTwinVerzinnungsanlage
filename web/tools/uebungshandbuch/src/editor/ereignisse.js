@@ -10,10 +10,10 @@ import { renderInk, sizeSVG } from './anzeige.js';
 import { pruefeSkizze, waehleBefund, zeigeBefunde } from './pruefung.js';
 import { aendere, redo, saveSketch, snapshot, takeMenu, takeSketch, undo } from './verlauf.js';
 import { newline } from './beschriften.js';
-import { setTool, svgPt } from './werkzeuge.js';
+import { blattPunkt, setTool } from './werkzeuge.js';
 import { applyProp, delSel, turnSel } from './bearbeiten.js';
 import { placeObj } from './andocken.js';
-import { AUSWAHL, edMove } from './zeiger.js';
+import { AUSWAHL, zeigerBewegen } from './zeiger.js';
 import { doPrint, sketchPage } from '../app/druck.js';
 import { route } from '../app/router.js';
 
@@ -35,7 +35,7 @@ export function paletteZiehen(e){
   if (!palDrag.on && Math.hypot(e.clientX - palDrag.x, e.clientY - palDrag.y) > 6) {   // erst ab 6 px ist es Ziehen
     palDrag.on = true; ED.ausPalette = true; ED.place = palDrag.k; setTool("place"); document.body.classList.add("dnd");
   }
-  if (palDrag.on) { if (overSheet(e)) edMove(e); else $(".ghost", ED.svg).innerHTML = ""; }
+  if (palDrag.on) { if (overSheet(e)) zeigerBewegen(e); else $(".ghost", ED.svg).innerHTML = ""; }
 }
 export function paletteLoslassen(e){
   if (!palDrag) return;
@@ -43,7 +43,7 @@ export function paletteLoslassen(e){
   palDrag = null; document.body.classList.remove("dnd");
   if (!d.on) return;
   ED.klickAuslassen = true; ED.zusatzY = 0;
-  if (overSheet(e)) placeObj(d.k, svgPt(ED.svg, e)); else werkzeugNachAbbruch();
+  if (overSheet(e)) placeObj(d.k, blattPunkt(ED.svg, e)); else werkzeugNachAbbruch();
   ED.ausPalette = false;
 }
 

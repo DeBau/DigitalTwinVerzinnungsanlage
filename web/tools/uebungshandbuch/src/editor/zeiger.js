@@ -1,20 +1,20 @@
 // Editor-Kern: Zeigerereignisse auf dem Blatt (drücken, ziehen, loslassen) für alle Werkzeuge.
 // Vorlagen mit eigenen Werkzeugen hängen sich über den Haken zeiger {unten, bewegen, angeklickt, gezogen} ein.
-// Angemeldet in oeffnen.js (paintEditor), edMove auch beim Ziehen aus der Palette (ereignisse.js).
+// Angemeldet in oeffnen.js (paintEditor), zeigerBewegen auch beim Ziehen aus der Palette (ereignisse.js).
 import { $ } from '../app/basis.js';
 import { ED, markiere } from './status.js';
 import { STRICH, vorlage } from './registry.js';
 import { shapeD, snap } from './vorlagen-svg.js';
-import { nearestPort, portCap, vrails } from './bauteile.js';
+import { nearestPort, portCap, virtuelleSchienen } from './bauteile.js';
 import { gruppeVon } from './bausteine.js';
 import { clearSel, objById, trefferBei } from './auswahl.js';
 import { ausrichten, kettenQuelle } from './kette.js';
-import { connGeom, drawObj } from './zeichnen.js';
+import { bausteinZeichnen, verbindungsWeg } from './zeichnen.js';
 import { updateProps } from './eigenschaften.js';
 import { checkPages, renderInk } from './anzeige.js';
 import { aendere, saveSketch, snapshot } from './verlauf.js';
 import { editConnLabel, editLabel, editObjLabel, editTextItem } from './beschriften.js';
-import { snapW, svgPt } from './werkzeuge.js';
+import { blattPunkt, fangen } from './werkzeuge.js';
 import { eraseAt } from './bearbeiten.js';
 import { VORSCHAU, avoidBreak, connect, connectPorts, dockLeitung, linked, makeObj, placeObj, smartPos } from './andocken.js';
 
@@ -34,15 +34,15 @@ export const UNTEN = {
 // Strichart, die ein Werkzeug aufzieht; unbekannte Werkzeuge ziehen eine Linie
 export const STRICH_DES_WERKZEUGS = {line: "l", rect: "r"};
 export function formUnten(e, pt){
-  const q = snapW(pt);
+  const q = fangen(pt);
   beginneStrich(e, {k: STRICH_DES_WERKZEUGS[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q]});
 }
-export function edDown(e){
+export function zeigerUnten(e){
   if (!e.target.closest("input")) {   // kein Markieren von Text beim Zeichnen
     e.preventDefault();
     const sl = getSelection(); if (sl && sl.rangeCount) sl.removeAllRanges();
   }
-  const pt = svgPt(ED.svg, e), zeiger = zeigerHaken();
+  const pt = blattPunkt(ED.svg, e), zeiger = zeigerHaken();
   if (zeiger.unten && zeiger.unten(e, pt)) return;   // Haken zeiger.unten: eigene Werkzeuge der Vorlage
   (UNTEN[ED.tool] || formUnten)(e, pt);
 }
@@ -102,7 +102,7 @@ export function verbindenUnten(e, pt){
   const hitO = e.target.closest("[data-o]");
   let id = hitO && hitO.dataset.o;
   if (!id) {   // Klick auf eine virtuelle Schiene der Vorlage
-    const vr = vrails(ED.key, ED.blattzahl || 1).find(r => Math.abs(pt[1] - r.y) < 8 && pt[0] >= r.x && pt[0] <= r.x + r.w);
+    const vr = virtuelleSchienen(ED.key, ED.blattzahl || 1).find(r => Math.abs(pt[1] - r.y) < 8 && pt[0] >= r.x && pt[0] <= r.x + r.w);
     if (vr) id = vr.id;
   }
   if (!id) { ED.verbindenVon = null; renderInk(); return; }
@@ -125,14 +125,14 @@ export function beginneStrich(e, cur){
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("stroke", ED.color); path.setAttribute("stroke-width", ED.w); path.setAttribute("fill", "none");
   path.setAttribute("stroke-linecap", "round"); path.setAttribute("stroke-linejoin", "round");
-  ED.svg.querySelector(".ink").appendChild(path); ED.strichPfad = path; edMove(e);
+  ED.svg.querySelector(".ink").appendChild(path); ED.strichPfad = path; zeigerBewegen(e);
 }
 
 /* ---------- Ziehen ---------- */
-export function edMove(e){
+export function zeigerBewegen(e){
   const svg = ED.svg; if (!svg) return;
   if (ED.radiert) { eraseAt(e); return; }
-  const pt = svgPt(svg, e);
+  const pt = blattPunkt(svg, e);
   const busy = ED.drag || ED.strich || (ED.tool === "place" && ED.place);
   ED.zusatzY = busy ? pt[1] : 0; checkPages();   // beim Ziehen über den Blattrand wächst die Zeichnung
   if (busy) randScrollen(e);
@@ -141,7 +141,7 @@ export function edMove(e){
   const zeiger = zeigerHaken();
   if (zeiger.bewegen && zeiger.bewegen(e, pt)) return;   // Haken zeiger.bewegen
   if (!ED.strich) return;
-  if (ED.strich.k) { ED.strich.p[1] = snapW(pt); ED.strichPfad.setAttribute("d", shapeD(ED.strich)); return; }
+  if (ED.strich.k) { ED.strich.p[1] = fangen(pt); ED.strichPfad.setAttribute("d", shapeD(ED.strich)); return; }
   const l = ED.strich.p[ED.strich.p.length-1];   // Freihand: Punkte sammeln
   if (Math.hypot(pt[0]-l[0], pt[1]-l[1]) > 1.2) ED.strich.p.push(pt);
   ED.strichPfad.setAttribute("d", "M" + ED.strich.p.map(q => q.join(" ")).join("L") + (ED.strich.p.length === 1 ? "l.01 0" : ""));
@@ -156,7 +156,7 @@ export function ziehen(pt){
   const dr = ED.drag, dx = pt[0] - dr.sx, dy = pt[1] - dr.sy;
   if (!dr.moved && Math.hypot(dx, dy) < 3) return;   // kleines Zittern ist noch ein Klick
   if (!dr.moved) { snapshot(); dr.moved = true; }
-  if (dr.kind === "h") { ED.data.s[dr.i].p[dr.h] = snapW(pt); renderInk(); return; }
+  if (dr.kind === "h") { ED.data.s[dr.i].p[dr.h] = fangen(pt); renderInk(); return; }
   if (dr.kind === "t") { const t = ED.data.t[dr.i]; [t.x, t.y] = snap([dr.ox + dx, dr.oy + dy]); renderInk(); return; }
   if (dr.kind === "s") { zieheStrich(ED.data.s[dr.i], dx, dy); renderInk(); return; }
   const o = objById(dr.id);
@@ -171,7 +171,7 @@ export function zieheStrich(st, dx, dy){
   const a = STRICH[st.k], o0 = ED.drag.orig[0];
   if (a && a.ziehen) { a.ziehen(st, ED.drag, dx, dy); return; }   // Haken ziehen der Strichart
   let mx = dx, my = dy;
-  if (st.k) { const q = snapW([o0[0] + dx, o0[1] + dy]); mx = q[0] - o0[0]; my = q[1] - o0[1]; }   // Ecke fängt
+  if (st.k) { const q = fangen([o0[0] + dx, o0[1] + dy]); mx = q[0] - o0[0]; my = q[1] - o0[1]; }   // Ecke fängt
   st.p = ED.drag.orig.map(([x, y]) => [+(x + mx).toFixed(1), +(y + my).toFixed(1)]);
 }
 // Vorschau des Bausteins, der beim Klick gesetzt würde, mit Verbindung zum Kettenvorgänger
@@ -181,16 +181,16 @@ export function setzVorschau(pt){
   if (A) {
     ausrichten(o, A, pt);
     const map = Object.fromEntries(ED.data.o.map(p => [p.id, p])); map[o.id] = o;
-    const gm = connGeom({a: A.id, b: o.id}, map, []);
+    const gm = verbindungsWeg({a: A.id, b: o.id}, map, []);
     if (gm) marks = VORSCHAU(gm.d);
   }
   else marks = smartPos(o).marks;
   avoidBreak(o);
-  $(".ghost", ED.svg).innerHTML = marks + `<g opacity=".5">${drawObj(o, true)}</g>`;
+  $(".ghost", ED.svg).innerHTML = marks + `<g opacity=".5">${bausteinZeichnen(o, true)}</g>`;
 }
 
 /* ---------- Loslassen ---------- */
-export function edUp(){
+export function zeigerLoslassen(){
   ED.radiert = false; ED.zusatzY = 0;
   if (ED.drag) { ziehenEnde(); return; }
   if (!ED.strich) return;

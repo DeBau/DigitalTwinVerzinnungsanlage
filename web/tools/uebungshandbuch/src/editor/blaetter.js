@@ -4,7 +4,7 @@ import { BY, S } from '../app/basis.js';
 import { INK, PH, SVGT } from './svg.js';
 import { VORL, vorlage } from './registry.js';
 import { frame } from './vorlagen-svg.js';
-import { inkSVG, pageCount } from './zeichnen.js';
+import { pageCount, zeichnungSVG } from './zeichnen.js';
 
 export function pagesSVG(key, ex, meta, n, edit){
   const body = vorlage(key).body;
@@ -16,7 +16,7 @@ export function pagesSVG(key, ex, meta, n, edit){
 export function sketchSVG(key, ex, data, meta, edit=false, page=null){
   const n = pageCount(key, data), shown = edit || page !== null ? n : 1;
   const vb = page !== null ? `0 ${page*PH} 1000 ${PH}` : `0 0 1000 ${PH*(edit ? n : 1)}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"><defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 1L10 5L0 9z" fill="${INK}"/></marker></defs><g class="tpl">${pagesSVG(key, ex, meta, shown, edit)}</g><g class="ink">${inkSVG(data, edit, key)}</g><g class="ghost"></g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"><defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 1L10 5L0 9z" fill="${INK}"/></marker></defs><g class="tpl">${pagesSVG(key, ex, meta, shown, edit)}</g><g class="ink">${zeichnungSVG(data, edit, key)}</g><g class="ghost"></g></svg>`;
 }
 export const skKey = (scope, key) => `${scope}:sk:${key}`;
 export const deDate = t => new Date(t).toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit", year: "numeric"});

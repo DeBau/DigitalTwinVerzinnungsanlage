@@ -1,9 +1,9 @@
 // Editor-Kern: Objektsuche, Markierung und Treffer auf dem Blatt. Benutzt von allen Editor-Modulen.
 import { ED, markiertId } from './status.js';
-import { vrails } from './bauteile.js';
+import { virtuelleSchienen } from './bauteile.js';
 
 export const objById = id => ED.data.o.find(o => o.id === id)
-  || (String(id).startsWith("_") ? vrails(ED.key, ED.blattzahl || 1).find(r => r.id === id) : undefined);
+  || (String(id).startsWith("_") ? virtuelleSchienen(ED.key, ED.blattzahl || 1).find(r => r.id === id) : undefined);
 export const uid = () => "o" + Math.random().toString(36).slice(2, 9);
 export const anySel = () => !!ED.markiert;
 export function clearSel(){ ED.markiert = null; }

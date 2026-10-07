@@ -6,7 +6,7 @@ import { $, esc } from '../app/basis.js';
 import { SVGT } from './svg.js';
 import { ED, markiere } from './status.js';
 import { vorlage } from './registry.js';
-import { bbox } from './bausteine.js';
+import { umrissVon } from './bausteine.js';
 import { clearSel, objById } from './auswahl.js';
 import { updateProps } from './eigenschaften.js';
 import { renderInk } from './anzeige.js';
@@ -25,7 +25,7 @@ export function befundSVG(b, i){
   const o = b.o && objById(b.o), weg = b.c !== undefined && ED.svg.querySelector(`.ink [data-c="${b.c}"] path`);
   const nr = (x, y) => SVGT(x, y, String(i + 1), "middle", 11, 700, ROT);
   if (o) {
-    const r = bbox(o);
+    const r = umrissVon(o);
     return `<rect x="${r.x - 7}" y="${r.y - 7}" width="${r.w + 14}" height="${r.h + 14}" rx="5" fill="none" stroke="${ROT}" `
       + `stroke-width="2"/>` + nr(r.x - 12, r.y - 10);
   }

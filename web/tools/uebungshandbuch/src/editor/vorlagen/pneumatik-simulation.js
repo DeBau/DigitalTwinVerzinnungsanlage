@@ -4,9 +4,9 @@
 import { ED } from '../status.js';
 import { art } from '../registry.js';
 import { pressed, simOn } from '../bauteile.js';
-import { bbox } from '../bausteine.js';
+import { umrissVon } from '../bausteine.js';
 import { clearSel, objById } from '../auswahl.js';
-import { inkSVG } from '../zeichnen.js';
+import { zeichnungSVG } from '../zeichnen.js';
 import { vstate } from './pneumatik-symbole.js';
 
 export function simCompute(){
@@ -34,18 +34,18 @@ export function simStep(t){
     const A = pressed(o, "A"), B = o.k !== "zyl1" && pressed(o, "B"), p = ED.sim.pos[o.id] || 0;
     const dir = o.k === "zyl1" ? (A ? 1 : -1) : (A && !B ? 1 : B && !A ? -1 : 0), np = Math.max(0, Math.min(1, p + dir * dt / 1.2));
     if (np !== p) { ED.sim.pos[o.id] = np; moving = true; } });
-  if (moving && ED.svg) ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+  if (moving && ED.svg) ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
   requestAnimationFrame(simStep);
 }
 export function simClick(o, pt){
-  if (o.k === "kh") { ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf"; simCompute(); ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key); return; }
+  if (o.k === "kh") { ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf"; simCompute(); ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key); return; }
   if (!["v22","v32","v52","v53"].includes(o.k)) return;
-  const b = bbox(o), left = pt[0] < b.x + b.w / 2, s = vstate(o), mono = (o.ar || "feder") === "feder";
+  const b = umrissVon(o), left = pt[0] < b.x + b.w / 2, s = vstate(o), mono = (o.ar || "feder") === "feder";
   let ns = s;
   if (o.k === "v53") ns = left ? (s === "act" ? "center" : "act") : (s === "b" ? "center" : "b");
   else if (mono) ns = left ? (s === "act" ? "rest" : "act") : s;
   else ns = left ? "act" : "rest";
-  ED.sim.st[o.id] = ns; simCompute(); ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+  ED.sim.st[o.id] = ns; simCompute(); ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
 }
 
 export const SIM_ANLEITUNG = `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren leuchten grün.</p><p class="small muted" style="margin:0">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;

@@ -4,7 +4,7 @@ import { INK, SVGT } from '../svg.js';
 import { ED } from '../status.js';
 import { BAUSTEIN, SAMPLE, art, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, TX, dots } from '../vorlagen-svg.js';
-import { LINIE, ctr, rund } from '../bausteine.js';
+import { LINIE, mitteVon, rund } from '../bausteine.js';
 
 export const f1 = n => n.toFixed(1);
 // Punkt auf dem Weg von p nach q im Abstand r von p (Rand eines Kreises)
@@ -16,7 +16,7 @@ export const randRadius = o => art(o.k).radius || 20;
 
 // Übergang von A nach B. Gibt es auch den Rückweg, biegen sich beide Pfeile auseinander.
 export function verbindeZustand(c, A, B, objs, all){
-  const ca = ctr(A), cb = ctr(B), ra = randRadius(A), rb = randRadius(B);
+  const ca = mitteVon(A), cb = mitteVon(B), ra = randRadius(A), rb = randRadius(B);
   if (c.a === c.b) {   // Schleife rechts am Zustand
     const [x, y] = ca;
     return {d: `M${x+ra-3} ${y-14}C${x+ra+62} ${y-45} ${x+ra+62} ${y+45} ${x+ra-3} ${y+14}`, arrow: true, lbl: [x+ra+56, y+4, "start"]};

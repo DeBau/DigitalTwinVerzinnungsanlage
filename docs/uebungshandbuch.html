@@ -1312,7 +1312,7 @@ pre.code code{font-size:inherit}
   var simOn = () => typeof ED !== "undefined" && ED.sim && ED.sim.on;
   var pressed = (o, p) => simOn() && ED.sim.P && ED.sim.P.has(o.id + ":" + p);
   var DIRV = { u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0] };
-  function xform(o) {
+  function drehung(o) {
     const pc = bauteil(o.k);
     if (!pc || pc.drehbar === false) return null;
     const r = ((o.rot || 0) % 360 + 360) % 360, f = o.flip ? -1 : 1;
@@ -1333,7 +1333,7 @@ pre.code code{font-size:inherit}
     if (!o) return [];
     const P = art(o.k).anschluesse;
     if (!P) return [];
-    const X = xform(o);
+    const X = drehung(o);
     return (typeof P === "function" ? P(o) : P).map(([n, dx, dy, d]) => {
       if (!X) return { n, x: o.x + dx, y: o.y + dy, d };
       const [x, y] = X.pt(o.x + dx, o.y + dy);
@@ -1351,7 +1351,7 @@ pre.code code{font-size:inherit}
     }
     return b ? b.n : null;
   }
-  function vrails(key, n) {
+  function virtuelleSchienen(key, n) {
     const r = [];
     (vorlage(key).schienen || []).forEach(([v, y, x, w]) => {
       for (let i = 0; i < n; i++) r.push({ id: `_${v}@${i}`, k: "rail", v, x, y: y + i * PH, w, virt: true });
@@ -1387,37 +1387,37 @@ pre.code code{font-size:inherit}
   var LINIE = `stroke="${INK}" stroke-width="1.6"`;
   var platzhalter = (edit, t, x, y, a = "middle") => edit ? SVGT(x, y, t, a, 12, 400, MUTE) : "";
   var rund = (r) => ({ radius: r, umriss: (o) => ({ x: o.x - r, y: o.y - r, w: 2 * r, h: 2 * r }) });
-  var fam = (o) => o && BAUSTEIN[o.k] ? BAUSTEIN[o.k].g : null;
-  var gruppeVon = (o) => GRUPPE[fam(o)] || {};
-  function bbox(o) {
+  var gruppenId = (o) => o && BAUSTEIN[o.k] ? BAUSTEIN[o.k].g : null;
+  var gruppeVon = (o) => GRUPPE[gruppenId(o)] || {};
+  function umrissVon(o) {
     const a = art(o.k);
     if (a.umriss) return a.umriss(o);
     if (!a.bauteil) return { x: o.x, y: o.y, w: 20, h: 20 };
-    const X = xform(o), b = { x: o.x + (a.bx || 0), y: o.y, w: a.w, h: a.h };
+    const X = drehung(o), b = { x: o.x + (a.bx || 0), y: o.y, w: a.w, h: a.h };
     if (!X || X.c) return b;
     return { x: X.cx - a.h / 2, y: X.cy - a.w / 2, w: a.h, h: a.w };
   }
-  function ctr(o) {
+  function mitteVon(o) {
     const a = art(o.k);
     if (a.mitte) return a.mitte(o);
-    const b = bbox(o);
+    const b = umrissVon(o);
     return [b.x + b.w / 2, b.y + b.h / 2];
   }
-  function outPt(o, tx) {
+  function kettenAus(o, tx) {
     const a = art(o.k);
     if (a.aus) return a.aus(o, tx);
-    const b = bbox(o);
+    const b = umrissVon(o);
     return [b.x + b.w / 2, b.y + b.h];
   }
-  function inPt(o, fx) {
+  function kettenEin(o, fx) {
     const a = art(o.k);
     if (a.ein) return a.ein(o, fx);
-    const b = bbox(o);
+    const b = umrissVon(o);
     return [b.x + b.w / 2, b.y];
   }
 
   // web/tools/uebungshandbuch/src/editor/auswahl.js
-  var objById = (id) => ED.data.o.find((o) => o.id === id) || (String(id).startsWith("_") ? vrails(ED.key, ED.blattzahl || 1).find((r) => r.id === id) : void 0);
+  var objById = (id) => ED.data.o.find((o) => o.id === id) || (String(id).startsWith("_") ? virtuelleSchienen(ED.key, ED.blattzahl || 1).find((r) => r.id === id) : void 0);
   var uid = () => "o" + Math.random().toString(36).slice(2, 9);
   var anySel = () => !!ED.markiert;
   function clearSel() {
@@ -1469,12 +1469,12 @@ pre.code code{font-size:inherit}
   function verbindeKette(A, B, spuren) {
     const s = seite(B);
     if (s) return s.verbinde(A, B, spuren);
-    const von = outPt(A, ctr(B)[0]);
-    return routeV(von, inPt(B, von[0]), spuren);
+    const von = kettenAus(A, mitteVon(B)[0]);
+    return routeV(von, kettenEin(B, von[0]), spuren);
   }
   function kettenQuelle(k) {
     const A = !ED.ausPalette && markiertesObjekt();
-    if (!A || !gruppeVon(A).kette || fam(A) !== BAUSTEIN[k].g) return null;
+    if (!A || !gruppeVon(A).kette || gruppenId(A) !== BAUSTEIN[k].g) return null;
     const neuSeite = seitenArt(k);
     if (seite(A)) return neuSeite ? A : null;
     if (neuSeite) return neuSeite.quelle(A);
@@ -1483,13 +1483,13 @@ pre.code code{font-size:inherit}
   function ausrichten(o, A, pt) {
     const s = seite(o);
     if (s) return s.ausrichten(o, A, pt);
-    const ax = outPt(A, ctr(o)[0])[0];
+    const ax = kettenAus(A, mitteVon(o)[0])[0];
     o.x = ax - (art(o.k).einrueck || 0);
   }
   function andockStelle(o) {
-    const g = fam(o), gruppe = gruppeVon(o);
+    const g = gruppenId(o), gruppe = gruppeVon(o);
     if (!ED.dock) return null;
-    const others = ED.data.o.filter((p) => p.id !== o.id && fam(p) === g);
+    const others = ED.data.o.filter((p) => p.id !== o.id && gruppenId(p) === g);
     if (gruppe.andocke) return gruppe.andocke(o, others);
     if (!gruppe.kette) return null;
     return andockKette(o, others);
@@ -1506,9 +1506,9 @@ pre.code code{font-size:inherit}
     }
     for (const p of others) {
       if (seite(p)) continue;
-      const po = outPt(p, ctr(o)[0]), oi = inPt(o, po[0]), dy1 = oi[1] - po[1], dx1 = po[0] - oi[0];
+      const po = kettenAus(p, mitteVon(o)[0]), oi = kettenEin(o, po[0]), dy1 = oi[1] - po[1], dx1 = po[0] - oi[0];
       if (dy1 >= 10 && dy1 <= weite && Math.abs(dx1) <= 30) take({ a: p.id, b: o.id, d: Math.abs(dx1) + dy1 / 4, sx: dx1, sy: 0 });
-      const oo = outPt(o, ctr(p)[0]), pi = inPt(p, oo[0]), dy2 = pi[1] - oo[1], dx2 = pi[0] - oo[0];
+      const oo = kettenAus(o, mitteVon(p)[0]), pi = kettenEin(p, oo[0]), dy2 = pi[1] - oo[1], dx2 = pi[0] - oo[0];
       if (dy2 >= 10 && dy2 <= weite && Math.abs(dx2) <= 30) take({ a: o.id, b: p.id, d: Math.abs(dx2) + dy2 / 4, sx: dx2, sy: 0 });
     }
     return best;
@@ -1516,16 +1516,16 @@ pre.code code{font-size:inherit}
   function andockPunkt(A, B) {
     const s = seite(B);
     if (s) return s.punkt(A, B);
-    return inPt(B, outPt(A, ctr(B)[0])[0]);
+    return kettenEin(B, kettenAus(A, mitteVon(B)[0])[0]);
   }
 
   // web/tools/uebungshandbuch/src/editor/zeichnen.js
-  function drawObj(o, edit) {
+  function bausteinZeichnen(o, edit) {
     const a = art(o.k);
     return a.zeichne ? gedreht(o, a.zeichne(o, edit)) : "";
   }
   function gedreht(o, svg) {
-    const X = xform(o);
+    const X = drehung(o);
     if (!X) return svg;
     const swap = X.f * X.c < 0;
     const upright = svg.replace(/<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)"/g, (m, x, y, a) => `<text transform="translate(${x} ${y}) scale(${X.f} 1) rotate(${-X.r}) translate(${-x} ${-y})" x="${x}" y="${y}" text-anchor="${swap && a !== "middle" ? a === "end" ? "start" : "end" : a}"`);
@@ -1536,7 +1536,7 @@ pre.code code{font-size:inherit}
     if (a.verweisName) return a.verweisName(o, objs, cs, dir);
     return o.v || BAUSTEIN[o.k].n;
   }
-  function connGeom(c, objs, all, spuren = neueSpuren()) {
+  function verbindungsWeg(c, objs, all, spuren = neueSpuren()) {
     const A = objs[c.a], B = objs[c.b];
     if (!A || !B) return null;
     if (c.pa !== void 0 || c.pb !== void 0) {
@@ -1550,12 +1550,12 @@ pre.code code{font-size:inherit}
     return verbindeRechtwinklig(A, B);
   }
   function randPunkt(o, b, dir) {
-    const c = ctr(o), r = art(o.k).radius;
+    const c = mitteVon(o), r = art(o.k).radius;
     if (r) return { r: [c[0] + r, c[1]], l: [c[0] - r, c[1]], d: [c[0], c[1] + r], u: [c[0], c[1] - r] }[dir];
     return { r: [b.x + b.w, c[1]], l: [b.x, c[1]], d: [c[0], b.y + b.h], u: [c[0], b.y] }[dir];
   }
   function verbindeRechtwinklig(A, B) {
-    const ba = bbox(A), bb = bbox(B), ca = ctr(A), cb = ctr(B), dx = cb[0] - ca[0], dy = cb[1] - ca[1];
+    const ba = umrissVon(A), bb = umrissVon(B), ca = mitteVon(A), cb = mitteVon(B), dx = cb[0] - ca[0], dy = cb[1] - ca[1];
     if (Math.abs(dx) >= Math.abs(dy)) {
       const p12 = randPunkt(A, ba, dx >= 0 ? "r" : "l"), p22 = randPunkt(B, bb, dx >= 0 ? "l" : "r"), m2 = Math.round((p12[0] + p22[0]) / 2);
       const d2 = Math.abs(p12[1] - p22[1]) < 1 ? `M${p12[0]} ${p12[1]}H${p22[0]}` : `M${p12[0]} ${p12[1]}H${m2}V${p22[1]}H${p22[0]}`;
@@ -1605,11 +1605,11 @@ pre.code code{font-size:inherit}
   }
   var istRahmen = (o) => !!art(o.k).rahmen;
   function bausteinSVG(o, edit) {
-    const b = bbox(o), von = edit && ED.verbindenVon && ED.verbindenVon.id === o.id, hi = edit && (istMarkiert("o", o.id) || von), fr = istRahmen(o);
+    const b = umrissVon(o), von = edit && ED.verbindenVon && ED.verbindenVon.id === o.id, hi = edit && (istMarkiert("o", o.id) || von), fr = istRahmen(o);
     let h = "";
     if (edit && fr) h = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? 0.25 : 0}" stroke-width="12"/>`;
     if (edit && !fr) h = `<rect x="${b.x - 5}" y="${b.y - 5}" width="${b.w + 10}" height="${b.h + 10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${von ? "2 3" : "5 3"}"` : ""}/>`;
-    return `<g data-o="${o.id}">${h}${drawObj(o, edit)}</g>`;
+    return `<g data-o="${o.id}">${h}${bausteinZeichnen(o, edit)}</g>`;
   }
   function abzweigpunkte(cs, objs) {
     let s = "";
@@ -1643,17 +1643,17 @@ pre.code code{font-size:inherit}
     }));
     return s;
   }
-  function inkSVG(d, edit = false, key = null) {
+  function zeichnungSVG(d, edit = false, key = null) {
     if (!d) return "";
     const objs = Object.fromEntries((d.o || []).map((o) => [o.id, o])), cs = d.c || [];
-    vrails(key, pageCount(key, d)).forEach((r) => {
+    virtuelleSchienen(key, pageCount(key, d)).forEach((r) => {
       objs[r.id] = r;
     });
     const v = vorlage(key);
     const rails = v.hintergrund ? v.hintergrund(d, cs) : "";
     const spuren = neueSpuren();
     const conns = cs.map((c, i) => {
-      const gm = connGeom(c, objs, cs, spuren);
+      const gm = verbindungsWeg(c, objs, cs, spuren);
       if (!gm) return "";
       return gm.wire ? leitungSVG(c, i, gm, objs, key, edit) : verbindungSVG(c, i, gm, objs, cs, key, edit);
     }).join("");
@@ -1664,7 +1664,7 @@ pre.code code{font-size:inherit}
     if (vorlage(key).einblattig) return 1;
     let m = extraY;
     (d && d.o || []).forEach((o) => {
-      const b = bbox(o);
+      const b = umrissVon(o);
       m = Math.max(m, b.y + b.h);
     });
     (d && d.s || []).forEach((st) => st.p.forEach((q) => {
@@ -1701,7 +1701,7 @@ pre.code code{font-size:inherit}
   function sketchSVG(key, ex, data, meta, edit = false, page = null) {
     const n = pageCount(key, data), shown = edit || page !== null ? n : 1;
     const vb = page !== null ? `0 ${page * PH} 1000 ${PH}` : `0 0 1000 ${PH * (edit ? n : 1)}`;
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"><defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 1L10 5L0 9z" fill="${INK}"/></marker></defs><g class="tpl">${pagesSVG(key, ex, meta, shown, edit)}</g><g class="ink">${inkSVG(data, edit, key)}</g><g class="ghost"></g></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"><defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 1L10 5L0 9z" fill="${INK}"/></marker></defs><g class="tpl">${pagesSVG(key, ex, meta, shown, edit)}</g><g class="ink">${zeichnungSVG(data, edit, key)}</g><g class="ghost"></g></svg>`;
   }
   var skKey = (scope, key) => `${scope}:sk:${key}`;
   var deDate = (t) => new Date(t).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -2207,7 +2207,7 @@ pre.code code{font-size:inherit}
   }
   function renderInk() {
     if (ED.svg) {
-      ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+      ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
       checkPages();
     }
     updateProps();
@@ -2225,7 +2225,7 @@ pre.code code{font-size:inherit}
     const o = b.o && objById(b.o), weg = b.c !== void 0 && ED.svg.querySelector(`.ink [data-c="${b.c}"] path`);
     const nr = (x2, y2) => SVGT(x2, y2, String(i + 1), "middle", 11, 700, ROT);
     if (o) {
-      const r = bbox(o);
+      const r = umrissVon(o);
       return `<rect x="${r.x - 7}" y="${r.y - 7}" width="${r.w + 14}" height="${r.h + 14}" rx="5" fill="none" stroke="${ROT}" stroke-width="2"/>` + nr(r.x - 12, r.y - 10);
     }
     if (weg) {
@@ -2391,13 +2391,13 @@ pre.code code{font-size:inherit}
     el.value = el.value.slice(0, a) + "\n" + el.value.slice(b);
     el.selectionStart = el.selectionEnd = a + 1;
   }
-  function editLabel(x, y, init5, ph, done) {
+  function editLabel(x, y, anfang, ph, done) {
     const svg = ED.svg, stage = $("#edstage"), r = stage.getBoundingClientRect(), m = svg.getScreenCTM();
     const inp = document.createElement("textarea");
     inp.className = "txtin";
-    inp.value = init5;
+    inp.value = anfang;
     inp.placeholder = (ph || "Text") + " – Enter übernimmt, Alt+Enter neue Zeile";
-    inp.rows = Math.max(1, init5.split("\n").length);
+    inp.rows = Math.max(1, anfang.split("\n").length);
     inp.title = "Enter übernimmt, Alt+Enter (oder Umschalt+Enter) beginnt eine neue Zeile";
     inp.style.left = Math.max(4, Math.min(m.a * x + m.e - r.left, r.width - 270)) + "px";
     inp.style.top = m.d * y + m.f - r.top + stage.scrollTop - 17 + "px";
@@ -2436,7 +2436,7 @@ pre.code code{font-size:inherit}
     if (!o) return;
     const B = art(o.k).beschriftung;
     if (B === false) return;
-    const b = bbox(o);
+    const b = umrissVon(o);
     const wert = B && B.wert ? B.wert(o) : o.v || "";
     const at = B && B.ort ? B.ort(o) : [b.x, b.y + b.h / 2];
     const hinweis = B && (typeof B.hinweis === "function" ? B.hinweis(o) : B.hinweis);
@@ -2495,14 +2495,14 @@ pre.code code{font-size:inherit}
     }
     updateProps(true);
   }
-  function svgPt(svg, e) {
+  function blattPunkt(svg, e) {
     const p = svg.createSVGPoint();
     p.x = e.clientX;
     p.y = e.clientY;
     const q = p.matrixTransform(svg.getScreenCTM().inverse());
     return [Math.round(q.x * 10) / 10, Math.round(q.y * 10) / 10];
   }
-  function snapW(pt) {
+  function fangen(pt) {
     if (!ED.grid) return [Math.round(pt[0]), Math.round(pt[1])];
     const v = vorlage(ED.key);
     if (v.fangPunkt) return v.fangPunkt(pt);
@@ -2517,7 +2517,7 @@ pre.code code{font-size:inherit}
     }
     if (!setzeFeld(f, v)) return;
     saveSketch();
-    ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+    ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
   }
   var SCHRIFTFELD = { mt: "title", mn: "name", md: "datum" };
   var FELDNAME = { t: { tv: "v", ts: "s", sc: "c" }, s: STRICHFELD, c: { cv: "v", cst: "st" } };
@@ -2640,11 +2640,11 @@ pre.code code{font-size:inherit}
   }
   var HILFSLINIE = (d) => `<path d="${d}" stroke="#2F80ED" stroke-width="1" stroke-dasharray="4 4"/>`;
   function hilfslinien(o, marks) {
-    const c = ctr(o);
+    const c = mitteVon(o);
     let gx = null, gy = null, bx = 12, by = 12;
     for (const p of ED.data.o) {
       if (p.id === o.id) continue;
-      const q = ctr(p), dx = q[0] - c[0], dy = q[1] - c[1];
+      const q = mitteVon(p), dx = q[0] - c[0], dy = q[1] - c[1];
       if (Math.abs(dx) < bx && Math.abs(dx) > 0) {
         bx = Math.abs(dx);
         gx = [dx, q];
@@ -2662,26 +2662,26 @@ pre.code code{font-size:inherit}
     }
     if (gx) {
       o.x += gx[0];
-      const c2 = ctr(o);
+      const c2 = mitteVon(o);
       marks.push(HILFSLINIE(`M${c2[0]} ${Math.min(c2[1], gx[1][1]) - 30}V${Math.max(c2[1], gx[1][1]) + 30}`));
     }
     if (gy) {
       o.y += gy[0];
-      const c2 = ctr(o);
+      const c2 = mitteVon(o);
       marks.push(HILFSLINIE(`M${Math.min(c2[0], gy[1][0]) - 30} ${c2[1]}H${Math.max(c2[0], gy[1][0]) + 30}`));
     }
   }
   function andockVorschau(o, dock) {
     const map = Object.fromEntries(ED.data.o.map((p2) => [p2.id, p2]));
     map[o.id] = o;
-    const gm = connGeom({ a: dock.a, b: dock.b }, map, []);
+    const gm = verbindungsWeg({ a: dock.a, b: dock.b }, map, []);
     const p = andockPunkt(map[dock.a], map[dock.b]);
     return (gm ? VORSCHAU(gm.d) : "") + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
   }
   function avoidBreak(o) {
     if (vorlage(ED.key).einblattig) return;
     for (let i = 0; i < 4; i++) {
-      const b = bbox(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
+      const b = umrissVon(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
       if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) o.y += B + 70 - b.y;
       else break;
     }
@@ -2770,16 +2770,16 @@ pre.code code{font-size:inherit}
   };
   var STRICH_DES_WERKZEUGS = { line: "l", rect: "r" };
   function formUnten(e, pt) {
-    const q = snapW(pt);
+    const q = fangen(pt);
     beginneStrich(e, { k: STRICH_DES_WERKZEUGS[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q] });
   }
-  function edDown(e) {
+  function zeigerUnten(e) {
     if (!e.target.closest("input")) {
       e.preventDefault();
       const sl = getSelection();
       if (sl && sl.rangeCount) sl.removeAllRanges();
     }
-    const pt = svgPt(ED.svg, e), zeiger = zeigerHaken();
+    const pt = blattPunkt(ED.svg, e), zeiger = zeigerHaken();
     if (zeiger.unten && zeiger.unten(e, pt)) return;
     (UNTEN[ED.tool] || formUnten)(e, pt);
   }
@@ -2856,7 +2856,7 @@ pre.code code{font-size:inherit}
     const hitO = e.target.closest("[data-o]");
     let id = hitO && hitO.dataset.o;
     if (!id) {
-      const vr = vrails(ED.key, ED.blattzahl || 1).find((r) => Math.abs(pt[1] - r.y) < 8 && pt[0] >= r.x && pt[0] <= r.x + r.w);
+      const vr = virtuelleSchienen(ED.key, ED.blattzahl || 1).find((r) => Math.abs(pt[1] - r.y) < 8 && pt[0] >= r.x && pt[0] <= r.x + r.w);
       if (vr) id = vr.id;
     }
     if (!id) {
@@ -2895,16 +2895,16 @@ pre.code code{font-size:inherit}
     path.setAttribute("stroke-linejoin", "round");
     ED.svg.querySelector(".ink").appendChild(path);
     ED.strichPfad = path;
-    edMove(e);
+    zeigerBewegen(e);
   }
-  function edMove(e) {
+  function zeigerBewegen(e) {
     const svg = ED.svg;
     if (!svg) return;
     if (ED.radiert) {
       eraseAt(e);
       return;
     }
-    const pt = svgPt(svg, e);
+    const pt = blattPunkt(svg, e);
     const busy = ED.drag || ED.strich || ED.tool === "place" && ED.place;
     ED.zusatzY = busy ? pt[1] : 0;
     checkPages();
@@ -2921,7 +2921,7 @@ pre.code code{font-size:inherit}
     if (zeiger.bewegen && zeiger.bewegen(e, pt)) return;
     if (!ED.strich) return;
     if (ED.strich.k) {
-      ED.strich.p[1] = snapW(pt);
+      ED.strich.p[1] = fangen(pt);
       ED.strichPfad.setAttribute("d", shapeD(ED.strich));
       return;
     }
@@ -2942,7 +2942,7 @@ pre.code code{font-size:inherit}
       dr.moved = true;
     }
     if (dr.kind === "h") {
-      ED.data.s[dr.i].p[dr.h] = snapW(pt);
+      ED.data.s[dr.i].p[dr.h] = fangen(pt);
       renderInk();
       return;
     }
@@ -2977,7 +2977,7 @@ pre.code code{font-size:inherit}
     }
     let mx = dx, my = dy;
     if (st.k) {
-      const q = snapW([o0[0] + dx, o0[1] + dy]);
+      const q = fangen([o0[0] + dx, o0[1] + dy]);
       mx = q[0] - o0[0];
       my = q[1] - o0[1];
     }
@@ -2990,13 +2990,13 @@ pre.code code{font-size:inherit}
       ausrichten(o, A, pt);
       const map = Object.fromEntries(ED.data.o.map((p) => [p.id, p]));
       map[o.id] = o;
-      const gm = connGeom({ a: A.id, b: o.id }, map, []);
+      const gm = verbindungsWeg({ a: A.id, b: o.id }, map, []);
       if (gm) marks = VORSCHAU(gm.d);
     } else marks = smartPos(o).marks;
     avoidBreak(o);
-    $(".ghost", ED.svg).innerHTML = marks + `<g opacity=".5">${drawObj(o, true)}</g>`;
+    $(".ghost", ED.svg).innerHTML = marks + `<g opacity=".5">${bausteinZeichnen(o, true)}</g>`;
   }
-  function edUp() {
+  function zeigerLoslassen() {
     ED.radiert = false;
     ED.zusatzY = 0;
     if (ED.drag) {
@@ -3120,7 +3120,7 @@ pre.code code{font-size:inherit}
   }
   function paletteKnopf([k, b]) {
     const [o, vb, extra] = SAMPLE[k] || pcSample(k);
-    return `<button type="button" class="palb" data-place="${k}" title="${b.n} setzen"><svg viewBox="${vb}" aria-hidden="true">${extra || ""}${drawObj(o, false)}</svg><span>${b.n}</span></button>`;
+    return `<button type="button" class="palb" data-place="${k}" title="${b.n} setzen"><svg viewBox="${vb}" aria-hidden="true">${extra || ""}${bausteinZeichnen(o, false)}</svg><span>${b.n}</span></button>`;
   }
   function paletteHTML(groups) {
     const gruppeHTML = (g) => `<div class="palg"><div class="palh">${GRUPPE[g].name}</div>` + Object.entries(BAUSTEIN).filter(([, b]) => b.g === g && !b.hide).map(paletteKnopf).join("") + `</div>`;
@@ -3133,10 +3133,10 @@ pre.code code{font-size:inherit}
     $("#edstage").innerHTML = sketchSVG(ED.key, BY[ED.scope], ED.data, skMeta(ED.scope, ED.key, ED.data), true);
     const svg = ED.svg = $("#edstage svg");
     sizeSVG();
-    svg.addEventListener("pointerdown", edDown);
-    svg.addEventListener("pointermove", edMove);
-    svg.addEventListener("pointerup", edUp);
-    svg.addEventListener("pointercancel", edUp);
+    svg.addEventListener("pointerdown", zeigerUnten);
+    svg.addEventListener("pointermove", zeigerBewegen);
+    svg.addEventListener("pointerup", zeigerLoslassen);
+    svg.addEventListener("pointercancel", zeigerLoslassen);
     svg.addEventListener("pointerleave", () => {
       $(".ghost", svg).innerHTML = "";
     });
@@ -3751,7 +3751,7 @@ END_CASE;`)}
   };
   var randRadius = (o) => art(o.k).radius || 20;
   function verbindeZustand(c, A, B, objs, all) {
-    const ca = ctr(A), cb = ctr(B), ra = randRadius(A), rb = randRadius(B);
+    const ca = mitteVon(A), cb = mitteVon(B), ra = randRadius(A), rb = randRadius(B);
     if (c.a === c.b) {
       const [x, y] = ca;
       return { d: `M${x + ra - 3} ${y - 14}C${x + ra + 62} ${y - 45} ${x + ra + 62} ${y + 45} ${x + ra - 3} ${y + 14}`, arrow: true, lbl: [x + ra + 56, y + 4, "start"] };
@@ -4063,7 +4063,7 @@ END_CASE;`)}
     return true;
   }
   function setzeVerknuepfung(pt) {
-    const q = snapW(pt), J = [q[0], q[1] - wsAus(q[1]) * 18];
+    const q = fangen(pt), J = [q[0], q[1] - wsAus(q[1]) * 18];
     aendere((d) => {
       d.s.push({ k: "vk", t: ED.vorlage.voreinstellung && ED.vorlage.voreinstellung.t || "und", c: ED.color, w: 1.2, p: [J] }, { k: "sig", c: ED.color, w: 1.2, p: [J, q], lbl: "" });
     }, { ohneRender: true });
@@ -4084,13 +4084,13 @@ END_CASE;`)}
   }
   function setzeStart(pt) {
     aendere((d) => {
-      d.s.push({ k: "st", c: ED.color, w: 1.2, p: [snapW(pt)], lbl: "−SF1" });
+      d.s.push({ k: "st", c: ED.color, w: 1.2, p: [fangen(pt)], lbl: "−SF1" });
       markiere("s", d.s.length - 1);
     }, { ohneRender: true });
     setTool("sel");
   }
   function zweiterKlick(pt) {
-    const q = snapW(pt), a = ED.vorlage.angefangen, same = Math.abs(a[0] - q[0]) < 0.5 && Math.abs(a[1] - q[1]) < 0.5;
+    const q = fangen(pt), a = ED.vorlage.angefangen, same = Math.abs(a[0] - q[0]) < 0.5 && Math.abs(a[1] - q[1]) < 0.5;
     $(".ghost", ED.svg).innerHTML = "";
     if (ED.tool === "sig") {
       aendere((d) => {
@@ -4122,7 +4122,7 @@ END_CASE;`)}
       else if (t === "start") setzeStart(pt);
       else if (ED.vorlage.angefangen) zweiterKlick(pt);
       else {
-        const q = snapW(pt);
+        const q = fangen(pt);
         beginneStrich(e, t === "sig" ? { k: "sig", c: ED.color, w: 1.2, p: [q, q], lbl: "", ...ED.vorlage.voreinstellung || {} } : { k: "l", c: ED.color, w: Math.max(ED.w, 2.8), p: [q, q] });
       }
       return true;
@@ -4130,7 +4130,7 @@ END_CASE;`)}
     // Vorschau der Linie vom gemerkten Punkt zum Mauszeiger
     bewegen(e, pt) {
       if (!ED.vorlage.angefangen || ED.strich || ED.tool !== "sig" && ED.tool !== "line") return false;
-      const q = snapW(pt), a = ED.vorlage.angefangen;
+      const q = fangen(pt), a = ED.vorlage.angefangen;
       const d = ED.tool === "sig" ? shapeD({ k: "sig", p: [a, q] }) : `M${a[0]} ${a[1]}L${q[0]} ${q[1]}`;
       $(".ghost", ED.svg).innerHTML = `<path d="${d}" stroke="#2F80ED" stroke-width="${ED.tool === "sig" ? 1.4 : 2.8}" stroke-dasharray="5 4" fill="none"/>${punktMarke(a)}<circle cx="${q[0]}" cy="${q[1]}" r="4" fill="none" stroke="#2F80ED"/>`;
       return true;
@@ -4198,7 +4198,7 @@ END_CASE;`)}
   }
   function strompfadAnschluesse(d, cs) {
     let s = "";
-    const imPfad = (o) => fam(o) === "elektro" && (bauteil(o.k) ? bauteil(o.k).bx : art(o.k).anschluesse);
+    const imPfad = (o) => gruppenId(o) === "elektro" && (bauteil(o.k) ? bauteil(o.k).bx : art(o.k).anschluesse);
     (d.o || []).filter(imPfad).forEach((o) => {
       const ps = portsOf(o), top = ps[0], bot = ps[1], base = Math.floor(o.y / PH) * PH, yT = base + 70, yB = base + 590;
       const wired = (p) => cs.some((c) => c.a === o.id && c.pa === p.n || c.b === o.id && c.pb === p.n);
@@ -4216,7 +4216,7 @@ END_CASE;`)}
     hintergrund: strompfadAnschluesse,
     // Glieder des Steuerstromkreises rasten auf die Strompfad-Spalten
     fangBaustein(o) {
-      if (fam(o) === "elektro") o.x = 40 + pfadNummer(o.x) * 46;
+      if (gruppenId(o) === "elektro") o.x = 40 + pfadNummer(o.x) * 46;
     },
     // Abbruchstellen nennen zusätzlich den Strompfad
     verweis: (x) => `, Pfad ${pfadNummer(x)}`
@@ -4703,25 +4703,25 @@ END_CASE;`)}
         moving = true;
       }
     });
-    if (moving && ED.svg) ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+    if (moving && ED.svg) ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
     requestAnimationFrame(simStep);
   }
   function simClick(o, pt) {
     if (o.k === "kh") {
       ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf";
       simCompute();
-      ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+      ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
       return;
     }
     if (!["v22", "v32", "v52", "v53"].includes(o.k)) return;
-    const b = bbox(o), left = pt[0] < b.x + b.w / 2, s = vstate(o), mono = (o.ar || "feder") === "feder";
+    const b = umrissVon(o), left = pt[0] < b.x + b.w / 2, s = vstate(o), mono = (o.ar || "feder") === "feder";
     let ns = s;
     if (o.k === "v53") ns = left ? s === "act" ? "center" : "act" : s === "b" ? "center" : "b";
     else if (mono) ns = left ? s === "act" ? "rest" : "act" : s;
     else ns = left ? "act" : "rest";
     ED.sim.st[o.id] = ns;
     simCompute();
-    ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
+    ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
   }
   var SIM_ANLEITUNG = `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren leuchten grün.</p><p class="small muted" style="margin:0">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;
   function simulationWechsel(t) {
@@ -5356,7 +5356,7 @@ END_CASE;`)}
       document.body.classList.add("dnd");
     }
     if (palDrag.on) {
-      if (overSheet(e)) edMove(e);
+      if (overSheet(e)) zeigerBewegen(e);
       else $(".ghost", ED.svg).innerHTML = "";
     }
   }
@@ -5368,7 +5368,7 @@ END_CASE;`)}
     if (!d.on) return;
     ED.klickAuslassen = true;
     ED.zusatzY = 0;
-    if (overSheet(e)) placeObj(d.k, svgPt(ED.svg, e));
+    if (overSheet(e)) placeObj(d.k, blattPunkt(ED.svg, e));
     else werkzeugNachAbbruch();
     ED.ausPalette = false;
   }

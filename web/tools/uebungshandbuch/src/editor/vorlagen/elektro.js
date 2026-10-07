@@ -5,7 +5,7 @@ import { INK, PH, SVGT } from '../svg.js';
 import { BAUSTEIN, SAMPLE, art, bauteil, fuelle, registriereBauteile, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, G2, TX, grid } from '../vorlagen-svg.js';
 import { LB, PD, PN, PP, SK, portsOf } from '../bauteile.js';
-import { LINIE, fam } from '../bausteine.js';
+import { LINIE, gruppenId } from '../bausteine.js';
 
 export const cNO = (x, y) => `M${x} ${y}V${y+20}M${x} ${y+60}V${y+42}L${x-13} ${y+19}`;
 export const cNC = (x, y) => `M${x} ${y}V${y+20}H${x+9}M${x} ${y+60}V${y+42}L${x+12} ${y+16}`;
@@ -21,7 +21,7 @@ export function stromlaufBlatt(){
 // Glieder eines Strompfads ohne eigene Leitung nach oben bzw. unten verbinden sich mit L+ und M des eigenen Blatts
 export function strompfadAnschluesse(d, cs){
   let s = "";
-  const imPfad = o => fam(o) === "elektro" && (bauteil(o.k) ? bauteil(o.k).bx : art(o.k).anschluesse);
+  const imPfad = o => gruppenId(o) === "elektro" && (bauteil(o.k) ? bauteil(o.k).bx : art(o.k).anschluesse);
   (d.o || []).filter(imPfad).forEach(o => {
     const ps = portsOf(o), top = ps[0], bot = ps[1], base = Math.floor(o.y / PH) * PH, yT = base + 70, yB = base + 590;
     const wired = p => cs.some(c => (c.a === o.id && c.pa === p.n) || (c.b === o.id && c.pb === p.n));
@@ -36,7 +36,7 @@ registriereVorlage("stromlauf", {
   body: stromlaufBlatt,
   hintergrund: strompfadAnschluesse,
   // Glieder des Steuerstromkreises rasten auf die Strompfad-Spalten
-  fangBaustein(o){ if (fam(o) === "elektro") o.x = 40 + pfadNummer(o.x) * 46; },
+  fangBaustein(o){ if (gruppenId(o) === "elektro") o.x = 40 + pfadNummer(o.x) * 46; },
   // Abbruchstellen nennen zusätzlich den Strompfad
   verweis: x => `, Pfad ${pfadNummer(x)}`,
 });

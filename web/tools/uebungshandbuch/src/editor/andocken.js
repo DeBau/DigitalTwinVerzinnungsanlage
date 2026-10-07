@@ -3,10 +3,10 @@ import { PH } from './svg.js';
 import { ED, markiere } from './status.js';
 import { BAUSTEIN, art, bauteil, vorlage } from './registry.js';
 import { snap } from './vorlagen-svg.js';
-import { bbox, ctr, gruppeVon } from './bausteine.js';
+import { gruppeVon, mitteVon, umrissVon } from './bausteine.js';
 import { objById, uid } from './auswahl.js';
 import { andockPunkt, andockStelle, ausrichten, kettenQuelle } from './kette.js';
-import { connGeom, fragtBedingung } from './zeichnen.js';
+import { fragtBedingung, verbindungsWeg } from './zeichnen.js';
 import { zeigeHinweis } from './eigenschaften.js';
 import { aendere } from './verlauf.js';
 import { editConnLabel, editObjLabel } from './beschriften.js';
@@ -58,35 +58,35 @@ export function smartPos(o){
 export const HILFSLINIE = d => `<path d="${d}" stroke="#2F80ED" stroke-width="1" stroke-dasharray="4 4"/>`;
 // Mitte auf die Mitte eines Nachbarn ziehen, wenn sie weniger als 12 daneben liegt
 export function hilfslinien(o, marks){
-  const c = ctr(o);
+  const c = mitteVon(o);
   let gx = null, gy = null, bx = 12, by = 12;
   for (const p of ED.data.o) {
     if (p.id === o.id) continue;
-    const q = ctr(p), dx = q[0] - c[0], dy = q[1] - c[1];
+    const q = mitteVon(p), dx = q[0] - c[0], dy = q[1] - c[1];
     if (Math.abs(dx) < bx && Math.abs(dx) > 0) { bx = Math.abs(dx); gx = [dx, q]; } else if (dx === 0) { bx = 0; gx = [0, q]; }
     if (Math.abs(dy) < by && Math.abs(dy) > 0) { by = Math.abs(dy); gy = [dy, q]; } else if (dy === 0) { by = 0; gy = [0, q]; }
   }
   if (gx) {
     o.x += gx[0];
-    const c2 = ctr(o);
+    const c2 = mitteVon(o);
     marks.push(HILFSLINIE(`M${c2[0]} ${Math.min(c2[1], gx[1][1]) - 30}V${Math.max(c2[1], gx[1][1]) + 30}`));
   }
   if (gy) {
     o.y += gy[0];
-    const c2 = ctr(o);
+    const c2 = mitteVon(o);
     marks.push(HILFSLINIE(`M${Math.min(c2[0], gy[1][0]) - 30} ${c2[1]}H${Math.max(c2[0], gy[1][0]) + 30}`));
   }
 }
 // Vorschau der Verbindung, die beim Loslassen entsteht, und Kreis um den Anschluss
 export function andockVorschau(o, dock){
   const map = Object.fromEntries(ED.data.o.map(p => [p.id, p])); map[o.id] = o;
-  const gm = connGeom({a: dock.a, b: dock.b}, map, []);
+  const gm = verbindungsWeg({a: dock.a, b: dock.b}, map, []);
   const p = andockPunkt(map[dock.a], map[dock.b]);
   return (gm ? VORSCHAU(gm.d) : "") + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
 }
 export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blattende legen – sonst auf das nächste Blatt
   if (vorlage(ED.key).einblattig) return;
-  for (let i = 0; i < 4; i++) { const b = bbox(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
+  for (let i = 0; i < 4; i++) { const b = umrissVon(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
     if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) o.y += B + 70 - b.y; else break; }
 }
 // Verbindung, die beim Andocken entsteht; zwischen Anschlüssen, wenn der Haken andocke pa und pb nennt

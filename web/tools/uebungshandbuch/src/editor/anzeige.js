@@ -2,7 +2,7 @@
 import { $, BY } from '../app/basis.js';
 import { PH } from './svg.js';
 import { ED } from './status.js';
-import { inkSVG, pageCount } from './zeichnen.js';
+import { pageCount, zeichnungSVG } from './zeichnen.js';
 import { pagesSVG, skMeta } from './blaetter.js';
 import { updateProps } from './eigenschaften.js';
 
@@ -18,4 +18,4 @@ export function checkPages(){
   refreshTpl(); sizeSVG();
 }
 export function refreshTpl(){ if (ED.svg) ED.svg.querySelector(".tpl").innerHTML = pagesSVG(ED.key, BY[ED.scope], skMeta(ED.scope, ED.key, ED.data), ED.blattzahl, true); }
-export function renderInk(){ if (ED.svg) { ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key); checkPages(); } updateProps(); }
+export function renderInk(){ if (ED.svg) { ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key); checkPages(); } updateProps(); }

@@ -1,23 +1,23 @@
-// Editor-Kern: Bausteine, Verbindungen und Leitungen als SVG zeichnen (drawObj, connGeom, inkSVG), Blattzahl.
+// Editor-Kern: Bausteine, Verbindungen und Leitungen als SVG zeichnen (bausteinZeichnen, verbindungsWeg, zeichnungSVG), Blattzahl.
 // Benutzt vom Editor (anzeige.js, zeiger.js), von den Skizzen-Kacheln und vom Druck (über blaetter.js).
 import { INK, MUTE, PH, SVGT } from './svg.js';
 import { ED, istMarkiert } from './status.js';
 import { BAUSTEIN, art, bauteil, vorlage } from './registry.js';
 import { neueSpuren } from './spuren.js';
 import { strokesSVG } from './vorlagen-svg.js';
-import { BLUE, istSchiene, portsOf, simOn, vrails, wireD, wireEnds, xform } from './bauteile.js';
-import { bbox, ctr, gruppeVon } from './bausteine.js';
+import { BLUE, drehung, istSchiene, portsOf, simOn, virtuelleSchienen, wireD, wireEnds } from './bauteile.js';
+import { gruppeVon, mitteVon, umrissVon } from './bausteine.js';
 import { verbindeKette } from './kette.js';
 
 /* ---------- Bausteine ---------- */
 // Baustein über seinen Haken zeichne; Bauteile werden dabei gedreht bzw. gespiegelt
-export function drawObj(o, edit){
+export function bausteinZeichnen(o, edit){
   const a = art(o.k);
   return a.zeichne ? gedreht(o, a.zeichne(o, edit)) : "";
 }
 // Drehen und Spiegeln um die Bauteilmitte; Texte drehen zurück, damit sie lesbar bleiben
 export function gedreht(o, svg){
-  const X = xform(o);
+  const X = drehung(o);
   if (!X) return svg;
   const swap = X.f * X.c < 0;   // Schrift läge sonst auf der falschen Seite
   const upright = svg.replace(/<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)"/g, (m, x, y, a) =>
@@ -35,7 +35,7 @@ export function refName(o, objs, cs, dir){
 // Geometrie einer Verbindung c: Leitung zwischen Anschlüssen, sonst nach der Gruppe von A
 // (Ablaufkette, Haken verbinde der Gruppe oder rechtwinklig von Rand zu Rand).
 // spuren ist die Spurbelegung der Zeichnung (spuren.js); die Wege reichen sie weiter, damit sie freie Spuren wählen können.
-export function connGeom(c, objs, all, spuren = neueSpuren()){
+export function verbindungsWeg(c, objs, all, spuren = neueSpuren()){
   const A = objs[c.a], B = objs[c.b];
   if (!A || !B) return null;
   if (c.pa !== undefined || c.pb !== undefined) {
@@ -50,13 +50,13 @@ export function connGeom(c, objs, all, spuren = neueSpuren()){
 }
 // Randpunkt in Richtung dir (r, l, d, u); runde Bausteine (Haken radius) auf dem Kreis
 export function randPunkt(o, b, dir){
-  const c = ctr(o), r = art(o.k).radius;
+  const c = mitteVon(o), r = art(o.k).radius;
   if (r) return {r: [c[0]+r, c[1]], l: [c[0]-r, c[1]], d: [c[0], c[1]+r], u: [c[0], c[1]-r]}[dir];
   return {r: [b.x+b.w, c[1]], l: [b.x, c[1]], d: [c[0], b.y+b.h], u: [c[0], b.y]}[dir];
 }
 // Pfeil von A nach B mit einem Knick in der Mitte, waagrecht oder senkrecht je nach Lage
 export function verbindeRechtwinklig(A, B){
-  const ba = bbox(A), bb = bbox(B), ca = ctr(A), cb = ctr(B), dx = cb[0]-ca[0], dy = cb[1]-ca[1];
+  const ba = umrissVon(A), bb = umrissVon(B), ca = mitteVon(A), cb = mitteVon(B), dx = cb[0]-ca[0], dy = cb[1]-ca[1];
   if (Math.abs(dx) >= Math.abs(dy)) {
     const p1 = randPunkt(A, ba, dx >= 0 ? "r" : "l"), p2 = randPunkt(B, bb, dx >= 0 ? "l" : "r"), m = Math.round((p1[0]+p2[0])/2);
     const d = Math.abs(p1[1]-p2[1]) < 1 ? `M${p1[0]} ${p1[1]}H${p2[0]}` : `M${p1[0]} ${p1[1]}H${m}V${p2[1]}H${p2[0]}`;
@@ -111,11 +111,11 @@ export function verbindungSVG(c, i, gm, objs, cs, key, edit){
 export const istRahmen = o => !!art(o.k).rahmen;
 // Baustein mit Markierungsrahmen (im Editor) bzw. greifbarem Rand (Rahmen-Bauteile)
 export function bausteinSVG(o, edit){
-  const b = bbox(o), von = edit && ED.verbindenVon && ED.verbindenVon.id === o.id, hi = edit && (istMarkiert("o", o.id) || von), fr = istRahmen(o);
+  const b = umrissVon(o), von = edit && ED.verbindenVon && ED.verbindenVon.id === o.id, hi = edit && (istMarkiert("o", o.id) || von), fr = istRahmen(o);
   let h = "";
   if (edit && fr) h = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? .25 : 0}" stroke-width="12"/>`;
   if (edit && !fr) h = `<rect x="${b.x-5}" y="${b.y-5}" width="${b.w+10}" height="${b.h+10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${von ? "2 3" : "5 3"}"` : ""}/>`;
-  return `<g data-o="${o.id}">${h}${drawObj(o, edit)}</g>`;
+  return `<g data-o="${o.id}">${h}${bausteinZeichnen(o, edit)}</g>`;
 }
 // Abzweigpunkte der Leitungen: auf einer Schiene immer, an einem Anschluss ab zwei Leitungen.
 // Rückgabe: SVG und die Zählung cnt["id:Anschluss"] = {n, q} der verdrahteten Anschlüsse
@@ -145,15 +145,15 @@ export function punkteSVG(d, cs, objs, edit){
   return s;
 }
 // Zeichnung d der Vorlage key als SVG: Hintergrund der Vorlage, Verbindungen, Bausteine, Punkte, Striche und Texte
-export function inkSVG(d, edit=false, key=null){
+export function zeichnungSVG(d, edit=false, key=null){
   if (!d) return "";
   const objs = Object.fromEntries((d.o || []).map(o => [o.id, o])), cs = d.c || [];
-  vrails(key, pageCount(key, d)).forEach(r => { objs[r.id] = r; });
+  virtuelleSchienen(key, pageCount(key, d)).forEach(r => { objs[r.id] = r; });
   const v = vorlage(key);
   const rails = v.hintergrund ? v.hintergrund(d, cs) : "";   // Haken hintergrund, z. B. Strompfade zu L+ und M
   const spuren = neueSpuren();   // eine Belegung für alle Verbindungen der Zeichnung
   const conns = cs.map((c, i) => {
-    const gm = connGeom(c, objs, cs, spuren);
+    const gm = verbindungsWeg(c, objs, cs, spuren);
     if (!gm) return "";
     return gm.wire ? leitungSVG(c, i, gm, objs, key, edit) : verbindungSVG(c, i, gm, objs, cs, key, edit);
   }).join("");
@@ -163,7 +163,7 @@ export function inkSVG(d, edit=false, key=null){
 export function pageCount(key, d, extraY=0){
   if (vorlage(key).einblattig) return 1;
   let m = extraY;
-  (d && d.o || []).forEach(o => { const b = bbox(o); m = Math.max(m, b.y + b.h); });
+  (d && d.o || []).forEach(o => { const b = umrissVon(o); m = Math.max(m, b.y + b.h); });
   (d && d.s || []).forEach(st => st.p.forEach(q => { m = Math.max(m, q[1]); }));
   (d && d.t || []).forEach(t => { m = Math.max(m, t.y); });
   return Math.max(1, Math.ceil((m + 160) / PH));

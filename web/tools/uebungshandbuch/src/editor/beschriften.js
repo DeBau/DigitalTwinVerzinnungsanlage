@@ -2,17 +2,17 @@
 import { $ } from '../app/basis.js';
 import { ED } from './status.js';
 import { art } from './registry.js';
-import { bbox } from './bausteine.js';
+import { umrissVon } from './bausteine.js';
 import { clearSel } from './auswahl.js';
 import { updateProps } from './eigenschaften.js';
 import { renderInk } from './anzeige.js';
 import { saveSketch, snapshot } from './verlauf.js';
 
 export function newline(el){ const a = el.selectionStart, b = el.selectionEnd; el.value = el.value.slice(0, a) + "\n" + el.value.slice(b); el.selectionStart = el.selectionEnd = a + 1; }
-export function editLabel(x, y, init, ph, done){
+export function editLabel(x, y, anfang, ph, done){
   const svg = ED.svg, stage = $("#edstage"), r = stage.getBoundingClientRect(), m = svg.getScreenCTM();
-  const inp = document.createElement("textarea"); inp.className = "txtin"; inp.value = init; inp.placeholder = (ph || "Text") + " – Enter übernimmt, Alt+Enter neue Zeile";
-  inp.rows = Math.max(1, init.split("\n").length); inp.title = "Enter übernimmt, Alt+Enter (oder Umschalt+Enter) beginnt eine neue Zeile";
+  const inp = document.createElement("textarea"); inp.className = "txtin"; inp.value = anfang; inp.placeholder = (ph || "Text") + " – Enter übernimmt, Alt+Enter neue Zeile";
+  inp.rows = Math.max(1, anfang.split("\n").length); inp.title = "Enter übernimmt, Alt+Enter (oder Umschalt+Enter) beginnt eine neue Zeile";
   inp.style.left = Math.max(4, Math.min(m.a * x + m.e - r.left, r.width - 270)) + "px"; inp.style.top = (m.d * y + m.f - r.top + stage.scrollTop - 17) + "px";
   stage.appendChild(inp); inp.focus(); inp.select();
   let fertig = false;
@@ -29,7 +29,7 @@ export function editObjLabel(o){
   if (!o) return;
   const B = art(o.k).beschriftung;
   if (B === false) return;
-  const b = bbox(o);
+  const b = umrissVon(o);
   const wert = B && B.wert ? B.wert(o) : (o.v || "");
   const at = B && B.ort ? B.ort(o) : [b.x, b.y + b.h/2];
   const hinweis = B && (typeof B.hinweis === "function" ? B.hinweis(o) : B.hinweis);

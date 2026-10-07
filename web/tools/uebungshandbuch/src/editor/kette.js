@@ -4,7 +4,7 @@
 // Benutzt von zeichnen.js (Verbindungslinien) und andocken.js (Setzen, Ziehen).
 import { ED } from './status.js';
 import { BAUSTEIN, art } from './registry.js';
-import { ctr, fam, gruppeVon, inPt, outPt } from './bausteine.js';
+import { gruppeVon, gruppenId, kettenAus, kettenEin, mitteVon } from './bausteine.js';
 import { markiertesObjekt } from './auswahl.js';
 
 // Seitenbaustein-Haken eines Objekts bzw. eines Paletteneintrags (Palettenvarianten zeigen über mk.k auf die Grundart)
@@ -32,14 +32,14 @@ export function routeV([x1, y1], [x2, y2], spuren){
 export function verbindeKette(A, B, spuren){
   const s = seite(B);
   if (s) return s.verbinde(A, B, spuren);
-  const von = outPt(A, ctr(B)[0]);
-  return routeV(von, inPt(B, von[0]), spuren);
+  const von = kettenAus(A, mitteVon(B)[0]);
+  return routeV(von, kettenEin(B, von[0]), spuren);
 }
 
 // An welchen Baustein hängt sich ein neuer Baustein der Palettenart k? Der markierte, wenn er zur selben Kette gehört.
 export function kettenQuelle(k){
   const A = !ED.ausPalette && markiertesObjekt();   // beim Ziehen entscheidet die Ablagestelle (Andocken), nicht die Markierung
-  if (!A || !gruppeVon(A).kette || fam(A) !== BAUSTEIN[k].g) return null;
+  if (!A || !gruppeVon(A).kette || gruppenId(A) !== BAUSTEIN[k].g) return null;
   const neuSeite = seitenArt(k);
   if (seite(A)) return neuSeite ? A : null;
   if (neuSeite) return neuSeite.quelle(A);
@@ -50,7 +50,7 @@ export function kettenQuelle(k){
 export function ausrichten(o, A, pt){
   const s = seite(o);
   if (s) return s.ausrichten(o, A, pt);
-  const ax = outPt(A, ctr(o)[0])[0];
+  const ax = kettenAus(A, mitteVon(o)[0])[0];
   o.x = ax - (art(o.k).einrueck || 0);
 }
 
@@ -58,9 +58,9 @@ export function ausrichten(o, A, pt){
    Ergebnis {a, b, d, sx, sy, pa?, pb?}: Verbindung a → b (mit pa, pb zwischen Anschlüssen), Abstand d, Verschiebung von o.
    Der Haken andocke(o, andere) der Gruppe ersetzt die Suche, sonst docken nur Ketten an (andockKette). */
 export function andockStelle(o){
-  const g = fam(o), gruppe = gruppeVon(o);
+  const g = gruppenId(o), gruppe = gruppeVon(o);
   if (!ED.dock) return null;
-  const others = ED.data.o.filter(p => p.id !== o.id && fam(p) === g);
+  const others = ED.data.o.filter(p => p.id !== o.id && gruppenId(p) === g);
   if (gruppe.andocke) return gruppe.andocke(o, others);
   if (!gruppe.kette) return null;
   return andockKette(o, others);
@@ -73,9 +73,9 @@ export function andockKette(o, others, weite = 140){
   if (s) { s.andocken(o, others, take); return best; }
   for (const p of others) {
     if (seite(p)) continue;
-    const po = outPt(p, ctr(o)[0]), oi = inPt(o, po[0]), dy1 = oi[1] - po[1], dx1 = po[0] - oi[0];
+    const po = kettenAus(p, mitteVon(o)[0]), oi = kettenEin(o, po[0]), dy1 = oi[1] - po[1], dx1 = po[0] - oi[0];
     if (dy1 >= 10 && dy1 <= weite && Math.abs(dx1) <= 30) take({a: p.id, b: o.id, d: Math.abs(dx1) + dy1/4, sx: dx1, sy: 0});
-    const oo = outPt(o, ctr(p)[0]), pi = inPt(p, oo[0]), dy2 = pi[1] - oo[1], dx2 = pi[0] - oo[0];
+    const oo = kettenAus(o, mitteVon(p)[0]), pi = kettenEin(p, oo[0]), dy2 = pi[1] - oo[1], dx2 = pi[0] - oo[0];
     if (dy2 >= 10 && dy2 <= weite && Math.abs(dx2) <= 30) take({a: o.id, b: p.id, d: Math.abs(dx2) + dy2/4, sx: dx2, sy: 0});
   }
   return best;
@@ -85,5 +85,5 @@ export function andockKette(o, others, weite = 140){
 export function andockPunkt(A, B){
   const s = seite(B);
   if (s) return s.punkt(A, B);
-  return inPt(B, outPt(A, ctr(B)[0])[0]);
+  return kettenEin(B, kettenAus(A, mitteVon(B)[0])[0]);
 }

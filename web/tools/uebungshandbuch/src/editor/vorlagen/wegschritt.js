@@ -13,7 +13,7 @@ import { updateProps } from '../eigenschaften.js';
 import { refreshTpl, renderInk } from '../anzeige.js';
 import { aendere, saveSketch, snapshot } from '../verlauf.js';
 import { editLabel } from '../beschriften.js';
-import { setTool, snapW } from '../werkzeuge.js';
+import { fangen, setTool } from '../werkzeuge.js';
 import { beginneStrich } from '../zeiger.js';
 import { WS_SPALTE, WS_X0, WS_Y0, WS_ZEILE, wsAus } from './wegschritt-striche.js';
 
@@ -117,7 +117,7 @@ export function zeilennameKlick(e, pt){
 }
 // Verknüpfung: Punkt vor dem Ziel setzen, dazu die Linie mit Pfeil zum Ziel; danach weiter mit Signallinien
 export function setzeVerknuepfung(pt){
-  const q = snapW(pt), J = [q[0], q[1] - wsAus(q[1]) * 18];
+  const q = fangen(pt), J = [q[0], q[1] - wsAus(q[1]) * 18];
   aendere(d => {
     d.s.push({k: "vk", t: (ED.vorlage.voreinstellung && ED.vorlage.voreinstellung.t) || "und", c: ED.color, w: 1.2, p: [J]}, {k: "sig", c: ED.color, w: 1.2, p: [J, q], lbl: ""});
   }, {ohneRender: true});
@@ -133,14 +133,14 @@ export function setzeZyklusende(pt){
 }
 export function setzeStart(pt){
   aendere(d => {
-    d.s.push({k: "st", c: ED.color, w: 1.2, p: [snapW(pt)], lbl: "−SF1"});
+    d.s.push({k: "st", c: ED.color, w: 1.2, p: [fangen(pt)], lbl: "−SF1"});
     markiere("s", d.s.length - 1);
   }, {ohneRender: true});
   setTool("sel");
 }
 // Zweiter Klick mit Signallinie bzw. Funktionslinie: Linie vom gemerkten Punkt bis hier
 export function zweiterKlick(pt){
-  const q = snapW(pt), a = ED.vorlage.angefangen, same = Math.abs(a[0] - q[0]) < .5 && Math.abs(a[1] - q[1]) < .5;
+  const q = fangen(pt), a = ED.vorlage.angefangen, same = Math.abs(a[0] - q[0]) < .5 && Math.abs(a[1] - q[1]) < .5;
   $(".ghost", ED.svg).innerHTML = "";
   if (ED.tool === "sig") {
     aendere(d => { d.s.push({k: "sig", c: ED.color, w: 1.2, p: [a, q], lbl: "", ...(ED.vorlage.voreinstellung || {})}); }, {ohneRender: true});
@@ -161,7 +161,7 @@ export const WS_ZEIGER = {
     else if (t === "start") setzeStart(pt);
     else if (ED.vorlage.angefangen) zweiterKlick(pt);
     else {   // Linie aufziehen; Funktionslinien sind mindestens 2.8 dick
-      const q = snapW(pt);
+      const q = fangen(pt);
       beginneStrich(e, t === "sig"
         ? {k: "sig", c: ED.color, w: 1.2, p: [q, q], lbl: "", ...(ED.vorlage.voreinstellung || {})}
         : {k: "l", c: ED.color, w: Math.max(ED.w, 2.8), p: [q, q]});
@@ -171,7 +171,7 @@ export const WS_ZEIGER = {
   // Vorschau der Linie vom gemerkten Punkt zum Mauszeiger
   bewegen(e, pt){
     if (!ED.vorlage.angefangen || ED.strich || (ED.tool !== "sig" && ED.tool !== "line")) return false;
-    const q = snapW(pt), a = ED.vorlage.angefangen;
+    const q = fangen(pt), a = ED.vorlage.angefangen;
     const d = ED.tool === "sig" ? shapeD({k: "sig", p: [a, q]}) : `M${a[0]} ${a[1]}L${q[0]} ${q[1]}`;
     $(".ghost", ED.svg).innerHTML = `<path d="${d}" stroke="#2F80ED" stroke-width="${ED.tool === "sig" ? 1.4 : 2.8}" stroke-dasharray="5 4" fill="none"/>${punktMarke(a)}<circle cx="${q[0]}" cy="${q[1]}" r="4" fill="none" stroke="#2F80ED"/>`;
     return true;

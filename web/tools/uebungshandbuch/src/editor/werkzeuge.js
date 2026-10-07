@@ -19,9 +19,9 @@ export function setTool(t){
   if (ED.svg) { BLATTKLASSEN.forEach(c => ED.svg.classList.toggle(c, t === c)); $(".ghost", ED.svg).innerHTML = ""; renderInk(); }
   updateProps(true);
 }
-export function svgPt(svg, e){ const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [Math.round(q.x*10)/10, Math.round(q.y*10)/10]; }
+export function blattPunkt(svg, e){ const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [Math.round(q.x*10)/10, Math.round(q.y*10)/10]; }
 // Punkt fangen: im Raster, die Vorlage kann eigene Fangpunkte haben (Haken fangPunkt)
-export function snapW(pt){
+export function fangen(pt){
   if (!ED.grid) return [Math.round(pt[0]), Math.round(pt[1])];
   const v = vorlage(ED.key);
   if (v.fangPunkt) return v.fangPunkt(pt);
