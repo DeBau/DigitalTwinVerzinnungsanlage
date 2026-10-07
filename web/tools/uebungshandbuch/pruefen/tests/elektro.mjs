@@ -170,6 +170,19 @@ export const tests = [
     },
   },
   {
+    name: 'Breite Pfade gesperrt, solange ein Pfad über 15 belegt ist',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      const sp = await setzeEinzeln(t, 'coil', PFAD(18), 300);
+      await t.klick('#editor [data-pfadbreite]');
+      const d = await t.daten();
+      t.gleich(d.meta && d.meta.pfadbreite, undefined, 'Breite bleibt 46');
+      t.gleich(d.o.find((o) => o.id === sp.id).x, PFAD(18), 'Spule bleibt in Pfad 18');
+      t.erwarte((await t.text('#props')).includes('Pfad 16 bis 18 ist belegt'), 'Hinweis im Eigenschaftsfeld');
+      t.gleich(await t.page.$eval('#editor [data-pfadbreite]', (k) => k.getAttribute('aria-pressed')), 'false', 'Knopf nicht gedrückt');
+    },
+  },
+  {
     name: 'E7 Not-Halt zweikanalig 11/12 und 21/22',
     lauf: async (t) => {
       await t.oeffne('stromlauf');

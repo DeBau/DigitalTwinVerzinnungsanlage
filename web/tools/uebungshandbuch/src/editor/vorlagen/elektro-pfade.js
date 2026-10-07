@@ -7,6 +7,7 @@ import { art, bauteil } from '../registry.js';
 import { G, G2, TX, grid } from '../vorlagen-svg.js';
 import { LB, portsOf } from '../bauteile.js';
 import { gruppenId, umrissVon } from '../bausteine.js';
+import { zeigeHinweis } from '../eigenschaften.js';
 import { refreshTpl } from '../anzeige.js';
 import { aendere } from '../verlauf.js';
 
@@ -114,11 +115,21 @@ export function setzePfadbreite(d, breite){
   if (breite === PFADBREITEN[0]) delete d.meta.pfadbreite; else d.meta.pfadbreite = breite;
   PFAD.breite = breite;
 }
+// Hinweis, wenn Glieder in Pfaden liegen, die es bei der neuen Breite nicht gibt; sonst null
+export function pfadSperre(d, breite){
+  const n = pfadZahl(breite), alt = breiteVon(d.meta);
+  const hoechster = Math.max(0, ...(d.o || []).filter(o => gruppenId(o) === "elektro").map(o => pfadNummer(o.x, alt)));
+  if (hoechster <= n) return null;
+  return `Breite Pfade geht nicht: Pfad ${n + 1} bis ${hoechster} ist belegt. Bei breiten Pfaden passen nur ${n} Pfade `
+    + `aufs Blatt. Verschieb die Glieder zuerst in die Pfade 1 bis ${n}.`;
+}
 // Haken klick der Vorlage: Knopf „Breite Pfade“ schaltet zwischen 46 und 60 um
 export function pfadKlick(e){
   const k = e.target.closest && e.target.closest("[data-pfadbreite]");
   if (!k) return false;
   const breite = breiteVon(ED.data.meta) === PFADBREITEN[0] ? PFADBREITEN[1] : PFADBREITEN[0];
+  const sperre = pfadSperre(ED.data, breite);
+  if (sperre) { zeigeHinweis(sperre); return true; }
   aendere(d => { setzePfadbreite(d, breite); });
   refreshTpl();   // Pfadnummern im Vorgedruckten
   k.setAttribute("aria-pressed", String(breite === PFADBREITEN[1]));
