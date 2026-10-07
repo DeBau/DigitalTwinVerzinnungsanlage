@@ -1,0 +1,50 @@
+/* ---------- Interaktive Erklärungen: IEC-Zeiten und IEC-Zähler (zeit.js, zaehler.js, box-bild.js) ---------- */
+/* Box einer Anweisung im Programmstatus */
+.ia-svg .bx-kasten{fill:var(--panel);stroke:var(--ink);stroke-width:2}
+.ia-svg .bx-wert{stroke:var(--ink2);stroke-width:2}
+.ia-svg text.bx-titel{font:700 15px var(--mono)}
+.ia-svg text.bx-typ{font:12px var(--sans);fill:var(--ink2)}
+.ia-svg text.bx-pin{font:600 12px var(--mono)}
+.ia-svg text.bx-status{font:600 12px var(--mono);fill:var(--ok)}
+
+/* Signalverlauf: ET als Rampe, PT, Zeitachse, Zahlen je Schritt */
+.ia-svg .sv-rampe{fill:none;stroke:var(--blue);stroke-width:2.5;stroke-linejoin:round}
+.ia-svg .sv-grenze{stroke:var(--ink2);stroke-width:1.2;stroke-dasharray:5 4}
+.ia-svg .sv-achse{stroke:var(--ink2);stroke-width:1}
+.ia-svg text.sv-zahl{font:600 11.5px var(--mono);fill:var(--ink2)}
+.ia-svg text.sv-zahl.neu{fill:var(--ok);font-weight:700}
+
+/* Aufbau: oben Eingänge und Anzeige nebeneinander, darunter das Bild in voller Breite */
+.ze-oben{display:flex;gap:18px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap}
+.ze-oben .ia-knoepfe{align-items:flex-start}
+.ze-bild .ia-svg{max-width:560px}
+
+/* Kopfzeile, ET-Anzeige, Q-Lampe, Steuerleiste */
+.ze-art{font-size:14px;color:var(--ink2)}
+.ze-art b{font:700 15px var(--mono);color:var(--ink);margin-right:6px}
+.ze-anzeige{display:grid;gap:8px;min-width:200px;flex:0 1 260px}
+.ze-wert,.ze-pt{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.ze-wert span,.ze-pt span,.ze-q span,.zz-stand span{font:600 12px var(--cond);color:var(--ink2);text-transform:uppercase}
+.ze-wert b{font:700 20px var(--mono);color:var(--blue)}
+.ze-pt b{font:600 14px var(--mono)}
+.ze-balken{height:12px;border-radius:6px;background:var(--sunk);border:1px solid var(--line);overflow:hidden}
+.ze-balken i{display:block;height:100%;background:var(--blue)}
+.ze-q{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;border:2px solid var(--line);border-radius:10px}
+.ze-q i{font:12.5px var(--mono);font-style:normal;margin:0 auto 0 8px;overflow-wrap:anywhere}
+.ze-q b{font:700 20px var(--mono);color:var(--ink2)}
+.ze-q.an{border-color:var(--ok);background:var(--ok-soft)}
+.ze-q.an b{color:var(--ok)}
+.ze-steuer{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ze-steuer .btn[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:var(--onblue)}
+.ze-luecke{flex:1}
+.ze-zeit{font:600 13px var(--mono);min-width:70px;text-align:right}
+
+/* Zähler: Zählerstand groß, Ausgänge, Antippen */
+.zz-stand{display:grid;justify-items:center;gap:2px;padding:10px 16px;border:2px solid var(--line);border-radius:12px;background:var(--sunk);min-width:150px}
+.zz-stand b{font:700 40px var(--mono);line-height:1.1}
+.zz-stand small{font:13px var(--mono);color:var(--ink2)}
+.zz-anzeige{display:grid;gap:8px;min-width:170px;flex:0 1 220px}
+.zz-lampen{display:grid;gap:6px}
+.zz-eingaenge{display:grid;gap:10px}
+.zz-eingaenge .ia-knoepfe{flex-direction:row;flex-wrap:wrap}
+.zz-tippen{display:flex;gap:6px;flex-wrap:wrap}

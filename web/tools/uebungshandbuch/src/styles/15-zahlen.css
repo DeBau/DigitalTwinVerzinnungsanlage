@@ -1,0 +1,121 @@
+/* ---------- Interaktive Erklärungen: Zahlenformate, Bitmuster, Rechnen (zahl.js, bitmuster.js, rechnen.js) ---------- */
+:is(.ia-zahl,.ia-bitmuster,.ia-rechnen) .ia-kopf .ia-tabs{flex-wrap:wrap;max-width:100%}
+:is(.ia-zahl,.ia-bitmuster,.ia-rechnen) > *{min-width:0}
+.zf-zusatz{flex:1 1 300px;min-width:0}
+.zf-zusatz .ia-scl{white-space:pre-wrap}
+:is(.ia-zahl,.ia-bitmuster,.ia-rechnen) .ia-kopf .ia-tabs + .ia-tabs{margin-left:0}
+.zf-als{font:13px var(--sans);padding:3px 9px;border-radius:7px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);margin:2px 4px 2px 0;display:inline-block}
+button.zf-als{cursor:pointer}
+button.zf-als:hover{border-color:var(--blue)}
+.zf-als b{font:600 12px var(--cond);color:var(--ink2);margin-right:4px}
+.zf-fehler{display:block;color:var(--bad);font-size:13.5px}
+
+/* ---------- Zahl: Bitfeld ---------- */
+.zf-titel{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:14.5px}
+.zf-titel code{font:700 15px var(--mono)}
+.zf-bitfeld{display:flex;flex-wrap:wrap;gap:12px 16px}
+.zf-byte{display:grid;gap:4px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.zf-byte-kopf{font-size:12.5px;color:var(--ink2)}
+.zf-byte-kopf b{font:700 13px var(--mono);color:var(--ink)}
+.zf-reihe{display:grid;grid-template-columns:repeat(4,minmax(30px,1fr)) 8px repeat(4,minmax(30px,1fr))}
+.zf-reihe .zf-zelle:nth-child(5){grid-column:6}
+.zf-zelle{display:grid;justify-items:center;gap:2px}
+.zf-nr{font:11px var(--mono);color:var(--ink2)}
+.zf-bit{width:28px;height:34px;border:2px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink2);font:700 17px var(--mono);cursor:pointer;padding:0;transition:transform .08s}
+.zf-bit:active{transform:scale(.93)}
+.zf-bit.an{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.zf-bit.zf-vz{box-shadow:inset 0 -4px 0 var(--bad)}
+.zf-bit.zf-exp{box-shadow:inset 0 -4px 0 var(--yellow)}
+.zf-bit.zf-man{box-shadow:inset 0 -4px 0 var(--blue)}
+.zf-adr{font:10.5px var(--mono);color:var(--ink2)}
+.zf-tag .sig{font-size:9.5px;padding:0 2px;letter-spacing:-.02em}
+.zf-tetraden{display:grid;grid-template-columns:1fr 8px 1fr;font:700 14px var(--mono);text-align:center}
+.zf-tetraden .zf-tetrade:nth-child(2){grid-column:3}
+.zf-tetrade{border-top:2px solid var(--line);padding-top:2px;margin:0 4px}
+.zf-tetrade.ok{border-color:var(--ok);color:var(--ok)}
+.zf-tetrade.falsch{border-color:var(--bad);color:var(--bad);font-size:12px}
+
+/* ---------- Zahl: Eingabe, Tabelle, Real ---------- */
+.zf-eingabe{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.zf-eingabe label,.re-feld label{display:inline-flex;gap:8px;align-items:center;font-size:14px;flex-wrap:wrap}
+.zf-eingabe input,.re-feld input{font:600 15px var(--mono);width:12em;max-width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--ink)}
+.zf-eingabe input:focus,.re-feld input:focus{outline:2px solid var(--blue);outline-offset:1px}
+.zf-unten{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.zf-tab{border-collapse:collapse;font-size:14px}
+.zf-tab th{text-align:left;font:600 12.5px var(--sans);color:var(--ink2);padding:5px 12px 5px 0;vertical-align:top}
+.zf-tab td{padding:4px 0}
+.zf-tab code{font:14px var(--mono);word-break:break-all}
+.zf-tab code.zf-gross{font:700 18px var(--mono)}
+.zf-real{display:grid;gap:6px;min-width:0}
+.zf-feld{display:flex;justify-content:space-between;gap:12px;padding:5px 10px;border-radius:7px;background:var(--sunk);border-left:4px solid var(--line);font-size:13.5px}
+.zf-feld b{font:600 13.5px var(--mono)}
+.zf-feld.zf-vz{border-left-color:var(--bad)}
+.zf-feld.zf-exp{border-left-color:var(--yellow)}
+.zf-feld.zf-man{border-left-color:var(--blue)}
+.ia-zahl .ia-scl{font-size:13.5px}
+
+/* ---------- Bitmuster ---------- */
+.bm-feld{display:grid;gap:8px}
+.bm-zeile{display:grid;gap:3px}
+.bm-titel{font-size:13.5px;color:var(--ink2)}
+.bm-titel code{font:600 13.5px var(--mono);color:var(--ink);margin-left:6px}
+.bm-reihe{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));max-width:calc(var(--n) * 38px)}
+.bm-reihe > span{display:grid;justify-items:center;padding:0 1px}
+.bm-reihe > span:nth-child(4n+1):not(:first-child){border-left:2px dotted var(--line)}
+.bm-nummern{font:11px var(--mono);color:var(--ink2)}
+.bm-bit{width:100%;max-width:30px;height:32px;display:grid;place-items:center;border:2px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink2);font:700 16px var(--mono);padding:0}
+button.bm-bit{cursor:pointer}
+.bm-bit.an{border-color:var(--ok);background:var(--ok-soft);color:var(--ok)}
+.bm-maske .bm-bit.an{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
+.bm-bit.erg{border-style:solid}
+.bm-bit.geaendert{outline:3px solid var(--yellow);outline-offset:1px}
+.bm-bit.neu{border-style:dashed}
+.bm-bit.rund{outline:3px solid var(--blue);outline-offset:1px}
+.bm-lauf > span{animation:bm-wandern .7s ease-out both}
+.bm-lauf .bm-bit.neu{animation:bm-neu .7s ease-out both}
+@keyframes bm-wandern{from{transform:translateX(calc(var(--dx) * 100%))}}
+@keyframes bm-neu{0%,55%{opacity:0;transform:scale(.6)}}
+.bm-n{display:flex;gap:8px;align-items:center}
+.bm-n b{font:700 18px var(--mono);min-width:2ch;text-align:center}
+.bm-rausliste{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.bm-raus{font:600 12.5px var(--mono);padding:2px 8px;border-radius:6px;border:1px dashed var(--bad);color:var(--bad);text-decoration:line-through}
+.bm-unten{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:18px;align-items:start}
+.bm-lampen{display:flex;gap:4px;flex-wrap:wrap}
+.bm-lampe{display:grid;justify-items:center;gap:3px;font-size:13px;min-width:46px}
+.bm-lampe i{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:var(--sunk);transition:background .2s,box-shadow .2s}
+.bm-lampe.an i{background:var(--yellow);border-color:var(--yellow);box-shadow:0 0 12px var(--yellow)}
+.bm-lampe code{font:11px var(--mono);color:var(--ink2)}
+.bm-steuer{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.bm-steuer .btn{white-space:normal}
+
+/* ---------- Rechnen ---------- */
+.re-beispiele{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+.re-felder{display:flex;gap:10px 22px;flex-wrap:wrap;align-items:flex-end}
+.re-feld{display:grid;gap:6px}
+.re-feld input{width:9em}
+.re-knoepfe{display:flex;gap:6px}
+.re-bild{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+.re-vgl{margin-top:8px}
+.re-strahl .ia-svg{max-width:560px}
+.ia-svg .rs-linie{stroke:var(--ink);stroke-width:3}
+.ia-svg .rs-aussen{stroke:var(--line);stroke-width:2;stroke-dasharray:4 4}
+.ia-svg .rs-strich{stroke:var(--ink);stroke-width:1.5}
+.ia-svg text.rs-zahl{font:11px var(--mono);fill:var(--ink2)}
+.ia-svg .rs-marke{fill:var(--blue);stroke:none}
+.ia-svg .rs-marke.ok{fill:var(--ok)}
+.ia-svg .rs-marke.warn{fill:var(--bad)}
+.ia-svg text.rs-text{font:600 12px var(--mono)}
+.ia-svg text.rs-text.ok{fill:var(--ok)}
+.ia-svg text.rs-text.warn{fill:var(--bad)}
+.ia-svg .rs-faden{stroke:var(--line);stroke-width:1}
+.ia-svg .rs-band{fill:var(--ok-soft);stroke:var(--ok);stroke-width:1.5}
+.ia-svg .rs-bogen{fill:none;stroke:var(--bad);stroke-width:2;stroke-dasharray:6 4}
+.ia-svg .rs-spitze{fill:var(--bad);stroke:none}
+
+@media (prefers-reduced-motion:reduce){.bm-lauf > span,.bm-lauf .bm-bit.neu{animation:none}}
+@media screen and (max-width:860px){.bm-unten,.re-bild{grid-template-columns:1fr}}
+@media screen and (max-width:520px){
+  .zf-reihe{grid-template-columns:repeat(4,minmax(24px,1fr)) 6px repeat(4,minmax(24px,1fr))}
+  .zf-bit{width:24px;height:30px;font-size:15px}
+  .zf-byte{padding:6px}
+}

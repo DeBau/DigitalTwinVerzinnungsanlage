@@ -3,6 +3,8 @@
 //   <div data-interaktiv="logik" data-op="UND,ODER" data-a="BG9" data-b="BG10" data-q="PF2"></div>
 // iaEinsetzen ersetzt ihn durch das HTML der Erklärung. Jede Art meldet sich mit iaRegistrieren an
 // (logik.js, zyklus.js) und liefert: neu(attribute) → Zustand, html(zustand), aktion(zustand, name, element).
+// Knöpfe tragen data-ia-akt="Name", Eingabefelder data-ia-eingabe="Name" (jede Eingabe ruft aktion auf).
+// Attributnamen dürfen Bindestriche haben (data-name-a → at["name-a"]).
 // Kennzeichen in Attributen ohne „−“ schreiben (BG9), sonst macht chips() daraus einen Chip im Attribut.
 import { chip, esc } from '../basis.js';
 
@@ -20,7 +22,7 @@ export const iaKurz = t => istKennzeichen(t) ? "−" + t : t;
 
 function iaAttribute(text){
   const a = {};
-  for (const m of text.matchAll(/data-([a-z]+)="([^"]*)"/g)) a[m[1]] = m[2];
+  for (const m of text.matchAll(/data-([a-z-]+)="([^"]*)"/g)) a[m[1]] = m[2];
   return a;
 }
 function iaInhalt(id){
@@ -39,8 +41,24 @@ export function iaEinsetzen(html){
 export function iaZeichnen(id){
   const el = document.querySelector(`[data-ia="${id}"]`);
   if (!el) { IA_ZUSTAND.delete(id); return false; }
+  const feld = el.contains(document.activeElement) && document.activeElement.dataset.iaEingabe ? document.activeElement : null;
   el.innerHTML = iaInhalt(id);
+  if (feld) iaFokusZurueck(el, feld);
   return true;
+}
+// Eingabefeld (data-ia-eingabe="Name"): Nach dem Neuzeichnen bekommt das neue Feld mit demselben Namen Fokus und Schreibmarke
+function iaFokusZurueck(el, alt){
+  const neu = el.querySelector(`[data-ia-eingabe="${alt.dataset.iaEingabe}"]`); if (!neu) return;
+  neu.focus();
+  if (neu.type === "text") neu.setSelectionRange(alt.selectionStart, alt.selectionEnd);
+}
+// Jede Eingabe ruft aktion(zustand, Name, Feld) auf, wie ein Klick auf data-ia-akt
+function iaEingeben(e){
+  const feld = e.target.closest && e.target.closest("[data-ia-eingabe]"), wurzel = feld && feld.closest("[data-ia]");
+  if (!wurzel) return;
+  const z = IA_ZUSTAND.get(wurzel.dataset.ia); if (!z) return;
+  IA_ARTEN[z.art].aktion(z, feld.dataset.iaEingabe, feld);
+  iaZeichnen(z.id);
 }
 function iaBedienen(e){
   const knopf = e.target.closest("[data-ia-akt]"), wurzel = knopf && knopf.closest("[data-ia]");
@@ -55,6 +73,7 @@ function iaBedienen(e){
 export function init(){
   document.addEventListener("pointerdown", e => { if (e.button === 0) iaBedienen(e); });
   document.addEventListener("click", e => { if (e.detail === 0) iaBedienen(e); });
+  document.addEventListener("input", iaEingeben);
 }
 
 /* ---------- SVG-Bausteine ---------- */

@@ -15,7 +15,7 @@ const ZY_PHASEN = {
 };
 const ZY_TEXT = {
   STOP: "STOP: Die CPU bearbeitet kein Programm. Die Ausgänge sind deaktiviert oder reagieren wie parametriert (z. B. Ersatzwert). Wähle die Zykluszeit und drücke <b>Einschalten</b>.",
-  ANLAUF: "ANLAUF: Nach dem Einschalten bearbeitet die CPU einmal den Anlauf. Sie setzt nicht remanente Daten auf ihre Startwerte, löscht das PAA und liest die Eingänge ins PAE. Dann bearbeitet sie den Anlauf-OB (z. B. OB100), wenn es einen gibt. Die Ausgänge werden erst beim Übergang nach RUN freigegeben. Erst danach beginnt der Zyklus.",
+  ANLAUF: "ANLAUF: Nach dem Einschalten bearbeitet die CPU einmal den Anlauf. Sie setzt nicht remanente Daten auf ihre Startwerte, löscht das PAA und bearbeitet den Anlauf-OB (z. B. OB100), wenn es einen gibt. Zuletzt liest sie die Eingänge ins PAE. Die Ausgänge werden erst beim Übergang nach RUN freigegeben. Dann beginnt der Zyklus.",
 };
 const ZY_BEGRIFFE = [
   ["Betriebszustand", "STOP, ANLAUF oder RUN. Nur in RUN wird der OB1 zyklisch bearbeitet."],

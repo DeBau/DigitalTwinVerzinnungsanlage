@@ -1,7 +1,8 @@
 /* ---------- Interaktive Erklärung: Zeitmodell von Anlauf und SPS-Zyklus ---------- */
 // Die Zeit t läuft in ms. Ein Zyklus der Länge T hat drei Phasen wie in SCE 032-200 und 034-100 (Anteile von T):
 //   0    Eingänge ins PAE, 0.1  OB1 bearbeiten, schreibt das PAA (hier: a := e), 0.9  am Zyklusende PAA an die Ausgänge.
-// Der ANLAUF dauert hier zur Anschauung eine Zykluszeit; er liest die Eingänge ins PAE und löscht das PAA.
+// Der ANLAUF dauert hier zur Anschauung eine Zykluszeit. Wie in der TIA-Hilfe „Anlauftätigkeiten (S7-1500)“ löscht er das
+// PAA, bearbeitet die Anlauf-OBs und aktualisiert zuletzt das PAE (Ereignis run, zugleich Beginn von Zyklus 1).
 // Jede Spur merkt sich ihre Wechsel als [t, wert]. Daraus entstehen Signalverlauf und Reaktionszeit.
 
 export const ZY_EREIGNIS = [{anteil: 0, id: "ein"}, {anteil: 0.1, id: "ob1"}, {anteil: 0.9, id: "aus"}];
@@ -42,7 +43,7 @@ function naechstesEreignis(z){
   return kandidaten.sort((x, y) => x.t - y.t)[0] || null;
 }
 const ZY_SONDER = {
-  run: z => { z.betrieb = "RUN"; ZY_WIRKUNG.ein(z); },   // Zyklus 1 beginnt mit dem Einlesen der Eingänge
+  run: z => { z.betrieb = "RUN"; ZY_WIRKUNG.ein(z); },   // Ende des Anlaufs: PAE aktualisieren, Zyklus 1 beginnt
   impulsEnde: z => { zySetze(z, "k", "klemme", 0); z.impulsEnde = null; z.verpasst = !z.impulsGesehen; },
 };
 function ausfuehren(z, e){
@@ -66,8 +67,7 @@ export function zySchritt(z){
 /* ---------- Bedienung ---------- */
 export function zyEinschalten(z){
   z.betrieb = "ANLAUF"; z.start = z.t + z.T; z.letztes = z.t;
-  zySetze(z, "a", "paa", 0); zySetze(z, "q", "ausgang", 0); zySetze(z, "e", "pae", z.klemme);
-  z.lesungen.push(z.t);
+  zySetze(z, "a", "paa", 0); zySetze(z, "q", "ausgang", 0);
 }
 export function zyAusschalten(z){
   z.betrieb = "STOP"; z.start = null; z.impulsEnde = null;

@@ -45,10 +45,18 @@ importiert nie aus einer Vorlage.
 | `app/fortschritt.js` | Phasen erledigt, Prüfpunkte |
 | `app/vorlagen-basis.js` | Vorlagen zum Ausfüllen: `tplsOf`, `tplKey`, `tplRows`, `tplNIn`, `tplHead`, `tplFind`, `tplTeile`, `tplHasData`, `prViewHTML` |
 | `app/vorlage-stand.js` | Felder (`felder`), Fortschritt einer Vorlage, Karte im Schritt (`tplKarteHTML`) |
-| `app/interaktiv/basis.js` | Interaktive Erklärungen: Platzhalter `data-interaktiv` ersetzen (`iaEinsetzen`), Registry, Klicks, SVG-Bausteine |
+| `app/interaktiv/basis.js` | Interaktive Erklärungen: Platzhalter `data-interaktiv` ersetzen (`iaEinsetzen`), Registry, Klicks (`data-ia-akt`), Eingabefelder (`data-ia-eingabe`, Fokus bleibt beim Neuzeichnen), SVG-Bausteine |
 | `app/interaktiv/signalverlauf.js` | Zeitdiagramm `signalverlaufSVG` |
 | `app/interaktiv/logik-bild.js`, `logik.js` | Verknüpfung UND, ODER, NICHT, XOR: FUP, KOP, SCL, Funktionstabelle |
+| `app/interaktiv/speicher-bild.js`, `speicher.js` | Speichern: SR-Box, RS-Box, KOP-Selbsthaltung, Spulen ( S ) und ( R ) in FUP, KOP, SCL (IF), Funktionstabelle mit Q alt; Bausteine `spBox`, `spPin`, `spSpule`, `spZuweisung`, `spSchiene`, `spSpurName` auch für Flanken |
+| `app/interaktiv/flanke-bild.js`, `flanke.js` | Flanken P, N, P=/(P), N=/(N), P_TRIG, N_TRIG, R_TRIG, F_TRIG und Flanke von Hand (HAND) über Zyklen: KOP, FUP, SCL (Instanzaufruf, Flanke von Hand), Abspielen |
 | `app/interaktiv/zyklus.js` | Anlauf und SPS-Zyklus animiert |
+| `app/interaktiv/box-bild.js` | Anweisungsbox mit Instanz in FUP und KOP im Programmstatus (`bxFupSVG`, `bxKopSVG`), SCL mit Status (`bxSclHTML`), Umschalter `bxTabs` |
+| `app/interaktiv/zeit-modell.js`, `zeit.js` | IEC-Zeiten TP, TON, TOF, TONR: Zeitmodell in ms nach TIA-Hilfe, Erklärung mit Box, SCL, ET-Rampe (`zeitverlaufWertSVG`) |
+| `app/interaktiv/zaehler-modell.js`, `zaehler.js` | IEC-Zähler CTU, CTD, CTUD: Modell je Aufruf nach TIA-Hilfe (Int), Erklärung mit Box, SCL, Signalverlauf mit CV (`signalverlaufZahlenSVG`) |
+| `app/interaktiv/zahl-modell.js`, `zahl.js` | Zahlenformate: Bitmuster und Datentypen (Byte bis DInt, Real nach IEEE 754, BCD16), 2#/16#, +1/−1 mit Überlauf, Bytes mit Adressen (Big Endian) und Geräten aus der Signalliste; Modell `zf…` auch für Bitmuster und Rechnen |
+| `app/interaktiv/bitmuster-modell.js`, `bitmuster.js` | AND, OR, XOR mit Maske, SHL, SHR, ROL, ROR mit N (Wanderung animiert), Lauflicht −PF1 bis −PF4, SCL mit Slice-Zugriff |
+| `app/interaktiv/rechnen-modell.js`, `rechnen-text.js`, `rechnen-bild.js`, `rechnen.js` | Rechnen wie die S7-1500: ADD bis MOD (Überlauf, Division durch 0), ROUND, TRUNC, CEIL, FLOOR, CMP, IN_RANGE; FUP-Box, SCL, Zahlenstrahl (`reStrahlSVG`), Satz |
 | `app/nachschlagen.js` | Kasten „Nachschlagen“, Fachwissen je Aufgabenschritt (`fw`), Popups für Aufgabe und Fachwissen |
 | **Schaltzeichen** (gemeinsam mit dem Schaltplan) | |
 | `symbole/grund.js` | Zeichen-Grundlagen `linie`, `wirklinie`, `kreis`, `kasten`, `punkt`, `text`, `nummer` |

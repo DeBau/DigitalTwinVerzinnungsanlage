@@ -1,0 +1,23 @@
+/* ---------- Interaktive Erklärungen: Speicher (speicher.js) und Flanken (flanke.js) ---------- */
+.ia-svg text.sp-titel{font:700 13px var(--mono)}
+.ia-svg text.sp-pin{font:600 11.5px var(--mono);fill:var(--ink2)}
+.sp-name{font:600 13.5px var(--cond);color:var(--ink2);margin-bottom:6px}
+.sp-reihe{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
+.sp-tabelle{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap}
+.sp-tabelle .ia-tab{width:auto}
+.sp-tabelle p{margin:0;max-width:260px}
+.sp-scl code{display:block}
+.sp-zeile{display:block;padding:0 8px;margin:0 -8px;border-left:3px solid transparent;white-space:pre}
+.sp-zeile.ja{border-left-color:var(--ok);background:var(--ok-soft)}
+.sp-zeile.nein{border-left-color:var(--blue);color:var(--ink2)}
+
+/* ---------- Flanken ---------- */
+.fl-bildkopf{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.fl-bildkopf .ia-tabs{margin:0}
+.fl-stand{display:flex;gap:8px;align-items:stretch;flex-wrap:wrap}
+.fl-stand i{align-self:center;font-style:normal;font-size:13px;color:var(--ink2)}
+.fl-stand .zy-st{flex:1 1 0;min-width:84px}
+.fl-zyklus{margin-left:auto;align-self:center;font:600 13px var(--mono)}
+.ia-speicher .ia-tabs,.ia-flanke .ia-tabs{flex-wrap:wrap}
+.ia-speicher .ia-tabs button,.ia-flanke .ia-tabs button{white-space:nowrap}
+@media screen and (max-width:860px){.sp-reihe{grid-template-columns:1fr}.sp-reihe .ia-knoepfe{flex-wrap:wrap}}

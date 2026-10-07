@@ -17,7 +17,7 @@ addEventListener removeEventListener getSelection innerWidth innerHeight scrollT
 Blob URL File FileReader FormData Image ImageData DOMParser XMLSerializer MutationObserver ResizeObserver IntersectionObserver
 Event CustomEvent KeyboardEvent PointerEvent MouseEvent HTMLElement Element Node SVGElement DOMMatrix DOMPoint
 Math JSON Object Array String Number Boolean Symbol Date RegExp Error TypeError RangeError Map Set WeakMap WeakSet
-Promise Proxy Reflect Intl BigInt Infinity NaN undefined isNaN isFinite parseInt parseFloat encodeURIComponent
+Promise Proxy Reflect Intl BigInt DataView ArrayBuffer Infinity NaN undefined isNaN isFinite parseInt parseFloat encodeURIComponent
 decodeURIComponent encodeURI decodeURI structuredClone globalThis arguments fetch performance crypto atob btoa
 __SIG__ __SHEETS__ __TEXTE__ __QUIZ__ __STIL__ __PLAN__
 `.trim().split(/\s+/));

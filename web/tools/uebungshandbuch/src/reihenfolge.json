@@ -12,6 +12,9 @@
   "09-schmal",
   "10-druck",
   "11-schaltplan",
-  "12-interaktiv"
+  "12-interaktiv",
+  "13-speicher-flanke",
+  "14-zeit-zaehler",
+  "15-zahlen"
  ]
 }

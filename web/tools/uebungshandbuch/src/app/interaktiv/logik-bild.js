@@ -25,7 +25,7 @@ export function fupSVG(op, werte, namen){
 }
 
 /* ---------- KOP ---------- */
-function kopKontakt(k, x, y, an, namen){
+export function kopKontakt(k, x, y, an, namen){
   const schraeg = k.neg ? `<line x1="${x - 7}" y1="${y + 11}" x2="${x + 7}" y2="${y - 11}" ${iaStrich(an)}/>` : "";
   return iaText(x, y - 18, namen[k.sig], "ia-op")
     + `<line x1="${x - 7}" y1="${y - 12}" x2="${x - 7}" y2="${y + 12}" ${iaStrich(an)}/><line x1="${x + 7}" y1="${y - 12}" x2="${x + 7}" y2="${y + 12}" ${iaStrich(an)}/>` + schraeg;
