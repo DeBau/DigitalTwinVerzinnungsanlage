@@ -1,0 +1,57 @@
+/* Schaltplan der Anlage (#/schaltplan): Seitenleiste, Blatt mit Zoom, Verweise, Druck A3 und A4 quer */
+.sp{display:grid;grid-template-columns:290px minmax(0,1fr);gap:22px;max-width:1640px;margin:0 auto;padding:22px 20px 40px}
+.sp.sp-ohne-leiste{grid-template-columns:minmax(0,1fr);max-width:none}
+.sp.sp-ohne-leiste .sp-seitenleiste{display:none}
+.sp-seitenleiste{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);display:flex;flex-direction:column;gap:10px}
+.sp-seitenleiste h1{font-size:22px}
+.sp-treffer:empty{display:none}
+.sp-treffer,.sp-seiten{display:flex;flex-direction:column;gap:1px}
+.sp-treffer{flex:none;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:6px;max-height:34vh;overflow:auto}
+.sp-treffer a,.sp-seiten a{display:flex;gap:10px;align-items:baseline;padding:5px 8px;border-radius:6px;color:var(--ink);text-decoration:none;font-size:13.5px;line-height:1.35}
+.sp-treffer a span{margin-left:auto;color:var(--ink2);font-size:12px;white-space:nowrap}
+.sp-treffer a:hover,.sp-seiten a:hover{background:var(--blue-soft)}
+.sp-seiten{flex:1;min-height:0;overflow:auto;padding-right:4px}
+.sp-seitenleiste input{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 10px;width:100%}
+.sp-seiten .nr{font:600 12px var(--mono);color:inherit;opacity:.75;min-width:2.2em;text-align:right}
+.sp-seiten a[aria-current]{background:var(--blue);color:var(--onblue);font-weight:600}
+.sp-seiten a[aria-current] .nr{opacity:1}
+.sp-leiste{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:10px}
+.sp-leiste .grow{flex:1}
+.sp-leiste [aria-disabled]{opacity:.4;cursor:default}
+.sp-pos{font-size:14.5px}
+.sp-zoom{display:inline-flex;align-items:center;gap:6px}
+#sp-zoom-wert{font:500 12.5px var(--mono);min-width:4.4em;text-align:center;color:var(--ink2)}
+.sp-blatt{position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(16,30,45,.10);touch-action:none}
+.sp-blatt svg{display:block;width:100%;height:auto;transform-origin:0 0}
+.sp-blatt.sp-gezoomt{cursor:grab}
+.sp-blatt.sp-gezoomt:active{cursor:grabbing}
+.sp-haupt:fullscreen{background:var(--paper);padding:14px;overflow:auto}
+.sp-haupt:fullscreen .sp-blatt{height:calc(100vh - 80px)}
+.sp-haupt:fullscreen .sp-blatt svg{height:100%;width:auto;max-width:100%;margin:0 auto}
+.sp-haupt:fullscreen .sp-tipp{display:none}
+.sp-tipp{font-size:13px;margin-top:10px}
+.sp-ref{cursor:pointer}
+.sp-ref:hover{text-decoration:underline}
+.sp-bmk{cursor:pointer}
+.sp-bmk:hover text{fill:var(--blue)}
+#sp-blatt [tabindex]:focus-visible{outline:2px solid #F2B705;outline-offset:2px}
+svg.sp-svg text.sig{font:600 7.8px var(--cond);cursor:help}
+svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
+.sp-markiert{fill:#F2B705;fill-opacity:.16;stroke:#F2B705;stroke-width:1.5;pointer-events:none;animation:sp-blinken 1.6s ease-out 1 both}
+@keyframes sp-blinken{0%{fill-opacity:.45}100%{fill-opacity:.16}}
+/* Schmal: das Blatt zuerst, das Inhaltsverzeichnis darunter */
+@media (max-width:980px){
+  .sp{grid-template-columns:1fr;padding:14px 16px 30px}
+  .sp-haupt{order:-1}
+  .sp-seitenleiste{position:static;max-height:none}
+  .sp-seiten{max-height:40vh}
+}
+@page sp-a3{size:A3 landscape;margin:5mm}
+@media print{
+  .pp.sp-druck::after{content:none}
+  .pp.sp-a3{page:sp-a3}
+  .pp.sp-druck svg{width:100%;height:auto;display:block;transform:none}
+  .pp.sp-a3 svg{max-height:286mm}
+  .pp.sp-druck .sp-ref{fill:#000}
+  .pp.sp-druck .sp-markiert{display:none}
+}

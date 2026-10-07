@@ -5,7 +5,7 @@ import { doneCount, nextSheet, phaseDone } from './fortschritt.js';
 
 export const app = $("#app");
 // Bereiche im Menü, die zu den festen Einträgen aus seite.html dazukommen: [Route, Name]. Neue Übersichtsseiten tragen sich hier ein.
-export const NAV_EXTRA = [["unterlagen", "Unterlagen"], ["projekt", "Projekt"]];
+export const NAV_EXTRA = [["unterlagen", "Unterlagen"], ["projekt", "Projekt"], ["schaltplan", "Schaltplan"]];
 NAV_EXTRA.forEach(([r, n]) => { const nav = $("#nav"); if (nav && !$(`a[href="#/${r}"]`, nav)) nav.insertAdjacentHTML("beforeend", `<a href="#/${r}">${n}</a>`); });
 export function setNav(r){ $$("#nav a").forEach(a => a.toggleAttribute("aria-current", false)); const m = r === "" ? "#/" : r ? "#/" + r : null;
   const a = m && $(`#nav a[href="${m}"]`); if (a) a.setAttribute("aria-current", "page"); }
@@ -38,6 +38,8 @@ export function viewHome(){
   <div class="quick">
     <a href="#/vorlagen"><b>Vorlagen</b><span>GRAFCET, Weg-Schritt, Stromlauf, Regelkreis: zeichnen oder leer drucken</span></a>
     <a href="#/signale"><b>Signale</b><span>Alle Kennzeichen mit Adresse, Bedeutung und den Übungen, die sie nutzen</span></a>
+    <a href="#/schaltplan"><b>Schaltplan</b><span>Die ganze Elektrik der Anlage: alle Ein- und Ausgänge, Motoren, Not-Halt, Klemmen</span></a>
+    <a href="#/schaltplan"><b>Schaltplan</b><span>Die ganze Elektrik der Anlage: alle Ein- und Ausgänge, Motoren, Not-Halt, Klemmen</span></a>
     <a href="#/anlage"><b>Anlage</b><span>Prozess, Antriebe, Befehlsstellen und Sicherheitskonzept</span></a>
     <a href="#/bewertung"><b>Bewertung</b><span>Bewertungsbogen mit Punkten und IHK-Note</span></a>
     <a href="#/unterlagen"><b>Meine Unterlagen</b><span>Alle deine Dokumente aus allen Übungen, einzeln oder als Mappe drucken</span></a>

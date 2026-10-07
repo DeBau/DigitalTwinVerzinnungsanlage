@@ -6,6 +6,7 @@ import { curTime, timerEx, viewExercise } from './uebung.js';
 import { viewAnlage, viewBewertung, viewKonzept, viewRichtlinien, viewSignale, viewVorlagen } from './seiten.js';
 import { viewUnterlagen } from './unterlagen.js';
 import { viewProjekt } from './projekt.js';
+import { viewSchaltplan } from '../schaltplan/ansicht.js';
 import { hideTip } from './tooltip.js';
 
 export function route(){
@@ -20,6 +21,7 @@ export function route(){
   if (h[0] === "bewertung") return viewBewertung(h[1]);
   if (h[0] === "unterlagen") return viewUnterlagen();
   if (h[0] === "projekt") return viewProjekt();
+  if (h[0] === "schaltplan") return viewSchaltplan(h[1], h[2]);
   viewHome();
 }
 // Umnummerierung auf 37 Übungen (Version _v = 4): neue Übungen L06 bis L11, alt L07 bis L32 werden L12 bis L37 (+5).

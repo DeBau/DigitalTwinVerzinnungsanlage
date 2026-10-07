@@ -113,6 +113,7 @@ importiert nie aus einer Vorlage.
 | `editor/vorlagen/trend-striche.js` | Trendaufzeichnung: Stricharten und Werkzeuge Kurve und Band |
 | `editor/vorlagen/trend.js` | Trendaufzeichnung: Formular, Fangraster der Achsenteilung, Achsenfelder (`meta.achsen`), Legende |
 | `editor/vorlagen/raster.js` | Kästchenraster mit allen Gruppen, im Druck echt 5 mm (`KAESTCHEN`) |
+| `schaltplan/*.js` | Schaltplan der Anlage (Route `#/schaltplan/<Seite>`, Daten `schaltplan.json`, Platzhalter `__PLAN__`); eigene Modulkarte in `schaltplan/README.md`. Schaltzeichen aus `symbole/` wie der Editor |
 | **Seiteneffekte** | `app/tooltip.js`, `app/router.js`, `app/ereignisse.js`, `editor/ereignisse.js` (Listener des Editor-Dialogs, `AKTIONEN`) |
 
 Daten bleiben außerhalb von `src/`: `uebungen.js`, `quiz.js`, `stil.js`, `texte/Lxx.json`, `signale.csv`.
@@ -124,6 +125,8 @@ Daten bleiben außerhalb von `src/`: `uebungen.js`, `quiz.js`, `stil.js`, `texte
 * `node web/tools/uebungshandbuch/module.mjs check` meldet Schichtverletzungen.
 * Lokale Namen (Parameter, Variablen in Funktionen) bekommen keinen Import. `symbole/` pflegt seine Importe selbst
   (gemeinsam mit dem Schaltplan); für andere Module zählen dort nur die Exporte.
+  `schaltplan/` ebenso; seine Exporte gelten nur, wenn kein anderes Modul den Namen hat (der Plan hat eigene
+  `kennzeichen`, `kontakte`, `taste` …), und `check` prüft seine Schichten nicht (esbuild prüft die Importe).
 * `node web/tools/uebungshandbuch/module.mjs move <Name> <von> <nach>` verschiebt eine Deklaration samt Kommentar.
 * `waechter.mjs` läuft bei jedem Build. Er prüft, dass jeder Bezeichner deklariert, importiert oder ein
   Browser-Global ist. esbuild meldet einen vergessenen Import nicht, er fiele sonst erst im Browser auf.

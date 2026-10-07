@@ -5,6 +5,8 @@ import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { waechter } from './waechter.mjs';
+import { leseSignale } from './signale.mjs';
+import { ladeSchaltplan } from './schaltplan-node.mjs';
 
 const hier = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(hier, '../../..');
@@ -13,17 +15,7 @@ const repo = path.resolve(hier, '../../..');
 const WARN = {};
 const warn = (kat, wo, text) => { (WARN[kat] ||= []).push(`${wo}: ${text}`); };
 
-// signale.csv ist bewusst ohne Umlaute (Excel-fest); für die Anzeige werden die vorkommenden Wörter zurückgewandelt.
-const UM = {"Ausblasduese": "Ausblasdüse", "Ausschussbehaelter": "Ausschussbehälter", "Buegel": "Bügel", "Einhaengezylinder": "Einhängezylinder", "Foerderband": "Förderband", "Foerderrichtung": "Förderrichtung", "Fuellhoehe": "Füllhöhe", "Fuellstand": "Füllstand", "Kuehlplatz": "Kühlplatz", "Kuehlwassertank": "Kühlwassertank", "Oeffner": "Öffner", "Pruefband": "Prüfband", "Pruefstation": "Prüfstation", "Rueckmeldung": "Rückmeldung", "Schaltschranktuer": "Schaltschranktür", "Schliesser": "Schließer", "Schluesselschalter": "Schlüsselschalter", "Schuetz": "Schütz", "Spruehkuehlung": "Sprühkühlung", "Spruehventil": "Sprühventil", "Stellungsrueckmeldung": "Stellungsrückmeldung", "Uebergabe": "Übergabe", "Uebergabeplatz": "Übergabeplatz", "Umwaelzpumpe": "Umwälzpumpe", "Wendeschuetz": "Wendeschütz", "Zinn-Nachfuelleinrichtung": "Zinn-Nachfülleinrichtung", "betaetigt": "betätigt", "blaest": "bläst", "buendig": "bündig", "eingehaengt": "eingehängt", "einhaengen": "einhängen", "faehrt": "fährt", "geloest": "gelöst", "gueltig": "gültig", "laeuft": "läuft", "loesen": "lösen", "oeffnen": "öffnen", "oeffnet": "öffnet", "schliessen": "schließen", "schliesst": "schließt", "ueber": "über", "uebernommen": "übernommen", "vorwaerts": "vorwärts", "zurueck": "zurück", "Loesen": "Lösen", "Oeffnen": "Öffnen", "Schliessen": "Schließen", "Einhaengen": "Einhängen"};
-const umlaut = (t) => t.replace(/[A-Za-zÄÖÜäöüß-]+/g, (w) => UM[w] || w).replace(/ Grad C/g, ' °C').replace(/\.\.\./g, '…');
-
-const sig = {};
-for (const line of readFileSync(path.join(repo, 'signale.csv'), 'utf8').split(/\r?\n/)) {
-  if (!line || line.startsWith('#') || line.startsWith('Name;')) continue;
-  const [n, a, ...k] = line.split(';');
-  if (!a) continue;
-  (sig[n.split('_')[0]] ||= []).push({ n, a, k: umlaut(k.join(';')) });
-}
+const sig = leseSignale(repo);
 
 // Quelltext: src/seite.html, die Styles aus src/styles in fester Reihenfolge (src/reihenfolge.json)
 // und die ES-Module ab src/main.js, gebündelt mit esbuild (liegt in web/node_modules).
@@ -144,6 +136,17 @@ for (const datei of editorDateien(path.join(src, 'editor'))) {
     const sie = RX_SIE.exec(p); if (sie) warn('Editor: Sie-Form', wo, kurz(p, sie.index, sie[0].length));
   }
 }
+// Schaltplan der Anlage: schaltplan.json (fehlt die Datei, bleibt der Plan leer). Geprüft wird mit denselben Modulen wie im Browser.
+const pdatei = path.join(hier, 'schaltplan.json');
+let plan = existsSync(pdatei) ? readFileSync(pdatei, 'utf8') : 'null';
+try {
+  const daten = JSON.parse(plan);
+  if (daten) {
+    const sp = await ladeSchaltplan(esbuild);
+    for (const f of sp.pruefe(sp.aufbereiten(daten, sig), sp.SYM)) warn('Schaltplan', 'schaltplan.json', f);
+    walk('schaltplan.json', {hinweise: daten.hinweise}, true);   // Kennzeichen prüft der Plan selbst
+  }
+} catch (e) { warn('Datei nicht lesbar', 'schaltplan.json', e.message); plan = 'null'; }
 
 /* ---------- Ausgabe ---------- */
 const html = vorlage
@@ -151,6 +154,7 @@ const html = vorlage
   .replace('__SHEETS__', () => uebungen)
   .replace('__QUIZ__', () => quiz)
   .replace('__STIL__', () => stil)
+  .replace('__PLAN__', () => plan)
   .replace('__TEXTE__', () => JSON.stringify(texte));
 writeFileSync(path.join(repo, 'docs', 'uebungshandbuch.html'), html);
 console.log('docs/uebungshandbuch.html erzeugt');

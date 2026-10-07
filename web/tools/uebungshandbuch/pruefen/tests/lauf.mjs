@@ -15,7 +15,8 @@ import { neuerTreiber } from './treiber.mjs';
 
 const hier = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(hier, '../../../../..');
-const KEINE_TESTS = new Set(['lauf.mjs', 'treiber.mjs']);
+// Eigenständige Skripte ohne Export tests (laufen für sich): die Schaltplan-Tests
+const KEINE_TESTS = new Set(['lauf.mjs', 'treiber.mjs', 'schaltplan.mjs', 'schaltplan-browser.mjs']);
 
 const argv = process.argv.slice(2);
 const nurIndex = argv.indexOf('--nur');

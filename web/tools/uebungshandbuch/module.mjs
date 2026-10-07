@@ -66,9 +66,19 @@ function lokale(ast) {
   return out;
 }
 const ohneImporte = (t) => t.replace(/^import [^;]*;[ ]*(\r?\n)?/gm, '');
-const istGeteilt = (n) => n.startsWith('symbole/');
+const istGeteilt = (n) => n.startsWith('symbole/') || istPlan(n);
+const istPlan = (n) => n.startsWith('schaltplan/');
 // symbole/ teilt sich der Editor mit dem Schaltplan: Dort zählen für andere Module nur die Exporte,
 // und die Importzeilen pflegt das Modul selbst (imports schreibt es nicht um).
+// schaltplan/ pflegt seine Importe ebenso selbst (esbuild prüft sie) und hat eigene Namen, die im Editor wieder
+// vorkommen (kennzeichen, kontakte, taste …). Seine Exporte gelten deshalb nur, wenn kein anderes Modul den Namen
+// hat (z. B. viewSchaltplan für app/router.js), und check prüft seine Schichten nicht.
+function anmelden(wo, x, m) {
+  const alt = wo.get(x);
+  if (alt && istPlan(m.n) !== istPlan(alt.n)) { if (istPlan(alt.n)) wo.set(x, m); return; }
+  if (alt && !istPlan(m.n)) console.log(`DOPPELT: ${x} in ${alt.n} und ${m.n}`);
+  wo.set(x, m);
+}
 function module() {
   return folge.map((n, i) => {
     const t = ohneImporte(lies(n)), ast = parse(t), eigen = new Set(ast.body.flatMap(declNames));
@@ -96,7 +106,7 @@ if (cmd === 'move') {
 }
 if (cmd === 'imports' || cmd === 'check') {
   const M = module(), wo = new Map();
-  for (const m of M) for (const x of m.top) { if (x === 'init') continue; if (wo.has(x)) console.log(`DOPPELT: ${x} in ${wo.get(x).n} und ${m.n}`); wo.set(x, m); }
+  for (const m of M) for (const x of m.top) { if (x !== 'init') anmelden(wo, x, m); }
   let fehler = 0;
   for (const m of M) {
     const imp = new Map();
@@ -106,7 +116,7 @@ if (cmd === 'imports' || cmd === 'check') {
         if (g && g !== m && !m.eigen.has(r) && !m.lokal.has(r)) (imp.get(g) || imp.set(g, new Set()).get(g)).add(r);
       }
     }
-    const auf = [...imp].filter(([g]) => g.i > m.i);
+    const auf = istPlan(m.n) ? [] : [...imp].filter(([g]) => g.i > m.i);
     if (auf.length) { fehler++; console.log(`SCHICHT: ${m.n} benutzt aus später geladenen Modulen ${auf.map(([g, s]) => `${g.n} (${[...s].join(', ')})`).join('; ')}`); }
     if (cmd === 'imports' && !istGeteilt(m.n)) {
       const nl = m.t.includes('\r\n') ? '\r\n' : '\n';
