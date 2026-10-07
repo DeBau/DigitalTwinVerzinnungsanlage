@@ -39,14 +39,16 @@ export function kontaktAnschluss(o, n){
 /* ---------- Kennzeichen ---------- */
 // Vorsatz je Bausteinart; ab: kleinste Nummer (−KF1 ist die SPS, das Sicherheitsrelais beginnt bei −KF2)
 export const VORSATZ = {
-  coil: "−QA", mbv: "−MB", lamp: "−PF", tno: "−SF", tnc: "−SF", estop: "−SF", key: "−SF", lsw: "−BG", sens: "−BG",
+  coil: "−QA", mbv: "−MB", lamp: "−PF", tno: "−SF", tnc: "−SF", estop: "−SF", estop2: "−SF", key: "−SF",
+  lsw: "−BG", sens: "−BG",
   fuse: "−FA", ps: "−TA", sr: "−KF", ls3: "−FA", ms3: "−FA", k3: "−QA", qs3: "−QB", m3: "−MA", fu: "−TA",
 };
 const AB = {sr: 2};
-// Nummern n aller Kennzeichen „vorsatz n“ der Zeichnung ("-" und "−" gelten gleich)
+// Nummern n aller Kennzeichen „vorsatz n“ an Bausteinen mit diesem Vorsatz ("-" und "−" gelten gleich).
+// Kontakte zählen nicht mit: Sie tragen das Kennzeichen ihrer Spule.
 export function nummernMit(d, vorsatz){
   const muster = new RegExp("^[-−]" + vorsatz.slice(1) + "(\\d+)$");
-  return (d.o || []).map(o => muster.exec(o.v || "")).filter(Boolean).map(m => +m[1]);
+  return (d.o || []).filter(o => VORSATZ[o.k] === vorsatz).map(o => muster.exec(o.v || "")).filter(Boolean).map(m => +m[1]);
 }
 export const naechste = (d, vorsatz, ab = 1) => vorsatz + (Math.max(ab - 1, ...nummernMit(d, vorsatz)) + 1);
 // Kontakt: Kennzeichen der zuletzt gesetzten Spule

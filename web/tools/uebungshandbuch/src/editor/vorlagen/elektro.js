@@ -5,28 +5,25 @@
 import { kasten, kreis, linie, nummer, wirklinie } from '../../symbole/grund.js';
 import { SYM } from '../../symbole/iec60617.js';
 import { INK, PH } from '../svg.js';
-import { art, bauteil, registriereBauteile, registriereGruppe, registriereVorlage } from '../registry.js';
+import { registriereBauteile, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, G2, TX, grid } from '../vorlagen-svg.js';
-import { LB, portsOf } from '../bauteile.js';
+import { portsOf } from '../bauteile.js';
 import { gruppenId, umrissVon } from '../bausteine.js';
 import { kennzeichen, kontaktAnschluss, kontaktNummern, merkeOrdnung } from './elektro-kennzeichen.js';
-
-// Strompfad: Spalte i liegt bei x = 40 + i·46, 20 Pfade je Blatt
-export const pfadNummer = x => Math.max(1, Math.min(20, Math.round((x - 40) / 46)));
-export const pfadX = n => 40 + n * 46;
+import { breiteVon, imPfad, kennzeichenSVG, merkePfade, pfadKlick, pfadKnopf, pfadNummer, pfadX, pfadZahl } from './elektro-pfade.js';
 
 /* ---------- Vorlage ---------- */
-export function stromlaufBlatt(){
+// Blatt mit L+ und M, Pfadnummern und Pfadlinien in der Breite der Zeichnung (meta.pfadbreite)
+export function stromlaufBlatt(ex, page, meta){
+  const breite = breiteVon(meta);
   let s = `<path d="M40 70H975M40 590H975" stroke="${G}" stroke-width="2"/>`
     + TX(30, 74, 12, "L+", "end", "#555", 600) + TX(30, 594, 12, "M", "end", "#555", 600) + TX(975, 62, 9, "24 V DC", "end");
-  for (let i = 1; i <= 20; i++) {
-    s += TX(pfadX(i), 52, 9, String(i), "middle")
-      + `<path d="M${pfadX(i)} 74V586" stroke="${G2}" stroke-width=".6" stroke-dasharray="2 5"/>`;
+  for (let i = 1; i <= pfadZahl(breite); i++) {
+    s += TX(pfadX(i, breite), 52, 9, String(i), "middle")
+      + `<path d="M${pfadX(i, breite)} 74V586" stroke="${G2}" stroke-width=".6" stroke-dasharray="2 5"/>`;
   }
   return grid(10, "#EEF1F3", 40, 80, 975, 580) + s + TX(40, 615, 9, "Strompfad-Nr. oben, Kontaktspiegel unter den Spulen");
 }
-// Glied eines Strompfads: Baustein der Gruppe elektro mit Anschluss oben (0) und unten (1)
-export const imPfad = o => gruppenId(o) === "elektro" && !!(bauteil(o.k) ? bauteil(o.k).bx : art(o.k).anschluesse);
 const istKettenLink = c => c.pa === undefined && c.pb === undefined;
 // Ketten des Steuerstromkreises: je Glied, ob es Anfang und Ende seiner Kette ist. Ein Glied ohne Kettenlink zählt nicht.
 export function kettenEnden(d, cs){
@@ -64,7 +61,9 @@ registriereVorlage("stromlauf", {
   gruppen: ["elektro", "geraete", "leistung"], schienen: [["L+", 70, 40, 935], ["M", 590, 40, 935]],
   body: stromlaufBlatt,
   // Haken hintergrund: Ordnungsziffern merken (vor dem Zeichnen der Kontakte), automatische Leitungen
-  hintergrund: (d, cs) => { merkeOrdnung(d); return strompfadAnschluesse(d, cs); },
+  hintergrund: (d, cs) => { merkeOrdnung(d); merkePfade(d); return strompfadAnschluesse(d, cs); },
+  werkzeugleiste: {get nachVerbinden(){ return pfadKnopf(); }},
+  klick: pfadKlick,   // Knopf „Breite Pfade“
   // Glieder des Steuerstromkreises rasten auf die Strompfad-Spalten
   fangBaustein(o){ if (gruppenId(o) === "elektro") o.x = pfadX(pfadNummer(o.x)); },
   // Abbruchstellen nennen zusätzlich den Strompfad
@@ -84,12 +83,13 @@ registriereGruppe("elektro", {
 export const xy = q => [q.x, q.y];
 export const STROMPFAD = {g: "elektro", bx: -22, w: 44, h: 60, aus: o => xy(portsOf(o)[1]), ein: o => xy(portsOf(o)[0])};
 // Glied mit Bild bild(x, y, {an}) und Anschlüssen an = [oben, unten]. z: links = Abstand des Kennzeichens vor der
-// Mittellinie, kontakt = "no" oder "nc" (Anschlussnummern mit Ordnungsziffer), kb = Kennbuchstaben für Vorschläge
+// Mittellinie (weicht es aus, steht es rechts, elektro-pfade.js), kontakt = "no" oder "nc" (Anschlussnummern mit
+// Ordnungsziffer), kb = Kennbuchstaben für Vorschläge
 export function glied(n, lbl, bild, an, z = {}){
   const {links = 34, kontakt, kb} = z, nummern = o => kontakt ? kontaktNummern(o) : an;
-  return {...STROMPFAD, n, lbl, kontakt, kennbuchstaben: kb, anschluesse: [[an[0], 0, 0, "u"], [an[1], 0, 60, "d"]],
+  return {...STROMPFAD, n, lbl, links, kontakt, kennbuchstaben: kb, anschluesse: [[an[0], 0, 0, "u"], [an[1], 0, 60, "d"]],
     anschlussName: kontakt ? kontaktAnschluss : undefined,
-    zeichne: o => bild(o.x, o.y, {an: nummern(o)}) + LB(o.x - links, o.y + 35, o.v)};
+    zeichne: o => bild(o.x, o.y, {an: nummern(o)}) + kennzeichenSVG(o, links)};
 }
 const SCHALTZEICHEN = k => (x, y, g) => SYM[k].zeichne(x, y, g);
 // Positionsschalter: Schließer, über die Wirklinie von einem Stößel (Dreieck) betätigt
@@ -102,6 +102,13 @@ const naeherungsschalter = (x, y) => kasten(x - 15, y + 15, 30, 30)
   + linie(`M${x} ${y + 22}L${x + 8} ${y + 30}L${x} ${y + 38}L${x - 8} ${y + 30}Z`)
   + nummer(x + 4, y + 10, "BN") + nummer(x + 4, y + 57, "BU") + nummer(x + 18, y + 26, "BK");
 
+// Not-Halt zweikanalig: ein Pilztaster, zwei Öffner 11/12 (auf der Mittellinie) und 21/22 (30 rechts daneben),
+// beide über die Wirklinie betätigt. Kanal 1 hängt im Strompfad, Kanal 2 wird verdrahtet (z. B. S21/S22 am
+// Sicherheitsrelais). Raste und Zwangsöffnung zeichnet der Editor nicht (Geometrie ohne Normblatt unklar).
+const notHalt2 = (x, y) => SYM.nh.zeichne(x, y, {an: ["11", "12"]}) + SYM.nc.zeichne(x + 30, y, {an: ["21", "22"]})
+  + wirklinie(`M${x + 5} ${y + 29}H${x + 35}`);
+const NOT_HALT_2 = {...glied("Not-Halt zweikanalig", "−SF0", notHalt2, ["11", "12"], {links: 40, kb: ["SF"]}), w: 90, bx: -40,
+  anschluesse: [["11", 0, 0, "u"], ["12", 0, 60, "d"], ["21", 30, 0, "u"], ["22", 30, 60, "d"]]};
 const SPULE = ["QA", "KF", "MB"], TASTER = ["SF"], GEBER = ["BG"];
 registriereBauteile({
   no: glied("Schließer", "−QA1", SCHALTZEICHEN("no"), ["13", "14"], {links: 20, kontakt: "no", kb: SPULE}),
@@ -111,6 +118,7 @@ registriereBauteile({
   tno: glied("Taster Schließer", "−SF1", SCHALTZEICHEN("tno"), ["13", "14"], {kontakt: "no", kb: TASTER}),
   tnc: glied("Taster Öffner", "−SF2", SCHALTZEICHEN("tnc"), ["11", "12"], {kontakt: "nc", kb: TASTER}),
   estop: glied("Not-Halt (Pilztaster)", "−SF0", SCHALTZEICHEN("nh"), ["11", "12"], {links: 40, kontakt: "nc", kb: TASTER}),
+  estop2: NOT_HALT_2,
   key: glied("Schlüsselschalter", "−SF3", SCHALTZEICHEN("key"), ["13", "14"], {links: 44, kontakt: "no", kb: TASTER}),
   lsw: glied("Positionsschalter", "−BG1", positionsschalter, ["13", "14"], {links: 32, kontakt: "no", kb: GEBER}),
   sens: {...glied("Näherungsschalter PNP", "−BG2", naeherungsschalter, ["BN", "BU"], {links: 20, kb: GEBER}), w: 56,

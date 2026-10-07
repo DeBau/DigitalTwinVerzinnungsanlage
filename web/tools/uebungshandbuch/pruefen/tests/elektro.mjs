@@ -146,4 +146,32 @@ export const tests = [
       for (const y of [290, 350]) t.erwarte(punkte.some(([x, py]) => x === PFAD(1) && py === y), `Abzweigpunkt bei ${y}`);
     },
   },
+  {
+    name: 'E6 Kennzeichen weicht dem Nachbarpfad aus, Pfadbreite umschaltbar',
+    lauf: async (t) => {
+      await selbsthaltung(t);
+      const halt = (await t.objekte('no'))[0];
+      const lage = await t.page.$eval(`#edstage .ink [data-o="${halt.id}"]`, (g) => [...g.querySelectorAll('text')]
+        .filter((x) => x.textContent === '−QA1').map((x) => [+x.getAttribute('x'), x.getAttribute('text-anchor')])[0]);
+      t.erwarte(lage[0] > PFAD(2) && lage[1] === 'start', `Kennzeichen rechts vom Haltekontakt: ${lage}`);
+      await t.klick('#editor [data-pfadbreite]');
+      const d = await t.daten();
+      t.gleich(d.meta.pfadbreite, 60, 'Breite in meta');
+      t.gleich(d.o.filter((o) => o.k === 'no').map((o) => o.x), [40 + 2 * 60], 'Haltekontakt bleibt in Pfad 2');
+      t.gleich(await t.page.$eval('#editor [data-pfadbreite]', (k) => k.getAttribute('aria-pressed')), 'true', 'Knopf gedrückt');
+      await t.taste('Control+z');
+      t.gleich((await t.objekte('no'))[0].x, PFAD(2), 'Rückgängig');
+    },
+  },
+  {
+    name: 'E7 Not-Halt zweikanalig 11/12 und 21/22',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      const o = await setzeEinzeln(t, 'estop2', PFAD(3), 200);
+      const nr = (await texte(t, o.id)).filter((x) => /^\d\d$/.test(x)).sort();
+      t.gleich(nr, ['11', '12', '21', '22'], 'Anschlüsse beider Kanäle');
+      t.gleich(await t.zaehle(`#edstage .ink [data-o="${o.id}"] path[fill="#C0392B"]`), 1, 'ein Pilztaster');
+      t.gleich(o.v, '−SF1', 'Kennzeichen −SF');
+    },
+  },
 ];
