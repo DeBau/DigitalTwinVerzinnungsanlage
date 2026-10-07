@@ -74,7 +74,8 @@ export function wireD(a, b, spuren){
   const punkte = ohneGeradePunkte([[a.x, a.y], ...leitungsKnicke(a, b), [b.x, b.y]]);
   return pfadD(spuren ? spuren.knick(punkte, `${a.x},${a.y}`) : punkte);
 }
-const GEGENSEITE = {start: "end", end: "start", middle: "middle"};
+// Textanker auf der Gegenseite (gespiegelte Schrift)
+export const GEGENSEITE = {start: "end", end: "start", middle: "middle"};
 const ANTEIL_LINKS = {start: 0, middle: .5, end: 1};   // Anteil der Textbreite links vom Anker
 // Kennzeichen (Text o.v) aller Bauteile in objs als gesperrte Flächen in spuren melden: Leitungen laufen nicht hindurch.
 export function kennzeichenSperren(spuren, objs){

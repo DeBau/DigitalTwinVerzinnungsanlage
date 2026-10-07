@@ -84,6 +84,26 @@ export const tests = [
     },
   },
   {
+    name: 'P6 Beschriftungen am gedrehten und gespiegelten Ventil liegen nicht auf den Kästchen, Schwenkantrieb luftig',
+    daten: 'pneu-gedreht',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      for (const id of ['a', 'b', 'c', 'd']) {
+        const ueber = await t.page.$eval(`#edstage .ink [data-o="${id}"]`, (g) => {
+          const r = (e) => e.getBoundingClientRect(), schnitt = (a, b) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1
+            && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+          const kaesten = [...g.querySelectorAll('rect[width="40"][height="40"]')].map(r);
+          return [...g.querySelectorAll('text')].filter((x) => kaesten.some((k) => schnitt(r(x), k))).map((x) => x.textContent);
+        });
+        t.gleich(ueber, [], `Ventil ${id}: Texte auf den Kästchen`);
+      }
+      t.erwarte((await texte(t, 'd')).includes('−QM4'), 'Kennzeichen am gedrehten Ventil');
+      const [l, r] = await t.page.$$eval('#edstage .ink [data-o="r"] text', (ts) => ['−BG14', '−BG15']
+        .map((n) => ts.find((x) => x.textContent === n).getBBox()).map((b) => ({x: b.x, width: b.width})));
+      t.erwarte(r.x - (l.x + l.width) >= 30, `−BG14 und −BG15 am Schwenkantrieb zu eng: Abstand ${r.x - l.x - l.width}`);
+    },
+  },
+  {
     name: 'P4 Federraum des einfachwirkenden Zylinders als offener Anschluss',
     daten: 'pneu-symbole',
     lauf: async (t) => {

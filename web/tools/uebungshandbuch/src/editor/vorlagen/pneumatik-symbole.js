@@ -2,7 +2,7 @@
 // Benutzt von vorlagen/pneumatik.js (Bauteile) und pneumatik-simulation.js (Schaltstellungen).
 import { INK, SVGT, arrowHead } from '../svg.js';
 import { ED } from '../status.js';
-import { BLUE, DIRV, LB, PN, PP, SK, portsOf, pressed, simOn } from '../bauteile.js';
+import { BLUE, DIRV, GEGENSEITE, LB, PN, PP, SK, drehung, portsOf, pressed, simOn } from '../bauteile.js';
 
 // Stellung von Kolben bzw. Schwenkantrieb (0 bis 1) und Schaltstellung eines Ventils, solange die Simulation läuft
 export const posOf = o => simOn() && ED.sim.pos[o.id] !== undefined ? ED.sim.pos[o.id] : 0;
@@ -74,9 +74,10 @@ export const betaetigung = o => ({al: o.al || "mag", ar: o.ar || (o.k === "v53" 
 export function drawValve(o){
   const V = VALVE[o.k], n = V.kaesten.length, s = vstate(o), shift = (V.kaesten.indexOf(V.grund) - V.kaesten.indexOf(s)) * VB;
   const el = o.x + 30 + shift, er = el + n * VB, {al, ar} = betaetigung(o);
-  const lx = Math.min(el - actW(al) - (o.k === "v53" ? 22 : 0), o.x + 30) - 4;
+  const lx = Math.min(el - actW(al) - (o.k === "v53" ? 22 : 0), o.x + 30);   // Außenkante links
+  const [kx, ky, ka] = aufrecht(o, lx, o.y + 30, "l", KENNZEICHEN_VERSATZ);
   return V.kaesten.map((_, i) => ventilKasten(o, i, el + i * VB, o.y + 10)).join("")
-    + ventilBetaetigung(o, el, er) + ventilAnschluesse(o) + LB(lx, o.y + 34, o.v);
+    + ventilBetaetigung(o, el, er) + ventilAnschluesse(o) + LB(kx, ky, o.v, ka);
 }
 // Kästchen i mit Durchflusspfeilen und Sperren, linke obere Ecke (bx, by)
 export function ventilKasten(o, i, bx, by){
@@ -96,18 +97,42 @@ export function ventilBetaetigung(o, el, er){
   const {al, ar} = betaetigung(o), cy = o.y + 30;
   let g = actuator(al, el, cy, -1) + actuator(ar, er, cy, 1);
   if (o.k === "v53") g += actuator("feder", el - actW(al), cy, -1) + actuator("feder", er + actW(ar), cy, 1);
-  if (istSpule(al)) g += spuleText(o, el - actW(al) / 2, steuerNr(o, "act"), o.spl, el - 1, "end");
-  if (istSpule(ar)) g += spuleText(o, er + actW(ar) / 2, steuerNr(o, rechteStellung(o)), o.spr, er + 1, "start");
+  if (istSpule(al)) g += spuleText(o, el - actW(al) / 2, steuerNr(o, "act"), o.spl, "l", actW(al) / 2);
+  if (istSpule(ar)) g += spuleText(o, er + actW(ar) / 2, steuerNr(o, rechteStellung(o)), o.spr, "r", actW(ar) / 2);
   return g;
 }
-// Steueranschluss über der Spule (Mitte x), Name der Spule (z. B. −MB3) darunter, von der Kästchenkante xn nach außen
-const spuleText = (o, x, nr, name, xn, anker) => PN(x, o.y + 17, nr, "middle")
-  + (name ? SVGT(xn, o.y + 53, name, anker, 9.5, 600) : "");
+/* ---------- Schrift am gedrehten Ventil ---------- */
+// Lage einer Schrift am Punkt (x, y) des ungedrehten Symbols, der nach außen in Richtung d zeigt. versatz nennt je
+// Richtung auf dem Blatt [dx, dy, Anker]. Am gedrehten Ventil rechnet aufrecht den Versatz auf dem Blatt in die ungedrehte
+// Lage zurück; gedreht() (zeichnen.js) dreht den Punkt dann mit und stellt die Schrift aufrecht. Rückgabe [x, y, Anker].
+export function aufrecht(o, x, y, d, versatz){
+  const X = drehung(o), [vx, vy, anker] = versatz[X ? X.dir(d) : d];
+  if (!X) return [x + vx, y + vy, anker];
+  const [px, py] = X.pt(x, y), [ux, uy] = X.zurueck(px + vx, py + vy);
+  return [ux, uy, X.f * X.c < 0 ? GEGENSEITE[anker] : anker];
+}
+// Steueranschluss (14, 12, 10) und Name der Spule (z. B. −MB3) um die Spulenmitte (x, cy), Halbbreite b, außen Richtung d.
+// Waagrecht: Nummer darüber, Name darunter zur Kästchenkante hin. Senkrecht: Nummer links, Name rechts daneben.
+const spuleVersatz = b => ({
+  nr: {l: [0, -13, "middle"], r: [0, -13, "middle"], u: [-b - 3, 4, "end"], d: [-b - 3, 4, "end"]},
+  name: {l: [b - 1, 23, "end"], r: [1 - b, 23, "start"], u: [b + 3, 4, "start"], d: [b + 3, 4, "start"]}});
+function spuleText(o, x, nr, name, d, b){
+  const v = spuleVersatz(b), cy = o.y + 30, [nx, ny, na] = aufrecht(o, x, cy, d, v.nr);
+  if (!name) return PN(nx, ny, nr, na);
+  const [mx, my, ma] = aufrecht(o, x, cy, d, v.name);
+  return PN(nx, ny, nr, na) + SVGT(mx, my, name, ma, 9.5, 600);
+}
+// Kennzeichen des Ventils außen vor der linken Betätigung (gedreht: darüber bzw. darunter)
+const KENNZEICHEN_VERSATZ = {l: [-4, 4, "end"], r: [4, 4, "start"], u: [0, -6, "middle"], d: [0, 14, "middle"]};
+// Anschlussnummer neben dem Stummel, vom äußeren Ende aus; am waagrechten Stummel darüber
+const ANSCHLUSS_VERSATZ = {u: [3, 7, "start"], d: [3, -1, "start"], l: [7, -3, "middle"], r: [-7, -3, "middle"]};
 // Anschlussstummel mit Namen am Kästchen der Grundstellung
 export function ventilAnschluesse(o){
   const V = VALVE[o.k], rx = o.x + 30 + V.kaesten.indexOf(V.grund) * VB, y = o.y;
-  return V.ports.map(([n, dx, d]) => d === "u" ? PP(`M${rx + dx} ${y}V${y+10}`) + PN(rx + dx + 3, y + 7, n)
-    : PP(`M${rx + dx} ${y+50}V${y+60}`) + PN(rx + dx + 3, y + 59, n)).join("");
+  return V.ports.map(([n, dx, d]) => {
+    const ya = d === "u" ? y : y + 60, [tx, ty, ta] = aufrecht(o, rx + dx, ya, d, ANSCHLUSS_VERSATZ);
+    return PP(`M${rx + dx} ${ya}V${d === "u" ? y + 10 : y + 50}`) + PN(tx, ty, n, ta);
+  }).join("");
 }
 
 /* ---------- Zylinder ---------- */
@@ -144,13 +169,16 @@ function federraum(o, px){
   for (let i = 1; i < n; i++) z += `L${eineStelle(a + st*i)} ${i % 2 ? y+15 : y+35}`;
   return `<path d="${z}L${eineStelle(b)} ${y+25}" ${thin}/>` + PP(`M${x+110} ${y+40}V${y+48}`);
 }
-// Endlagensensoren s1 (hinten, Stellung 0) und s2 (vorn, Stellung 1) bei x + xa und x + xb; grün, wenn der Antrieb dort steht
-export function endlagen(o, xa = 16, xb = 104){
+// Endlagensensoren s1 (hinten, Stellung 0) und s2 (vorn, Stellung 1) bei x + xa und x + xb; grün, wenn der Antrieb dort steht.
+// aussen: Namen nach außen bündig statt mittig (Schwenkantrieb, die Sensoren stehen dort eng)
+export function endlagen(o, xa = 16, xb = 104, aussen = false){
   const p = posOf(o), y = o.y;
-  const sens = (sx, t, on) => t ? `<path d="M${sx} ${y+10}V${y+4}" ${thin}/><rect x="${sx-6}" y="${y-4}" width="12" height="8" rx="1.5" `
-    + `fill="${on ? "#2E7D4F" : "#fff"}" ${thin}/>` + PN(sx, y - 7, t, "middle") : "";
-  return sens(o.x + xa, o.s1, simOn() && p < .02) + sens(o.x + xb, o.s2, simOn() && p > .98);
+  const sens = (sx, t, on, a) => t ? `<path d="M${sx} ${y+10}V${y+4}" ${thin}/><rect x="${sx-6}" y="${y-4}" width="12" height="8" `
+    + `rx="1.5" fill="${on ? "#2E7D4F" : "#fff"}" ${thin}/>` + PN(sx + NAME_VERSATZ[a], y - 7, t, a) : "";
+  return sens(o.x + xa, o.s1, simOn() && p < .02, aussen ? "end" : "middle")
+    + sens(o.x + xb, o.s2, simOn() && p > .98, aussen ? "start" : "middle");
 }
+const NAME_VERSATZ = {middle: 0, end: 6, start: -6};   // Name bündig mit der Außenkante des Sensorkästchens
 // Freie Entlüftungen 3 und 5 eines Wegeventils bekommen ihr Dreieck (Haken zusatz; belegt(n): Anschluss n ist verdrahtet)
 export function entlueftung(o, belegt){
   return portsOf(o).map(q => {

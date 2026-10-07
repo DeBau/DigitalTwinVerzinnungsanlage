@@ -39,7 +39,7 @@ export const GERAET = {
       + `<path d="M${cx} ${cy}L${f(cx + 15*Math.cos(a))} ${f(cy + 15*Math.sin(a))}" stroke="${INK}" stroke-width="2.2" `
       + `stroke-linecap="round"/>`
       + `<circle cx="${cx}" cy="${cy}" r="2.2" fill="${INK}"/>` + PP(`M${x+20} ${cy}V${y+60}M${x+40} ${cy}V${y+60}`)
-      + PN(x+23, y+59, "A") + PN(x+43, y+59, "B") + endlagen(o, 8, 52) + LB(x-4, y+40, o.v); },
+      + PN(x+23, y+59, "A") + PN(x+43, y+59, "B") + endlagen(o, 2, 58, true) + LB(x-4, y+40, o.v); },
   drv: o => { const x = o.x, y = o.y;
     return `<rect x="${x+1}" y="${y+8}" width="48" height="44" ${STRICHPUNKT}/>`
       + PP(`M${x+20} ${y}V${y+14}M${x+20} ${y+46}V${y+60}M${x+12} ${y+14}H${x+36}M${x+12} ${y+46}H${x+36}M${x+12} ${y+14}V${y+46}`

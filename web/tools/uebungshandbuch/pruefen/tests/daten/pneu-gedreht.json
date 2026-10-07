@@ -1,0 +1,7 @@
+{"uebh2:frei:sk:pneumatik": {"s": [], "t": [], "o": [
+  {"id": "a", "k": "v52", "x": 100, "y": 150, "rot": 90, "v": "−QM1", "al": "mag", "ar": "mag", "spl": "−MB3", "spr": "−MB4"},
+  {"id": "b", "k": "v53", "x": 350, "y": 150, "rot": 180, "v": "−QM2", "al": "mag", "ar": "mag", "spl": "−MB5", "spr": "−MB6"},
+  {"id": "c", "k": "v52", "x": 650, "y": 150, "flip": true, "v": "−QM3", "al": "mag", "ar": "mag", "spl": "−MB7", "spr": "−MB8"},
+  {"id": "d", "k": "v32", "x": 100, "y": 400, "rot": 270, "v": "−QM4", "al": "mag", "ar": "feder", "spl": "−MB9"},
+  {"id": "r", "k": "rot", "x": 450, "y": 420, "v": "−MM5", "s1": "−BG14", "s2": "−BG15"}],
+ "c": []}}
