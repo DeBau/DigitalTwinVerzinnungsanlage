@@ -4,6 +4,7 @@ import { kasten, linie, nummer, text } from '../../symbole/grund.js';
 import { registriereBauteile, registriereGruppe } from '../registry.js';
 import { LB } from '../bauteile.js';
 import { kennzeichen } from './elektro-kennzeichen.js';
+import { simZusatz } from './elektro-simulation.js';
 
 registriereGruppe("geraete", {
   name: "Geräte und SPS",
@@ -52,5 +53,5 @@ registriereBauteile({
   dq8: spsBaugruppe("DQ", "SPS-Ausgänge DQ 8", false),
   ps: {g: "geraete", n: "Netzteil 24 V DC", lbl: "−TA1", w: 100, h: 70, anschluesse: NETZTEIL, zeichne: netzteil},
   sr: {g: "geraete", n: "Sicherheitsrelais", lbl: "−KF2", kennbuchstaben: ["KF"], w: 220, h: 80,
-    anschluesse: SICHERHEITSRELAIS, zeichne: sicherheitsrelais},
+    anschluesse: SICHERHEITSRELAIS, zeichne: sicherheitsrelais, zusatz: simZusatz},
 });

@@ -1,11 +1,12 @@
 // Strompfade des Stromlaufplans: Raster der Pfade (Breite 46 oder 60, umschaltbar), Pfadnummer, und wohin das
 // Kennzeichen eines Glieds ausweicht, wenn links der Nachbarpfad im Weg ist.
 // Die Breite steht in der Zeichnung unter meta.pfadbreite (nur gesetzt, wenn sie nicht 46 ist).
-import { tw } from '../svg.js';
+import { INK, PH, tw } from '../svg.js';
 import { ED } from '../status.js';
 import { art, bauteil } from '../registry.js';
-import { LB } from '../bauteile.js';
-import { gruppenId } from '../bausteine.js';
+import { G, G2, TX, grid } from '../vorlagen-svg.js';
+import { LB, portsOf } from '../bauteile.js';
+import { gruppenId, umrissVon } from '../bausteine.js';
 import { refreshTpl } from '../anzeige.js';
 import { aendere } from '../verlauf.js';
 
@@ -19,6 +20,53 @@ export const pfadNummer = (x, breite = PFAD.breite) => Math.max(1, Math.min(pfad
 
 // Glied eines Strompfads: Baustein der Gruppe elektro mit Anschluss oben (0) und unten (1)
 export const imPfad = o => gruppenId(o) === "elektro" && !!(bauteil(o.k) ? bauteil(o.k).bx : art(o.k).anschluesse);
+
+/* ---------- Ketten und automatische Leitungen zu L+ und M ---------- */
+const istKettenLink = c => c.pa === undefined && c.pb === undefined;
+// Ketten des Steuerstromkreises: je Glied, ob es Anfang und Ende seiner Kette ist. Ein Glied ohne Kettenlink zählt nicht.
+export function kettenEnden(d, cs){
+  const glieder = (d.o || []).filter(imPfad), ids = new Set(glieder.map(o => o.id));
+  const links = cs.filter(c => istKettenLink(c) && ids.has(c.a) && ids.has(c.b));
+  return glieder.filter(o => links.some(c => c.a === o.id || c.b === o.id))
+    .map(o => ({o, anfang: !links.some(c => c.b === o.id), ende: !links.some(c => c.a === o.id)}));
+}
+// Liegt zwischen y1 und y2 auf der Senkrechten x ein anderer Baustein?
+export function verdeckt(d, x, y1, y2, ohne){
+  return (d.o || []).some(p => {
+    if (p.id === ohne) return false;
+    const b = umrissVon(p);
+    return b.x < x && x < b.x + b.w && b.y < y2 && y1 < b.y + b.h;
+  });
+}
+// Automatische Leitungen: Kettenanfang oben zu L+, Kettenende unten zu M, je auf dem eigenen Blatt.
+// Nur, wenn der Anschluss frei ist und die Leitung durch keinen anderen Baustein liefe. [{o, p, y}] mit Schienenhöhe y
+export function autoLeitungen(d, cs){
+  const r = [];
+  const belegt = (o, p) => cs.some(c => (c.a === o.id && c.pa === p.n) || (c.b === o.id && c.pb === p.n));
+  kettenEnden(d, cs).forEach(({o, anfang, ende}) => {
+    const [oben, unten] = portsOf(o), basis = Math.floor(o.y / PH) * PH, yL = basis + 70, yM = basis + 590;
+    if (anfang && !belegt(o, oben) && oben.y > yL && !verdeckt(d, oben.x, yL, oben.y, o.id)) r.push({o, p: oben, y: yL});
+    if (ende && !belegt(o, unten) && unten.y < yM && !verdeckt(d, unten.x, unten.y, yM, o.id)) r.push({o, p: unten, y: yM});
+  });
+  return r;
+}
+
+export function autoLeitungSVG(d, cs){
+  return autoLeitungen(d, cs).map(({p, y}) => `<path class="autoleitung" d="M${p.x} ${y}V${p.y}" stroke="${INK}" `
+    + `stroke-width="1.6"/><circle cx="${p.x}" cy="${y}" r="2.6" fill="${INK}"/>`).join("");
+}
+
+// Blatt mit L+ und M, Pfadnummern und Pfadlinien in der Breite der Zeichnung (meta.pfadbreite)
+export function stromlaufBlatt(ex, page, meta){
+  const breite = breiteVon(meta);
+  let s = `<path d="M40 70H975M40 590H975" stroke="${G}" stroke-width="2"/>`
+    + TX(30, 74, 12, "L+", "end", "#555", 600) + TX(30, 594, 12, "M", "end", "#555", 600) + TX(975, 62, 9, "24 V DC", "end");
+  for (let i = 1; i <= pfadZahl(breite); i++) {
+    s += TX(pfadX(i, breite), 52, 9, String(i), "middle")
+      + `<path d="M${pfadX(i, breite)} 74V586" stroke="${G2}" stroke-width=".6" stroke-dasharray="2 5"/>`;
+  }
+  return grid(10, "#EEF1F3", 40, 80, 975, 580) + s + TX(40, 615, 9, "Strompfad-Nr. oben, Kontaktspiegel unter den Spulen");
+}
 
 /* ---------- Kennzeichen links oder rechts ---------- */
 // Objekt-ID → "r", wenn das Kennzeichen rechts vom Glied steht (merkePfade füllt es vor dem Zeichnen)

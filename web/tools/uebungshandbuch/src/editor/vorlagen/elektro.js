@@ -2,67 +2,37 @@
 // Kontakte, Spulen und Taster bilden Strompfade: eine Ablaufkette (editor/kette.js), die oben an L+ und unten
 // an M andockt. Die Schaltzeichen kommen aus symbole/iec60617.js (gemeinsam mit dem Schaltplan).
 // Geräte und SPS stehen in elektro-geraete.js.
-import { kasten, kreis, linie, nummer, wirklinie } from '../../symbole/grund.js';
+import { kasten, kreis, linie, nummer, text, wirklinie } from '../../symbole/grund.js';
 import { SYM } from '../../symbole/iec60617.js';
-import { INK, PH } from '../svg.js';
+import { ED } from '../status.js';
 import { registriereBauteile, registriereGruppe, registriereVorlage } from '../registry.js';
-import { G, G2, TX, grid } from '../vorlagen-svg.js';
-import { portsOf } from '../bauteile.js';
-import { gruppenId, umrissVon } from '../bausteine.js';
+import { portsOf, simOn, virtuelleSchienen } from '../bauteile.js';
+import { gruppenId } from '../bausteine.js';
+import { pageCount } from '../zeichnen.js';
 import { kennzeichen, kontaktAnschluss, kontaktNummern, merkeOrdnung } from './elektro-kennzeichen.js';
-import { breiteVon, imPfad, kennzeichenSVG, merkePfade, pfadKlick, pfadKnopf, pfadNummer, pfadX, pfadZahl } from './elektro-pfade.js';
+import { autoLeitungSVG, kennzeichenSVG, merkePfade, pfadKlick, pfadKnopf, pfadNummer, pfadX, stromlaufBlatt } from './elektro-pfade.js';
+import { STROM_ANLEITUNG, simKnopf, simUnten, simWechsel, simZusatz, stromSVG } from './elektro-simulation.js';
 
 /* ---------- Vorlage ---------- */
-// Blatt mit L+ und M, Pfadnummern und Pfadlinien in der Breite der Zeichnung (meta.pfadbreite)
-export function stromlaufBlatt(ex, page, meta){
-  const breite = breiteVon(meta);
-  let s = `<path d="M40 70H975M40 590H975" stroke="${G}" stroke-width="2"/>`
-    + TX(30, 74, 12, "L+", "end", "#555", 600) + TX(30, 594, 12, "M", "end", "#555", 600) + TX(975, 62, 9, "24 V DC", "end");
-  for (let i = 1; i <= pfadZahl(breite); i++) {
-    s += TX(pfadX(i, breite), 52, 9, String(i), "middle")
-      + `<path d="M${pfadX(i, breite)} 74V586" stroke="${G2}" stroke-width=".6" stroke-dasharray="2 5"/>`;
-  }
-  return grid(10, "#EEF1F3", 40, 80, 975, 580) + s + TX(40, 615, 9, "Strompfad-Nr. oben, Kontaktspiegel unter den Spulen");
-}
-const istKettenLink = c => c.pa === undefined && c.pb === undefined;
-// Ketten des Steuerstromkreises: je Glied, ob es Anfang und Ende seiner Kette ist. Ein Glied ohne Kettenlink zählt nicht.
-export function kettenEnden(d, cs){
-  const glieder = (d.o || []).filter(imPfad), ids = new Set(glieder.map(o => o.id));
-  const links = cs.filter(c => istKettenLink(c) && ids.has(c.a) && ids.has(c.b));
-  return glieder.filter(o => links.some(c => c.a === o.id || c.b === o.id))
-    .map(o => ({o, anfang: !links.some(c => c.b === o.id), ende: !links.some(c => c.a === o.id)}));
-}
-// Liegt zwischen y1 und y2 auf der Senkrechten x ein anderer Baustein?
-export function verdeckt(d, x, y1, y2, ohne){
-  return (d.o || []).some(p => {
-    if (p.id === ohne) return false;
-    const b = umrissVon(p);
-    return b.x < x && x < b.x + b.w && b.y < y2 && y1 < b.y + b.h;
-  });
-}
-// Automatische Leitungen: Kettenanfang oben zu L+, Kettenende unten zu M, je auf dem eigenen Blatt.
-// Nur, wenn der Anschluss frei ist und die Leitung durch keinen anderen Baustein liefe. [{o, p, y}] mit Schienenhöhe y
-export function autoLeitungen(d, cs){
-  const r = [];
-  const belegt = (o, p) => cs.some(c => (c.a === o.id && c.pa === p.n) || (c.b === o.id && c.pb === p.n));
-  kettenEnden(d, cs).forEach(({o, anfang, ende}) => {
-    const [oben, unten] = portsOf(o), basis = Math.floor(o.y / PH) * PH, yL = basis + 70, yM = basis + 590;
-    if (anfang && !belegt(o, oben) && oben.y > yL && !verdeckt(d, oben.x, yL, oben.y, o.id)) r.push({o, p: oben, y: yL});
-    if (ende && !belegt(o, unten) && unten.y < yM && !verdeckt(d, unten.x, unten.y, yM, o.id)) r.push({o, p: unten, y: yM});
-  });
-  return r;
-}
-export function strompfadAnschluesse(d, cs){
-  return autoLeitungen(d, cs).map(({p, y}) => `<path class="autoleitung" d="M${p.x} ${y}V${p.y}" stroke="${INK}" `
-    + `stroke-width="1.6"/><circle cx="${p.x}" cy="${y}" r="2.6" fill="${INK}"/>`).join("");
+// Haken hintergrund: Ordnungsziffern und Kennzeichen-Seiten merken (vor dem Zeichnen der Glieder), in der Simulation
+// den Stromfluss unterlegen, automatische Leitungen
+export function stromlaufHintergrund(d, cs){
+  merkeOrdnung(d); merkePfade(d);
+  if (!simOn() || !ED.svg) return autoLeitungSVG(d, cs);
+  const objs = Object.fromEntries((d.o || []).map(o => [o.id, o]));
+  virtuelleSchienen("stromlauf", pageCount("stromlauf", d)).forEach(r => { objs[r.id] = r; });
+  return stromSVG(d, cs, objs) + autoLeitungSVG(d, cs);
 }
 registriereVorlage("stromlauf", {
   n: "Stromlaufplan", d: "Steuerstromkreis zwischen L+ und M: Taster, Not-Halt, SPS, Sicherheitsrelais",
   gruppen: ["elektro", "geraete", "leistung"], schienen: [["L+", 70, 40, 935], ["M", 590, 40, 935]],
   body: stromlaufBlatt,
   // Haken hintergrund: Ordnungsziffern merken (vor dem Zeichnen der Kontakte), automatische Leitungen
-  hintergrund: (d, cs) => { merkeOrdnung(d); merkePfade(d); return strompfadAnschluesse(d, cs); },
-  werkzeugleiste: {get nachVerbinden(){ return pfadKnopf(); }},
+  hintergrund: stromlaufHintergrund,
+  werkzeugleiste: {get nachVerbinden(){ return simKnopf() + pfadKnopf(); }},
+  anleitung: () => ED.tool === "sim" ? STROM_ANLEITUNG : null,
+  werkzeugWechsel: simWechsel,
+  zeiger: {unten: simUnten},
   klick: pfadKlick,   // Knopf „Breite Pfade“
   // Glieder des Steuerstromkreises rasten auf die Strompfad-Spalten
   fangBaustein(o){ if (gruppenId(o) === "elektro") o.x = pfadX(pfadNummer(o.x)); },
@@ -87,7 +57,8 @@ export const STROMPFAD = {g: "elektro", bx: -22, w: 44, h: 60, aus: o => xy(port
 // Ordnungsziffer), kb = Kennbuchstaben für Vorschläge
 export function glied(n, lbl, bild, an, z = {}){
   const {links = 34, kontakt, kb} = z, nummern = o => kontakt ? kontaktNummern(o) : an;
-  return {...STROMPFAD, n, lbl, links, kontakt, kennbuchstaben: kb, anschluesse: [[an[0], 0, 0, "u"], [an[1], 0, 60, "d"]],
+  return {...STROMPFAD, n, lbl, links, kontakt, kennbuchstaben: kb, zusatz: simZusatz,
+    anschluesse: [[an[0], 0, 0, "u"], [an[1], 0, 60, "d"]],
     anschlussName: kontakt ? kontaktAnschluss : undefined,
     zeichne: o => bild(o.x, o.y, {an: nummern(o)}) + kennzeichenSVG(o, links)};
 }
@@ -109,6 +80,9 @@ const notHalt2 = (x, y) => SYM.nh.zeichne(x, y, {an: ["11", "12"]}) + SYM.nc.zei
   + wirklinie(`M${x + 5} ${y + 29}H${x + 35}`);
 const NOT_HALT_2 = {...glied("Not-Halt zweikanalig", "−SF0", notHalt2, ["11", "12"], {links: 40, kb: ["SF"]}), w: 90, bx: -40,
   anschluesse: [["11", 0, 0, "u"], ["12", 0, 60, "d"], ["21", 30, 0, "u"], ["22", 30, 60, "d"]]};
+// Hilfsöffner 95/96 des Motorschutzschalters, betätigt vom Überlastauslöser (Kasten I>); in der Simulation auslösbar
+const motorschutzOeffner = (x, y, g) => SYM.nc.zeichne(x, y, g) + wirklinie(`M${x + 5} ${y + 29}H${x - 24}`)
+  + kasten(x - 42, y + 22, 18, 14) + text(x - 33, y + 32.5, "I>", {a: "middle", g: 8, w: 600});
 const SPULE = ["QA", "KF", "MB"], TASTER = ["SF"], GEBER = ["BG"];
 registriereBauteile({
   no: glied("Schließer", "−QA1", SCHALTZEICHEN("no"), ["13", "14"], {links: 20, kontakt: "no", kb: SPULE}),
@@ -124,6 +98,7 @@ registriereBauteile({
   sens: {...glied("Näherungsschalter PNP", "−BG2", naeherungsschalter, ["BN", "BU"], {links: 20, kb: GEBER}), w: 56,
     anschluesse: [["BN", 0, 0, "u"], ["BU", 0, 60, "d"], ["BK", 30, 30, "r"]]},
   mbv: glied("Ventilspule", "−MB1", SCHALTZEICHEN("mbv"), ["A1", "A2"], {links: 22, kb: ["MB"]}),
+  msk: glied("Motorschutz Hilfsöffner", "−FA1", motorschutzOeffner, ["95", "96"], {links: 48, kb: ["FA", "QA"]}),
   term: glied("Klemme", "−X1:1", klemme, ["1", "2"], {links: 10}),
   fuse: glied("Sicherung", "−FA2", SCHALTZEICHEN("sicherung"), ["1", "2"], {links: 12, kb: ["FA"]}),
 });

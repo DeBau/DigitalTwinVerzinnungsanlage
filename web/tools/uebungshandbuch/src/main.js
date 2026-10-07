@@ -41,6 +41,7 @@ import './editor/vorlagen/wegschritt-striche.js';
 import './editor/vorlagen/wegschritt.js';
 import './editor/vorlagen/elektro-kennzeichen.js';
 import './editor/vorlagen/elektro-pfade.js';
+import './editor/vorlagen/elektro-simulation.js';
 import './editor/vorlagen/elektro.js';
 import './editor/vorlagen/elektro-geraete.js';
 import './editor/vorlagen/leistung.js';

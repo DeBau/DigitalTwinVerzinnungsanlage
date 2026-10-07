@@ -488,7 +488,7 @@ Namen aus dem Plan und die Haken, die es dafür gibt:
 | `mitziehen` | Gruppe `mitziehen(o, {umschalt}, d)` | `mitnehmen` (zeiger.js) |
 | `loesche`, `nachLoeschen` | Gruppe `loeschen(o, d)`: mitgehende IDs, ergänzt vorher Verbindungen | `removeObj` |
 | `kennzeichen` | Gruppe `kennzeichen(k, d, vorschlag)` | `makeObj` |
-| `autoLeitungen` (L+/M-Block) | Vorlage `hintergrund(d, cs)` | elektro.js (`strompfadAnschluesse`), Aufruf in `zeichnungSVG` |
+| `autoLeitungen` (L+/M-Block) | Vorlage `hintergrund(d, cs)` | elektro.js (`autoLeitungSVG`), Aufruf in `zeichnungSVG` |
 | `weg` | Gruppe `verbinde(…, spuren)`, `seite.verbinde(A, B, spuren)`, `routeV`, `wireD` | `verbindungsWeg` |
 | `PRUEF[vorlage]` | Vorlage `pruefe(d, {scope, key})` | pruefung.js |
 | `SIGART[bausteinart]` | Bausteinart `kennbuchstaben` | `kennzeichenFeld` (eigenschaften.js) |

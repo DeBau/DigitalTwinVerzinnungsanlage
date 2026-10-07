@@ -12,6 +12,7 @@ const texte = (t, id) => t.page.$$eval(`#edstage .ink [data-o="${id}"] text`, (t
 // Baustein setzen und die Auswahl aufheben; liefert das neue Objekt
 async function setzeEinzeln(t, k, x, y) {
   const vorher = new Set((await t.objekte()).map((o) => o.id));
+  await t.page.locator(`#editor [data-place="${k}"]`).scrollIntoViewIfNeeded();   // Palette ist länger als das Fenster
   await t.setze(k, x, y); await t.taste('Escape');
   return (await t.objekte()).find((o) => !vorher.has(o.id));
 }
@@ -172,6 +173,29 @@ export const tests = [
       t.gleich(nr, ['11', '12', '21', '22'], 'Anschlüsse beider Kanäle');
       t.gleich(await t.zaehle(`#edstage .ink [data-o="${o.id}"] path[fill="#C0392B"]`), 1, 'ein Pilztaster');
       t.gleich(o.v, '−SF1', 'Kennzeichen −SF');
+    },
+  },
+  {
+    name: 'E9 Simulation: Selbsthaltung, Aus-Taster, Not-Halt rastend, Kurzschluss',
+    lauf: async (t) => {
+      await selbsthaltung(t);
+      await t.werkzeug('sim');
+      const spuleAn = async () => t.zaehle('#edstage .ink rect[fill="#27AE60"]');
+      t.gleich(await spuleAn(), 0, 'Spule anfangs aus');
+      t.erwarte(await t.zaehle('#edstage .ink path.strom') > 0, 'Potenzial L+ und M unterlegt');
+      await t.klick([PFAD(1) - 10, 320]);   // Ein-Taster −SF3 drücken und loslassen
+      t.gleich(await spuleAn(), 1, 'Spule hält sich selbst');
+      await t.klick([PFAD(1) - 10, 220]);   // Aus-Taster −SF2
+      t.gleich(await spuleAn(), 0, 'Aus-Taster schaltet ab');
+      await t.klick([PFAD(1) - 10, 120]);   // Not-Halt rastet ein
+      await t.klick([PFAD(1) - 10, 320]);
+      t.gleich(await spuleAn(), 0, 'Not-Halt gedrückt: Spule bleibt aus');
+      await t.klick([PFAD(1) - 10, 120]);   // Not-Halt entriegeln
+      await t.klick([PFAD(1) - 10, 320]);
+      t.gleich(await spuleAn(), 1, 'nach dem Entriegeln wieder einschaltbar');
+      t.gleich(await t.zaehle('#edstage .ink text:has-text("Kurzschluss")'), 0, 'kein Kurzschluss');
+      await t.werkzeug('sel');
+      t.gleich(await t.zaehle('#edstage .ink path.strom'), 0, 'ohne Simulation keine Unterlegung');
     },
   },
 ];

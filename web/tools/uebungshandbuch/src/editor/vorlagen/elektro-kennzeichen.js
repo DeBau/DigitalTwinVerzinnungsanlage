@@ -61,7 +61,7 @@ export function naechsteKlemme(d){
   const n = (d.o || []).map(o => /^[-−]X1:(\d+)$/.exec(o.v || "")).filter(Boolean).map(m => +m[1]);
   return "−X1:" + (Math.max(0, ...n) + 1);
 }
-const BESONDERS = {no: letzteSpule, nc: letzteSpule, term: naechsteKlemme, di8: () => "−KF1", dq8: () => "−KF1"};
+const BESONDERS = {msk: () => "−FA1", no: letzteSpule, nc: letzteSpule, term: naechsteKlemme, di8: () => "−KF1", dq8: () => "−KF1"};
 // Gruppen-Haken kennzeichen(k, d, vorschlag): Vorschlag beim Setzen
 export function kennzeichen(k, d, vorschlag){
   if (BESONDERS[k]) return BESONDERS[k](d);
