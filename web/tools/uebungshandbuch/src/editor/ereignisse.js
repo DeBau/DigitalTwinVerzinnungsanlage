@@ -159,6 +159,8 @@ export function verschiebeMarkiertes(key){
 export const VERLAUFSTASTEN = {z: () => undo(), y: () => redo(), "Umschalt+z": () => redo()};
 export function taste(e){
   if (e.target.matches("input,select,textarea")) { if (!signalTaste(e)) tasteImFeld(e); return; }
+  const v = vorlage(ED.key);
+  if (v.taste && v.taste(e)) { e.preventDefault(); return; }   // Haken taste: Tasten der Vorlage vor den Kern-Kürzeln
   const strg = e.ctrlKey || e.metaKey;
   if ((e.key === "Enter" || e.key === "F2") && anySel() && ED.markiert.art !== "f") { e.preventDefault(); beschrifteMarkiertes(); return; }
   const verlauf = strg && VERLAUFSTASTEN[(e.shiftKey ? "Umschalt+" : "") + e.key.toLowerCase()];

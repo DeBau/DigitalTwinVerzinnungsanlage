@@ -30,7 +30,8 @@ export const STRICHFELD = {sc: "c", sw: "w"};   // Feld im Eigenschaftsbereich �
 export const art = k => BAUSTEIN[k] || {};
 export const bauteil = k => BAUSTEIN[k] && BAUSTEIN[k].bauteil ? BAUSTEIN[k] : null;
 
-// Eine Vorlage anmelden. Felder: n, d, gruppen, schienen, einblattig, body(ex, page, meta) und die Haken der Vorlage
+// Eine Vorlage anmelden. Felder: n, d, gruppen, schienen, einblattig, body(ex, page, meta) und die Haken der Vorlage.
+// Haken taste(e) → true, wenn behandelt: Tasten am Blatt vor den Kern-Kürzeln (nicht in Eingabefeldern); "+" und "N" sind frei
 export function registriereVorlage(key, v) {
   VORL[key] = v;
 }

@@ -5677,6 +5677,11 @@ END_CASE;`)}
       if (!signalTaste(e)) tasteImFeld(e);
       return;
     }
+    const v = vorlage(ED.key);
+    if (v.taste && v.taste(e)) {
+      e.preventDefault();
+      return;
+    }
     const strg = e.ctrlKey || e.metaKey;
     if ((e.key === "Enter" || e.key === "F2") && anySel() && ED.markiert.art !== "f") {
       e.preventDefault();

@@ -281,6 +281,7 @@ und `fuelle(tabelle, einträge)`.
 | `hilfe` | HTML | `seitenleisteHTML`, Hilfetext ohne Palette | nur der allgemeine Hinweis |
 | `anleitung` | `() → HTML oder null` | `propsHTML` (eigenschaften.js) | Felder der Markierung |
 | `klick` | `(e) → true wenn erledigt` | Klick im Dialog (editor/ereignisse.js) | |
+| `taste` | `(e) → true wenn erledigt` | `taste` (editor/ereignisse.js) vor allen Kern-Kürzeln, nicht im Eingabefeld; danach `preventDefault`. Der Kern belegt „+“ und „N“ nicht | Kern-Kürzel |
 | `werkzeugWechsel` | `(t)` | `setTool` (werkzeuge.js), vor dem Wechsel | |
 | `fangPunkt` | `(pt) → [x, y]` | `fangen` (werkzeuge.js), wenn Raster fangen an ist | 10er-Raster |
 | `fangBaustein` | `(o)`, verschiebt o | `smartPos` (andocken.js) | |
