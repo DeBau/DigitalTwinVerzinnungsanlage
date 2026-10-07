@@ -9,7 +9,7 @@ import { drehung, simOn } from '../bauteile.js';
 import { clearSel, objById } from '../auswahl.js';
 import { zeichnungSVG } from '../zeichnen.js';
 import { VALVE, vstate } from './pneumatik-symbole.js';
-import { ANTRIEB_ARTEN, simStatusZeigen, wegZeitMerken } from './pneumatik-simstatus.js';
+import { ANTRIEB_ARTEN, istBistabil, simStatusZeigen, wegZeitMerken } from './pneumatik-simstatus.js';
 
 export const HUBZEIT = 1.2;   // Sekunden für einen ganzen Hub ohne Drossel
 const knoten = (o, p) => o.id + ":" + p;
@@ -109,15 +109,21 @@ export function neuZeichnen(){
   simStatusZeigen();
 }
 // Klick auf ein Bauteil in der Simulation: Kugelhahn auf/zu, Wegeventil links bzw. rechts betätigen.
-// Ein Taster wirkt tastend: Er schaltet beim Drücken und fällt beim Loslassen zurück.
+// Ein Taster wirkt tastend: Er schaltet beim Drücken und fällt beim Loslassen zurück. Beim bistabilen Ventil ist die
+// Spule nur 1, solange die Maustaste gedrückt ist (Impuls, ED.sim.impuls); die Stellung bleibt danach.
 export function simClick(o, pt){
   if (o.k === "kh") ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf";
   else if (VALVE[o.k]) {
     const links = linkeSeite(o, pt);
     ED.sim.st[o.id] = neueStellung(o, links);
     if (links && o.al === "taster") addEventListener("pointerup", () => tasterLos(o), {once: true});
+    if (istBistabil(o)) { ED.sim.impuls = {id: o.id, links}; addEventListener("pointerup", impulsEnde, {once: true}); }
   } else return;
   simCompute(); neuZeichnen();
+}
+function impulsEnde(){
+  if (!simOn()) return;
+  ED.sim.impuls = null; simStatusZeigen();
 }
 export function tasterLos(o){
   if (!simOn()) return;

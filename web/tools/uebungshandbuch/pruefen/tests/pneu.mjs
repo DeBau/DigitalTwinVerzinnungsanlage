@@ -188,6 +188,25 @@ export const tests = [
     },
   },
   {
+    name: 'P9 Bistabiles Ventil: Spulen nur während des Impulses 1, Schaltstellung getrennt',
+    daten: 'pneu-symbole',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      await t.werkzeug('sim');
+      const spule = async (n) => (await t.text('#simstatus')).match(new RegExp(`${n} ([01])`))[1];
+      const stellung = () => t.text('#simstatus [data-simstellung]');
+      t.gleich([await spule('−MB3'), await spule('−MB4')], ['0', '0'], 'Ruhe: beide Spulen 0');
+      t.erwarte((await stellung()).includes('−QM1: 12'), 'Grundstellung 12');
+      const [x, y] = await t.punkt(75, 230);
+      await t.page.mouse.move(x, y); await t.page.mouse.down(); await t.ruhe(100);
+      t.gleich([await spule('−MB3'), await spule('−MB4')], ['1', '0'], 'Impuls auf −MB3');
+      await t.page.mouse.up(); await t.ruhe(100);
+      t.gleich([await spule('−MB3'), await spule('−MB4')], ['0', '0'], 'nach dem Impuls beide 0');
+      t.erwarte((await stellung()).includes('−QM1: 14'), 'Stellung 14 bleibt');
+      t.gleich(await spule('−MB14'), '0', 'monostabil in Ruhe 0');
+    },
+  },
+  {
     name: 'P8 Prüfen: offene Anschlüsse, Versorgung an 3, ohne Ventil, Zuluftdrosselung, doppelt, Sensoren',
     daten: 'pneu-pruefen',
     lauf: async (t) => {

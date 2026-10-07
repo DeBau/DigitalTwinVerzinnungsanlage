@@ -3,7 +3,7 @@
 import { $, esc } from '../../app/basis.js';
 import { ED } from '../status.js';
 import { simOn } from '../bauteile.js';
-import { posOf, vstate } from './pneumatik-symbole.js';
+import { VALVE, posOf, steuerNr, vstate } from './pneumatik-symbole.js';
 
 export const WEGZEIT = {dauer: 10000, takt: 50, breite: 236, zeile: 30};
 export const ANTRIEB_ARTEN = ["zyl1", "zyl2", "rot"];
@@ -13,11 +13,20 @@ export const SIM_HILFE = `<p class="small" style="margin:0 0 6px">Auf die Betät
   + `Ventils klicken: Es schaltet um. Ein Taster schaltet nur, solange du drückst. Druckführende Leitungen werden blau, `
   + `Zylinder fahren, Endlagensensoren melden 1. Ein Zylinder fährt nur, wenn die Gegenseite entlüften kann; Drosseln `
   + `bremsen ihn.</p><p class="small muted" style="margin:0 0 8px">Monostabile Ventile fallen beim zweiten Klick in die `
-  + `Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p>`;
+  + `Grundstellung zurück. Beim bistabilen Ventil ist die Spule nur 1, solange du drückst (Impuls). Seine Stellung bleibt und `
+  + `steht unter den Signalen. Zum Bearbeiten „Auswählen“ wählen.</p>`;
 // Haken anleitung der Vorlage, solange das Werkzeug Simulation gewählt ist
 export const simAnleitung = () => `<div class="props"><div class="palh">Simulation</div>${SIM_HILFE}`
   + `<div id="simstatus">${simStatusHTML()}</div></div>`;
 
+// Bistabil: Wegeventil mit Rastung durch zwei Betätigungen (nicht 5/3, das von Federn in die Mitte gestellt wird)
+export const istBistabil = o => o.k !== "v53" && (o.ar || "feder") !== "feder";
+// Spule links bzw. rechts 1? Monostabil und 5/3: solange die Stellung gehalten wird. Bistabil: nur während des Impulses.
+function spuleAn(o, links){
+  const imp = ED.sim.impuls;
+  if (istBistabil(o)) return !!imp && imp.id === o.id && imp.links === links;
+  return vstate(o) === (links ? "act" : "b");
+}
 // Signale: Endlagensensoren der Antriebe und Spulen der Ventile mit ihrem Zustand
 export function simSignale(){
   const s = [];
@@ -27,18 +36,21 @@ export function simSignale(){
     if (o.s2) s.push([o.s2, p > .98]);
   });
   ED.data.o.filter(o => o.spl || o.spr).forEach(o => {
-    const st = vstate(o);
-    if (o.spl) s.push([o.spl, st === "act"]);
-    if (o.spr) s.push([o.spr, st === "b" || (o.k !== "v53" && st === "rest" && o.ar !== "feder")]);
+    if (o.spl) s.push([o.spl, spuleAn(o, true)]);
+    if (o.spr) s.push([o.spr, spuleAn(o, false)]);
   });
   return s;
 }
+// Schaltstellung der bistabilen Ventile, getrennt von den Spulen, z. B. „−MB3/−MB4: 14“
+const schaltstellungen = () => ED.data.o.filter(o => VALVE[o.k] && istBistabil(o) && (o.spl || o.spr))
+  .map(o => `${esc(o.v || [o.spl, o.spr].filter(Boolean).join("/"))}: ${steuerNr(o, vstate(o))}`);
 export function simStatusHTML(){
   if (!simOn()) return "";
   const signal = ([n, an]) => `<span style="display:inline-block;margin:0 10px 4px 0;font-size:12.5px">`
     + `<b>${esc(n)}</b> <span style="color:${an ? "#2E7D4F" : "#8A949C"};font-weight:700">${an ? 1 : 0}</span></span>`;
-  const sig = simSignale();
-  return (sig.length ? `<div>${sig.map(signal).join("")}</div>` : "") + wegZeitSVG();
+  const sig = simSignale(), st = schaltstellungen();
+  return (sig.length ? `<div>${sig.map(signal).join("")}</div>` : "")
+    + (st.length ? `<div class="small muted" data-simstellung>Schaltstellung ${st.join(", ")}</div>` : "") + wegZeitSVG();
 }
 export function simStatusZeigen(){
   const el = $("#simstatus");
