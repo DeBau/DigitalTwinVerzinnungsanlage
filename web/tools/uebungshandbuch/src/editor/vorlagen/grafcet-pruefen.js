@@ -1,7 +1,7 @@
 // GRAFCET: Regeln für den Knopf „Prüfen“ (Vorlagen-Haken pruefe, Kern in editor/pruefung.js).
 // Jede Regel bekommt die Zeichnung d und gibt Befunde {stufe, text, o?, c?} zurück. Die Texte sprechen den Azubi an.
 import { isAct, isStep, isTrans } from './grafcet-aktion.js';
-import { nachfolger, nachfolgerUeberLinien } from './grafcet-kette.js';
+import { nachfolger, nachfolgerUeberLinien, vorgaenger } from './grafcet-kette.js';
 
 export const befundFehler = (text, wo = {}) => ({stufe: "fehler", text, ...wo});
 export const befundHinweis = (text, wo = {}) => ({stufe: "hinweis", text, ...wo});
@@ -44,8 +44,22 @@ export const kettenEnde = (d, o) => (isStep(o) || isTrans(o)) && !nachfolger(d, 
 export const regelZyklus = d => d.o.filter(o => kettenEnde(d, o))
   .map(o => befundHinweis("Hier endet die Kette. Schließ sie mit einem Rücksprung zum Anfangsschritt oder einem Verweis.", {o: o.id}));
 
+// Linienart einer Verzweigung (ein Glied darüber, mehrere darunter): nach einer Transition UND, nach einem Schritt ODER
+export const LINIENART = {
+  alt: {falschUnter: isTrans, text: "Nach einer Transition starten die Zweige gleichzeitig. Das ist eine UND-Verzweigung: "
+    + "Zeichne sie mit Doppellinie."},
+  par: {falschUnter: isStep, text: "Nach einem Schritt geht es in genau einem Zweig weiter. Das ist eine ODER-Verzweigung: "
+    + "Zeichne sie mit einfacher Linie und setz die Transitionen in die Zweige."},
+};
+export function regelLinienart(d){
+  return d.o.filter(o => {
+    const regel = LINIENART[o.k], ueber = regel ? vorgaenger(d, o) : [];
+    return ueber.length === 1 && regel.falschUnter(ueber[0]) && nachfolger(d, o).length > 1;
+  }).map(o => befundFehler(LINIENART[o.k].text, {o: o.id}));
+}
+
 export const GRAFCET_REGELN = [
-  regelAnfangsschritt, regelWechsel, regelBeschriftet, regelNummern, regelVerwaist, regelVerweise, regelZyklus,
+  regelAnfangsschritt, regelWechsel, regelLinienart, regelBeschriftet, regelNummern, regelVerwaist, regelVerweise, regelZyklus,
 ];
 // Vorlagen-Haken pruefe; eine leere Zeichnung hat nichts zu prüfen
 export const pruefeGrafcet = d => d.o.length ? GRAFCET_REGELN.flatMap(regel => regel(d)) : [];

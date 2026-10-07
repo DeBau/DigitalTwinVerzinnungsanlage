@@ -32,7 +32,7 @@ export const tests = [
       const linie = await plusNachLinie(t, 'alt');
       t.gleich(await kettenArten(t, linie, 2), ['alt', 'step', 'trans'], 'nach der ODER-Zusammenführung');
       const text = await befunde(t);
-      t.erwarte(!text.includes('direkt'), `Wechsel von Schritt und Transition verletzt: ${text}`);
+      t.erwarte(!/direkt|Verzweigung:/.test(text), `Wechsel oder Linienart verletzt: ${text}`);
     },
   },
   {
@@ -45,7 +45,7 @@ export const tests = [
       const linie = await plusNachLinie(t, 'par');
       t.gleich(await kettenArten(t, linie, 2), ['par', 'trans', 'step'], 'nach der UND-Zusammenführung');
       const text = await befunde(t);
-      t.erwarte(!text.includes('direkt'), `Wechsel von Schritt und Transition verletzt: ${text}`);
+      t.erwarte(!/direkt|Verzweigung:/.test(text), `Wechsel oder Linienart verletzt: ${text}`);
     },
   },
   {
@@ -59,6 +59,23 @@ export const tests = [
       await t.klick('#editor [data-gc="nummern"]');
       const schritte = [...await t.objekte('init'), ...await t.objekte('step')].sort((a, b) => a.y - b.y || a.x - b.x);
       t.gleich(schritte.map((o) => o.v), ['1', '2', '3', '4', '5'], 'Nummern von oben nach unten, links vor rechts');
+    },
+  },
+  {
+    name: 'Prüfen: einfache Linie nach Transition und Doppellinie nach Schritt sind Fehler',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await transition(t, 220, 100, 'BG1');
+      await setzeSichtbar(t, 'oder2', 220, 140);   // einfache Linie unter einer Transition
+      let text = await befunde(t);
+      t.erwarte(text.includes('UND-Verzweigung: Zeichne sie mit Doppellinie'), `Befund UND fehlt: ${text}`);
+      t.erwarte(!text.includes('ODER-Verzweigung:'), `ODER-Zusammenführung fälschlich gemeldet: ${text}`);
+      await t.knopf('clear');
+      await t.setze('step', 220, 100);
+      await setzeSichtbar(t, 'und2', 220, 160);    // Doppellinie unter einem Schritt
+      text = await befunde(t);
+      t.erwarte(text.includes('ODER-Verzweigung: Zeichne sie mit einfacher Linie'), `Befund ODER fehlt: ${text}`);
+      t.erwarte(!text.includes('UND-Verzweigung:'), `UND-Zusammenführung fälschlich gemeldet: ${text}`);
     },
   },
 ];

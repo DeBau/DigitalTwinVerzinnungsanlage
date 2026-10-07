@@ -103,8 +103,9 @@ export function nachfolgerUeberLinien(d, A, tiefe = 0){
   const weiter = B => isStep(B) || isTrans(B) || B.k === "ref" || tiefe > 3 ? [B] : nachfolgerUeberLinien(d, B, tiefe + 1);
   return nachfolger(d, A).flatMap(weiter);
 }
-// Erstes Kettenglied vor B (Aktionen zählen nicht)
-export const vorgaengerIn = (d, B) => { const c = d.c.find(c => c.b === B.id && !isAct(objIn(d, c.a))); return c && objIn(d, c.a); };
+// Kettenvorgänger von B (Aktionen zählen nicht) und der erste davon
+export const vorgaenger = (d, B) => d.c.filter(c => c.b === B.id).map(c => objIn(d, c.a)).filter(A => A && !isAct(A));
+export const vorgaengerIn = (d, B) => vorgaenger(d, B)[0];
 // Kettenglieder ids samt ihren Aktionen um dy senkrecht verschieben
 export function verschiebeRest(d, ids, dy){
   const alle = new Set(ids.flatMap(id => [id, ...aktionenVon(d, id)]));
