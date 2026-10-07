@@ -22,22 +22,29 @@ export const zeigerHaken = () => vorlage(ED.key).zeiger || {};
 export const festhalten = e => ED.svg.setPointerCapture(e.pointerId);
 
 /* ---------- Drücken ---------- */
+// Kernwerkzeuge beim Drücken. Jedes andere Werkzeug zieht eine Linie bzw. einen Kasten auf (formUnten).
+export const UNTEN = {
+  place: (e, pt) => { e.preventDefault(); if (ED.place) placeObj(ED.place, pt); },
+  sel: (e, pt) => { e.preventDefault(); auswahlUnten(e, pt); },
+  conn: (e, pt) => { e.preventDefault(); verbindenUnten(e, pt); },
+  erase: e => { ED.radiert = true; festhalten(e); eraseAt(e); },
+  text: (e, pt) => { e.preventDefault(); neuerText(pt); },
+  pen: (e, pt) => beginneStrich(e, {c: ED.color, w: ED.w, p: [pt]}),
+};
+// Strichart, die ein Werkzeug aufzieht; unbekannte Werkzeuge ziehen eine Linie
+export const STRICH_DES_WERKZEUGS = {line: "l", rect: "r"};
+export function formUnten(e, pt){
+  const q = snapW(pt);
+  beginneStrich(e, {k: STRICH_DES_WERKZEUGS[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q]});
+}
 export function edDown(e){
   if (!e.target.closest("input")) {   // kein Markieren von Text beim Zeichnen
     e.preventDefault();
     const sl = getSelection(); if (sl && sl.rangeCount) sl.removeAllRanges();
   }
-  const pt = svgPt(ED.svg, e);
-  const zeiger = zeigerHaken();
+  const pt = svgPt(ED.svg, e), zeiger = zeigerHaken();
   if (zeiger.unten && zeiger.unten(e, pt)) return;   // Haken zeiger.unten: eigene Werkzeuge der Vorlage
-  if (ED.tool === "place" && ED.place) { e.preventDefault(); placeObj(ED.place, pt); return; }
-  if (ED.tool === "sel") { e.preventDefault(); auswahlUnten(e, pt); return; }
-  if (ED.tool === "conn") { e.preventDefault(); verbindenUnten(e, pt); return; }
-  if (ED.tool === "erase") { ED.radiert = true; festhalten(e); eraseAt(e); return; }
-  if (ED.tool === "text") { e.preventDefault(); neuerText(pt); return; }
-  const q = ED.tool === "pen" ? pt : snapW(pt);
-  if (ED.tool === "pen") beginneStrich(e, {c: ED.color, w: ED.w, p: [q]});
-  else beginneStrich(e, {k: {line: "l", rect: "r"}[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q]});
+  (UNTEN[ED.tool] || formUnten)(e, pt);
 }
 
 // Was Auswählen mit einem Treffer (auswahl.js) macht: beschriften beim Doppelklick, greifen gibt das Ziehen ED.drag

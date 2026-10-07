@@ -48,6 +48,8 @@ export function schliesse(){
 }
 export const kannUndo = () => ED.hist.length > 0;
 export const kannRedo = () => ED.zukunft.length > 0;
+// Fehlende Listen einer geladenen Zeichnung anlegen
+export const mitListen = d => { d.s ||= []; d.t ||= []; d.o ||= []; d.c ||= []; return d; };
 export function saveSketch(){ const d = ED.data; d.ts = Date.now(); S.set(skKey(ED.scope, ED.key), (d.s.length || d.t.length || d.o.length || d.meta) ? d : null); }
 // Stand aus von holen, den aktuellen nach nach legen (Rückgängig: hist → zukunft, Wiederholen umgekehrt)
 export function holeStand(von, nach){
@@ -84,7 +86,7 @@ export function takeSketch(sc){
   const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
   if (has && !confirm(`Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`)) return;
   snapshot();
-  const d = JSON.parse(JSON.stringify(src)); d.s ||= []; d.t ||= []; d.o ||= []; d.c ||= [];
+  const d = mitListen(JSON.parse(JSON.stringify(src)));
   if (d.meta) { delete d.meta.title; delete d.meta.datum; }   // Titel und Datum gehören zur neuen Übung
   ED.data = d; clearSel(); saveSketch(); refreshTpl(); renderInk(); updateProps(true);
 }

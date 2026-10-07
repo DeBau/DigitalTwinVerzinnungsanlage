@@ -2306,6 +2306,13 @@ pre.code code{font-size:inherit}
   }
   var kannUndo = () => ED.hist.length > 0;
   var kannRedo = () => ED.zukunft.length > 0;
+  var mitListen = (d) => {
+    d.s ||= [];
+    d.t ||= [];
+    d.o ||= [];
+    d.c ||= [];
+    return d;
+  };
   function saveSketch() {
     const d = ED.data;
     d.ts = Date.now();
@@ -2365,11 +2372,7 @@ pre.code code{font-size:inherit}
     const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
     if (has && !confirm(`Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`)) return;
     snapshot();
-    const d = JSON.parse(JSON.stringify(src));
-    d.s ||= [];
-    d.t ||= [];
-    d.o ||= [];
-    d.c ||= [];
+    const d = mitListen(JSON.parse(JSON.stringify(src)));
     if (d.meta) {
       delete d.meta.title;
       delete d.meta.datum;
@@ -2475,6 +2478,7 @@ pre.code code{font-size:inherit}
   }
 
   // web/tools/uebungshandbuch/src/editor/werkzeuge.js
+  var BLATTKLASSEN = ["erase", "text", "sel", "conn", "place", "sim"];
   function setTool(t) {
     ED.vorlage.angefangen = null;
     const v = vorlage(ED.key);
@@ -2485,7 +2489,7 @@ pre.code code{font-size:inherit}
     $$("#editor [data-tool]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.tool === t && (!b.dataset.color || b.dataset.color === ED.color)));
     $$("#editor [data-place]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.place === ED.place));
     if (ED.svg) {
-      ["erase", "text", "sel", "conn", "place", "sim"].forEach((c) => ED.svg.classList.toggle(c, t === c));
+      BLATTKLASSEN.forEach((c) => ED.svg.classList.toggle(c, t === c));
       $(".ghost", ED.svg).innerHTML = "";
       renderInk();
     }
@@ -2740,44 +2744,44 @@ pre.code code{font-size:inherit}
   // web/tools/uebungshandbuch/src/editor/zeiger.js
   var zeigerHaken = () => vorlage(ED.key).zeiger || {};
   var festhalten = (e) => ED.svg.setPointerCapture(e.pointerId);
+  var UNTEN = {
+    place: (e, pt) => {
+      e.preventDefault();
+      if (ED.place) placeObj(ED.place, pt);
+    },
+    sel: (e, pt) => {
+      e.preventDefault();
+      auswahlUnten(e, pt);
+    },
+    conn: (e, pt) => {
+      e.preventDefault();
+      verbindenUnten(e, pt);
+    },
+    erase: (e) => {
+      ED.radiert = true;
+      festhalten(e);
+      eraseAt(e);
+    },
+    text: (e, pt) => {
+      e.preventDefault();
+      neuerText(pt);
+    },
+    pen: (e, pt) => beginneStrich(e, { c: ED.color, w: ED.w, p: [pt] })
+  };
+  var STRICH_DES_WERKZEUGS = { line: "l", rect: "r" };
+  function formUnten(e, pt) {
+    const q = snapW(pt);
+    beginneStrich(e, { k: STRICH_DES_WERKZEUGS[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q] });
+  }
   function edDown(e) {
     if (!e.target.closest("input")) {
       e.preventDefault();
       const sl = getSelection();
       if (sl && sl.rangeCount) sl.removeAllRanges();
     }
-    const pt = svgPt(ED.svg, e);
-    const zeiger = zeigerHaken();
+    const pt = svgPt(ED.svg, e), zeiger = zeigerHaken();
     if (zeiger.unten && zeiger.unten(e, pt)) return;
-    if (ED.tool === "place" && ED.place) {
-      e.preventDefault();
-      placeObj(ED.place, pt);
-      return;
-    }
-    if (ED.tool === "sel") {
-      e.preventDefault();
-      auswahlUnten(e, pt);
-      return;
-    }
-    if (ED.tool === "conn") {
-      e.preventDefault();
-      verbindenUnten(e, pt);
-      return;
-    }
-    if (ED.tool === "erase") {
-      ED.radiert = true;
-      festhalten(e);
-      eraseAt(e);
-      return;
-    }
-    if (ED.tool === "text") {
-      e.preventDefault();
-      neuerText(pt);
-      return;
-    }
-    const q = ED.tool === "pen" ? pt : snapW(pt);
-    if (ED.tool === "pen") beginneStrich(e, { c: ED.color, w: ED.w, p: [q] });
-    else beginneStrich(e, { k: { line: "l", rect: "r" }[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q] });
+    (UNTEN[ED.tool] || formUnten)(e, pt);
   }
   var AUSWAHL = {
     o: {
@@ -3031,47 +3035,97 @@ pre.code code{font-size:inherit}
   var IC_REDO = '<svg class="ic" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>';
   var PRUEFKNOPF = (key) => hatPruefung(key) ? `<button type="button" class="tool" data-ed="pruefen" title="Zeichnung auf typische Fehler prüfen">Prüfen</button>` : "";
   var LINIE_STANDARD = { titel: "Gerade Linie, rastet im 10er-Raster", name: "Linie" };
+  var ZEICHENWERKZEUGE = ["pen", "line", "rect", "text", "erase"];
   function openEditor(scope, key) {
-    const data = S.get(skKey(scope, key)) || {};
-    data.s ||= [];
-    data.t ||= [];
-    data.o ||= [];
-    data.c ||= [];
-    const v = vorlage(key), pal = v.gruppen || [], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
-    const keepTool = ["pen", "line", "rect", "text", "erase"].includes(ED.tool) ? ED.tool : "pen";
-    Object.assign(ED, { scope, key, data, hist: [], zukunft: [], tx: null, strich: null, markiert: null, verbindenVon: null, place: null, drag: null, vorlage: {}, tool: pal.length ? "sel" : v.startWerkzeug || keepTool });
-    const ex = BY[scope], dlg = $("#editor");
-    const colors = [["#17212B", "Schwarz"], ["#0E4C92", "Blau"], ["#C0392B", "Rot"]];
-    dlg.innerHTML = `<div class="ed"><div class="edbar">
-    <span class="ttl">${VORL[key].n}${ex ? ` – ${ex.id}` : ""}</span>
-    <button type="button" class="tool" data-tool="sel" title="Bausteine, Linien und Texte markieren, verschieben, ändern">${IC.cursor}Auswählen</button>
-    ${pal.length ? `<button type="button" class="tool" data-tool="conn" title="Zwei Bausteine bzw. Anschlüsse nacheinander anklicken">${IC.link}Verbinden</button>` : ""}${leiste.nachVerbinden || ""}<span class="sep"></span>
-    ${colors.map(([c, n]) => `<button type="button" class="tool" data-tool="pen" data-color="${c}"><span class="dot" style="background:${c}"></span>${n}</button>`).join("")}
-    <button type="button" class="tool" data-tool="line" title="${linie.titel}">${IC.line}${linie.name}</button>
-    ${leiste.nachLinie || ""}
-    <button type="button" class="tool" data-tool="rect" title="Rechteck, rastet im 10er-Raster">${IC.rect}Kasten</button>
-    <button type="button" class="tool" data-tool="text">${IC.text}Text</button>
-    <button type="button" class="tool" data-tool="erase">${IC.eraser}Radierer</button>
-    <span class="sep"></span>
-    <button type="button" class="tool" data-ed="grid" aria-pressed="${ED.grid}" title="Bausteine und Linien rasten im 10er-Raster ein">${IC.grid}Raster fangen</button>
-    ${pal.length ? `<button type="button" class="tool" data-ed="dock" aria-pressed="${ED.dock}" title="Bausteine richten sich an Nachbarn aus und verbinden sich automatisch">${IC.magnet}Andocken</button>` : ""}
-    <span class="sep"></span>
-    <button type="button" class="tool" data-w="1.4">dünn</button><button type="button" class="tool" data-w="2.2">mittel</button><button type="button" class="tool" data-w="4">dick</button>
-    <span class="sep"></span>
-    <span class="takewrap"><button type="button" class="tool" data-ed="take" aria-haspopup="true" title="Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren">${IC.copy}Aus früherer Übung</button></span><button type="button" class="tool" data-ed="undo" title="Strg+Z">${IC.undo}Rückgängig</button><button type="button" class="tool" data-ed="redo" title="Strg+Y" disabled>${IC_REDO}Wiederholen</button><button type="button" class="tool" data-ed="del" title="Entf">${IC.trash}Markiertes löschen</button><button type="button" class="tool" data-ed="clear">Alles leeren</button>${PRUEFKNOPF(key)}
-    <span style="flex:1"></span>
-    <button type="button" class="btn small" data-ed="print">${IC.print}Drucken</button><button type="button" class="btn primary small" data-ed="close">Fertig</button>
-  </div><div class="edbody"><aside class="pal" aria-label="Bausteine und Eigenschaften"><div id="props"></div>${pal.length ? paletteHTML(pal) : (v.seitenleiste ? v.seitenleiste() : "") + `<div class="palhelp">${v.hilfe || ""}<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p></div>`}</aside><div class="edstage" id="edstage" tabindex="-1"></div></div></div>`;
+    const v = vorlage(key), pal = v.gruppen || [];
+    const tool = pal.length ? "sel" : v.startWerkzeug || (ZEICHENWERKZEUGE.includes(ED.tool) ? ED.tool : "pen");
+    zuruecksetzen(scope, key, mitListen(S.get(skKey(scope, key)) || {}), tool);
+    const dlg = $("#editor");
+    dlg.innerHTML = `<div class="ed">${werkzeugleisteHTML(v, key, pal)}<div class="edbody">${seitenleisteHTML(v, pal)}<div class="edstage" id="edstage" tabindex="-1"></div></div></div>`;
     dlg.showModal();
     paintEditor();
     setTool(ED.tool);
     $$("#editor [data-w]").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.w === ED.w));
   }
+  function zuruecksetzen(scope, key, data, tool) {
+    Object.assign(ED, {
+      scope,
+      key,
+      data,
+      tool,
+      hist: [],
+      zukunft: [],
+      tx: null,
+      strich: null,
+      markiert: null,
+      verbindenVon: null,
+      place: null,
+      drag: null,
+      vorlage: {}
+    });
+  }
+  var werkzeugKnopf = (tool, inhalt, zusatz = "") => `<button type="button" class="tool" data-tool="${tool}"${zusatz}>${inhalt}</button>`;
+  var aktionsKnopf = (ed, inhalt, zusatz = "") => `<button type="button" class="tool" data-ed="${ed}"${zusatz}>${inhalt}</button>`;
+  var titelAttr = (t) => ` title="${t}"`;
+  var TRENNER = `<span class="sep"></span>`;
+  var farbKnopf = ([c, n]) => `<button type="button" class="tool" data-tool="pen" data-color="${c}"><span class="dot" style="background:${c}"></span>${n}</button>`;
+  var staerkeKnopf = ([w, n]) => `<button type="button" class="tool" data-w="${w}">${n}</button>`;
+  var KOPIEREN = `<span class="takewrap">` + aktionsKnopf("take", IC.copy + "Aus früherer Übung", ` aria-haspopup="true"` + titelAttr("Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren")) + `</span>`;
+  var ABSCHLUSS = `<button type="button" class="btn small" data-ed="print">${IC.print}Drucken</button><button type="button" class="btn primary small" data-ed="close">Fertig</button>`;
+  function werkzeugleisteZeilen(v, key, mitPalette) {
+    const ex = BY[ED.scope], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
+    return [
+      [`<span class="ttl">${v.n}${ex ? ` – ${ex.id}` : ""}</span>`],
+      [werkzeugKnopf("sel", IC.cursor + "Auswählen", titelAttr("Bausteine, Linien und Texte markieren, verschieben, ändern"))],
+      [
+        mitPalette ? werkzeugKnopf("conn", IC.link + "Verbinden", titelAttr("Zwei Bausteine bzw. Anschlüsse nacheinander anklicken")) : "",
+        leiste.nachVerbinden || "",
+        TRENNER
+      ],
+      FARBEN.map(farbKnopf),
+      [werkzeugKnopf("line", IC.line + linie.name, titelAttr(linie.titel))],
+      [leiste.nachLinie || ""],
+      [werkzeugKnopf("rect", IC.rect + "Kasten", titelAttr("Rechteck, rastet im 10er-Raster"))],
+      [werkzeugKnopf("text", IC.text + "Text")],
+      [werkzeugKnopf("erase", IC.eraser + "Radierer")],
+      [TRENNER],
+      [aktionsKnopf("grid", IC.grid + "Raster fangen", ` aria-pressed="${ED.grid}"` + titelAttr("Bausteine und Linien rasten im 10er-Raster ein"))],
+      [mitPalette ? aktionsKnopf("dock", IC.magnet + "Andocken", ` aria-pressed="${ED.dock}"` + titelAttr("Bausteine richten sich an Nachbarn aus und verbinden sich automatisch")) : ""],
+      [TRENNER],
+      STAERKEN.map(staerkeKnopf),
+      [TRENNER],
+      [
+        KOPIEREN,
+        aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z")),
+        aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y") + " disabled"),
+        aktionsKnopf("del", IC.trash + "Markiertes löschen", titelAttr("Entf")),
+        aktionsKnopf("clear", "Alles leeren"),
+        PRUEFKNOPF(key)
+      ],
+      [`<span style="flex:1"></span>`],
+      [ABSCHLUSS]
+    ];
+  }
+  function werkzeugleisteHTML(v, key, pal) {
+    const zeilen = werkzeugleisteZeilen(v, key, pal.length > 0).map((z) => z.join(""));
+    return `<div class="edbar">
+    ${zeilen.join("\n    ")}
+  </div>`;
+  }
+  var AUSWAHL_HILFE = `<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p>`;
+  var PALETTE_HILFE = `<p><b>Ziehen:</b> Bausteine direkt aus dieser Leiste aufs Blatt ziehen – oder anklicken und dann aufs Blatt klicken.</p><p><b>Andocken:</b> Ziehen Sie einen Baustein an einen Anschluss – die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p>`;
+  function seitenleisteHTML(v, pal) {
+    const inhalt = pal.length ? paletteHTML(pal) : (v.seitenleiste ? v.seitenleiste() : "") + `<div class="palhelp">${v.hilfe || ""}${AUSWAHL_HILFE}</div>`;
+    return `<aside class="pal" aria-label="Bausteine und Eigenschaften"><div id="props"></div>${inhalt}</aside>`;
+  }
+  function paletteKnopf([k, b]) {
+    const [o, vb, extra] = SAMPLE[k] || pcSample(k);
+    return `<button type="button" class="palb" data-place="${k}" title="${b.n} setzen"><svg viewBox="${vb}" aria-hidden="true">${extra || ""}${drawObj(o, false)}</svg><span>${b.n}</span></button>`;
+  }
   function paletteHTML(groups) {
-    return groups.map((g) => `<div class="palg"><div class="palh">${GRUPPE[g].name}</div>${Object.entries(BAUSTEIN).filter(([, b]) => b.g === g && !b.hide).map(([k, b]) => {
-      const [o, vb, extra] = SAMPLE[k] || pcSample(k);
-      return `<button type="button" class="palb" data-place="${k}" title="${b.n} setzen"><svg viewBox="${vb}" aria-hidden="true">${extra || ""}${drawObj(o, false)}</svg><span>${b.n}</span></button>`;
-    }).join("")}</div>`).join("") + `<div class="palhelp">${GRUPPE[groups[0]].hinweis ? `<p>${GRUPPE[groups[0]].hinweis}</p>` : ""}<p><b>Ziehen:</b> Bausteine direkt aus dieser Leiste aufs Blatt ziehen – oder anklicken und dann aufs Blatt klicken.</p><p><b>Andocken:</b> Ziehen Sie einen Baustein an einen Anschluss – die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p></div>`;
+    const gruppeHTML = (g) => `<div class="palg"><div class="palh">${GRUPPE[g].name}</div>` + Object.entries(BAUSTEIN).filter(([, b]) => b.g === g && !b.hide).map(paletteKnopf).join("") + `</div>`;
+    const hinweis = GRUPPE[groups[0]].hinweis;
+    return groups.map(gruppeHTML).join("") + `<div class="palhelp">${hinweis ? `<p>${hinweis}</p>` : ""}${PALETTE_HILFE}</div>`;
   }
   function paintEditor() {
     ED.blattzahl = pageCount(ED.key, ED.data);

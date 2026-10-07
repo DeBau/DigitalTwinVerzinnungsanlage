@@ -6,6 +6,9 @@ import { snap } from './vorlagen-svg.js';
 import { updateProps } from './eigenschaften.js';
 import { renderInk } from './anzeige.js';
 
+// Werkzeuge mit eigenem Zeiger: das Blatt bekommt eine CSS-Klasse gleichen Namens (styles/07-editor.css).
+// sim gehört zur Pneumatik-Simulation.
+export const BLATTKLASSEN = ["erase", "text", "sel", "conn", "place", "sim"];
 export function setTool(t){
   ED.vorlage.angefangen = null;
   const v = vorlage(ED.key);
@@ -13,7 +16,7 @@ export function setTool(t){
   ED.tool = t; if (t !== "place") ED.place = null; if (t !== "conn") ED.verbindenVon = null;
   $$("#editor [data-tool]").forEach(b => b.setAttribute("aria-pressed", b.dataset.tool === t && (!b.dataset.color || b.dataset.color === ED.color)));
   $$("#editor [data-place]").forEach(b => b.setAttribute("aria-pressed", b.dataset.place === ED.place));
-  if (ED.svg) { ["erase","text","sel","conn","place","sim"].forEach(c => ED.svg.classList.toggle(c, t === c)); $(".ghost", ED.svg).innerHTML = ""; renderInk(); }
+  if (ED.svg) { BLATTKLASSEN.forEach(c => ED.svg.classList.toggle(c, t === c)); $(".ghost", ED.svg).innerHTML = ""; renderInk(); }
   updateProps(true);
 }
 export function svgPt(svg, e){ const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(svg.getScreenCTM().inverse()); return [Math.round(q.x*10)/10, Math.round(q.y*10)/10]; }
