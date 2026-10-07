@@ -36,3 +36,14 @@
   .sign{display:grid;grid-template-columns:1fr 1fr;gap:12mm;margin-top:10mm;font-size:9pt;color:#444}
   .sign div{border-top:.6pt solid #333;padding-top:1mm}
 }
+@media print{
+  #print tr.muster td{color:#777;font-style:italic;background:#f4f4f4}
+  #print tr.muster td.mlab{font-size:7pt;padding:.6mm 2mm 0;border-bottom:0}
+  #print tr.teil td{background:#eef2f7;font-weight:600;font-size:8.5pt;padding:.8mm 2mm}
+  #print td.leer{height:7mm}
+}
+@media print{
+  #print table{table-layout:auto;width:100%}
+  #print th,#print td{overflow-wrap:normal;hyphens:auto}
+  #print td.wert,#print .ans{overflow-wrap:break-word;white-space:pre-wrap}
+}

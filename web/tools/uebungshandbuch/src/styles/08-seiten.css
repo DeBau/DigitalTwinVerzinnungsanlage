@@ -30,3 +30,16 @@ pre.code code{font-size:inherit}
 
 #print{display:none}
 
+/* Mappe „Meine Unterlagen“ */
+.mappe{border-left:6px solid var(--c)}
+.mappe h2 a{text-decoration:none;font-family:var(--cond)}
+.mdoc{border:1px solid var(--line);border-radius:9px;margin:10px 0 0;background:var(--panel)}
+.mdoc summary{cursor:pointer;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 12px;list-style:none}
+.mdoc summary::-webkit-details-marker{display:none}
+.mdoc summary .btn{margin-left:auto}
+.mdoc .mart{font:600 11.5px var(--cond);text-transform:uppercase;letter-spacing:.04em;color:var(--ink2);min-width:96px}
+.mdoc .mbody{padding:0 14px 14px}
+.mfr{padding-left:20px;margin:6px 0 0}.mfr li{margin:0 0 10px}
+.wert{white-space:pre-wrap}
+.mfr .wert{border-left:3px solid var(--blue);padding:2px 10px;margin-top:4px}
+.panel[id]{scroll-margin-top:80px}

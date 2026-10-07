@@ -40,7 +40,7 @@ importiert nie aus einer Vorlage.
 | `styles/*.css` | Styles, Reihenfolge in `reihenfolge.json` |
 | `main.js` | Einstieg: lädt alle Module, startet danach die Seiteneffekte über `init()` |
 | **App-Grundlagen** | |
-| `app/daten.js` | Platzhalter `__SIG__`, `__SHEETS__`, `__TEXTE__`, `__QUIZ__`, `__STIL__`, Stammdaten (EXTRA, STUFEN, EXVORL, CYL, PHASES, STYLECHECK, STIL, CRIT, critOf, TYPN, gradeOf) |
+| `app/daten.js` | Platzhalter `__SIG__`, `__SHEETS__`, `__TEXTE__`, `__QUIZ__`, `__STIL__`, Stammdaten (EXTRA, STUFEN, EXVORL, CYL, PHASES, STIL, CRIT, critOf, TYPN, gradeOf) |
 | `app/basis.js` | `$`, `$$`, `BY`, Speicher `S`, `esc`, Chips, Hilfestufen, Icons `IC`, Signalliste |
 | `app/fortschritt.js` | Phasen erledigt, Prüfpunkte |
 | **Schaltzeichen** (gemeinsam mit dem Schaltplan) | |

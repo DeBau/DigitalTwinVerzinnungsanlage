@@ -1,10 +1,10 @@
 /* ================= Drucken ================= */
-import { EXVORL, STUFEN, STYLECHECK, TYPN, critOf, gradeOf } from './daten.js';
-import { $, $$, ART, BY, IC, S, chips, esc, hilfeLevel, hilfeText, mitbringen, qt, quelle, sigEntries, tableHTML, typOf, zielTag } from './basis.js';
+import { EXVORL, STUFEN, TYPN, critMax, critOf, gradeOf } from './daten.js';
+import { $, $$, ART, BY, IC, S, bewPunkte, bewSumme, chips, esc, hilfeLevel, hilfeText, listOf, mitbringen, qt, quelle, sigEntries, stilFor, stilKey, tableHTML, typOf, zielTag } from './basis.js';
 import { VORL } from '../editor/registry.js';
 import { pageCount } from '../editor/zeichnen.js';
 import { ladeSkizze, skMeta, sketchSVG } from '../editor/blaetter.js';
-import { curTime, fmtTime } from './uebung.js';
+import { curTime, docTable, fmtTime, tplsOf } from './uebung.js';
 
 export function pageHead(ex, what){
   const st = ex ? STUFEN[ex.st] : null;
@@ -13,7 +13,8 @@ export function pageHead(ex, what){
 export const whoRow = (ex, filled) => `<div class="who"><div>Name<b>${filled ? esc(S.get("name")||"") : ""}</b></div><div>Klasse<b>${filled ? esc(S.get("klasse")||"") : ""}</b></div><div>Datum<b>${filled && ex ? esc(S.get(ex.id+":datum")||"") : ""}</b></div></div>`;
 export const lines = n => `<div class="lines">${"<i></i>".repeat(n)}</div>`;
 export const ansOr = (v, n) => v && String(v).trim() ? `<div class="ans">${esc(v)}</div>` : lines(n);
-export const tplPrint = (ex, f) => `<h3>${ex.tpl.cap}</h3><table><thead><tr>${ex.tpl.head.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${ex.tpl.rows.map((r, ri) => `<tr>${r.map(x => `<td>${chips(x)}</td>`).join("")}${Array.from({length: ex.tpl.inputs}, (_, ci) => `<td>${f ? esc(S.get(`${ex.id}:t${ri}_${ci}`)||"") : "&nbsp;"}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+// Vorlagen einer Phase zum Drucken, mit Zeilen früherer Übungen bei fortgeschriebenen Dokumenten
+export const tplPrint = (ex, f, phase) => tplsOf(ex).filter(d => (d.phase || 4) === phase).map(d => `<h3>${d.cap}</h3>` + docTable(ex, d, f ? "view" : "blank", {ohneLink: true})).join("");
 export const ergPrint = list => `<ul>${list.map(e => `<li><b>${esc(e.n)}</b> (${ART[e.a] ? ART[e.a][1] : esc(e.a)}${e.von ? `, aus ${e.von}` : ""})${e.h ? `: ${chips(e.h)}` : ""}</li>`).join("")}</ul>`;
 export function sheetPage(ex, f){
   const k = ex.id, sig = sigEntries(ex), mit = mitbringen(ex);
@@ -26,14 +27,14 @@ export function sheetPage(ex, f){
   if (sig.length) h += `<h2>Signale</h2><table><thead><tr><th>Signal</th><th>Adresse</th><th>Bedeutung</th></tr></thead><tbody>${sig.map(e => `<tr><td>${e.n}</td><td>${e.a}</td><td>${esc(e.k)}</td></tr>`).join("")}</tbody></table>`;
   h += `<h2>Leitfragen</h2>` + ex.lf.map((q, i) => `<div class="qp"><p><b>${i+1}. ${chips(qt(q))}</b>${zielTag(q)}</p>${f ? ansOr(S.get(k+":lf"+i), 4) : lines(4)}</div>`).join("");
   if (ex.plan && ex.plan.length) h += `<h2>Planungsaufträge</h2><div>${ex.plan.map((a, i) => `<p><span class="box">${f && S.get(k+":plan"+i) ? "✓" : ""}</span>${i+1}. ${chips(a)}</p>`).join("")}</div>`;
-  if (ex.tpl && ex.tplPhase === 2) h += tplPrint(ex, f);
+  h += tplPrint(ex, f, 2);
   h += `<h2>Auftrag</h2><div>${ex.auf.map((a, i) => { const l = f ? hilfeLevel(ex, i) : 0; return `<p><span class="box">${f && S.get(k+":a"+i) ? "✓" : ""}</span>${i+1}. ${chips(a)}${l ? ` <i>(mit Hilfe ${l} gelöst)</i>` : ""}</p>`; }).join("")}</div>`;
-  if (ex.tpl && ex.tplPhase !== 2) h += tplPrint(ex, f);
+  h += tplPrint(ex, f, 4);
   if (ex.plus) h += `<h3>Plus-Aufgabe</h3><p>${chips(ex.plus)}</p>`;
   return h + `<div class="foot">${ex.id} ${esc(ex.t)}, Übungshandbuch SPS-Technik, Aufgabe im Repository: ${ex.repo}</div></section>`;
 }
 export function checkPage(ex, f){
-  const k = ex.id, erk = typOf(ex) === "erkunden";
+  const k = ex.id;
   const bad = ex.pr.map((_, i) => i).filter(i => f && S.get(k+":p"+i) === "bad");
   const fa = f ? (bad.length ? `<table><thead><tr><th style="width:6%">Nr.</th><th>Ursache</th><th>Änderung</th><th>Nachtest</th></tr></thead><tbody>${bad.map(i => `<tr><td>${i+1}</td>${["u","m","n"].map(x => `<td>${esc(S.get(`${k}:p${i}${x}`)||"")}</td>`).join("")}</tr>`).join("")}</tbody></table>` : `<p>Keine nicht bestandenen Prüffälle.</p>`)
     : `<table><thead><tr><th style="width:6%">Nr.</th><th>Ursache</th><th>Änderung</th><th>Nachtest</th></tr></thead><tbody>${"<tr><td style='height:10mm'></td><td></td><td></td><td></td></tr>".repeat(3)}</tbody></table>`;
@@ -43,13 +44,18 @@ export function checkPage(ex, f){
       ex.pr.map((c, i) => { const v = f ? S.get(k+":p"+i) : null; return `<tr><td>${i+1}</td><td>${chips(qt(c))}${zielTag(c)}</td><td style="height:14mm">${f ? esc(S.get(k+":b"+i)||"") : ""}</td><td><span class="box">${v==="ok"?"✓":""}</span></td><td><span class="box">${v==="bad"?"✗":""}</span></td></tr>`; }).join("")}</tbody></table>
     <h2>Fehleranalyse (nicht bestandene Prüffälle)</h2>${fa}
     ${ex.lfk && ex.lfk.length ? `<h2>Kontrollfragen</h2>` + ex.lfk.map((q, i) => `<div class="qp"><p><b>${i+1}. ${chips(qt(q))}</b></p>${f ? ansOr(S.get(k+":lfk"+i), 3) : lines(3)}</div>`).join("") : ""}
-    ${erk ? "" : `<h2>Programmierstil nach Siemens-Styleguide</h2><table><tbody>${STYLECHECK.map((c, i) => `<tr><td style="width:6%"><span class="box">${f && S.get(k+":stil"+i) ? "✓" : ""}</span></td><td>${c}</td></tr>`).join("")}</tbody></table>`}
+    ${tplPrint(ex, f, 5)}
+    ${stilPrint(ex, f)}
     <h2>Meldungen der Ereignisliste</h2>${f ? ansOr(S.get(k+":ereig"), 3) : lines(3)}
     <h2>Welcher Fehler hat dich am meisten gelehrt?</h2>${f ? ansOr(S.get(k+":lehre"), 2) : lines(2)}
     <div class="sign"><div>Geprüft (Lernende)</div><div>Abgenommen (Lehrkraft), Datum</div></div></section>`;
 }
+export function stilPrint(ex, f){
+  const st = stilFor(ex); if (!st.length) return "";
+  return `<h2>Programmierstil nach Siemens-Styleguide</h2><table><tbody>${st.map(x => `<tr><td style="width:6%"><span class="box">${f && S.get(stilKey(ex.id, x.i)) ? "✓" : ""}</span></td><td>${x.neu ? "<b>(neu)</b> " : ""}${x.r.t}</td></tr>`).join("")}</tbody></table>`;
+}
 export function varsPage(ex, f){
-  const rows = f ? S.get(ex.id+":vars", []) : [];
+  const rows = f ? listOf(S.get(ex.id+":vars", [])) : [];
   const blank = Math.max(0, (f ? 6 : 22) - rows.length);
   return `<section class="pp">${pageHead(ex, "Variablenliste")}${whoRow(ex, f)}
     <table><thead><tr><th style="width:28%">Name</th><th style="width:12%">Datentyp</th><th style="width:14%">Adresse</th><th>Kommentar</th></tr></thead><tbody>${
@@ -73,13 +79,13 @@ export function sketchPage(scope, key, f){
 }
 export const nivTable = crit => `<h2>Niveaustufen</h2><p>Passend zur Selbsteinschätzung: 1 = noch nicht, 2 = mit Hilfe, 3 = selbstständig, 4 = sicher und kann es erklären. Richtwert für die Punkte: Stufe 1 bis 25 %, Stufe 2 bis 50 %, Stufe 3 bis 75 %, Stufe 4 bis 100 % des Höchstwerts.</p>
   <table><thead><tr><th style="width:16%">Kriterium</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead><tbody>${crit.map(c => `<tr><td><b>${c[0]}</b></td>${(c[3] || []).map(n => `<td>${n}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+export const bewTable = (crit, pts) => `<table><thead><tr><th>Kriterium</th><th>Erfüllt, wenn</th><th>max.</th><th>Punkte</th></tr></thead><tbody>${crit.map((c, i) => `<tr><td>${c[0]}</td><td>${c[2]}</td><td>${c[1]}</td><td>${pts ? esc(pts[i] ?? "") : ""}</td></tr>`).join("")}
+    <tr><td colspan="2"><b>Summe</b></td><td>${critMax(crit)}</td><td><b>${pts && pts.some(v => v !== null) ? pts.reduce((a, v) => a + (+v || 0), 0) : ""}</b></td></tr></tbody></table>`;
 export function bewPage(ex){
-  const k = ex.id, crit = critOf(ex), pts = crit.map((c, i) => S.get(`${k}:bew${i}`)), sum = pts.reduce((a, v) => a + (+v || 0), 0);
+  const k = ex.id, crit = critOf(ex), sum = bewSumme(ex);
   return `<section class="pp">${pageHead(ex, "Bewertungsbogen")}${whoRow(ex, true)}
-    <p>Bewertungsraster: <b>${TYPN[typOf(ex)]}</b></p>
-    <table><thead><tr><th>Kriterium</th><th>Erfüllt, wenn</th><th>max.</th><th>Punkte</th></tr></thead><tbody>${crit.map((c, i) => `<tr><td>${c[0]}</td><td>${c[2]}</td><td>${c[1]}</td><td>${pts[i] ?? ""}</td></tr>`).join("")}
-    <tr><td colspan="2"><b>Summe</b></td><td>100</td><td><b>${pts.some(v => v !== null) ? sum : ""}</b></td></tr></tbody></table>
-    <p style="margin-top:4mm"><b>Note nach IHK-Schlüssel:</b> ${pts.some(v => v !== null) ? gradeOf(sum) : ""}</p>
+    <p>Bewertungsraster: <b>${TYPN[typOf(ex)]}</b></p>${bewTable(crit, bewPunkte(ex))}
+    <p style="margin-top:4mm"><b>Note nach IHK-Schlüssel:</b> ${sum !== null ? gradeOf(sum) : ""}</p>
     ${ex.hilfe && Object.keys(ex.hilfe).length ? `<p><b>Genutzte Hilfen:</b> ${hilfeText(ex)}</p>` : ""}
     <h2>Bemerkungen</h2>${ansOr(S.get(k+":bewnote"), 4)}<div class="sign"><div>Lehrkraft</div><div>Datum</div></div>${nivTable(crit)}</section>`;
 }
