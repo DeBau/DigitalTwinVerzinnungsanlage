@@ -28,8 +28,10 @@ export const STELLGROESSE = {
 // Verlauf [{t, w, x, y}] für die Einstellungen sim
 export function simuliere(sim){
   const s = {kp: zahlAus(sim.kp, 1), tn: zahlAus(sim.tn, 10)}, z = {i: 0, y: 0}, verzug = [], punkte = [];
-  let x = LAUF.wVor;
-  z.y = x / STRECKE.ks; z.i = sim.regler === "PI" ? z.y / s.kp * s.tn : 0;   // Start im Gleichgewicht
+  // Start im Gleichgewicht: Der P-Regler hält x schon vor dem Sprung etwas unter w (bleibende Regeldifferenz)
+  const v = s.kp * STRECKE.ks;
+  let x = sim.regler === "P" ? LAUF.wVor * v / (1 + v) : LAUF.wVor;
+  z.y = x / STRECKE.ks; z.i = sim.regler === "PI" ? z.y / s.kp * s.tn : 0;
   for (let t = 0; t <= LAUF.dauer; t += LAUF.dt) {
     const w = t < LAUF.sprungBei ? LAUF.wVor : LAUF.wNach;
     z.y = STELLGROESSE[sim.regler](w - x, s, z);
