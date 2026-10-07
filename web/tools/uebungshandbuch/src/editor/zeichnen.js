@@ -169,7 +169,7 @@ export function punkteSVG(d, cs, objs, edit){
 export function zeichnungSVG(d, edit=false, key=null){
   if (!d) return "";
   const objs = Object.fromEntries((d.o || []).map(o => [o.id, o])), cs = d.c || [];
-  virtuelleSchienen(key, pageCount(key, d)).forEach(r => { objs[r.id] = r; });
+  virtuelleSchienen(key, pageCount(key, d, 0, edit ? RESERVE_EDITOR : 0)).forEach(r => { objs[r.id] = r; });
   const v = vorlage(key);
   const rails = v.hintergrund ? v.hintergrund(d, cs) : "";   // Haken hintergrund, z. B. Strompfade zu L+ und M
   const spuren = neueSpuren();   // eine Belegung für alle Verbindungen der Zeichnung
@@ -181,13 +181,17 @@ export function zeichnungSVG(d, edit=false, key=null){
   const os = [...(d.o || [])].sort((a, b) => istRahmen(b) - istRahmen(a)).map(o => bausteinSVG(o, edit)).join("");
   return rails + conns + os + punkteSVG(d, cs, objs, edit) + strokesSVG(d, edit);
 }
-export function pageCount(key, d, extraY=0){
+// Platz unter der Zeichnung, den nur der Editor als weiteres Blatt anbietet (zum Weiterzeichnen)
+export const RESERVE_EDITOR = 160;
+// Zahl der Blätter der Zeichnung d. Druck und Kacheln: nur so viele, wie der Inhalt braucht (kein leeres Blatt).
+// Der Editor gibt zusatzY (Zeiger beim Ziehen) und RESERVE_EDITOR mit.
+export function pageCount(key, d, zusatzY = 0, reserve = 0){
   if (vorlage(key).einblattig) return 1;
-  let m = extraY;
+  let m = zusatzY;
   (d && d.o || []).forEach(o => { const b = umrissVon(o); m = Math.max(m, b.y + b.h); });
   (d && d.s || []).forEach(st => st.p.forEach(q => { m = Math.max(m, q[1]); }));
   (d && d.t || []).forEach(t => { m = Math.max(m, t.y); });
-  return Math.max(1, Math.ceil((m + 160) / PH));
+  return Math.max(1, Math.ceil((m + reserve) / PH));
 }
 // Verweistext an einer Leitung über den Blattrand: Kennzeichen:Anschluss, Blatt und was die Vorlage ergänzt (Haken verweis)
 export function wireRef(o, port, key, y, x){

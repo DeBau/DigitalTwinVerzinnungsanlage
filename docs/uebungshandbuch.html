@@ -1679,7 +1679,7 @@ pre.code code{font-size:inherit}
   function zeichnungSVG(d, edit = false, key = null) {
     if (!d) return "";
     const objs = Object.fromEntries((d.o || []).map((o) => [o.id, o])), cs = d.c || [];
-    virtuelleSchienen(key, pageCount(key, d)).forEach((r) => {
+    virtuelleSchienen(key, pageCount(key, d, 0, edit ? RESERVE_EDITOR : 0)).forEach((r) => {
       objs[r.id] = r;
     });
     const v = vorlage(key);
@@ -1693,9 +1693,10 @@ pre.code code{font-size:inherit}
     const os = [...d.o || []].sort((a, b) => istRahmen(b) - istRahmen(a)).map((o) => bausteinSVG(o, edit)).join("");
     return rails + conns + os + punkteSVG(d, cs, objs, edit) + strokesSVG(d, edit);
   }
-  function pageCount(key, d, extraY = 0) {
+  var RESERVE_EDITOR = 160;
+  function pageCount(key, d, zusatzY = 0, reserve = 0) {
     if (vorlage(key).einblattig) return 1;
-    let m = extraY;
+    let m = zusatzY;
     (d && d.o || []).forEach((o) => {
       const b = umrissVon(o);
       m = Math.max(m, b.y + b.h);
@@ -1706,7 +1707,7 @@ pre.code code{font-size:inherit}
     (d && d.t || []).forEach((t) => {
       m = Math.max(m, t.y);
     });
-    return Math.max(1, Math.ceil((m + 160) / PH));
+    return Math.max(1, Math.ceil((m + reserve) / PH));
   }
   function wireRef(o, port, key, y, x) {
     const b = Math.floor(y / PH) + 1, name = istSchiene(o) ? o.v : `${o.v || BAUSTEIN[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
@@ -1733,10 +1734,10 @@ pre.code code{font-size:inherit}
     if (edit) for (let i = 1; i < n; i++) h += seitenumbruch(i);
     return h;
   }
-  var seitenumbruch = (i) => `<g pointer-events="none"><path d="M0 ${i * PH}H1000" stroke="#9AA4AD" stroke-width="1" stroke-dasharray="2 6"/>${SVGT(990, i * PH - 5, `Seitenumbruch – Blatt ${i + 1}`, "end", 9.5, 400, "#9AA4AD")}</g>`;
+  var seitenumbruch = (i) => `<g pointer-events="none"><path d="M0 ${i * PH}H1000" stroke="#9AA4AD" stroke-width="1" stroke-dasharray="2 6"/>${SVGT(15, i * PH - 4, `Seitenumbruch: ab hier Blatt ${i + 1}`, "start", 9.5, 400, "#9AA4AD")}</g>`;
   var PFEIL_MARKER = `<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 1L10 5L0 9z" fill="${INK}"/></marker></defs>`;
   function sketchSVG(key, ex, data, meta, edit = false, page = null) {
-    const n = pageCount(key, data), shown = edit || page !== null ? n : 1;
+    const n = pageCount(key, data, 0, edit ? RESERVE_EDITOR : 0), shown = edit || page !== null ? n : 1;
     const vb = page !== null ? `0 ${page * PH} 1000 ${PH}` : `0 0 1000 ${PH * (edit ? n : 1)}`;
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${PFEIL_MARKER}<g class="tpl">${pagesSVG(key, ex, meta, shown, edit)}</g><g class="ink">${zeichnungSVG(data, edit, key)}</g><g class="ghost"></g></svg>`;
   }
@@ -2247,7 +2248,7 @@ pre.code code{font-size:inherit}
     svg.style.height = w * PH * ED.blattzahl / 1e3 + "px";
   }
   function checkPages() {
-    const n = pageCount(ED.key, ED.data, ED.zusatzY || 0);
+    const n = pageCount(ED.key, ED.data, ED.zusatzY || 0, RESERVE_EDITOR);
     if (!ED.svg || n === ED.blattzahl) return;
     ED.blattzahl = n;
     ED.svg.setAttribute("viewBox", `0 0 1000 ${PH * n}`);
@@ -3271,7 +3272,7 @@ pre.code code{font-size:inherit}
     return groups.map(gruppeHTML).join("") + `<div class="palhelp">${hinweis ? `<p>${hinweis}</p>` : ""}${PALETTE_HILFE}</div>`;
   }
   function paintEditor() {
-    ED.blattzahl = pageCount(ED.key, ED.data);
+    ED.blattzahl = pageCount(ED.key, ED.data, 0, RESERVE_EDITOR);
     ED.zusatzY = 0;
     $("#edstage").innerHTML = sketchSVG(ED.key, BY[ED.scope], ED.data, skMeta(ED.scope, ED.key, ED.data), true);
     const svg = ED.svg = $("#edstage svg");
@@ -5743,6 +5744,9 @@ END_CASE;`)}
       signalWahl(e);
     });
     dlg.addEventListener("keydown", taste);
+    document.addEventListener("keydown", (e) => {
+      if (ED.svg && !dlg.contains(e.target)) taste(e);
+    });
     dlg.addEventListener("cancel", (e) => e.preventDefault());
     dlg.addEventListener("close", () => {
       ED.svg = null;

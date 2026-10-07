@@ -2,7 +2,7 @@
 import { $, BY } from '../app/basis.js';
 import { PH } from './svg.js';
 import { ED } from './status.js';
-import { pageCount, zeichnungSVG } from './zeichnen.js';
+import { RESERVE_EDITOR, pageCount, zeichnungSVG } from './zeichnen.js';
 import { pagesSVG, skMeta } from './blaetter.js';
 import { updateProps } from './eigenschaften.js';
 
@@ -12,7 +12,7 @@ export function sizeSVG(){
   svg.style.width = w + "px"; svg.style.height = (w * PH * ED.blattzahl / 1000) + "px";
 }
 export function checkPages(){
-  const n = pageCount(ED.key, ED.data, ED.zusatzY || 0);
+  const n = pageCount(ED.key, ED.data, ED.zusatzY || 0, RESERVE_EDITOR);
   if (!ED.svg || n === ED.blattzahl) return;
   ED.blattzahl = n; ED.svg.setAttribute("viewBox", `0 0 1000 ${PH*n}`);
   refreshTpl(); sizeSVG();

@@ -3,7 +3,7 @@
 import { $, $$, BY, IC, S } from '../app/basis.js';
 import { ED } from './status.js';
 import { BAUSTEIN, GRUPPE, SAMPLE, vorlage } from './registry.js';
-import { bausteinZeichnen, pageCount, pcSample } from './zeichnen.js';
+import { RESERVE_EDITOR, bausteinZeichnen, pageCount, pcSample } from './zeichnen.js';
 import { skKey, skMeta, sketchSVG } from './blaetter.js';
 import { FARBEN, STAERKEN } from './eigenschaften.js';
 import { sizeSVG } from './anzeige.js';
@@ -124,7 +124,7 @@ export function paletteHTML(groups){
 
 /* ---------- Blatt ---------- */
 export function paintEditor(){
-  ED.blattzahl = pageCount(ED.key, ED.data); ED.zusatzY = 0;
+  ED.blattzahl = pageCount(ED.key, ED.data, 0, RESERVE_EDITOR); ED.zusatzY = 0;
   $("#edstage").innerHTML = sketchSVG(ED.key, BY[ED.scope], ED.data, skMeta(ED.scope, ED.key, ED.data), true);
   const svg = ED.svg = $("#edstage svg"); sizeSVG();
   svg.addEventListener("pointerdown", zeigerUnten); svg.addEventListener("pointermove", zeigerBewegen);

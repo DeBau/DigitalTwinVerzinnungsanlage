@@ -180,6 +180,12 @@ export const tests = [
       await t.klick([300, 150]);
       await t.taste('Delete');
       t.gleich(await t.daten(), null, 'Entf nach Klick ins Feld und zurück aufs Blatt');
+      await t.setze('init', 300, 150);
+      await t.taste('Escape');
+      await t.klick([300, 150]);
+      await t.klick('#editor .edbar .ttl');   // leere Fläche: Fokus landet auf body
+      await t.taste('Delete');
+      t.gleich(await t.daten(), null, 'Entf nach Klick auf eine leere Fläche');
     },
   },
   /* ---------- K6 ein Zeiger ---------- */
@@ -235,6 +241,26 @@ export const tests = [
       await t.page.evaluate(() => { window.__frei = true; });
       await t.ziehe([200, 450], [500, 500]);
       t.erwarte(!(await t.page.locator('#edwarn').isVisible()), 'Warnung weg, wenn das Speichern wieder klappt');
+    },
+  },
+  /* ---------- K8 Blätter und Druck ---------- */
+  {
+    name: 'K8 Reserve nur im Editor, Druck ohne leeres Blatt, Umbruchtext neben dem ©',
+    daten: 'k8-unten',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      const vb = await t.page.locator('#edstage svg').getAttribute('viewBox');
+      t.gleich(vb, '0 0 1000 1414', 'Editor bietet ein zweites Blatt an');
+      const druck = await t.drucke();
+      t.gleich((druck.match(/<section/g) || []).length, 1, 'Druck mit einem Blatt');
+      const ueberlappt = await t.page.evaluate(() => {
+        const texte = [...document.querySelectorAll('#edstage .tpl text')];
+        const box = (f) => texte.find((x) => x.textContent.includes(f)).getBoundingClientRect();
+        const a = box('Seitenumbruch'), b = box('©');
+        return !(a.right < b.left || b.right < a.left || a.bottom < b.top || b.bottom < a.top);
+      });
+      t.erwarte(!ueberlappt, 'Umbruchtext überlappt das © nicht');
+      t.erwarte(!(await t.text('#edstage .tpl')).includes('–'), 'Umbruchtext ohne Gedankenstrich');
     },
   },
 ];
