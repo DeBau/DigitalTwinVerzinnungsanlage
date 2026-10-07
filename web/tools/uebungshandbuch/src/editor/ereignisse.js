@@ -67,9 +67,10 @@ export const AKTIONEN = {
   print: () => doPrint(sketchPage(ED.scope, ED.key, true)),
   close: () => $("#editor").close(),
 };
+export const LEEREN_FRAGE = "Die ganze Skizze löschen? Das Schriftfeld bleibt, Rückgängig holt die Skizze zurück.";
 // „Alles leeren“: Bausteine, Striche und Texte weg, das Schriftfeld (meta) bleibt
 export function alleLeeren(){
-  if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
+  if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm(LEEREN_FRAGE)) return;
   clearSel();
   aendere(d => ({s: [], t: [], o: [], c: [], ...(d.meta ? {meta: d.meta} : {})}));
 }

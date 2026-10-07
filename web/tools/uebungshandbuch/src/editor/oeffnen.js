@@ -71,7 +71,7 @@ export const FORM_ZEILEN = [
 export function werkzeugleisteZeilen(v, key, mitPalette){
   const ex = BY[ED.scope], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
   return [
-    [`<span class="ttl">${v.n}${ex ? ` – ${ex.id}` : ""}</span>`],
+    [`<span class="ttl">${v.n}${ex ? ` · ${ex.id}` : ""}</span>`],
     [werkzeugKnopf("sel", IC.cursor + "Auswählen", titelAttr("Bausteine, Linien und Texte markieren, verschieben, ändern"))],
     [mitPalette ? werkzeugKnopf("conn", IC.link + "Verbinden", titelAttr("Zwei Bausteine bzw. Anschlüsse nacheinander anklicken")) : "",
       leiste.nachVerbinden || "", TRENNER],
@@ -99,10 +99,11 @@ export function werkzeugleisteHTML(v, key, pal){
 /* ---------- Seitenleiste ---------- */
 export const AUSWAHL_HILFE = `<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, `
   + `die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p>`;
-export const PALETTE_HILFE = `<p><b>Ziehen:</b> Bausteine direkt aus dieser Leiste aufs Blatt ziehen – oder anklicken und dann aufs Blatt `
-  + `klicken.</p><p><b>Andocken:</b> Ziehen Sie einen Baustein an einen Anschluss – die blaue Vorschau zeigt die Verbindung, beim `
-  + `Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> `
-  + `schieben, <b>Esc</b> bricht ab.</p>`;
+export const PALETTE_HILFE = `<p><b>Ziehen:</b> Zieh Bausteine direkt aus dieser Leiste aufs Blatt. `
+  + `Oder klick einen Baustein an und danach auf das Blatt.</p>`
+  + `<p><b>Andocken:</b> Zieh einen Baustein an einen Anschluss. Die blaue Vorschau zeigt die Verbindung, `
+  + `beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, `
+  + `<b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p>`;
 // Eigenschaftsfeld oben, darunter die Palette oder (ohne Palette) die Seitenleiste und Hilfe der Vorlage
 export function seitenleisteHTML(v, pal){
   const inhalt = pal.length ? paletteHTML(pal)

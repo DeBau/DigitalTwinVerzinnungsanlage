@@ -2190,7 +2190,7 @@ pre.code code{font-size:inherit}
     if (c.pa !== void 0 || c.pb !== void 0) {
       return propsKasten("Leitung", textFeld("cv", "Beschriftung (optional)", "z. B. Aderfarbe oder Querschnitt", c.v) + auswahlFeld("cst", "Leitungsart", LEITUNGSARTEN, c.st || "") + loeschKnopf());
     }
-    const beschriftung = gruppeVon(objById(c.a)).pfeiltext ? textFeld("cv", "Beschriftung", "z. B. BG13 / QA1", c.v) + SYMS : HINWEIS("GRAFCET-Verbindungen tragen keine Beschriftung – die Bedingung steht an der Transition.");
+    const beschriftung = gruppeVon(objById(c.a)).pfeiltext ? textFeld("cv", "Beschriftung", "z. B. BG13 / QA1", c.v) + SYMS : HINWEIS("GRAFCET-Verbindungen tragen keine Beschriftung. Die Bedingung steht an der Transition.");
     return propsKasten("Verbindung", beschriftung + loeschKnopf());
   }
   var LEITUNGSARTEN = [["", "Arbeits-/Hauptleitung"], ["st", "Steuerleitung (gestrichelt)"]];
@@ -2453,7 +2453,7 @@ pre.code code{font-size:inherit}
     return `<button type="button" role="menuitem" data-ed="takeit" data-from="${x.sc}"><b>${name}</b><span>${x.n} Elemente${x.ts ? " · geändert " + deDate(x.ts) : ""}</span></button>`;
   }
   var TAKE_HINWEIS = `<p>Die Kopie ersetzt die Zeichnung dieser Übung. Das Original bleibt unverändert, Rückgängig holt den alten Stand zurück.</p>`;
-  var TAKE_LEER = `<p>Noch keine andere Übung hat eine Zeichnung dieser Art. Sobald Sie z. B. in L08 einen Plan gezeichnet haben, erscheint er hier.</p>`;
+  var TAKE_LEER = `<p>Noch keine andere Übung hat eine Zeichnung dieser Art. Sobald du in einer anderen Übung einen Plan dieser Art gezeichnet hast, erscheint er hier.</p>`;
   function takeMenu(btn) {
     const old = $("#editor .takemenu");
     if (old) {
@@ -2477,7 +2477,7 @@ pre.code code{font-size:inherit}
     $("#editor .takemenu")?.remove();
     if (!src) return;
     const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
-    const frage = `Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`;
+    const frage = `Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommst du zurück. Fortfahren?`;
     if (has && !confirm(frage)) return;
     const d = mitListen(JSON.parse(JSON.stringify(src)));
     if (d.meta) {
@@ -2529,7 +2529,7 @@ pre.code code{font-size:inherit}
     const r = stage.getBoundingClientRect(), m = ED.svg.getScreenCTM(), inp = document.createElement("textarea");
     inp.className = "txtin";
     inp.value = anfang;
-    inp.placeholder = (ph || "Text") + " – Enter übernimmt, Alt+Enter neue Zeile";
+    inp.placeholder = (ph || "Text") + ". Enter übernimmt, Alt+Enter neue Zeile";
     inp.rows = Math.max(1, anfang.split("\n").length);
     inp.title = "Enter übernimmt, Alt+Enter (oder Umschalt+Enter) beginnt eine neue Zeile";
     inp.style.left = Math.max(4, Math.min(m.a * x + m.e - r.left, r.width - 270)) + "px";
@@ -3241,7 +3241,7 @@ pre.code code{font-size:inherit}
   function werkzeugleisteZeilen(v, key, mitPalette) {
     const ex = BY[ED.scope], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
     return [
-      [`<span class="ttl">${v.n}${ex ? ` – ${ex.id}` : ""}</span>`],
+      [`<span class="ttl">${v.n}${ex ? ` · ${ex.id}` : ""}</span>`],
       [werkzeugKnopf("sel", IC.cursor + "Auswählen", titelAttr("Bausteine, Linien und Texte markieren, verschieben, ändern"))],
       [
         mitPalette ? werkzeugKnopf("conn", IC.link + "Verbinden", titelAttr("Zwei Bausteine bzw. Anschlüsse nacheinander anklicken")) : "",
@@ -3273,7 +3273,7 @@ pre.code code{font-size:inherit}
   </div>`;
   }
   var AUSWAHL_HILFE = `<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p>`;
-  var PALETTE_HILFE = `<p><b>Ziehen:</b> Bausteine direkt aus dieser Leiste aufs Blatt ziehen – oder anklicken und dann aufs Blatt klicken.</p><p><b>Andocken:</b> Ziehen Sie einen Baustein an einen Anschluss – die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p>`;
+  var PALETTE_HILFE = `<p><b>Ziehen:</b> Zieh Bausteine direkt aus dieser Leiste aufs Blatt. Oder klick einen Baustein an und danach auf das Blatt.</p><p><b>Andocken:</b> Zieh einen Baustein an einen Anschluss. Die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p>`;
   function seitenleisteHTML(v, pal) {
     const inhalt = pal.length ? paletteHTML(pal) : (v.seitenleiste ? v.seitenleiste() : "") + `<div class="palhelp">${v.hilfe || ""}${AUSWAHL_HILFE}</div>`;
     return `<aside class="pal" aria-label="Bausteine und Eigenschaften"><div id="props"></div>${inhalt}</aside>`;
@@ -5566,8 +5566,9 @@ END_CASE;`)}
     print: () => doPrint(sketchPage(ED.scope, ED.key, true)),
     close: () => $("#editor").close()
   };
+  var LEEREN_FRAGE = "Die ganze Skizze löschen? Das Schriftfeld bleibt, Rückgängig holt die Skizze zurück.";
   function alleLeeren() {
-    if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
+    if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm(LEEREN_FRAGE)) return;
     clearSel();
     aendere((d) => ({ s: [], t: [], o: [], c: [], ...d.meta ? { meta: d.meta } : {} }));
   }

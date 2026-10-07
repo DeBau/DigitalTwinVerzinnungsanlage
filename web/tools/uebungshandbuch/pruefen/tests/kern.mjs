@@ -288,4 +288,27 @@ export const tests = [
       t.gleich(await fehler('#edstage'), [], 'Editor');
     },
   },
+  /* ---------- K18 Texte ---------- */
+  {
+    name: 'K18 Kern-Texte in Du-Form, ohne Gedankenstrich und ohne feste Übungsnummer',
+    lauf: async (t) => {
+      const pruefe = (text, wo) => {
+        t.erwarte(!/ – |—/.test(text), `${wo}: Gedankenstrich in „${text}“`);
+        t.erwarte(!/\b(Sie|Ihre?n?)\b/.test(text), `${wo}: Sie-Form in „${text}“`);
+      };
+      await t.oeffne('grafcet');
+      // Palettenhilfe des Kerns; der erste Absatz ist der Hinweis der Gruppe (Vorlage)
+      const hilfe = await t.page.locator('#editor .palhelp p').evaluateAll((ps) => ps.slice(1).map((p) => p.textContent).join(' '));
+      pruefe(hilfe, 'Palettenhilfe');
+      pruefe(await t.text('#editor .edbar .ttl'), 'Titel');
+      await t.knopf('take');
+      const menu = await t.text('#editor .takemenu');
+      pruefe(menu, 'Menü Aus früherer Übung');
+      t.erwarte(!/\bL\d\d\b/.test(menu), 'Menü ohne feste Übungsnummer');
+      await t.taste('Escape');
+      await t.setze('init', 200, 150);
+      const ph = await t.page.locator('#edstage .txtin').getAttribute('placeholder').catch(() => '');
+      pruefe(ph || '', 'Beschriftungsfeld');
+    },
+  },
 ];
