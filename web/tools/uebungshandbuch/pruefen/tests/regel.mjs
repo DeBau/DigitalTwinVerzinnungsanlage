@@ -132,4 +132,20 @@ export const tests = [
       t.gleich(await t.page.inputValue('#editor [data-tr="b1"]'), '80', 'Feld nach erneutem Öffnen');
     },
   },
+  {
+    name: 'T2 Kästchenraster im Druck echt 5 mm',
+    lauf: async (t) => {
+      await t.oeffne('raster');
+      await t.drucke();
+      // Druckbereich A4 quer mit 8 mm Rand: 281 × 194 mm bei 96 px je Zoll
+      await t.page.setViewportSize({width: Math.round(281 / 25.4 * 96), height: Math.round(194 / 25.4 * 96)});
+      await t.page.emulateMedia({media: 'print'});
+      const mm = await t.page.evaluate(() => {
+        const svg = document.querySelector('#print svg'), d = svg.querySelector('.tpl path').getAttribute('d');
+        const xs = [...d.matchAll(/M([\d.]+) 15V/g)].map((m) => +m[1]);
+        return (xs[1] - xs[0]) * svg.getScreenCTM().a * 25.4 / 96;
+      });
+      t.erwarte(Math.abs(mm - 5) < 0.05, `Kästchen im Druck ${mm.toFixed(2)} mm statt 5 mm`);
+    },
+  },
 ];
