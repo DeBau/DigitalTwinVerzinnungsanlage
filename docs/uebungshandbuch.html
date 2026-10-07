@@ -2278,9 +2278,17 @@ pre.code code{font-size:inherit}
     const v = vorlage(ED.key);
     return v.pruefe ? v.pruefe(ED.data, { scope: ED.scope, key: ED.key }) : [];
   }
-  function befundSVG(b, i) {
+  function freieStelle(x, y, belegt) {
+    while (belegt.some(([bx, by]) => Math.abs(bx - x) < 14 && Math.abs(by - y) < 14)) y += 14;
+    belegt.push([x, y]);
+    return [x, y];
+  }
+  function befundSVG(b, i, belegt = []) {
     const o = b.o && objById(b.o), weg = b.c !== void 0 && ED.svg.querySelector(`.ink [data-c="${b.c}"] path`);
-    const nr = (x2, y2) => SVGT(x2, y2, String(i + 1), "middle", 11, 700, ROT);
+    const nr = (x2, y2) => {
+      const [fx, fy] = freieStelle(x2, y2, belegt);
+      return SVGT(fx, fy, String(i + 1), "middle", 11, 700, ROT);
+    };
     if (o) {
       const r = umrissVon(o);
       return `<rect x="${r.x - 7}" y="${r.y - 7}" width="${r.w + 14}" height="${r.h + 14}" rx="5" fill="none" stroke="${ROT}" stroke-width="2"/>` + nr(r.x - 12, r.y - 10);
@@ -2311,7 +2319,8 @@ pre.code code{font-size:inherit}
   function zeigeBefunde(liste) {
     befunde = liste;
     if (!ED.svg) return;
-    befundEbene().innerHTML = liste.map(befundSVG).join("");
+    const belegt = [];
+    befundEbene().innerHTML = liste.map((b, i) => befundSVG(b, i, belegt)).join("");
     const el = $("#props");
     if (el) el.innerHTML = befundListe(liste);
   }
