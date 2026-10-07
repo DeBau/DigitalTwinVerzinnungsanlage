@@ -9,7 +9,8 @@ import { richtung } from './zustand.js';
 
 export const STRECKE = {t1: 10, totzeit: 1, ks: 1};     // Zeitkonstante und Totzeit in s, Verstärkung
 export const LAUF = {dauer: 60, dt: 0.05, sprungBei: 5, wVor: 20, wNach: 60, hysterese: 2,
-  ruhe: 15};   // Zeiten in s, Werte in %; ruhe: so lange muss x am Ende ruhig sein
+  ruhe: 15, laengstens: 300, mehr: 30};   // Zeiten in s, Werte in %; ruhe: so lange muss x am Ende ruhig sein
+// laengstens, mehr: Der PI-Regler rechnet in Schritten von mehr Sekunden weiter, bis x eingeschwungen ist
 export const SIM_REGLER = [["P", "P-Regler"], ["PI", "PI-Regler"], ["2P", "Zweipunktregler"]];
 // Regler aus der Zeichnung übernehmen (PID rechnet hier wie PI), sonst PI
 export function startRegler(d){
@@ -27,22 +28,36 @@ export const STELLGROESSE = {
   PI: (e, s, z) => { z.i += e * LAUF.dt; return aufProzent(s.kp * (e + z.i / s.tn)); },
   "2P": (e, s, z) => e > LAUF.hysterese ? 100 : e < -LAUF.hysterese ? 0 : z.y,
 };
-// Verlauf [{t, w, x, y}] für die Einstellungen sim
+// Verlauf [{t, w, x, y}] für die Einstellungen sim. Der PI-Regler rechnet weiter, bis x eingeschwungen ist.
 export function simuliere(sim){
-  const s = {kp: zahlAus(sim.kp, 1), tn: zahlAus(sim.tn, 10)}, z = {i: 0, y: 0}, verzug = [], punkte = [];
-  // Start im Gleichgewicht: Der P-Regler hält x schon vor dem Sprung etwas unter w (bleibende Regeldifferenz)
-  const v = s.kp * STRECKE.ks;
-  let x = sim.regler === "P" ? LAUF.wVor * v / (1 + v) : LAUF.wVor;
-  z.y = x / STRECKE.ks; z.i = sim.regler === "PI" ? z.y / s.kp * s.tn : 0;
-  for (let t = 0; t <= LAUF.dauer; t += LAUF.dt) {
-    const w = t < LAUF.sprungBei ? LAUF.wVor : LAUF.wNach;
-    z.y = STELLGROESSE[sim.regler](w - x, s, z);
-    verzug.push(z.y);
-    const yVerzoegert = verzug.length > STRECKE.totzeit / LAUF.dt ? verzug.shift() : verzug[0];
-    x += (STRECKE.ks * yVerzoegert - x) * LAUF.dt / STRECKE.t1;
-    punkte.push({t, w, x, y: z.y});
+  const lauf = neuerLauf(sim);
+  rechneBis(lauf, LAUF.dauer);
+  while (sim.regler === "PI" && !eingeschwungen(lauf.punkte) && lauf.i * LAUF.dt < LAUF.laengstens) {
+    rechneBis(lauf, lauf.i * LAUF.dt + LAUF.mehr);
   }
-  return punkte;
+  return lauf.punkte;
+}
+// Start im Gleichgewicht: Der P-Regler hält x schon vor dem Sprung etwas unter w (bleibende Regeldifferenz)
+export function neuerLauf(sim){
+  const s = {kp: zahlAus(sim.kp, 1), tn: zahlAus(sim.tn, 10)}, v = s.kp * STRECKE.ks;
+  const x = sim.regler === "P" ? LAUF.wVor * v / (1 + v) : LAUF.wVor, y = x / STRECKE.ks;
+  return {regler: sim.regler, s, x, z: {y, i: sim.regler === "PI" ? y / s.kp * s.tn : 0}, verzug: [], punkte: [], i: 0};
+}
+// Schritte des Laufs l bis zur Zeit ende in s
+export function rechneBis(l, ende){
+  for (; l.i * LAUF.dt <= ende + 1e-9; l.i++) {
+    const t = l.i * LAUF.dt, w = t < LAUF.sprungBei ? LAUF.wVor : LAUF.wNach;
+    l.z.y = STELLGROESSE[l.regler](w - l.x, l.s, l.z);
+    l.verzug.push(l.z.y);
+    const yVerzoegert = l.verzug.length > STRECKE.totzeit / LAUF.dt ? l.verzug.shift() : l.verzug[0];
+    l.x += (STRECKE.ks * yVerzoegert - l.x) * LAUF.dt / STRECKE.t1;
+    l.punkte.push({t, w, x: l.x, y: l.z.y});
+  }
+}
+// x ist eingeschwungen: am Ende bei w und in den letzten LAUF.ruhe Sekunden ruhig
+export function eingeschwungen(p){
+  const xs = p.slice(-Math.round(LAUF.ruhe / LAUF.dt)).map(q => q.x), ende = p[p.length - 1];
+  return Math.abs(ende.w - ende.x) < 0.5 && Math.max(...xs) - Math.min(...xs) < 0.5;
 }
 // Schwingt x am Ende dauernd? In den letzten LAUF.ruhe Sekunden schwankt x um mehr als 1 % und kehrt dabei
 // mindestens zweimal um (ein langsames Ansteigen ist kein Schwingen).
@@ -52,39 +67,47 @@ export function schwingtDauernd(p){
   const wenden = richtung.slice(1).filter((r, i) => r !== richtung[i]).length;
   return Math.max(...xs) - Math.min(...xs) > 1 && wenden >= 2;
 }
-export const prozent = v => v.toFixed(1).replace(".", ",") + " %";
+// Zahl in % mit Komma und echtem Minuszeichen (U+2212)
+export const prozent = v => (v.toFixed(1) === "-0.0" ? "0.0" : v.toFixed(1)).replace(".", ",").replace("-", "−") + " %";
 export const ZU_STARK = {P: "Kp ist zu groß.", PI: "Kp ist zu groß oder Tn zu klein."};
 // Kurzer Satz zum Ergebnis: Dauerschwingung, bleibende Regeldifferenz, Überschwingen über den Endwert
 export function ergebnisText(sim, p){
   const ende = p[p.length - 1], e = ende.w - ende.x, ueber = Math.max(...p.map(q => q.x)) - ende.x;
   if (sim.regler === "2P") return `Der Regler schaltet ganz ein und ganz aus. x pendelt um w, bis ${prozent(Math.max(0, ueber - e))} darüber.`;
   if (schwingtDauernd(p)) return `x schwingt dauernd und kommt nicht zur Ruhe. ${ZU_STARK[sim.regler]}`;
-  const rest = Math.abs(e) < 0.5 ? "Die Regeldifferenz ist am Ende weg." : `Am Ende bleibt eine Regeldifferenz von ${prozent(e)}.`;
-  return rest + (ueber > 0.5 ? ` x schwingt ${prozent(ueber)} über den Endwert hinaus.` : " x schwingt nicht über.");
+  return restText(sim, e, ende.t) + (ueber > 0.5 ? ` x schwingt ${prozent(ueber)} über den Endwert hinaus.` : " x schwingt nicht über.");
+}
+
+// Regeldifferenz am Ende: weg, beim PI-Regler noch nicht fertig, beim P-Regler bleibend
+export function restText(sim, e, t){
+  if (Math.abs(e) < 0.5) return `Die Regeldifferenz ist am Ende weg (nach ${Math.round(t)} s).`;
+  if (sim.regler === "PI") return `Nach ${Math.round(t)} s fehlen noch ${prozent(e)}, der I-Anteil regelt weiter.`;
+  return `Am Ende bleibt eine Regeldifferenz von ${prozent(e)}.`;
 }
 
 /* ---------- Zeichnen ---------- */
 export const BILD = {b: 260, h: 160, x0: 40, x1: 252, y0: 12, y1: 135};
-export const bildX = t => BILD.x0 + (BILD.x1 - BILD.x0) * t / LAUF.dauer;
+export const bildX = (t, dauer) => BILD.x0 + (BILD.x1 - BILD.x0) * t / dauer;
 export const bildY = v => BILD.y1 - (BILD.y1 - BILD.y0) * v / 100;
 export function simLinie(p, f, farbe){
-  const d = "M" + p.filter((q, i) => i % 4 === 0).map(q => `${bildX(q.t).toFixed(1)} ${bildY(q[f]).toFixed(1)}`).join("L");
+  const jeder = Math.ceil(p.length / 300), dauer = p[p.length - 1].t;   // höchstens etwa 300 Punkte je Linie
+  const d = "M" + p.filter((q, i) => i % jeder === 0).map(q => `${bildX(q.t, dauer).toFixed(1)} ${bildY(q[f]).toFixed(1)}`).join("L");
   return `<path class="rk-linie" d="${d}" pathLength="1" fill="none" stroke="${farbe}" stroke-width="1.6"/>`;
 }
 // Zeichnet die Linien einmal von links nach rechts (ohne Bewegung, wenn der Rechner das so eingestellt hat)
 export const ANIMATION = `<style>.rk-linie{stroke-dasharray:1;animation:rk-zeichnen 1.6s linear}`
   + `@keyframes rk-zeichnen{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}`
   + `@media (prefers-reduced-motion:reduce){.rk-linie{animation:none}}</style>`;
-export function achsenBild(){
+export function achsenBild(dauer){
   const t = (x, y, s, a = "end") => `<text x="${x}" y="${y}" font-size="10" text-anchor="${a}" fill="#666">${s}</text>`;
   return `<path d="M${BILD.x0} ${BILD.y0}V${BILD.y1}H${BILD.x1}" stroke="#9AA4AD" fill="none"/>`
     + t(BILD.x0 - 4, BILD.y1 + 3, "0") + t(BILD.x0 - 4, BILD.y0 + 6, "100 %")
-    + t(BILD.x1, BILD.y1 + 13, `t in s (bis ${LAUF.dauer})`) + t(BILD.x0, BILD.y1 + 13, "0", "middle");
+    + t(BILD.x1, BILD.y1 + 13, `t in s (bis ${Math.round(dauer)})`) + t(BILD.x0, BILD.y1 + 13, "0", "middle");
 }
 export function verlaufSVG(sim){
-  const p = sim.gestartet ? simuliere(sim) : [];
+  const p = sim.gestartet ? simuliere(sim) : [], dauer = p.length ? p[p.length - 1].t : LAUF.dauer;
   const linien = p.length ? simLinie(p, "w", FARBEN[1][0]) + simLinie(p, "y", FARBEN[2][0]) + simLinie(p, "x", FARBEN[0][0]) : "";
-  return `<svg viewBox="0 0 ${BILD.b} ${BILD.h}" role="img" aria-label="Verlauf von w, x und y">${ANIMATION}${achsenBild()}`
+  return `<svg viewBox="0 0 ${BILD.b} ${BILD.h}" role="img" aria-label="Verlauf von w, x und y">${ANIMATION}${achsenBild(dauer)}`
     + `${linien}</svg>`;
 }
 export const LEGENDE_SIM = `<p class="small" style="margin:4px 0 8px">`

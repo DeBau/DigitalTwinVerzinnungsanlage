@@ -214,6 +214,12 @@ export const tests = [
       await t.klick('#editor [data-rk="sprung"]');
       t.gleich(await t.zaehle('#props #rk-sim-bild .rk-linie'), 3, 'w, x und y nach dem Sollwertsprung');
       t.erwarte((await t.text('#rk-sim-text')).includes('Regeldifferenz ist am Ende weg'), 'PI regelt aus');
+      await t.page.fill('#props input[data-rks="tn"]', '30'); await t.ruhe();
+      const tn30 = await t.text('#rk-sim-text');
+      t.erwarte(tn30.includes('am Ende weg (nach 150 s)'), `PI mit Tn 30 rechnet bis zum Einschwingen: ${tn30}`);
+      t.erwarte((await t.text('#rk-sim-bild')).includes('bis 150'), 'Zeitachse bis 150 s');
+      await t.page.fill('#props input[data-rks="kp"]', '1'); await t.page.fill('#props input[data-rks="tn"]', '100'); await t.ruhe();
+      t.erwarte((await t.text('#rk-sim-text')).includes('der I-Anteil regelt weiter'), 'PI ist nach 300 s noch nicht fertig');
       await t.page.selectOption('#props select[data-rks="regler"]', 'P'); await t.ruhe();
       const vorher = await t.text('#rk-sim-text');
       t.erwarte(vorher.includes('bleibt eine Regeldifferenz'), `P lässt eine Regeldifferenz: ${vorher}`);
