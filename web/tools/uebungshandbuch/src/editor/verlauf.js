@@ -15,6 +15,15 @@ export function ablegen(stand){
   ED.hist.push(stand);
   if (ED.hist.length > 80) ED.hist.shift();
   ED.zukunft = [];
+  verlaufKnoepfe();
+}
+// Knöpfe Rückgängig und Wiederholen passend zu den Stapeln (aria-disabled, bleiben fokussierbar)
+export function verlaufKnoepfe(){
+  const aus = {undo: !ED.hist.length && !ED.tx, redo: !ED.zukunft.length};   // offene Transaktion: schon geändert
+  for (const [ed, inaktiv] of Object.entries(aus)) {
+    const b = document.querySelector(`#editor [data-ed="${ed}"]`);
+    if (b) b.setAttribute("aria-disabled", inaktiv);
+  }
 }
 // Übergang: Stand merken, auch wenn danach nichts geändert wird. Neue Aufrufer nehmen aendere().
 export function snapshot(){ ablegen(JSON.stringify(ED.data)); }
@@ -32,6 +41,7 @@ export function aendere(aenderung, {ohneRender = false} = {}){
   saveSketch();
   if (JSON.stringify(ED.data.meta) !== metaVorher) refreshTpl();
   if (!ohneRender) renderInk();
+  if (ED.tx) verlaufKnoepfe();
   return true;
 }
 // Transaktion für Ziehen und Tippen: alle aendere() bis schliesse() ergeben einen Verlaufsschritt.
@@ -62,7 +72,7 @@ export function holeStand(von, nach){
   if (!von.length) return;
   nach.push(JSON.stringify(ED.data));
   ED.data = JSON.parse(von.pop());
-  befundeWeg(); clearSel(); saveSketch(); refreshTpl(); renderInk();
+  befundeWeg(); clearSel(); saveSketch(); refreshTpl(); renderInk(); verlaufKnoepfe();
 }
 export const undo = () => holeStand(ED.hist, ED.zukunft);
 export const redo = () => holeStand(ED.zukunft, ED.hist);

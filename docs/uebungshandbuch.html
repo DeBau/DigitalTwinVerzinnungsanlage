@@ -287,6 +287,7 @@ dialog.editor{max-width:none;width:calc(100vw - 24px);height:calc(100vh - 24px);
 .takemenu button span{font-size:12px;color:var(--muted,#7a8691)}
 .takemenu p{margin:6px 6px 2px;font-size:12px;color:var(--muted,#7a8691);line-height:1.4}
 .tool{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:6px 10px;cursor:pointer;font-size:13.5px}
+.tool[aria-disabled=true]{opacity:.45;cursor:default}
 .tool[aria-pressed=true]{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
 .tool .dot{width:12px;height:12px;border-radius:50%}
 .edstage{background:var(--sunk);padding:14px;overflow:auto;position:relative}
@@ -2323,6 +2324,14 @@ pre.code code{font-size:inherit}
     ED.hist.push(stand);
     if (ED.hist.length > 80) ED.hist.shift();
     ED.zukunft = [];
+    verlaufKnoepfe();
+  }
+  function verlaufKnoepfe() {
+    const aus = { undo: !ED.hist.length && !ED.tx, redo: !ED.zukunft.length };
+    for (const [ed, inaktiv] of Object.entries(aus)) {
+      const b = document.querySelector(`#editor [data-ed="${ed}"]`);
+      if (b) b.setAttribute("aria-disabled", inaktiv);
+    }
   }
   function snapshot() {
     ablegen(JSON.stringify(ED.data));
@@ -2337,6 +2346,7 @@ pre.code code{font-size:inherit}
     saveSketch();
     if (JSON.stringify(ED.data.meta) !== metaVorher) refreshTpl();
     if (!ohneRender) renderInk();
+    if (ED.tx) verlaufKnoepfe();
     return true;
   }
   function beginne(schluessel) {
@@ -2373,6 +2383,7 @@ pre.code code{font-size:inherit}
     saveSketch();
     refreshTpl();
     renderInk();
+    verlaufKnoepfe();
   }
   var undo = () => holeStand(ED.hist, ED.zukunft);
   var redo = () => holeStand(ED.zukunft, ED.hist);
@@ -3119,8 +3130,8 @@ pre.code code{font-size:inherit}
   var staerkeKnopf = ([w, n]) => `<button type="button" class="tool" data-w="${w}">${n}</button>`;
   var KOPIEREN = `<span class="takewrap">` + aktionsKnopf("take", IC.copy + "Aus früherer Übung", ` aria-haspopup="true"` + titelAttr("Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren")) + `</span>`;
   var VERLAUFSKNOEPFE = [
-    aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z")),
-    aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y") + " disabled"),
+    aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z") + ` aria-disabled="true"`),
+    aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y oder Strg+Umschalt+Z") + ` aria-disabled="true"`),
     aktionsKnopf("del", IC.trash + "Markiertes löschen", titelAttr("Entf")),
     aktionsKnopf("clear", "Alles leeren")
   ];
@@ -5558,6 +5569,7 @@ END_CASE;`)}
     const dx = { ArrowLeft: -10, ArrowRight: 10 }[key] || 0, dy = { ArrowUp: -10, ArrowDown: 10 }[key] || 0;
     VERSCHIEBE[ED.markiert.art](markiertesElement(), dx, dy);
   }
+  var VERLAUFSTASTEN = { z: () => undo(), y: () => redo(), "Umschalt+z": () => redo() };
   function taste(e) {
     if (e.target.matches("input,select,textarea")) {
       if (!signalTaste(e)) tasteImFeld(e);
@@ -5569,9 +5581,10 @@ END_CASE;`)}
       beschrifteMarkiertes();
       return;
     }
-    if (strg && e.key.toLowerCase() === "z") {
+    const verlauf = strg && VERLAUFSTASTEN[(e.shiftKey ? "Umschalt+" : "") + e.key.toLowerCase()];
+    if (verlauf) {
       e.preventDefault();
-      undo();
+      verlauf();
       return;
     }
     if (strg && e.key.toLowerCase() === "a") {

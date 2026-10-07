@@ -12,7 +12,7 @@ import { mitListen } from './verlauf.js';
 import { setTool } from './werkzeuge.js';
 import { zeigerBewegen, zeigerLoslassen, zeigerUnten } from './zeiger.js';
 
-// Bild für Wiederholen: gespiegeltes Rückgängig (IC.undo). Der Knopf bleibt aus, bis KERN K2 ihn schaltet.
+// Bild für Wiederholen: gespiegeltes Rückgängig (IC.undo). verlaufKnoepfe (verlauf.js) schaltet beide Knöpfe.
 export const IC_REDO = '<svg class="ic" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>';
 // Knopf „Prüfen“ nur für Vorlagen mit dem Haken pruefe (pruefung.js)
 export const PRUEFKNOPF = key => hatPruefung(key)
@@ -53,8 +53,8 @@ export const KOPIEREN = `<span class="takewrap">`
   + aktionsKnopf("take", IC.copy + "Aus früherer Übung", ` aria-haspopup="true"`
     + titelAttr("Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren")) + `</span>`;
 export const VERLAUFSKNOEPFE = [
-  aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z")),
-  aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y") + " disabled"),
+  aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z") + ` aria-disabled="true"`),
+  aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y oder Strg+Umschalt+Z") + ` aria-disabled="true"`),
   aktionsKnopf("del", IC.trash + "Markiertes löschen", titelAttr("Entf")),
   aktionsKnopf("clear", "Alles leeren"),
 ];

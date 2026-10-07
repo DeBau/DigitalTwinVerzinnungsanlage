@@ -106,4 +106,27 @@ export const tests = [
       t.gleich(await lage(t), vorher, 'ein Strg+Z stellt die Lage wieder her');
     },
   },
+  /* ---------- K2 Wiederholen ---------- */
+  {
+    name: 'K2 Strg+Y und Strg+Umschalt+Z wiederholen, Knöpfe passend aktiv',
+    lauf: async (t) => {
+      const aus = async (ed) => t.page.locator(`#editor [data-ed="${ed}"]`).getAttribute('aria-disabled');
+      await t.oeffne('grafcet');
+      t.gleich([await aus('undo'), await aus('redo')], ['true', 'true'], 'frisch geöffnet beide aus');
+      await anfangsschritt(t);
+      t.gleich([await aus('undo'), await aus('redo')], ['false', 'true'], 'nach Setzen nur Rückgängig');
+      await t.taste('Control+z');
+      t.gleich([await aus('undo'), await aus('redo')], ['true', 'false'], 'nach Rückgängig nur Wiederholen');
+      await t.taste('Control+y');
+      t.gleich((await t.objekte()).length, 1, 'Strg+Y holt den Schritt zurück');
+      await t.taste('Control+z');
+      await t.taste('Control+Shift+Z');
+      t.gleich((await t.objekte()).length, 1, 'Strg+Umschalt+Z holt den Schritt zurück');
+      await t.taste('Control+z');
+      await t.knopf('redo');
+      t.gleich((await t.objekte()).length, 1, 'Knopf Wiederholen');
+      await t.setze('init', 500, 150);
+      t.gleich(await aus('redo'), 'true', 'neue Änderung leert Wiederholen');
+    },
+  },
 ];

@@ -144,11 +144,14 @@ export function verschiebeMarkiertes(key){
   const dx = {ArrowLeft: -10, ArrowRight: 10}[key] || 0, dy = {ArrowUp: -10, ArrowDown: 10}[key] || 0;
   VERSCHIEBE[ED.markiert.art](markiertesElement(), dx, dy);
 }
+// Strg+Z nimmt zurück, Strg+Y und Strg+Umschalt+Z wiederholen
+export const VERLAUFSTASTEN = {z: () => undo(), y: () => redo(), "Umschalt+z": () => redo()};
 export function taste(e){
   if (e.target.matches("input,select,textarea")) { if (!signalTaste(e)) tasteImFeld(e); return; }
   const strg = e.ctrlKey || e.metaKey;
   if ((e.key === "Enter" || e.key === "F2") && anySel() && ED.markiert.art !== "f") { e.preventDefault(); beschrifteMarkiertes(); return; }
-  if (strg && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
+  const verlauf = strg && VERLAUFSTASTEN[(e.shiftKey ? "Umschalt+" : "") + e.key.toLowerCase()];
+  if (verlauf) { e.preventDefault(); verlauf(); return; }
   if (strg && e.key.toLowerCase() === "a") { e.preventDefault(); return; }
   const dreh = {r: "rot", m: "flip"}[e.key.toLowerCase()];   // Taste R dreht, M spiegelt
   if (!strg && !e.altKey && markiertId("o") && dreh) { e.preventDefault(); turnSel(dreh); return; }
