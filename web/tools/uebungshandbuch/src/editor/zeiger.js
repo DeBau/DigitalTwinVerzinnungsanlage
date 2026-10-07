@@ -229,9 +229,24 @@ export function zeigerLoslassen(e){
   }
   const neu = ED.strich;
   ED.strich = null;
+  if (!neu.k) neu.p = vereinfache(neu.p);   // Freihand: weniger Punkte, ganze Zahlen (spart Speicher)
   aendere(d => { d.s.push(neu); }, {ohneRender: true});
   if (zeiger.gezogen && zeiger.gezogen(neu)) return;   // Haken zeiger.gezogen
   renderInk();
+}
+// Freihandstrich vereinfachen (Ramer-Douglas-Peucker, Abweichung höchstens eps), Punkte auf ganze Zahlen runden
+export function vereinfache(p, eps = 1){
+  const rund = rdp(p, eps).map(([x, y]) => [Math.round(x), Math.round(y)]);
+  return rund.filter((q, i) => !i || q[0] !== rund[i-1][0] || q[1] !== rund[i-1][1]);
+}
+export function rdp(p, eps){
+  if (p.length < 3) return p;
+  const [a, b] = [p[0], p[p.length - 1]], dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy);
+  const abstand = q => len ? Math.abs(dy * (q[0] - a[0]) - dx * (q[1] - a[1])) / len : Math.hypot(q[0] - a[0], q[1] - a[1]);
+  let iMax = 0, dMax = 0;
+  for (let i = 1; i < p.length - 1; i++) { const d = abstand(p[i]); if (d > dMax) { dMax = d; iMax = i; } }
+  if (dMax <= eps) return [a, b];
+  return [...rdp(p.slice(0, iMax + 1), eps).slice(0, -1), ...rdp(p.slice(iMax), eps)];
 }
 export function ziehenEnde(){
   const dk = ED.drag.dock;

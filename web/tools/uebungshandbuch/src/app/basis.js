@@ -6,7 +6,14 @@ export const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 export const BY = Object.fromEntries(SHEETS.map(s => [s.id, s]));
 export const S = {
   get(k, d=null){ try { const v = localStorage.getItem("uebh2:"+k); return v === null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v){ try { if (v === null || v === undefined || v === "" || v === false) localStorage.removeItem("uebh2:"+k); else localStorage.setItem("uebh2:"+k, JSON.stringify(v)); } catch {} },
+  // Speichern; false, wenn der Browser-Speicher voll oder gesperrt ist
+  set(k, v){
+    try {
+      if (v === null || v === undefined || v === "" || v === false) localStorage.removeItem("uebh2:"+k);
+      else localStorage.setItem("uebh2:"+k, JSON.stringify(v));
+      return true;
+    } catch { return false; }
+  },
   all(){ const o = {}; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith("uebh2:")) o[k.slice(6)] = JSON.parse(localStorage.getItem(k)); } } catch {} return o; }
 };
 export const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");

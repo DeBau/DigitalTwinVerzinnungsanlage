@@ -148,6 +148,9 @@ export const tests = [
       await t.taste('Escape');
       await t.taste('Escape');
       t.gleich(await offen(), 1, 'nach Esc im Feld offen');
+      await t.knopf('take');
+      await t.taste('Escape');
+      t.gleich([await offen(), await t.zaehle('#editor .takemenu')], [1, 0], 'Esc schließt nur das Menü');
       await t.knopf('close');
       t.gleich(await offen(), 0, 'Fertig schließt');
     },
@@ -200,6 +203,38 @@ export const tests = [
       t.gleich(await t.zaehle('#edstage .ink path'), 0, 'kein Strich auf dem Blatt');
       await t.ziehe([300, 400], [500, 450]);
       t.gleich(((await t.daten()) || {s: []}).s.length, 1, 'danach malt ein Finger wieder');
+    },
+  },
+  /* ---------- K7 Speicher ---------- */
+  {
+    name: 'K7 Freihandstrich vereinfacht und ganzzahlig',
+    lauf: async (t) => {
+      await t.oeffne('trend');
+      await t.werkzeug('pen');
+      await t.ziehe([200, 300], [700, 300], 40);
+      const [st] = (await t.daten()).s;
+      t.erwarte(st.p.length <= 3, `gerader Strich mit wenigen Punkten (${st.p.length})`);
+      t.erwarte(st.p.flat().every(Number.isInteger), 'nur ganze Zahlen');
+    },
+  },
+  {
+    name: 'K7 voller Speicher zeigt eine Warnung',
+    lauf: async (t) => {
+      await t.oeffne('trend');
+      await t.page.evaluate(() => {
+        const alt = Storage.prototype.setItem;
+        Storage.prototype.setItem = function (k, v) {
+          if (k.includes(':sk:') && !window.__frei) throw new DOMException('voll', 'QuotaExceededError');
+          return alt.call(this, k, v);
+        };
+      });
+      await t.werkzeug('pen');
+      await t.ziehe([200, 300], [500, 400]);
+      t.erwarte(await t.page.locator('#edwarn').isVisible(), 'Warnung sichtbar');
+      t.erwarte((await t.text('#edwarn')).startsWith('Speicher voll'), 'Warntext');
+      await t.page.evaluate(() => { window.__frei = true; });
+      await t.ziehe([200, 450], [500, 500]);
+      t.erwarte(!(await t.page.locator('#edwarn').isVisible()), 'Warnung weg, wenn das Speichern wieder klappt');
     },
   },
 ];

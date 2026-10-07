@@ -275,7 +275,9 @@ dialog::backdrop{background:rgba(10,20,30,.55)}
 
 /* Skizzen-Editor */
 dialog.editor{max-width:none;width:calc(100vw - 24px);height:calc(100vh - 24px);max-height:none}
-.ed{display:grid;grid-template-rows:auto minmax(0,1fr);height:100%}
+.ed{display:grid;grid-template-rows:auto minmax(0,1fr);height:100%;position:relative}
+.edwarn{position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:30;max-width:min(560px,90%);padding:10px 14px;border:2px solid #C0392B;border-radius:9px;background:#FDECEA;color:#7B1E14;font-size:13.5px;line-height:1.4;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.edwarn[hidden]{display:none}
 .edbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
 .edbar .ttl{font:600 16px var(--cond);margin-right:10px}
 .edbar .sep{width:1px;height:26px;background:var(--line);margin:0 6px}
@@ -1004,11 +1006,14 @@ pre.code code{font-size:inherit}
         return d;
       }
     },
+    // Speichern; false, wenn der Browser-Speicher voll oder gesperrt ist
     set(k, v) {
       try {
         if (v === null || v === void 0 || v === "" || v === false) localStorage.removeItem("uebh2:" + k);
         else localStorage.setItem("uebh2:" + k, JSON.stringify(v));
+        return true;
       } catch {
+        return false;
       }
     },
     all() {
@@ -2381,7 +2386,25 @@ pre.code code{font-size:inherit}
   function saveSketch() {
     const d = ED.data;
     d.ts = Date.now();
-    S.set(skKey(ED.scope, ED.key), d.s.length || d.t.length || d.o.length || d.meta ? d : null);
+    speicherWarnung(!S.set(skKey(ED.scope, ED.key), d.s.length || d.t.length || d.o.length || d.meta ? d : null));
+  }
+  var SPEICHER_VOLL = "Speicher voll: Die Zeichnung ist gerade nicht gespeichert. Lösche Zeichnungen, die du nicht mehr brauchst, oder drucke diese aus, bevor du den Editor schließt.";
+  function speicherWarnung(an) {
+    let w = document.getElementById("edwarn");
+    if (!an) {
+      if (w) w.hidden = true;
+      return;
+    }
+    const ed = document.querySelector("#editor .ed");
+    if (!w && ed) {
+      w = document.createElement("div");
+      w.id = "edwarn";
+      w.className = "edwarn";
+      w.setAttribute("role", "alert");
+      w.textContent = SPEICHER_VOLL;
+      ed.appendChild(w);
+    }
+    if (w) w.hidden = false;
   }
   function holeStand(von, nach) {
     schliesse();
@@ -3105,11 +3128,31 @@ pre.code code{font-size:inherit}
     }
     const neu = ED.strich;
     ED.strich = null;
+    if (!neu.k) neu.p = vereinfache(neu.p);
     aendere((d) => {
       d.s.push(neu);
     }, { ohneRender: true });
     if (zeiger.gezogen && zeiger.gezogen(neu)) return;
     renderInk();
+  }
+  function vereinfache(p, eps = 1) {
+    const rund2 = rdp(p, eps).map(([x, y]) => [Math.round(x), Math.round(y)]);
+    return rund2.filter((q, i) => !i || q[0] !== rund2[i - 1][0] || q[1] !== rund2[i - 1][1]);
+  }
+  function rdp(p, eps) {
+    if (p.length < 3) return p;
+    const [a, b] = [p[0], p[p.length - 1]], dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy);
+    const abstand = (q) => len ? Math.abs(dy * (q[0] - a[0]) - dx * (q[1] - a[1])) / len : Math.hypot(q[0] - a[0], q[1] - a[1]);
+    let iMax = 0, dMax = 0;
+    for (let i = 1; i < p.length - 1; i++) {
+      const d = abstand(p[i]);
+      if (d > dMax) {
+        dMax = d;
+        iMax = i;
+      }
+    }
+    if (dMax <= eps) return [a, b];
+    return [...rdp(p.slice(0, iMax + 1), eps).slice(0, -1), ...rdp(p.slice(iMax), eps)];
   }
   function ziehenEnde() {
     const dk = ED.drag.dock;
@@ -5588,6 +5631,11 @@ END_CASE;`)}
   }
   function abbrechen(e) {
     if (!ED.svg) return false;
+    const menu = $("#editor .takemenu");
+    if (menu) {
+      menu.remove();
+      return true;
+    }
     if (ED.vorlage.angefangen) {
       e.preventDefault();
       ED.vorlage.angefangen = null;

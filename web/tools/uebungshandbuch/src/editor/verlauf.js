@@ -68,11 +68,26 @@ export const kannUndo = () => ED.hist.length > 0;
 export const kannRedo = () => ED.zukunft.length > 0;
 // Fehlende Listen einer geladenen Zeichnung anlegen
 export const mitListen = d => { d.s ||= []; d.t ||= []; d.o ||= []; d.c ||= []; return d; };
-// Zeichnung unter uebh2:<scope>:sk:<key> speichern; eine leere Zeichnung löscht den Eintrag
+// Zeichnung unter uebh2:<scope>:sk:<key> speichern; eine leere Zeichnung löscht den Eintrag.
+// Ist der Speicher voll, erscheint die Warnung #edwarn, bis das Speichern wieder klappt.
 export function saveSketch(){
   const d = ED.data;
   d.ts = Date.now();
-  S.set(skKey(ED.scope, ED.key), (d.s.length || d.t.length || d.o.length || d.meta) ? d : null);
+  speicherWarnung(!S.set(skKey(ED.scope, ED.key), (d.s.length || d.t.length || d.o.length || d.meta) ? d : null));
+}
+export const SPEICHER_VOLL = "Speicher voll: Die Zeichnung ist gerade nicht gespeichert. Lösche Zeichnungen, die du nicht mehr "
+  + "brauchst, oder drucke diese aus, bevor du den Editor schließt.";
+// Warnung über dem Blatt; sie entsteht erst, wenn das Speichern scheitert
+export function speicherWarnung(an){
+  let w = document.getElementById("edwarn");
+  if (!an) { if (w) w.hidden = true; return; }
+  const ed = document.querySelector("#editor .ed");
+  if (!w && ed) {
+    w = document.createElement("div");
+    w.id = "edwarn"; w.className = "edwarn"; w.setAttribute("role", "alert"); w.textContent = SPEICHER_VOLL;
+    ed.appendChild(w);
+  }
+  if (w) w.hidden = false;
 }
 // Stand aus von holen, den aktuellen nach nach legen (Rückgängig: hist → zukunft, Wiederholen umgekehrt)
 export function holeStand(von, nach){

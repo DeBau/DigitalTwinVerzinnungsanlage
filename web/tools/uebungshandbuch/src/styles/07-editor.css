@@ -1,6 +1,8 @@
 /* Skizzen-Editor */
 dialog.editor{max-width:none;width:calc(100vw - 24px);height:calc(100vh - 24px);max-height:none}
-.ed{display:grid;grid-template-rows:auto minmax(0,1fr);height:100%}
+.ed{display:grid;grid-template-rows:auto minmax(0,1fr);height:100%;position:relative}
+.edwarn{position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:30;max-width:min(560px,90%);padding:10px 14px;border:2px solid #C0392B;border-radius:9px;background:#FDECEA;color:#7B1E14;font-size:13.5px;line-height:1.4;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.edwarn[hidden]{display:none}
 .edbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
 .edbar .ttl{font:600 16px var(--cond);margin-right:10px}
 .edbar .sep{width:1px;height:26px;background:var(--line);margin:0 6px}
