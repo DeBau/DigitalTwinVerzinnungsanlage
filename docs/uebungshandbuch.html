@@ -152,7 +152,7 @@ main{max-width:1380px;margin:0 auto;padding:24px 20px 80px}
 .ctx .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
 .ctx h4{font-size:14px;color:var(--ink2);margin-bottom:8px}
 .ctx figure{margin:0}
-.nsbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.nsbtns .btn{justify-content:center}
+.nsbtns{display:grid;grid-template-columns:1fr;gap:8px}.nsbtns .nsalle{display:none}.nsbtns .btn{justify-content:center}
 .fwthemen{margin:10px 0 0;padding-left:18px;font-size:13.5px;display:grid;gap:4px}
 .nsdlg{max-height:calc(100vh - 48px);overflow-y:auto}
 .ctx figure img{width:100%;border-radius:7px;display:block;cursor:zoom-in;border:1px solid var(--line)}
@@ -420,7 +420,7 @@ pre.code code{font-size:inherit}
 .mfr .wert{border-left:3px solid var(--blue);padding:2px 10px;margin-top:4px}
 .panel[id]{scroll-margin-top:80px}
 /* ---------- schmal ---------- */
-@media screen and (max-width:1180px){.exgrid{grid-template-columns:200px minmax(0,1fr)}.ctx{grid-column:1/-1;position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.ctx .nachschlagen{position:fixed;right:16px;bottom:16px;z-index:20;padding:0;border:0;background:none}.nachschlagen h4,.fwthemen{display:none}.nsbtns .btn{box-shadow:0 6px 20px rgba(0,0,0,.25)}.quick{grid-template-columns:1fr 1fr}}
+@media screen and (max-width:1180px){.exgrid{grid-template-columns:200px minmax(0,1fr)}.ctx{grid-column:1/-1;position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.ctx .nachschlagen{position:fixed;right:16px;bottom:16px;z-index:20;padding:0;border:0;background:none}.nachschlagen h4,.fwthemen{display:none}.nsbtns{grid-template-columns:1fr 1fr}.nsbtns .nsalle{display:inline-flex}.nsbtns .btn{box-shadow:0 6px 20px rgba(0,0,0,.25)}.quick{grid-template-columns:1fr 1fr}}
 @media screen and (max-width:860px){
   .exgrid{grid-template-columns:1fr}.stepper{position:static}.stepper ol{display:flex;overflow-x:auto;gap:4px}.stepper a{grid-template-columns:30px auto}.stepper .ps,.stepper li a::after{display:none}.stepper .pt{font-size:14px}
   .home-hero{grid-template-columns:1fr}.home-hero .img{display:none}.stages{grid-template-columns:1fr}.belt{grid-template-columns:1fr}.cols2{grid-template-columns:1fr}.phases6{grid-template-columns:1fr 1fr}
@@ -3189,9 +3189,10 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     if (cur && ol.scrollWidth > ol.clientWidth) ol.scrollLeft = cur.offsetLeft - 16;
   }
   var fwListHTML = (s, offen) => `<div class="fw">${s.wissen.map((w, i) => `<details${i === offen ? " open" : ""}><summary>${w.t}</summary><div class="prose">${chips(w.h)}${quelle(w)}</div></details>`).join("")}</div>`;
+  var fwThemaHTML = (w) => `<div class="prose">${chips(w.h)}${quelle(w)}</div>`;
   var aufgabeHTML = (s) => (s.beschr ? `<div class="prose beschr">${chips(s.beschr)}</div>` : `<div class="prose">${chips(s.sit)}</div>`) + (s.tab ? `<h3>${s.tab.cap}</h3>` + tableHTML(s.tab.head, s.tab.rows) : "") + (s.list ? `<h3>${s.list.cap}</h3><ol class="prose">${s.list.items.map((x) => `<li>${chips(x)}</li>`).join("")}</ol>` : "");
   var hatWissen = (s) => !!(s.wissen && s.wissen.length);
-  var nachschlagenHTML = (s) => `<div class="box nachschlagen"><h4>Nachschlagen</h4><div class="nsbtns"><button class="btn small" type="button" data-act="ns-aufgabe">Aufgabe</button>${hatWissen(s) ? `<button class="btn small" type="button" data-act="ns-fw" data-i="0">Fachwissen</button>` : ""}</div>` + (hatWissen(s) ? `<ul class="fwthemen">${s.wissen.map((w, i) => `<li><a href="#" data-act="ns-fw" data-i="${i}">${w.t}</a></li>`).join("")}</ul>` : "") + `</div>`;
+  var nachschlagenHTML = (s) => `<div class="box nachschlagen"><h4>Nachschlagen</h4><div class="nsbtns"><button class="btn small" type="button" data-act="ns-aufgabe">Aufgabe</button>${hatWissen(s) ? `<button class="btn small nsalle" type="button" data-act="ns-alle">Fachwissen</button>` : ""}</div>` + (hatWissen(s) ? `<ul class="fwthemen">${s.wissen.map((w, i) => `<li><a href="#" data-act="ns-fw" data-i="${i}">${w.t}</a></li>`).join("")}</ul>` : "") + `</div>`;
   function ctxHTML(s, p) {
     return (p > 1 ? nachschlagenHTML(s) : "") + `<div class="box"><h4>Bearbeitet von</h4><div style="display:grid;gap:8px"><input type="text" data-k="name" placeholder="Name" aria-label="Name"><input type="text" data-k="${s.id}:datum" placeholder="Datum" aria-label="Datum"></div></div>` + (s.bild ? `<div class="box"><figure><img src="bilder/${s.bild[0]}" alt="${esc(plain(s.bild[1]))}" data-act="zoom" data-src="bilder/${s.bild[0]}" data-cap="${esc(s.bild[1])}"><figcaption>${chips(s.bild[1])}</figcaption></figure></div>` : "") + `<div class="box"><h4>Lernziele: Du kannst …</h4><ol class="goals">${s.ziele.map((z) => `<li>${z}</li>`).join("")}</ol></div><div class="box"><h4>Einstellung im Zwilling</h4><div class="small">${s.einst}</div></div><div class="box"><h4>Beteiligte Signale</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${s.sig.split(" ").map(chip).join("")}</div></div>`;
   }
@@ -3289,7 +3290,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
       if (mit.length) h += `<div class="callout" style="--c:var(--ok)"><b>Das bringst du mit</b><span class="muted small"> (Ergebnisse aus ${vorIds(s).join(", ")})</span>${ergList(mit, true)}<a class="small" href="#/projekt">Dein Projekt im Überblick</a></div>`;
       if (s.beschr) h += `<h3>Aufgabenbeschreibung</h3><div class="prose beschr">${chips(s.beschr)}</div>`;
       if (s.tab) h += `<h3>${s.tab.cap}</h3>` + tableHTML(s.tab.head, s.tab.rows);
-      if (s.wissen && s.wissen.length) h += `<h3>Fachwissen: warum, wieso, weshalb</h3>` + fwListHTML(s, 0);
+      if (s.wissen && s.wissen.length) h += `<h3>Fachwissen: warum, wieso, weshalb</h3>` + fwListHTML(s, -1);
       if (s.list) h += `<h3>${s.list.cap}</h3><ol class="prose">${s.list.items.map((x) => `<li>${chips(x)}</li>`).join("")}</ol>`;
       h += `<h3>Zwilling einstellen</h3><label class="confirm"><input type="checkbox" data-k="${k}:einst"><span>${s.einst}<br><span class="muted small">${erk ? "Setze den Haken, sobald der Zwilling so eingestellt ist, wie es oben steht." : "Setze den Haken, sobald der Übungsumfang in der Seitenleiste so eingestellt ist, unter <i>Verbindung</i> die Quelle der Ausgänge auf <i>PLCSIM Advanced</i> steht und die Bridge verbunden ist."}</span></span></label>`;
       const se = sigEntries(s);
@@ -11146,10 +11147,9 @@ END_CASE;`)}
 
   // web/tools/uebungshandbuch/src/app/ereignisse.js
   var curEx = () => (location.hash.match(/^#\/(L\d\d)/) || [])[1];
-  function openNachschlagen(s, titel, inhalt, i) {
-    $("#dlg").innerHTML = `<form class="dlg nsdlg" method="dialog"><h2>${titel} ${s.id}</h2><p class="muted">${esc(s.t)}</p>${inhalt}<div class="row"><button class="btn primary" value="ok">Schließen</button></div></form>`;
+  function openNachschlagen(titel, unter, inhalt) {
+    $("#dlg").innerHTML = `<form class="dlg nsdlg" method="dialog"><h2>${titel}</h2><p class="muted">${unter}</p>${inhalt}<div class="row"><button class="btn primary" value="ok">Schließen</button></div></form>`;
     $("#dlg").showModal();
-    if (i >= 0) $$("#dlg details")[i]?.scrollIntoView({ block: "start" });
   }
   function openDataDialog() {
     $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>Meine Daten</h2><p class="muted">Alle Eingaben, Häkchen und Skizzen bleiben nur in diesem Browser. Sichere sie als Datei, um sie abzugeben oder auf einem anderen Rechner weiterzuarbeiten.</p>
@@ -11286,10 +11286,11 @@ END_CASE;`)}
       if (act === "form") doPrint(formPage(a.dataset.f));
       if (act === "bew-print") doPrint(bewPage(BY[a.dataset.id]));
       if (act === "data") openDataDialog();
-      if (act === "ns-aufgabe") openNachschlagen(BY[id], "Aufgabe", aufgabeHTML(BY[id]), -1);
+      if (act === "ns-aufgabe") openNachschlagen(`Aufgabe ${id}`, esc(BY[id].t), aufgabeHTML(BY[id]));
+      if (act === "ns-alle") openNachschlagen(`Fachwissen ${id}`, esc(BY[id].t), fwListHTML(BY[id], -1));
       if (act === "ns-fw") {
         e.preventDefault();
-        openNachschlagen(BY[id], "Fachwissen", fwListHTML(BY[id], +a.dataset.i), +a.dataset.i);
+        openNachschlagen(BY[id].wissen[+a.dataset.i].t, `Fachwissen ${id}`, fwThemaHTML(BY[id].wissen[+a.dataset.i]));
       }
     });
     document.addEventListener("keydown", (e) => {

@@ -36,7 +36,7 @@
 .ctx .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
 .ctx h4{font-size:14px;color:var(--ink2);margin-bottom:8px}
 .ctx figure{margin:0}
-.nsbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}.nsbtns .btn{justify-content:center}
+.nsbtns{display:grid;grid-template-columns:1fr;gap:8px}.nsbtns .nsalle{display:none}.nsbtns .btn{justify-content:center}
 .fwthemen{margin:10px 0 0;padding-left:18px;font-size:13.5px;display:grid;gap:4px}
 .nsdlg{max-height:calc(100vh - 48px);overflow-y:auto}
 .ctx figure img{width:100%;border-radius:7px;display:block;cursor:zoom-in;border:1px solid var(--line)}
