@@ -68,6 +68,7 @@ importiert nie aus einer Vorlage.
 | `editor/andocken.js` | Bausteine erzeugen `makeObj` und setzen `placeObj`, Hilfslinien, Andock-Vorschau, Verbinden |
 | `editor/zeiger.js` | Zeigerereignisse `zeigerUnten` (Tabelle `UNTEN`), `zeigerBewegen`, `zeigerLoslassen`, Auswählen (`AUSWAHL`), `beginneStrich` |
 | `editor/oeffnen.js` | `openEditor`: `zuruecksetzen`, `werkzeugleisteHTML`, `seitenleisteHTML`, Palette, `paintEditor` |
+| `editor/tastatur.js` | Tastatur: `taste` mit der Tabelle `TASTENSCHRITTE` (Haken `taste`, Kürzel V P L T E C G, Pfeile, Verlauf), `abbrechen` (Esc schließt nie), Übersicht „?“ (`KUERZEL`) |
 | **Druck und Seiten** | `app/druck.js`, `app/seiten.js` |
 | **Vorlagen** (Reihenfolge = Kacheln) | |
 | `editor/vorlagen/grafcet.js` | GRAFCET: Schritte, Transitionen, Verzweigungen, Verweise, Aktionen als Seitenbausteine |
@@ -82,7 +83,7 @@ importiert nie aus einer Vorlage.
 | `editor/vorlagen/regelkreis.js` | Regelkreis: Block, Summierstelle |
 | `editor/vorlagen/trend.js` | Trendaufzeichnung (nur Formular) |
 | `editor/vorlagen/raster.js` | Kästchenraster mit allen Gruppen |
-| **Seiteneffekte** | `app/tooltip.js`, `app/router.js`, `app/ereignisse.js`, `editor/ereignisse.js` (Listener des Editor-Dialogs, `AKTIONEN`, `VERSCHIEBE`) |
+| **Seiteneffekte** | `app/tooltip.js`, `app/router.js`, `app/ereignisse.js`, `editor/ereignisse.js` (Listener des Editor-Dialogs, `AKTIONEN`) |
 
 Daten bleiben außerhalb von `src/`: `uebungen.js`, `quiz.js`, `stil.js`, `texte/Lxx.json`, `signale.csv`.
 
@@ -173,7 +174,7 @@ Die Markierung ist höchstens ein Element: `ED.markiert = {art, id}`. `art` ist 
 | `FELDNAME` | bearbeiten.js | Eingabefeld (data-prop) → Eigenschaft des Elements |
 | `ENTFERNE` | bearbeiten.js | Löschen und Radieren |
 | `AUSWAHL` | zeiger.js | `beschriften` beim Doppelklick, `greifen` beginnt das Ziehen |
-| `VERSCHIEBE` | ereignisse.js | Pfeiltasten |
+| `VERSCHIEBE` | tastatur.js | Pfeiltasten (10, mit Umschalt 1) |
 
 ## 6. Änderungen und Neuzeichnen
 
@@ -281,7 +282,7 @@ und `fuelle(tabelle, einträge)`.
 | `hilfe` | HTML | `seitenleisteHTML`, Hilfetext ohne Palette | nur der allgemeine Hinweis |
 | `anleitung` | `() → HTML oder null` | `propsHTML` (eigenschaften.js) | Felder der Markierung |
 | `klick` | `(e) → true wenn erledigt` | Klick im Dialog (editor/ereignisse.js) | |
-| `taste` | `(e) → true wenn erledigt` | `taste` (editor/ereignisse.js) vor allen Kern-Kürzeln, nicht im Eingabefeld; danach `preventDefault`. Der Kern belegt „+“ und „N“ nicht | Kern-Kürzel |
+| `taste` | `(e) → true wenn erledigt` | `taste` (editor/tastatur.js) vor allen Kern-Kürzeln, nicht im Eingabefeld; danach `preventDefault`. Der Kern belegt „+“ und „N“ nicht | Kern-Kürzel |
 | `werkzeugWechsel` | `(t)` | `setTool` (werkzeuge.js), vor dem Wechsel | |
 | `fangPunkt` | `(pt) → [x, y]` | `fangen` (werkzeuge.js), wenn Raster fangen an ist | 10er-Raster |
 | `fangBaustein` | `(o)`, verschiebt o | `smartPos` (andocken.js) | |
@@ -437,7 +438,7 @@ als Nutzen brächte.
 * Eine Verbindung ohne `pfeiltext` zeigt im Eigenschaftsfeld den Satz über GRAFCET-Verbindungen
   (`verbindungFelder` in eigenschaften.js), auch in anderen Gruppen.
 * `ED.vorlage.angefangen` (angefangene Linie des Weg-Schritt-Diagramms) setzt der Kern zurück: in `setTool` und bei
-  Esc (`abbrechen` in editor/ereignisse.js). `ED.vorlage.voreinstellung` gehört allein der Vorlage.
+  Esc (`abbrechen` in editor/tastatur.js). `ED.vorlage.voreinstellung` gehört allein der Vorlage.
 * `zeiger.unten` läuft vor allen Kernwerkzeugen, auch vor Auswählen. Eine Vorlage, die dort eingreift (Zeilennamen
   im Weg-Schritt-Diagramm), muss sonst `false` zurückgeben.
 * Der Steuerstromkreis (`elektro.js`) nutzt dieselbe Ablaufkette wie GRAFCET (`kette.js`). Verbindet jemand im
@@ -446,9 +447,11 @@ als Nutzen brächte.
   zwei Aufrufen von `registriereBauteile` anmeldet und dazwischen `PCPAL` einträgt.
 * `pruefen/beispiele-erzeugen.mjs` läuft nur gegen den alten Ein-Skript-Stand, die Beispiele sind fest.
 * Ein Hinweis aus `vorVerbinden` (`zeigeHinweis`) und die Befundliste der Prüfung stehen in `#props`, bis sich die
-  Markierung ändert. Nach einem Klick auf einen Knopf in `#props` liegt der Fokus nicht mehr im Editor (K10).
-* Einige Texte der Bedienoberfläche (Palettenhilfe, Menü „Aus früherer Übung“, Rückfrage beim Kopieren) stehen
-  noch in der Sie-Form und mit Gedankenstrich. Sie zu ändern ändert die Ausgabe, deshalb blieb es beim Umbau.
+  Markierung ändert.
+* Nach einem Mausklick auf einen Knopf geht der Fokus ans Blatt (`zurueckZumBlatt`, `fokusAufsBlatt`). Landet er auf
+  body (Klick auf eine leere Fläche), reicht ein keydown-Listener am document die Tasten an `taste` weiter.
+* `build.mjs` meldet Gedankenstriche und Sie-Form in den String-Literalen von `src/editor/**` (Kategorien „Editor: …“).
+  Der Kern ist sauber, die übrigen Meldungen stehen in den Vorlagen.
 
 ## 12. Welle 1: wer ändert was, Namen aus Paket V
 

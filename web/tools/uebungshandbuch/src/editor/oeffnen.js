@@ -46,8 +46,8 @@ export const werkzeugKnopf = (tool, inhalt, zusatz = "") =>
 export const aktionsKnopf = (ed, inhalt, zusatz = "") => `<button type="button" class="tool" data-ed="${ed}"${zusatz}>${inhalt}</button>`;
 export const titelAttr = t => ` title="${t}"`;
 export const TRENNER = `<span class="sep"></span>`;
-export const farbKnopf = ([c, n]) =>
-  `<button type="button" class="tool" data-tool="pen" data-color="${c}"><span class="dot" style="background:${c}"></span>${n}</button>`;
+export const farbKnopf = ([c, n]) => `<button type="button" class="tool" data-tool="pen" data-color="${c}" title="Stift (P)">`
+  + `<span class="dot" style="background:${c}"></span>${n}</button>`;
 export const staerkeKnopf = ([w, n]) => `<button type="button" class="tool" data-w="${w}">${n}</button>`;
 export const KOPIEREN = `<span class="takewrap">`
   + aktionsKnopf("take", IC.copy + "Aus früherer Übung", ` aria-haspopup="true"`
@@ -63,8 +63,8 @@ export const ABSCHLUSS = `<button type="button" class="btn small" data-ed="print
 
 export const FORM_ZEILEN = [
   [werkzeugKnopf("rect", IC.rect + "Kasten", titelAttr("Rechteck, rastet im 10er-Raster"))],
-  [werkzeugKnopf("text", IC.text + "Text")],
-  [werkzeugKnopf("erase", IC.eraser + "Radierer")],
+  [werkzeugKnopf("text", IC.text + "Text", titelAttr("Text (T)"))],
+  [werkzeugKnopf("erase", IC.eraser + "Radierer", titelAttr("Radierer (E)"))],
   [TRENNER],
 ];
 // Zeilen der Werkzeugleiste; jede Zeile ist eine Gruppe von Knöpfen
@@ -72,15 +72,15 @@ export function werkzeugleisteZeilen(v, key, mitPalette){
   const ex = BY[ED.scope], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
   return [
     [`<span class="ttl">${v.n}${ex ? ` · ${ex.id}` : ""}</span>`],
-    [werkzeugKnopf("sel", IC.cursor + "Auswählen", titelAttr("Bausteine, Linien und Texte markieren, verschieben, ändern"))],
-    [mitPalette ? werkzeugKnopf("conn", IC.link + "Verbinden", titelAttr("Zwei Bausteine bzw. Anschlüsse nacheinander anklicken")) : "",
+    [werkzeugKnopf("sel", IC.cursor + "Auswählen", titelAttr("Bausteine, Linien und Texte markieren, verschieben, ändern (V)"))],
+    [mitPalette ? werkzeugKnopf("conn", IC.link + "Verbinden", titelAttr("Zwei Bausteine bzw. Anschlüsse nacheinander anklicken (C)")) : "",
       leiste.nachVerbinden || "", TRENNER],
     FARBEN.map(farbKnopf),
-    [werkzeugKnopf("line", IC.line + linie.name, titelAttr(linie.titel))],
+    [werkzeugKnopf("line", IC.line + linie.name, titelAttr(linie.titel + " (L)"))],
     [leiste.nachLinie || ""],
     ...FORM_ZEILEN,
     [aktionsKnopf("grid", IC.grid + "Raster fangen",
-      ` aria-pressed="${ED.grid}"` + titelAttr("Bausteine und Linien rasten im 10er-Raster ein"))],
+      ` aria-pressed="${ED.grid}"` + titelAttr("Bausteine und Linien rasten im 10er-Raster ein (G)"))],
     [mitPalette ? aktionsKnopf("dock", IC.magnet + "Andocken", ` aria-pressed="${ED.dock}"`
       + titelAttr("Bausteine richten sich an Nachbarn aus und verbinden sich automatisch")) : ""],
     [TRENNER],
@@ -98,12 +98,12 @@ export function werkzeugleisteHTML(v, key, pal){
 
 /* ---------- Seitenleiste ---------- */
 export const AUSWAHL_HILFE = `<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, `
-  + `die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p>`;
+  + `die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht. <b>?</b> zeigt alle Tastenkürzel.</p>`;
 export const PALETTE_HILFE = `<p><b>Ziehen:</b> Zieh Bausteine direkt aus dieser Leiste aufs Blatt. `
   + `Oder klick einen Baustein an und danach auf das Blatt.</p>`
   + `<p><b>Andocken:</b> Zieh einen Baustein an einen Anschluss. Die blaue Vorschau zeigt die Verbindung, `
   + `beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, `
-  + `<b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p>`;
+  + `<b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab, <b>?</b> zeigt alle Tastenkürzel.</p>`;
 // Eigenschaftsfeld oben, darunter die Palette oder (ohne Palette) die Seitenleiste und Hilfe der Vorlage
 export function seitenleisteHTML(v, pal){
   const inhalt = pal.length ? paletteHTML(pal)

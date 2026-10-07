@@ -278,6 +278,12 @@ dialog.editor{max-width:none;width:calc(100vw - 24px);height:calc(100vh - 24px);
 .ed{display:grid;grid-template-rows:auto minmax(0,1fr);height:100%;position:relative}
 .edwarn{position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:30;max-width:min(560px,90%);padding:10px 14px;border:2px solid #C0392B;border-radius:9px;background:#FDECEA;color:#7B1E14;font-size:13.5px;line-height:1.4;box-shadow:0 6px 18px rgba(0,0,0,.15)}
 .edwarn[hidden]{display:none}
+/* Übersicht der Tastenkürzel (editor/tastatur.js, Taste „?“) */
+.kuerzel{position:absolute;right:16px;top:64px;z-index:30;width:min(380px,92%);max-height:80%;overflow:auto;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);font-size:13px;cursor:pointer}
+.kuerzel dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:8px 0}
+.kuerzel dt{white-space:nowrap}.kuerzel dd{margin:0;color:var(--ink2)}
+.kuerzel kbd{font:600 12px var(--sans);padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:var(--sunk)}
+.kuerzel p{margin:0;font-size:12px;color:var(--ink2)}
 .edbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
 .edbar .ttl{font:600 16px var(--cond);margin-right:10px}
 .edbar .sep{width:1px;height:26px;background:var(--line);margin:0 6px}
@@ -3222,7 +3228,7 @@ pre.code code{font-size:inherit}
   var aktionsKnopf = (ed, inhalt, zusatz = "") => `<button type="button" class="tool" data-ed="${ed}"${zusatz}>${inhalt}</button>`;
   var titelAttr = (t) => ` title="${t}"`;
   var TRENNER = `<span class="sep"></span>`;
-  var farbKnopf = ([c, n]) => `<button type="button" class="tool" data-tool="pen" data-color="${c}"><span class="dot" style="background:${c}"></span>${n}</button>`;
+  var farbKnopf = ([c, n]) => `<button type="button" class="tool" data-tool="pen" data-color="${c}" title="Stift (P)"><span class="dot" style="background:${c}"></span>${n}</button>`;
   var staerkeKnopf = ([w, n]) => `<button type="button" class="tool" data-w="${w}">${n}</button>`;
   var KOPIEREN = `<span class="takewrap">` + aktionsKnopf("take", IC.copy + "Aus früherer Übung", ` aria-haspopup="true"` + titelAttr("Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren")) + `</span>`;
   var VERLAUFSKNOEPFE = [
@@ -3234,28 +3240,28 @@ pre.code code{font-size:inherit}
   var ABSCHLUSS = `<button type="button" class="btn small" data-ed="print">${IC.print}Drucken</button><button type="button" class="btn primary small" data-ed="close">Fertig</button>`;
   var FORM_ZEILEN = [
     [werkzeugKnopf("rect", IC.rect + "Kasten", titelAttr("Rechteck, rastet im 10er-Raster"))],
-    [werkzeugKnopf("text", IC.text + "Text")],
-    [werkzeugKnopf("erase", IC.eraser + "Radierer")],
+    [werkzeugKnopf("text", IC.text + "Text", titelAttr("Text (T)"))],
+    [werkzeugKnopf("erase", IC.eraser + "Radierer", titelAttr("Radierer (E)"))],
     [TRENNER]
   ];
   function werkzeugleisteZeilen(v, key, mitPalette) {
     const ex = BY[ED.scope], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
     return [
       [`<span class="ttl">${v.n}${ex ? ` · ${ex.id}` : ""}</span>`],
-      [werkzeugKnopf("sel", IC.cursor + "Auswählen", titelAttr("Bausteine, Linien und Texte markieren, verschieben, ändern"))],
+      [werkzeugKnopf("sel", IC.cursor + "Auswählen", titelAttr("Bausteine, Linien und Texte markieren, verschieben, ändern (V)"))],
       [
-        mitPalette ? werkzeugKnopf("conn", IC.link + "Verbinden", titelAttr("Zwei Bausteine bzw. Anschlüsse nacheinander anklicken")) : "",
+        mitPalette ? werkzeugKnopf("conn", IC.link + "Verbinden", titelAttr("Zwei Bausteine bzw. Anschlüsse nacheinander anklicken (C)")) : "",
         leiste.nachVerbinden || "",
         TRENNER
       ],
       FARBEN.map(farbKnopf),
-      [werkzeugKnopf("line", IC.line + linie.name, titelAttr(linie.titel))],
+      [werkzeugKnopf("line", IC.line + linie.name, titelAttr(linie.titel + " (L)"))],
       [leiste.nachLinie || ""],
       ...FORM_ZEILEN,
       [aktionsKnopf(
         "grid",
         IC.grid + "Raster fangen",
-        ` aria-pressed="${ED.grid}"` + titelAttr("Bausteine und Linien rasten im 10er-Raster ein")
+        ` aria-pressed="${ED.grid}"` + titelAttr("Bausteine und Linien rasten im 10er-Raster ein (G)")
       )],
       [mitPalette ? aktionsKnopf("dock", IC.magnet + "Andocken", ` aria-pressed="${ED.dock}"` + titelAttr("Bausteine richten sich an Nachbarn aus und verbinden sich automatisch")) : ""],
       [TRENNER],
@@ -3272,8 +3278,8 @@ pre.code code{font-size:inherit}
     ${zeilen.join("\n    ")}
   </div>`;
   }
-  var AUSWAHL_HILFE = `<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p>`;
-  var PALETTE_HILFE = `<p><b>Ziehen:</b> Zieh Bausteine direkt aus dieser Leiste aufs Blatt. Oder klick einen Baustein an und danach auf das Blatt.</p><p><b>Andocken:</b> Zieh einen Baustein an einen Anschluss. Die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab.</p>`;
+  var AUSWAHL_HILFE = `<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht. <b>?</b> zeigt alle Tastenkürzel.</p>`;
+  var PALETTE_HILFE = `<p><b>Ziehen:</b> Zieh Bausteine direkt aus dieser Leiste aufs Blatt. Oder klick einen Baustein an und danach auf das Blatt.</p><p><b>Andocken:</b> Zieh einen Baustein an einen Anschluss. Die blaue Vorschau zeigt die Verbindung, beim Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> schieben, <b>Esc</b> bricht ab, <b>?</b> zeigt alle Tastenkürzel.</p>`;
   function seitenleisteHTML(v, pal) {
     const inhalt = pal.length ? paletteHTML(pal) : (v.seitenleiste ? v.seitenleiste() : "") + `<div class="palhelp">${v.hilfe || ""}${AUSWAHL_HILFE}</div>`;
     return `<aside class="pal" aria-label="Bausteine und Eigenschaften"><div id="props"></div>${inhalt}</aside>`;
@@ -3300,6 +3306,141 @@ pre.code code{font-size:inherit}
     svg.addEventListener("pointerleave", () => {
       $(".ghost", svg).innerHTML = "";
     });
+  }
+
+  // web/tools/uebungshandbuch/src/editor/tastatur.js
+  var werkzeugNachAbbruch = () => setTool(vorlage(ED.key).gruppen ? "sel" : ED.tool);
+  function tasteImFeld(e) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      fokusAufsBlatt();
+      return;
+    }
+    if (e.key !== "Enter" || !e.target.dataset.prop) return;
+    e.preventDefault();
+    if (e.target.tagName === "TEXTAREA" && (e.altKey || e.shiftKey || e.ctrlKey)) {
+      newline(e.target);
+      e.target.rows = e.target.value.split("\n").length;
+      applyProp(e.target.dataset.prop, e.target.value);
+    } else fokusAufsBlatt();
+  }
+  function abbrechen(e) {
+    if (!ED.svg) return false;
+    const offen = $("#editor .takemenu") || $("#editor .kuerzel");
+    if (offen) {
+      offen.remove();
+      return true;
+    }
+    if (ED.vorlage.angefangen) {
+      e.preventDefault();
+      ED.vorlage.angefangen = null;
+      $(".ghost", ED.svg).innerHTML = "";
+      updateProps(true);
+      return true;
+    }
+    if (ED.place || ED.verbindenVon || anySel()) {
+      e.preventDefault();
+      clearSel();
+      ED.verbindenVon = null;
+      werkzeugNachAbbruch();
+      return true;
+    }
+    return false;
+  }
+  var verschiebeXY = (el, dx, dy) => {
+    el.x += dx;
+    el.y += dy;
+  };
+  var VERSCHIEBE = { o: verschiebeXY, t: verschiebeXY, s: (st, dx, dy) => {
+    st.p = st.p.map(([x, y]) => [x + dx, y + dy]);
+  } };
+  var PFEILE = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+  function verschiebeMarkiertes(key, schritt = 10) {
+    const [rx, ry] = PFEILE[key];
+    VERSCHIEBE[ED.markiert.art](markiertesElement(), rx * schritt, ry * schritt);
+  }
+  var WERKZEUGTASTEN = { v: "sel", p: "pen", l: "line", t: "text", e: "erase", c: "conn" };
+  var VERLAUFSTASTEN = { z: () => undo(), y: () => redo(), "Umschalt+z": () => redo() };
+  var DREHTASTEN = { r: "rot", m: "flip" };
+  var ohneZusatz = (e) => !e.ctrlKey && !e.metaKey && !e.altKey;
+  function rasterUmschalten() {
+    ED.grid = !ED.grid;
+    const b = $('#editor [data-ed="grid"]');
+    if (b) b.setAttribute("aria-pressed", ED.grid);
+  }
+  function werkzeugTaste(e) {
+    const t = ohneZusatz(e) && !e.shiftKey && WERKZEUGTASTEN[e.key.toLowerCase()];
+    if (!t || !$(`#editor .edbar [data-tool="${t}"]`)) return false;
+    setTool(t);
+    return true;
+  }
+  function beschrifteMarkiertes() {
+    const m = ED.markiert, beschrifte = m && AUSWAHL[m.art] && AUSWAHL[m.art].beschriften;
+    if (beschrifte) beschrifte(m.id);
+  }
+  var TASTENSCHRITTE = [
+    (e) => {
+      const v = vorlage(ED.key);
+      return !!(v.taste && v.taste(e));
+    },
+    // Haken taste: Tasten der Vorlage zuerst
+    (e) => (e.key === "Enter" || e.key === "F2") && anySel() && ED.markiert.art !== "f" && (beschrifteMarkiertes(), true),
+    (e) => {
+      const f = (e.ctrlKey || e.metaKey) && VERLAUFSTASTEN[(e.shiftKey ? "Umschalt+" : "") + e.key.toLowerCase()];
+      return !!f && (f(), true);
+    },
+    (e) => (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "a",
+    // Strg+A markiert keinen Seitentext
+    (e) => {
+      const d = ohneZusatz(e) && markiertId("o") && DREHTASTEN[e.key.toLowerCase()];
+      return !!d && (turnSel(d), true);
+    },
+    (e) => e.key === "Escape" && (abbrechen(e), true),
+    // Esc schließt den Editor nie (nur „Fertig“)
+    (e) => e.key === " ",
+    // Leertaste löst keinen Knopf aus und rollt das Blatt nicht
+    (e) => (e.key === "Delete" || e.key === "Backspace") && anySel() && (delSel(), true),
+    (e) => !!PFEILE[e.key] && anySel() && !!VERSCHIEBE[ED.markiert.art] && (aendere(() => verschiebeMarkiertes(e.key, e.shiftKey ? 1 : 10)), true),
+    (e) => ohneZusatz(e) && !e.shiftKey && e.key.toLowerCase() === "g" && (rasterUmschalten(), true),
+    (e) => e.key === "?" && (kuerzelUmschalten(), true),
+    werkzeugTaste
+  ];
+  function taste(e) {
+    if (e.target.matches && e.target.matches("input,select,textarea")) {
+      if (!signalTaste(e)) tasteImFeld(e);
+      return;
+    }
+    if (TASTENSCHRITTE.some((schritt) => schritt(e))) e.preventDefault();
+  }
+  var KUERZEL = [
+    ["V", "Auswählen"],
+    ["P", "Stift"],
+    ["L", "Linie"],
+    ["T", "Text"],
+    ["E", "Radierer"],
+    ["C", "Verbinden (mit Palette)"],
+    ["G", "Raster fangen an oder aus"],
+    ["Pfeiltasten", "Markiertes um 10 verschieben"],
+    ["Umschalt+Pfeil", "um 1 verschieben"],
+    ["R, M", "Bauteil drehen, spiegeln"],
+    ["Enter, F2", "Markiertes beschriften"],
+    ["Entf", "Markiertes löschen"],
+    ["Strg+Z", "Rückgängig"],
+    ["Strg+Y, Strg+Umschalt+Z", "Wiederholen"],
+    ["Esc", "abbrechen, Markierung aufheben"],
+    ["?", "diese Übersicht ein oder aus"]
+  ];
+  var KUERZEL_HTML = `<div class="kuerzel" role="dialog" aria-label="Tastenkürzel"><b>Tastenkürzel</b><dl>` + KUERZEL.map(([k, t]) => `<dt><kbd>${k}</kbd></dt><dd>${t}</dd>`).join("") + `</dl><p>Ein Klick oder Esc schließt die Übersicht.</p></div>`;
+  function kuerzelUmschalten() {
+    const alt = $("#editor .kuerzel");
+    if (alt) {
+      alt.remove();
+      return;
+    }
+    const ed = $("#editor .ed");
+    if (!ed) return;
+    ed.insertAdjacentHTML("beforeend", KUERZEL_HTML);
+    $("#editor .kuerzel").addEventListener("click", (e) => e.currentTarget.remove());
   }
 
   // web/tools/uebungshandbuch/src/app/druck.js
@@ -5499,7 +5640,6 @@ END_CASE;`)}
     const r = ED.svg && $("#edstage").getBoundingClientRect();
     return r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
   };
-  var werkzeugNachAbbruch = () => setTool(vorlage(ED.key).gruppen ? "sel" : ED.tool);
   function paletteDruecken(e) {
     const pb = e.target.closest("[data-place]");
     if (pb && e.button === 0) {
@@ -5554,10 +5694,7 @@ END_CASE;`)}
       }
     },
     del: () => delSel(),
-    grid: (t) => {
-      ED.grid = !ED.grid;
-      t.setAttribute("aria-pressed", ED.grid);
-    },
+    grid: () => rasterUmschalten(),
     dock: (t) => {
       ED.dock = !ED.dock;
       t.setAttribute("aria-pressed", ED.dock);
@@ -5629,110 +5766,6 @@ END_CASE;`)}
   var schliesseFeld = () => {
     if (ED.tx && ED.tx.schluessel.startsWith("feld:")) schliesse();
   };
-  function tasteImFeld(e) {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      fokusAufsBlatt();
-      return;
-    }
-    if (e.key !== "Enter" || !e.target.dataset.prop) return;
-    e.preventDefault();
-    if (e.target.tagName === "TEXTAREA" && (e.altKey || e.shiftKey || e.ctrlKey)) {
-      newline(e.target);
-      e.target.rows = e.target.value.split("\n").length;
-      applyProp(e.target.dataset.prop, e.target.value);
-    } else fokusAufsBlatt();
-  }
-  function beschrifteMarkiertes() {
-    const m = ED.markiert, beschrifte = m && AUSWAHL[m.art] && AUSWAHL[m.art].beschriften;
-    if (beschrifte) beschrifte(m.id);
-  }
-  function abbrechen(e) {
-    if (!ED.svg) return false;
-    const menu = $("#editor .takemenu");
-    if (menu) {
-      menu.remove();
-      return true;
-    }
-    if (ED.vorlage.angefangen) {
-      e.preventDefault();
-      ED.vorlage.angefangen = null;
-      $(".ghost", ED.svg).innerHTML = "";
-      updateProps(true);
-      return true;
-    }
-    if (ED.place || ED.verbindenVon || anySel()) {
-      e.preventDefault();
-      clearSel();
-      ED.verbindenVon = null;
-      werkzeugNachAbbruch();
-      return true;
-    }
-    return false;
-  }
-  var verschiebeXY = (el, dx, dy) => {
-    el.x += dx;
-    el.y += dy;
-  };
-  var VERSCHIEBE = { o: verschiebeXY, t: verschiebeXY, s: (st, dx, dy) => {
-    st.p = st.p.map(([x, y]) => [x + dx, y + dy]);
-  } };
-  function verschiebeMarkiertes(key) {
-    const dx = { ArrowLeft: -10, ArrowRight: 10 }[key] || 0, dy = { ArrowUp: -10, ArrowDown: 10 }[key] || 0;
-    VERSCHIEBE[ED.markiert.art](markiertesElement(), dx, dy);
-  }
-  var VERLAUFSTASTEN = { z: () => undo(), y: () => redo(), "Umschalt+z": () => redo() };
-  function taste(e) {
-    if (e.target.matches("input,select,textarea")) {
-      if (!signalTaste(e)) tasteImFeld(e);
-      return;
-    }
-    const v = vorlage(ED.key);
-    if (v.taste && v.taste(e)) {
-      e.preventDefault();
-      return;
-    }
-    const strg = e.ctrlKey || e.metaKey;
-    if ((e.key === "Enter" || e.key === "F2") && anySel() && ED.markiert.art !== "f") {
-      e.preventDefault();
-      beschrifteMarkiertes();
-      return;
-    }
-    const verlauf = strg && VERLAUFSTASTEN[(e.shiftKey ? "Umschalt+" : "") + e.key.toLowerCase()];
-    if (verlauf) {
-      e.preventDefault();
-      verlauf();
-      return;
-    }
-    if (strg && e.key.toLowerCase() === "a") {
-      e.preventDefault();
-      return;
-    }
-    const dreh = { r: "rot", m: "flip" }[e.key.toLowerCase()];
-    if (!strg && !e.altKey && markiertId("o") && dreh) {
-      e.preventDefault();
-      turnSel(dreh);
-      return;
-    }
-    if (e.key === "Escape") {
-      e.preventDefault();
-      abbrechen(e);
-      return;
-    }
-    if (e.key === " ") {
-      e.preventDefault();
-      return;
-    }
-    if ((e.key === "Delete" || e.key === "Backspace") && anySel()) {
-      e.preventDefault();
-      delSel();
-      return;
-    }
-    if (e.key.startsWith("Arrow") && anySel() && VERSCHIEBE[ED.markiert.art]) {
-      e.preventDefault();
-      aendere(() => verschiebeMarkiertes(e.key));
-    }
-  }
   function init4() {
     const dlg = $("#editor");
     addEventListener("resize", () => {

@@ -29,6 +29,7 @@ import './editor/bearbeiten.js';
 import './editor/andocken.js';
 import './editor/zeiger.js';
 import './editor/oeffnen.js';
+import './editor/tastatur.js';
 import './app/druck.js';
 import './app/seiten.js';
 // Vorlagen zuletzt: Sie melden sich nur in der Registry an und dürfen dafür alles aus dem Kern benutzen.
