@@ -2,7 +2,7 @@
 // ergibt Funktionslinien, Signallinien mit den Endlagensensoren der Anlage (anlage-antriebe.js), Start und Zyklusende.
 // Gleichzeitige Bewegungen stehen mit Leerzeichen in einem Schritt („MM1+ MM2+“). Dazu die Bedeutung von 1 und 0 je
 // Zeile und die Prüfregeln (Haken pruefe). Benutzt von vorlagen/wegschritt.js.
-import { $, quelle } from '../../app/basis.js';
+import { $ } from '../../app/basis.js';
 import { ED } from '../status.js';
 import { aendere } from '../verlauf.js';
 import { ANTRIEBE, antriebZu } from './anlage-antriebe.js';
@@ -82,17 +82,17 @@ export function ausloeser(schritte, j){
 // Signallinien zu Schritt j: von jedem Sensor zum Beginn jeder Bewegung; mehrere Sensoren über eine UND-Verknüpfung
 export function signallinien(schritte, j, zeile){
   const {zeit, sensoren} = ausloeser(schritte, j), s = [];
-  const quelle = q => wsPunkt(q.j, zeile[q.mm], q.aus ? 1 : 0);
+  const quellPunkt = q => wsPunkt(q.j, zeile[q.mm], q.aus ? 1 : 0);
   if (!sensoren.length) return s;
   schritte[j].bewegungen.forEach(({mm, aus}) => {
     const ziel = wsPunkt(j, zeile[mm], aus ? 0 : 1), tz = zeit ? {tz: zeit} : {};
     if (sensoren.length === 1) {
-      s.push({k: "sig", ...LINIENFARBE, w: 1.2, p: [quelle(sensoren[0]), ziel], lbl: sensoren[0].tag, ...tz});
+      s.push({k: "sig", ...LINIENFARBE, w: 1.2, p: [quellPunkt(sensoren[0]), ziel], lbl: sensoren[0].tag, ...tz});
       return;
     }
     const J = [ziel[0], ziel[1] - wsAus(ziel[1]) * 18];
     s.push({k: "vk", ...LINIENFARBE, w: 1.2, t: "und", p: [J]}, {k: "sig", ...LINIENFARBE, w: 1.2, p: [J, ziel], lbl: "", ...tz});
-    sensoren.forEach(q => s.push({k: "sig", ...LINIENFARBE, w: 1.2, p: [quelle(q), J], lbl: q.tag}));
+    sensoren.forEach(q => s.push({k: "sig", ...LINIENFARBE, w: 1.2, p: [quellPunkt(q), J], lbl: q.tag}));
   });
   return s;
 }

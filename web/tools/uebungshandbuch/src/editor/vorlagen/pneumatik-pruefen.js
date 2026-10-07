@@ -11,7 +11,7 @@ const pruefKnoten = (o, p) => o.id + ":" + p;
 const istAblass = (o, p) => !!VALVE[o.k] && istEntlueftung(p);
 
 // Offene Anschlüsse: alles außer den Entlüftungen 3 und 5 eines Wegeventils braucht eine Leitung
-export function offeneAnschluesse(d, netz){
+export function offeneLeitungen(d, netz){
   return d.o.flatMap(o => portsOf(o).filter(q => !istAblass(o, q.n) && !netz.has(pruefKnoten(o, q.n)))
     .map(q => ({stufe: "fehler", text: `${bauteilName(o)}: Anschluss ${q.n} ist offen.`, o: o.id, pt: [q.x, q.y]})));
 }
@@ -68,7 +68,7 @@ export function fehlendeSensoren(d){
     stufe: "hinweis", o: o.id, text: `${bauteilName(o)}: Sensor für die ${lage} Endlage fehlt. Ohne ihn weiß die SPS nicht, `
       + `wann die Bewegung fertig ist.`})));
 }
-export const PNEU_REGELN = [offeneAnschluesse, versorgungAnAblass, zylinderOhneVentil, zuluftDrosselung, doppelteKennzeichen,
+export const PNEU_REGELN = [offeneLeitungen, versorgungAnAblass, zylinderOhneVentil, zuluftDrosselung, doppelteKennzeichen,
   fehlendeSensoren];
 // Haken pruefe der Vorlage Pneumatik
 export function pneuPruefen(d){

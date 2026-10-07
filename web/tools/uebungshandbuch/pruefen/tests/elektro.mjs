@@ -33,6 +33,8 @@ export async function selbsthaltung(t) {
 }
 // Auswahl aufheben, damit der nächste Baustein keine Kette fortsetzt
 const lose = (t) => t.taste('Escape');
+// Aus einem Eigenschaftsfeld heraus: das erste Esc verlässt nur das Feld (KERN K9/K10), das zweite hebt die Auswahl auf
+const feldUndAuswahlVerlassen = async (t) => { await t.taste('Escape'); await t.taste('Escape'); };
 
 export const tests = [
   {
@@ -315,7 +317,7 @@ export const tests = [
       await t.oeffne('stromlauf');
       for (const [k, y] of [['key', 200], ['zan', 330]]) await setze(t, k, PFAD(2), y);
       await t.page.fill('#props [data-prop="t"]', '20');
-      await lose(t);
+      await feldUndAuswahlVerlassen(t);
       await setzeEinzeln(t, 'tno', PFAD(5), 200);
       await t.page.evaluate(() => {
         const alt = window.setTimeout; window.wecker = 0;
@@ -448,7 +450,7 @@ export const tests = [
       await t.oeffne('stromlauf');
       for (const [k, y] of [['term', 120], ['key', 220], ['zan', 330], ['term', 440]]) await setze(t, k, PFAD(2), y);
       await t.page.fill('#props [data-prop="v"]', '−X1:2');   // untere Klemme
-      await t.taste('Escape');
+      await feldUndAuswahlVerlassen(t);
       const zeilen = await t.page.$$eval('#props table.klemmenplan tbody tr',
         (rs) => rs.map((r) => [...r.cells].map((c) => c.textContent)));
       t.gleich(zeilen[0].slice(0, 3), ['−X1:1', 'L+', '−SF1:13'], 'Klemme 1: oben L+, unten Schlüsselschalter');

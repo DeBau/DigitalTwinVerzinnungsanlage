@@ -12,15 +12,15 @@ import { ANTRIEB_ARTEN, VALVE, vstate } from './pneumatik-symbole.js';
 import { istBistabil, simStatusZeigen, wegZeitMerken } from './pneumatik-simstatus.js';
 
 export const HUBZEIT = 1.2;   // Sekunden für einen ganzen Hub ohne Drossel
-const knoten = (o, p) => o.id + ":" + p;
+const druckKnoten = (o, p) => o.id + ":" + p;
 // Ungerichteter Graph: Leitungen und die Wege, die die Bauteile in ihrer Stellung öffnen
 function simGraph(d){
   const adj = new Map(), add = (a, b) => { for (const [x, y] of [[a, b], [b, a]]) (adj.get(x) || adj.set(x, []).get(x)).push(y); };
   d.c.forEach(c => { if (c.pa !== undefined && c.pb !== undefined) add(c.a + ":" + c.pa, c.b + ":" + c.pb); });
   const roots = [];
   simTeile(d).forEach(([o, r]) => {
-    (r.pairs || []).forEach(([p, q]) => add(knoten(o, p), knoten(o, q)));
-    (r.src || []).forEach(p => roots.push(knoten(o, p)));
+    (r.pairs || []).forEach(([p, q]) => add(druckKnoten(o, p), druckKnoten(o, q)));
+    (r.src || []).forEach(p => roots.push(druckKnoten(o, p)));
   });
   return {adj, roots};
 }
@@ -28,7 +28,7 @@ function simGraph(d){
 function simTeile(d, hat = () => false){
   const belegt = new Set(d.c.flatMap(c => [c.a + ":" + c.pa, c.b + ":" + c.pb]));
   return d.o.filter(o => art(o.k).sim)
-    .map(o => [o, art(o.k).sim(o, ED.sim.st[o.id], p => hat(o, p), p => belegt.has(knoten(o, p)))]);
+    .map(o => [o, art(o.k).sim(o, ED.sim.st[o.id], p => hat(o, p), p => belegt.has(druckKnoten(o, p)))]);
 }
 // Alle Knoten, die von start aus über adj und die gerichteten Wege dir erreichbar sind
 function erreichbar(start, adj, dir = new Map()){
@@ -45,11 +45,11 @@ export function simCompute(){
   const d = ED.data, {adj, roots} = simGraph(d), alt = ED.sim.P || new Set();
   let P = new Set(), ablass = [];
   for (let pass = 0; pass < 8; pass++) {
-    const dir = new Map(), hat = (o, p) => P.has(knoten(o, p));
+    const dir = new Map(), hat = (o, p) => P.has(druckKnoten(o, p));
     ablass = [];
     simTeile(d, hat).forEach(([o, r]) => {
-      (r.dir || []).forEach(([p, q]) => (dir.get(knoten(o, p)) || dir.set(knoten(o, p), []).get(knoten(o, p))).push(knoten(o, q)));
-      (r.ablass || []).forEach(p => ablass.push(knoten(o, p)));
+      (r.dir || []).forEach(([p, q]) => (dir.get(druckKnoten(o, p)) || dir.set(druckKnoten(o, p), []).get(druckKnoten(o, p))).push(druckKnoten(o, q)));
+      (r.ablass || []).forEach(p => ablass.push(druckKnoten(o, p)));
     });
     const N = erreichbar(roots, adj, dir), gleich = N.size === P.size && [...N].every(n => P.has(n));
     P = N;
@@ -70,11 +70,11 @@ export function leitungsNetze(d){
   adj.forEach((_, n) => { if (!netz.has(n)) { const N = [...erreichbar([n], adj)]; N.forEach(m => netz.set(m, N)); } });
   return netz;
 }
-export const hatDruck = (o, p) => ED.sim.P.has(knoten(o, p));
-export const entlueftet = (o, p) => ED.sim.E.has(knoten(o, p)) && !hatDruck(o, p);
+export const hatDruck = (o, p) => ED.sim.P.has(druckKnoten(o, p));
+export const entlueftet = (o, p) => ED.sim.E.has(druckKnoten(o, p)) && !hatDruck(o, p);
 // Geschwindigkeitsfaktor der Drosseln am Anschluss p: fuellen = Luft strömt zur Kammer, sonst von ihr weg
 export function drosselFaktor(o, p, fuellen){
-  return (ED.sim.netz.get(knoten(o, p)) || []).reduce((f, n) => {
+  return (ED.sim.netz.get(druckKnoten(o, p)) || []).reduce((f, n) => {
     const [id, q] = n.split(":"), dr = objById(id), h = dr && art(dr.k).drossel;
     if (!h) return f;
     const {frei, f: g} = h(dr), gedrosselt = !frei || (q === frei) !== fuellen;   // frei = Anschluss, zu dem Luft frei strömt

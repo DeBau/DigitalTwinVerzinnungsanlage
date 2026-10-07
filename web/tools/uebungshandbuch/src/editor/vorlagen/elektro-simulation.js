@@ -109,7 +109,7 @@ function eingeschaltet(d, netz, aktiv){
   return an;
 }
 // Bis sich nichts mehr ändert: Kontakte hängen von den Spulen ab, die Spulen vom Netz. Start mit dem alten Zustand.
-export function simuliere(d, cs, objs){
+export function simuliereNetz(d, cs, objs){
   let aktiv = ED.sim.aktiv || new Set(), netz = null;
   for (let i = 0; i < 12; i++) {
     const a = aktiv;
@@ -127,7 +127,7 @@ const band = (pfad, farbe) => farbe ? `<path class="strom" d="${pfad}" fill="non
   + `stroke-opacity=".35" stroke-linejoin="round" pointer-events="none"/>` : "";
 // Unterlegte Leitungen und Kontakte (Haken hintergrund, nur während der Simulation)
 export function stromSVG(d, cs, objs){
-  const netz = simuliere(d, cs, objs), plus = netz.f("pot:L+"), minus = netz.f("pot:M");
+  const netz = simuliereNetz(d, cs, objs), plus = netz.f("pot:L+"), minus = netz.f("pot:M");
   const farbe = k => { const r = netz.f(k); return r === plus ? STROM_PLUS : r === minus ? STROM_MINUS : null; };
   let s = cs.map(c => {
     const gm = verbindungsWeg(c, objs, cs), A = objs[c.a];

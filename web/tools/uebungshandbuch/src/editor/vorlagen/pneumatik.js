@@ -70,7 +70,7 @@ const MAGNETE = [["mag", "Magnet"], ["magp", "Magnet vorgesteuert"]];
 const RUECKSTELLUNG_52 = [["feder", "Feder, monostabil"], ["mag", "Magnet, bistabil"], ["magp", "Magnet vorgesteuert, bistabil"]];
 const GRUNDSTELLUNG = [["nc", "gesperrt (NC, stromlos geschlossen)"], ["no", "offen (NO, stromlos offen)"]];
 // Spulennamen an den Steueranschlüssen (z. B. Spule 14: −MB3), nur bei Magnetbetätigung
-const SPULEN = [
+const SPULEN_FELDER = [
   ["spl", o => `Spule ${steuerNr(o, "act")}`, "z. B. −MB3", ["MB"], o => istSpule(betaetigung(o).al)],
   ["spr", o => `Spule ${steuerNr(o, rechteStellung(o))}`, "z. B. −MB4", ["MB"], o => istSpule(betaetigung(o).ar)],
 ];
@@ -85,7 +85,7 @@ const freieAblaesse = (k, belegt) => VALVE[k].ports.map(p => p[0]).filter(n => i
 function ventil(k, n, w, def, feldliste, info){
   const anschluesse = () => VALVE[k].ports.map(([p, dx, d]) => [p, 70 + dx, d === "u" ? 0 : 60, d]);
   return {g: "pneu", n, lbl: "−MB1", hide: true, w, h: 60, def, anschluesse, info, kennbuchstaben: ["MB", "QM"],
-    feldliste: [...feldliste, ...SPULEN], felder: pneuFelder, umbau: ["al", "ar", "gs"],
+    feldliste: [...feldliste, ...SPULEN_FELDER], felder: pneuFelder, umbau: ["al", "ar", "gs"],
     sim: (o, s, has, belegt) => ({pairs: vPairs(o, s || VALVE[k].grund), ablass: freieAblaesse(k, belegt)}),
     zeichne: o => drawValve(o), zusatz: entlueftung};
 }
