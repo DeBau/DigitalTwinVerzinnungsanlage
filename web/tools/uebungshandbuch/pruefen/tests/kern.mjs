@@ -263,4 +263,29 @@ export const tests = [
       t.erwarte(!(await t.text('#edstage .tpl')).includes('–'), 'Umbruchtext ohne Gedankenstrich');
     },
   },
+  /* ---------- Pfeilspitzen im Druck ---------- */
+  {
+    name: 'Pfeil-Marker: jede Pfeilspitze verweist auf einen Marker im eigenen SVG (Kacheln und Druck)',
+    daten: 'pfeile',
+    lauf: async (t) => {
+      // Fehlerliste: Pfeilspitzen, deren Marker nicht im eigenen SVG liegt, und doppelte Marker-IDs
+      const fehler = (wo) => t.page.evaluate((wo) => {
+        const raus = [];
+        for (const p of document.querySelectorAll(`${wo} [marker-end]`)) {
+          const id = /url\(#([^)]+)\)/.exec(p.getAttribute('marker-end'))[1];
+          if (!p.closest('svg').querySelector(`marker[id="${id}"]`)) raus.push(id);
+        }
+        const ids = [...document.querySelectorAll(`${wo} marker`)].map((m) => m.id);
+        return raus.concat(ids.filter((x, i) => ids.indexOf(x) !== i).map((x) => 'doppelt ' + x));
+      }, wo);
+      await t.page.evaluate(() => { location.hash = '#/vorlagen'; }); await t.ruhe();
+      t.erwarte(await t.zaehle('#app [marker-end]') > 0, 'Kacheln mit Pfeilen');
+      t.gleich(await fehler('#app'), [], 'Kacheln');
+      await t.oeffne('grafcet');
+      const druck = await t.drucke();
+      t.erwarte(druck.includes('marker-end'), 'Druck mit Pfeilen');
+      t.gleich(await fehler('#print'), [], 'Druck');
+      t.gleich(await fehler('#edstage'), [], 'Editor');
+    },
+  },
 ];
