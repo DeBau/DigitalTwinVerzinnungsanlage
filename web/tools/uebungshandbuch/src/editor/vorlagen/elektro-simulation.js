@@ -59,7 +59,7 @@ export const SCHALTET = {
 // Wie ein Bauteil bedient wird: tastend (nur solange gedrückt) oder rastend (Klick schaltet um)
 export const BEDIENUNG = {tno: "tastend", tnc: "tastend", estop: "rastend", estop2: "rastend", key: "rastend",
   lsw: "rastend", sens: "rastend", msk: "rastend"};
-const kennung = o => o.v || o.id;
+export const kennung = o => o.v || o.id;
 const zustand = (o, aktiv) => ({betaetigt: !!ED.sim.st[kennung(o)], an: aktiv.has(o.v)});
 // Netz bei Zustand z(o) → {betaetigt, an} der Bauteile
 export function netzAus(d, cs, objs, z){

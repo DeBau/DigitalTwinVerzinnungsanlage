@@ -302,6 +302,58 @@ export const tests = [
     },
   },
   {
+    name: 'Prüfen: Kurzschluss über Tasterkombination, Spule hinter eigenem Öffner',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      await setzeEinzeln(t, 'coil', PFAD(1), 450);   // −QA1
+      for (const [k, y] of [['tno', 200], ['nc', 300]]) await setze(t, k, PFAD(3), y);   // −SF1 und Öffner −QA1 in Reihe
+      await lose(t);
+      await setzeEinzeln(t, 'coil', PFAD(5), 450);   // −QA2
+      await setzeEinzeln(t, 'nc', PFAD(5), 300);     // eigener Öffner −QA2 im selben Pfad
+      await t.knopf('pruefen');
+      const b = (await t.page.$$eval('#props .befunde li', (ls) => ls.map((l) => l.textContent))).join(' | ');
+      t.erwarte(b.includes('Kurzschluss: L+ ist mit −SF1 betätigt'), `Kurzschluss beim Drücken von −SF1: ${b}`);
+      t.erwarte(b.includes('hinter ihrem eigenen Öffner −QA2'), `eigener Öffner: ${b}`);
+    },
+  },
+  {
+    name: 'Prüfen: Wendeschaltung ohne Phasentausch und ohne Verriegelung',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      await setzeEinzeln(t, 'coil', PFAD(1), 450);
+      await setzeEinzeln(t, 'coil', PFAD(3), 450);
+      await t.knopf('close');
+      await t.oeffne('leistung');
+      const k1 = await setzeEinzeln(t, 'k3', 200, 300), k2 = await setzeEinzeln(t, 'k3', 500, 300);
+      const m = await setzeEinzeln(t, 'm3', k1.x + 55, k1.y + 135);   // dockt unter −QA1 an
+      await t.werkzeug('conn');
+      await t.klick([k1.x + 10, 50]); await t.klick([k1.x + 10, k1.y]);   // −QA1 an L1, L2, L3
+      await t.werkzeug('sel');
+      const verdrahte = async (tauschen) => {
+        if (tauschen) await t.klick('#editor [data-pole="tauschen"]');
+        await t.werkzeug('conn');
+        await t.klick([k2.x + 10, 50]); await t.klick([k2.x + 10, k2.y]);
+        if (tauschen) await t.klick('#editor [data-pole="tauschen"]');
+        await t.klick([k2.x + 10, k2.y + 60]); await t.klick([m.x + 10, m.y]);
+        await t.werkzeug('sel');
+      };
+      const befunde = async () => {
+        await t.knopf('pruefen');
+        return (await t.page.$$eval('#props .befunde li', (ls) => ls.map((l) => l.textContent))).join(' | ');
+      };
+      t.erwarte(!(await befunde()).includes('Wendeschaltung'), 'ein Schütz am Motor: keine Wendeschaltung');
+      await verdrahte(false);
+      let b = await befunde();
+      t.erwarte(b.includes('−QA1 und −QA2 lassen −MA1 gleich herum drehen'), `ohne Phasentausch: ${b}`);
+      t.erwarte(b.includes('Wendeschaltung −QA1 und −QA2 ohne Verriegelung'), `ohne Verriegelung: ${b}`);
+      for (let i = 0; i < 2; i++) await t.taste('Control+z');   // beide Verbindungen von −QA2
+      t.gleich((await t.daten()).c.filter((c) => c.a === k2.id || c.b === k2.id).length, 0, 'K2 wieder unverdrahtet');
+      await verdrahte(true);
+      b = await befunde();
+      t.erwarte(!b.includes('gleich herum') && b.includes('ohne Verriegelung'), `mit Phasentausch: ${b}`);
+    },
+  },
+  {
     name: 'E11 dreipolig verdrahten, Phasen tauschen, dreipolig andocken',
     lauf: async (t) => {
       await t.oeffne('leistung');
