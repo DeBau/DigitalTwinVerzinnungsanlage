@@ -40,6 +40,14 @@ async function keineKreuzung(t) {
 async function setzeRuhig(t, k, x, y) { await t.setze(k, x, y); await t.taste('Escape'); }
 async function verbinde(t, von, nach) { await t.werkzeug('conn'); await t.klick(von); await t.klick(nach); }
 
+// Paare [eigener Text, Text des Vordrucks ohne Muster], deren Rechtecke sich auf dem Bildschirm überlappen
+const ueberlappungen = (t) => t.page.evaluate(() => {
+  const r = (e) => e.getBoundingClientRect(), eigene = [...document.querySelectorAll('#edstage .ink text')];
+  const vordruck = [...document.querySelectorAll('#edstage .tpl text')].filter((e) => e.textContent.trim() && !e.closest('.rk-muster'));
+  const schneiden = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  return eigene.flatMap((e) => vordruck.filter((v) => schneiden(r(e), r(v))).map((v) => [e.textContent, v.textContent]));
+});
+
 export const tests = [
   {
     name: 'R1 Vordruck nur auf Blatt 1, IDs eindeutig',
@@ -54,6 +62,15 @@ export const tests = [
       t.gleich(await blattTexte(t, '#print section.land:nth-of-type(2)', 1, 'Bedeutung in dieser Übung'), 0, 'Druck Blatt 2');
       t.gleich(await blattTexte(t, '#print section.land:nth-of-type(1)', 0, 'Bedeutung in dieser Übung'), 1, 'Druck Blatt 1');
       t.gleich(await doppelteIds(t, '#print svg'), [], 'doppelte IDs im Druck');
+    },
+  },
+  {
+    name: 'P1-2 Alte Texte auf dem Vordruck überlappen keine Zeilentexte',
+    daten: 'regel-alt-texte',
+    lauf: async (t) => {
+      await t.oeffne('regelkreis');
+      t.gleich(await ueberlappungen(t), [], 'Überlappungen');
+      t.erwarte((await t.page.textContent('#edstage .tpl')).includes('Setpoint'), 'PID_Compact-Namen weiter auf dem Vordruck');
     },
   },
   {

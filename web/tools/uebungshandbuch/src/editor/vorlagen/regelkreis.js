@@ -15,14 +15,15 @@ import { SIMKNOPF, SIM_AKTIONEN, simAnleitung, simEingabe } from './regelkreis-s
 import { pruefeRegelkreis } from './regelkreis-pruefen.js';
 
 /* ---------- Muster und Vordruck ---------- */
-// Der Standard-Regelkreis als Zeichnung: Mitten im 10er-Raster, Blöcke 60 hoch
+// Der Standard-Regelkreis als Zeichnung: Mitten im 10er-Raster, Blöcke 60 hoch. Die Mitten liegen fast wie im alten
+// Vordruck (Regler 275, Stellglied und Messglied 495, Strecke 715), damit alte, darauf geschriebene Texte passen.
 export const MUSTER = {
   o: [
-    {id: "w", k: "sig", x: 70, y: 200, v: "w"}, {id: "s", k: "sum", x: 150, y: 200},
-    {id: "r", k: "box", x: 220, y: 170, v: "Regler"}, {id: "g", k: "box", x: 420, y: 170, v: "Stellglied"},
-    {id: "z", k: "sig", x: 680, y: 90, v: "z"}, {id: "t", k: "box", x: 620, y: 170, v: "Strecke"},
-    {id: "v", k: "abzw", x: 820, y: 200}, {id: "x", k: "sig", x: 920, y: 200, v: "x"},
-    {id: "m", k: "box", x: 420, y: 300, v: "Messglied"},
+    {id: "w", k: "sig", x: 60, y: 200, v: "w"}, {id: "s", k: "sum", x: 140, y: 200},
+    {id: "r", k: "box", x: 220, y: 170, v: "Regler"}, {id: "g", k: "box", x: 440, y: 170, v: "Stellglied"},
+    {id: "z", k: "sig", x: 720, y: 90, v: "z"}, {id: "t", k: "box", x: 660, y: 170, v: "Strecke"},
+    {id: "v", k: "abzw", x: 860, y: 200}, {id: "x", k: "sig", x: 940, y: 200, v: "x"},
+    {id: "m", k: "box", x: 440, y: 310, v: "Messglied"},
   ],
   c: [["w", "s"], ["s", "r", "e"], ["r", "g", "y"], ["g", "t"], ["z", "t"], ["t", "v"], ["v", "x"], ["v", "m"], ["m", "s", "x"]]
     .map(([a, b, v = ""]) => ({a, b, v})),
@@ -33,17 +34,19 @@ export const MUSTER = {
 export const MUSTER_AUS = `<style>svg:has(.ink [data-o]) .rk-muster{display:none}</style>`;
 export const regelkreisMuster = () =>
   `<g class="rk-muster" opacity=".45" pointer-events="none">${zeichnungSVG(MUSTER, false, "regelkreis")}</g>`;
-// Tabelle der Größen unter dem Kreis, mit dem Namen bei PID_Compact
-export const REGELGROESSEN = ["w Führungsgröße (Sollwert, PID_Compact: Setpoint)", "x Regelgröße (Istwert, PID_Compact: Input)",
-  "e Regeldifferenz (e = w − x)", "y Stellgröße (PID_Compact: Output)", "z Störgröße (PID_Compact: Disturbance)"];
+// Tabelle der Größen unter dem Kreis. Spalten bei x 260 und 640 wie im alten Vordruck, die Zeilentexte enden davor.
+// Die Namen bei PID_Compact stehen als eigene Zeile unter der Tabelle, über dem Schriftfeld.
+export const REGELGROESSEN = ["w Führungsgröße (Sollwert)", "x Regelgröße (Istwert)", "e Regeldifferenz (e = w − x)",
+  "y Stellgröße", "z Störgröße"];
+export const PID_ZEILE = "Bei PID_Compact (Siemens) heißen die Signale: w = Setpoint, x = Input, y = Output, z = Disturbance.";
 export function groessenTabelle(){
-  let s = TX(60, 440, 12, "Größe", "start", "#666", 600) + TX(400, 440, 12, "Bedeutung in dieser Übung", "start", "#666", 600)
-    + TX(720, 440, 12, "Signal / Adresse", "start", "#666", 600);
+  let s = TX(60, 440, 12, "Größe", "start", "#666", 600) + TX(260, 440, 12, "Bedeutung in dieser Übung", "start", "#666", 600)
+    + TX(640, 440, 12, "Signal / Adresse", "start", "#666", 600);
   REGELGROESSEN.forEach((r, i) => {
     const y = 470 + i*30;
     s += `<path d="M60 ${y+8}H975" stroke="${G2}" stroke-width=".7"/>` + TX(60, y, 11, r, "start", "#555");
   });
-  return s;
+  return s + TX(60, 622, 9.5, PID_ZEILE, "start", "#777");
 }
 export const regelkreisBlatt = () => MUSTER_AUS + regelkreisMuster() + groessenTabelle();
 
