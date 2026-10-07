@@ -86,10 +86,26 @@ export function andockVorschau(o, dock){
   return (gm ? VORSCHAU(gm.d) : "")
     + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
 }
-export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blattende legen – sonst auf das nächste Blatt
+// Bausteine nicht in Schriftfeld/Rand am Blattende legen, sonst auf das nächste Blatt. Liegt dort schon ein Baustein,
+// rutscht o weiter nach unten, damit sich die Bausteine einer Kette nicht übereinander stapeln.
+export function avoidBreak(o){
   if (vorlage(ED.key).einblattig) return;
-  for (let i = 0; i < 4; i++) { const b = umrissVon(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
-    if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) o.y += B + 70 - b.y; else break; }
+  let verschoben = false;
+  for (let i = 0; i < 80; i++) {
+    const b = umrissVon(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
+    if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) { o.y += B + 70 - b.y; verschoben = true; }
+    else if (verschoben && ueberdeckt(o)) o.y += 10;
+    else break;
+  }
+}
+// Liegt o auf einem anderen Baustein (mit 10 Abstand)?
+export function ueberdeckt(o){
+  const a = umrissVon(o);
+  return ED.data.o.some(p => {
+    if (p.id === o.id) return false;
+    const b = umrissVon(p);
+    return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h + 10 && b.y < a.y + a.h + 10;
+  });
 }
 // Verbindung, die beim Andocken entsteht; zwischen Anschlüssen, wenn der Haken andocke pa und pb nennt
 export function dockLeitung(dock){

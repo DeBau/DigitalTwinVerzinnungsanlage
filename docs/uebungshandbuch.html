@@ -2734,11 +2734,23 @@ pre.code code{font-size:inherit}
   }
   function avoidBreak(o) {
     if (vorlage(ED.key).einblattig) return;
-    for (let i = 0; i < 4; i++) {
+    let verschoben = false;
+    for (let i = 0; i < 80; i++) {
       const b = umrissVon(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
-      if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) o.y += B + 70 - b.y;
+      if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) {
+        o.y += B + 70 - b.y;
+        verschoben = true;
+      } else if (verschoben && ueberdeckt(o)) o.y += 10;
       else break;
     }
+  }
+  function ueberdeckt(o) {
+    const a = umrissVon(o);
+    return ED.data.o.some((p) => {
+      if (p.id === o.id) return false;
+      const b = umrissVon(p);
+      return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h + 10 && b.y < a.y + a.h + 10;
+    });
   }
   function dockLeitung(dock) {
     const c = { a: dock.a, b: dock.b, v: "" };
