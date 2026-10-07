@@ -1,3 +1,5 @@
+**Deutsch** · [English](03-bedienung.en.md)
+
 # Bedienen
 
 Jedes Befehlsgerät gibt es zweimal: als anklickbares Bauteil in der 3D-Szene und als Nachbau in der

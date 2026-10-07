@@ -1,3 +1,5 @@
+**Deutsch** · [English](04-signale.en.md)
+
 # Signale und TIA-Anbindung
 
 Der Zwilling kennt **162 Signale**: 109 Eingänge (davon 6 Analogwerte und 8 Telegrammwörter) und
@@ -199,7 +201,7 @@ Drahtbruchsicher verdrahtet, also **1 = nicht betätigt**:
 | Signal | Gerät |
 |---|---|
 | `SF2_Stop` | STOP Bedienpult −SF2 |
-| `SF7_VorOrt_Halt`, `SF25_B2_Halt`, `SF32_Kurve_Halt`, `SF35_Pruef_Halt`, `SF46_Pruefband_Aus` | Halt-Taster der Vor-Ort-Steuerstellen |
+| `SF7_Band_Halt`, `SF25_B2_Halt`, `SF32_Kurve_Halt`, `SF35_Pruef_Halt`, `SF46_Pruefband_Aus` | Halt-Taster der Vor-Ort-Steuerstellen |
 | `SF0/SF8/SF9/SF10/SF33_NotHalt_frei` | Meldekontakte der Not-Halt-Taster (1 = entriegelt) |
 | `FA1/FA5/FA7/FA8_Motorschutz` | Hilfskontakte der Motorschutzschalter (1 = OK) |
 | `KF2_NotHalt_OK` | Rückmeldung Sicherheitsrelais (1 = Freigabe) |

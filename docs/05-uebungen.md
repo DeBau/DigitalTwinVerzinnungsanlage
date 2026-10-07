@@ -1,9 +1,14 @@
+**Deutsch** · [English](05-uebungen.en.md)
+
 # Übungsaufgaben
 
 Der Zwilling ist in Stufen schaltbar: Du entscheidest, welchen Teil der Anlage dein Programm
 übernimmt und welchen das Modell selbst fährt. So fängt ein Anfänger mit der Schrittkette an,
 während ein Fortgeschrittener an derselben Anlage Handshakes, Regelung und Ausschussbehandlung
 programmiert.
+
+Ausgearbeitet mit Aufgabenbeschreibung, Fachwissen, gestuften Hilfen, Skizzenvorlagen und
+Prüfprotokoll findest du die Übungen im [Übungshandbuch SPS-Technik](07-uebungshandbuch.md).
 
 [◀ Zurück zur Übersicht](../README.md)
 

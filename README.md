@@ -1,3 +1,5 @@
+**Deutsch** · [English](README.en.md)
+
 # Digitaler Zwilling – Verzinnungsanlage
 
 **Eine komplette Industrieanlage im Browser, gekoppelt an eine virtuelle S7-1500.**
@@ -120,6 +122,31 @@ realistischere Darstellung.
 
 ---
 
+## Übungshandbuch SPS-Technik
+
+**Der Lehrgang zum Zwilling, direkt im Browser.** Das Übungshandbuch führt dich in 37 Übungen und
+vier Stufen von den ersten Signalen bis zur Anlage, die vollständig an deinem Programm hängt:
+erst Handbetrieb und Verriegelungen, dann Betriebsarten, Befehlsausgabe und Automatik, danach Not-Halt-Diagnose,
+Förderstrecke, Regelung und Antriebe. Jede Übung folgt denselben sechs Schritten vom Informieren
+bis zum Bewerten, mit Fachwissen samt Quellen, gestuften Hilfen, Kurz-Checks und Prüfprotokoll.
+Planungsunterlagen zeichnest du im eingebauten Skizzeneditor: GRAFCET, Weg-Schritt-Diagramm,
+Strom- und Pneumatikschaltplan, Regelkreis und Trend. Tabellen wie Wertetabelle oder
+Gefährdungsmatrix füllst du in Vorlagen mit Musterzeile aus. Die Mappe „Meine Unterlagen“ sammelt
+alle deine Dokumente, die Seite „Dein Projekt wächst mit“ zeigt, wie dein TIA-Projekt von Übung zu
+Übung wächst. Dazu kommt der vollständige Schaltplan der Anlage zum Blättern und Suchen. Eine Datei, offline, deine Eingaben bleiben in deinem Browser.
+
+<table>
+<tr>
+<td width="50%"><img src="docs/bilder/15-uebungshandbuch-start.jpg" alt="Startseite des Übungshandbuchs mit Lernpfad"></td>
+<td width="50%"><img src="docs/bilder/16-uebungshandbuch-gefaehrdungsmatrix.jpg" alt="Gefährdungsmatrix mit Musterzeile im Schritt Planen"></td>
+</tr>
+</table>
+
+Öffne [`docs/uebungshandbuch.html`](docs/uebungshandbuch.html) im Browser.
+Mehr dazu in **[07 – Übungshandbuch](docs/07-uebungshandbuch.md)**.
+
+---
+
 ## Für wen
 
 - **Ausbildung und Weiterbildung** – Elektroniker für Automatisierungstechnik, Mechatroniker,
@@ -140,8 +167,9 @@ realistischere Darstellung.
 | **[02 – Die Anlage](docs/02-anlage.md)** | Konstruktion aller Stationen, Linie nach dem Verzinnen, Leitungsführung, Schaltschrank |
 | **[03 – Bedienen](docs/03-bedienung.md)** | Bedienpult, Handbetrieb-Tableau, Vor-Ort-Steuerstellen, Not-Halt, Weg-Zeit-Diagramm und Drosseln, 3D-Navigation, Grafikstufen |
 | **[04 – Signale und TIA](docs/04-signale.md)** | `signale.csv`, Adressbelegung, Bridge, Signalmonitor, Öffner und Schließer |
-| **[05 – Übungsaufgaben](docs/05-uebungen.md)** | 16 Aufgaben vom Einstieg bis zur Taktzeitoptimierung, nach Schwierigkeit geordnet |
+| **[05 – Übungsaufgaben](docs/05-uebungen.md)** | 24 Aufgaben vom Einstieg bis zur Taktzeitoptimierung, nach Schwierigkeit geordnet |
 | **[06 – Entwicklung](docs/06-entwicklung.md)** | Build, Aufbau des Quellcodes, Werkzeuge, Konventionen |
+| **[07 – Übungshandbuch](docs/07-uebungshandbuch.md)** | Interaktiver Lehrgang im Browser: 37 Übungen in vier Stufen, sechs Schritte je Übung, Ausfüllvorlagen, Meine Unterlagen, Fachwissen, gestufte Hilfen, Kurz-Checks, Skizzeneditor mit GRAFCET-, Elektro- und Pneumatikvorlagen |
 | **[Änderungen](CHANGELOG.md)** | Was sich in welcher Version geändert hat |
 
 ---

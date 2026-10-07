@@ -1,3 +1,5 @@
+**Deutsch** · [English](06-entwicklung.en.md)
+
 # Entwicklung
 
 Wer am Zwilling selbst etwas ändern will: Aufbau des Quellcodes, Build und Werkzeuge.

@@ -1,3 +1,5 @@
+**Deutsch** · [English](CHANGELOG.en.md)
+
 # Änderungen
 
 Alle nennenswerten Änderungen am Zwilling und an der Bridge. Die Version steht im Zwilling oben in
