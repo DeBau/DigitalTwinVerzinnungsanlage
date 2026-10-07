@@ -117,4 +117,22 @@ export const tests = [
       t.erwarte((await t.text('#editor')).includes('nach der zurückgezogenen VDI 3260'), 'Hilfe der Seitenleiste');
     },
   },
+  {
+    name: 'P7 Antrieb −MM2 aus der Anlage: Zylinder, Ventil, Spulen, Sensoren, Abluftdrosselung verdrahtet',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      await t.klick('#editor [data-pneu="antrieb"]');
+      await t.klick('#props [data-antrieb="MM2"]');
+      const d = await t.daten(), k = (art) => d.o.filter((o) => o.k === art);
+      const [z] = k('zyl2'), [v] = k('v52'), drv = k('drv');
+      t.gleich([z.v, z.s1, z.s2], ['−MM2', '−BG3', '−BG4'], 'Zylinder mit Endlagen');
+      t.gleich([v.al, v.ar, v.spl, v.spr], ['mag', 'mag', '−MB3', '−MB4'], '5/2 bistabil, −MB3 an 14, −MB4 an 12');
+      t.gleich(drv.length, 2, 'zwei Drosselrückschlagventile');
+      const hat = (a, pa, b, pb) => d.c.some((c) => c.a === a && c.pa === pa && c.b === b && c.pb === pb);
+      const zuA = drv.find((x) => hat(x.id, '2', z.id, 'A')), zuB = drv.find((x) => hat(x.id, '2', z.id, 'B'));
+      t.erwarte(zuA && hat(v.id, '4', zuA.id, '1'), 'Abluftdrosselung A: 4 → 1, 2 → A');
+      t.erwarte(zuB && hat(v.id, '2', zuB.id, '1'), 'Abluftdrosselung B: 2 → 1, 2 → B');
+      t.gleich(d.c.length, 5, 'mit Quelle an 1 fünf Leitungen');
+    },
+  },
 ];

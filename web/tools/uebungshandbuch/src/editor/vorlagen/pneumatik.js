@@ -11,13 +11,15 @@ import { listenFeld } from '../eigenschaften.js';
 import { VALVE, betaetigung, cylinder, drawValve, entlueftung, istSpule, rechteStellung, steuerNr, vPairs } from './pneumatik-symbole.js';
 import { GERAET } from './pneumatik-geraete.js';
 import { SIM_ANLEITUNG, simulationKlick, simulationWechsel } from './pneumatik-simulation.js';
+import { ANTRIEB_KNOPF, antriebKlick } from './pneumatik-antriebe.js';
 
 registriereVorlage("pneumatik", {
   n: "Pneumatikschaltplan", d: "Zylinder, Wegeventile, Drosseln nach ISO 1219, mit Simulation", gruppen: ["pneu"],
   body: () => grid(10, "#EEF1F3", 15, 15, 985, 630)
     + TX(25, 33, 10, "Energiefluss von unten nach oben: Versorgung unten, Ventile in der Mitte, Antriebe oben", "start"),
   werkzeugleiste: {nachVerbinden: `<button type="button" class="tool" data-tool="sim" `
-    + `title="Ventile per Klick schalten, Druck und Zylinderbewegung ansehen">${IC.play}Simulation</button>`},
+    + `title="Ventile per Klick schalten, Druck und Zylinderbewegung ansehen">${IC.play}Simulation</button>` + ANTRIEB_KNOPF},
+  klick: antriebKlick,
   anleitung: () => ED.tool === "sim" ? SIM_ANLEITUNG : null,
   werkzeugWechsel: simulationWechsel,
   zeiger: {unten: simulationKlick},
