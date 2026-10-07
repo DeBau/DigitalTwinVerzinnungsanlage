@@ -61,6 +61,7 @@ export const st = {
   wasser: 70, ablass: false,                               // Kühlwassertank: Füllstand in %, Ablasshahn offen
   antrieb: { TA2: 'schuetz', TA3: 'schuetz', TA4: 'schuetz', TA5: 'schuetz' },   // je Förderer 'schuetz' oder 'fu' = Umrichter (Telegramm 1)
   notHalt: { sf0: false, sf8: false, sf9: false, sf10: false, sf33: false }, kf2: true, quittAlt: null, eingriff: false,
+  tuer: { offen: false, verriegelt: true, anf: 0 },          // Schutztür hinten: Sicherheitsschalter mit Zuhaltung −BG41, Türanforderung −SF49
   anlauf: true,                                            // Wiederanlaufsperre: nach dem Abfallen von −KF2 laufen die automatischen Bereiche erst nach START wieder
   sa1: true, sa2: false, sa3: false, sa4: false, sa5: false, sa6: false, sa7: false, fa1Ok: true, fa5Ok: true, fa7Ok: true, fa8Ok: true,
   daumenrad: { H: 0, Z: 1, E: 0 },                         // Daumenradschalter −SF48 Tauchzeit (BCD), Ziffer je Dekade

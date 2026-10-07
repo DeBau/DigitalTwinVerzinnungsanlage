@@ -84,9 +84,9 @@ for (const dx of [-110, 110]) {
 }
 box(130, 100, 40, M.edelstahl, BAD_X, RAND_Y + 30, -252, bad);                              // Sammelhaube
 // Abluftrohr Ø90: von der Sammelhaube nach hinten, Rohrbogen 90° (R 1,5 × D) und senkrecht nach oben
-rohr([V(BAD_X, RAND_Y + 30, -260), V(BAD_X, RAND_Y + 30, -650), V(BAD_X, RAND_Y + 30 + 855, -650)], M.edelstahl, 45, 135, bad);
-zyl(47, 16, M.edelstahl, BAD_X, RAND_Y + 30, -440, 'z', bad, 32);                          // Rohrschelle / Muffe waagrecht
-zyl(47, 16, M.edelstahl, BAD_X, RAND_Y + 30 + 400, -650, null, bad, 32);                   // Muffe senkrecht
+// (innerhalb des Schutzzauns bei z = −600: Bogen bei z = −520)
+rohr([V(BAD_X, RAND_Y + 30, -260), V(BAD_X, RAND_Y + 30, -520), V(BAD_X, 2600, -520)], M.edelstahl, 45, 135, bad);   // bis 2600 wie die Hallen-Fallleitungen
+zyl(47, 16, M.edelstahl, BAD_X, RAND_Y + 30 + 400, -520, null, bad, 32);                   // Muffe senkrecht
 label('Randabsaugung', bad, BAD_X, RAND_Y + 110, -240, 'klein');
 // Thermoelement −BG9 (Anschlusskopf) und Niveauelektrode −BG10: waagrecht durch die Rückwand eingebaut,
 // Köpfe hinten unterhalb des Randes – oben über dem Bad fährt die Abdeckung (−MM4) über die ganze Breite

@@ -24,6 +24,30 @@ export function prozessZuruecksetzen() { angehaengt = null; vSchlittenAlt = 0; s
 export function korbUnterkante() { const u = (1 - ZYL.MM2.pos) * 300 + 446 - 158; return ZYL.MM3.pos < 0.05 ? Math.max(BAND_Y, u) : u; }
 function ueberBad() { return ZYL.MM3.pos > 0.97; }
 
+// ----------------------------------------------------------------------------
+// Schutztür hinten mit Sicherheitsschalter und Zuhaltung −BG41 (Bauart Euchner MGB2, Prinzip Ruhestrom: verriegelt
+// durch Federkraft, entriegelt nur mit Freigabe). Ablauf wie an der realen Anlage:
+//  1. Türanforderung −SF49 am Bedienmodul: −KF2 schaltet die Anlage sicher ab (Stopp-Kategorie 1),
+//  2. nach der Nachlaufzeit (Stillstand von Portal und Bändern) entriegelt die Zuhaltung, die Tür lässt sich öffnen,
+//  3. Tür schließen: der Riegel fährt ein, die Zuhaltung verriegelt; danach Quittieren und START.
+// Tür offen oder Zuhaltung entriegelt hält −KF2 abgeschaltet (zweikanalig im Sicherheitskreis wie Not-Halt und −BG20).
+// ----------------------------------------------------------------------------
+const NACHLAUF = 2;
+export function tuerKlick() {
+  const T = st.tuer;
+  if (T.offen) { T.offen = false; T.verriegelt = true; ereignis('Schutztür geschlossen, Zuhaltung −BG41 verriegelt: Quittieren und START −SF1'); return; }
+  if (!T.verriegelt) { T.offen = true; ereignis('Schutztür geöffnet: −KF2 bleibt abgeschaltet, solange die Tür offen ist'); return; }
+  if (T.anf > 0) return;
+  T.anf = NACHLAUF;
+  ereignis('Türanforderung −SF49: Anlage wird stillgesetzt, Zuhaltung −BG41 entriegelt nach der Nachlaufzeit');
+}
+function tuerZuhaltung(dt) {
+  const T = st.tuer;
+  if (T.anf <= 0) return;
+  T.anf -= dt;
+  if (T.anf <= 0) { T.anf = 0; T.verriegelt = false; ereignis('Zuhaltung −BG41 entriegelt: Schutztür kann geöffnet werden'); }
+}
+
 export function prozess(dt) {
   const p2 = ZYL.MM2.pos, p3 = ZYL.MM3.pos, p4 = ZYL.MM4.pos;
   // Sicherheitsrelais −KF2: Not-Halt −SF0/−SF8/−SF9/−SF10/−SF33 (Öffner in Reihe), Start über einen der parallelen
@@ -32,12 +56,19 @@ export function prozess(dt) {
   const quitt = QUITT.find(q => st.bedien[q.key]), quittFlanke = !!quitt && !st.quittAlt;
   const losgelassen = !quitt && st.quittAlt;
   const gedrueckt = NOT_HALT.filter(n => st.notHalt[n.key]);
-  const nh = gedrueckt.length > 0 || st.eingriff;
-  if (nh && st.kf2) { st.kf2 = false; st.anlauf = false; ereignis(st.eingriff && !gedrueckt.length ? 'Lichtvorhang −BG20 unterbrochen: −KF2 hat Ventile, Schütze und Heizung abgeschaltet' : t`NOT-HALT ${notHaltText(gedrueckt)}: Sicherheitsrelais −KF2 hat Ventile, Schütze und Heizung abgeschaltet`, 'err'); }
+  tuerZuhaltung(dt);
+  const tuerNichtZu = st.tuer.offen || !st.tuer.verriegelt || st.tuer.anf > 0;   // Zuhaltung −BG41 nicht verriegelt (zuhaltungsüberwacht)
+  const nh = gedrueckt.length > 0 || st.eingriff || tuerNichtZu;
+  if (nh && st.kf2) {
+    st.kf2 = false; st.anlauf = false;
+    ereignis(gedrueckt.length ? t`NOT-HALT ${notHaltText(gedrueckt)}: Sicherheitsrelais −KF2 hat Ventile, Schütze und Heizung abgeschaltet`
+      : st.eingriff ? 'Lichtvorhang −BG20 unterbrochen: −KF2 hat Ventile, Schütze und Heizung abgeschaltet'
+        : 'Türanforderung −SF49: −KF2 hat Ventile, Schütze und Heizung abgeschaltet', 'err');
+  }
   else for (const n of gedrueckt) if (!nhAlt.has(n.key)) ereignis(t`NOT-HALT ${notHaltText([n])} betätigt (−KF2 hat bereits abgeschaltet)`, 'err');
   nhAlt = new Set(gedrueckt.map(n => n.key));
   if (!nh && !st.kf2 && losgelassen) { st.kf2 = true; ereignis(t`Not-Halt quittiert ${t(losgelassen.ort)} (${losgelassen.bmk}): −KF2 gibt wieder frei, START −SF1 setzt die Anlage wieder in Gang`); }
-  if (nh && quittFlanke) ereignis(gedrueckt.length ? t`Quittieren nicht möglich: Not-Halt ${notHaltText(gedrueckt)} ist noch verriegelt` : 'Quittieren nicht möglich: Schutzfeld des Lichtvorhangs ist nicht frei', '', 'nhq');
+  if (nh && quittFlanke) ereignis(gedrueckt.length ? t`Quittieren nicht möglich: Not-Halt ${notHaltText(gedrueckt)} ist noch verriegelt` : st.eingriff ? 'Quittieren nicht möglich: Schutzfeld des Lichtvorhangs ist nicht frei' : 'Quittieren nicht möglich: Schutztür offen oder nicht zugehalten (−BG41)', '', 'nhq');
   st.quittAlt = quitt || null;
   // Wiederanlaufsperre: Bandmodul und Portalsteuerung laufen nach dem Quittieren erst mit einem neuen Startbefehl
   if (st.kf2 && !st.anlauf && st.bedien.sf1) { st.anlauf = true; ereignis('START −SF1: automatische Bereiche laufen wieder an'); }

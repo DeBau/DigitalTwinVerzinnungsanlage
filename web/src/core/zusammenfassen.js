@@ -9,6 +9,7 @@ import { ST } from '../anlage/pruefstation.js';
 import { deckel } from '../anlage/abdeckung.js';
 import { haken, hakenKoerper, mm1Piv, mm1Stange, schlitten } from '../anlage/portal.js';
 import { SCHRANK } from '../anlage/schaltschrank.js';
+import { TUER } from '../anlage/umhausung.js';
 import { Q, STUFEN, stufeSetzen, stufenVorbereiten } from './grafik.js';
 import { t } from './sprache.js';
 import { freieProfilendenAbdecken } from '../bauteile/aluprofil.js';
@@ -21,7 +22,7 @@ import { eckenMaterial, eckenwerteAnhaengen, eckenwerteMoeglich, oberflaeche } f
 // ----------------------------------------------------------------------------
 function szeneZusammenfassen() {
   freieProfilendenAbdecken(anlage);                                          // vor dem Zusammenfassen: Kappen gehören zu den Profilen
-  const wurzeln = [anlage, schlitten, haken, deckel, hakenKoerper, mm1Piv, mm1Stange, BAND.anschlag, BAND.vereinzeler, ...BAND.stopperNocken, ...KURVE.rollen, ST.kipper, ST.zylBody, ST.zylStange, ST.rinneGruppe,
+  const wurzeln = [anlage, schlitten, haken, deckel, hakenKoerper, mm1Piv, mm1Stange, BAND.anschlag, BAND.vereinzeler, ...BAND.stopperNocken, ...KURVE.rollen, ST.kipper, ST.zylBody, ST.zylStange, ST.rinneGruppe, TUER.fluegel,
     ...BAND.trommeln, ...BAND2.trommeln, ...SCHRANK.tueren, ...KNEBEL.map(k => k.knebel)];
   const wurzelSet = new Set(wurzeln);
   const einzeln = new Set([bodenMesh, ...PULT_TASTER.map(t => t.kappe), ...SCHRANK.qa]);

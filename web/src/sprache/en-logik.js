@@ -16,6 +16,12 @@ export default {
 
   // --- Not-Halt, Sicherheitsrelais −KF2, Lichtvorhang (logik/prozess.js) ---
   'Lichtvorhang −BG20 unterbrochen: −KF2 hat Ventile, Schütze und Heizung abgeschaltet': 'Light curtain −BG20 interrupted: −KF2 has switched off valves, contactors and heater',
+  'Türanforderung −SF49: −KF2 hat Ventile, Schütze und Heizung abgeschaltet': 'Door request −SF49: −KF2 has switched off valves, contactors and heater',
+  'Quittieren nicht möglich: Schutztür offen oder nicht zugehalten (−BG41)': 'Acknowledge not possible: guard door open or not locked (−BG41)',
+  'Schutztür geschlossen, Zuhaltung −BG41 verriegelt: Quittieren und START −SF1': 'Guard door closed, guard locking −BG41 locked: acknowledge and START −SF1',
+  'Schutztür geöffnet: −KF2 bleibt abgeschaltet, solange die Tür offen ist': 'Guard door opened: −KF2 stays off while the door is open',
+  'Türanforderung −SF49: Anlage wird stillgesetzt, Zuhaltung −BG41 entriegelt nach der Nachlaufzeit': 'Door request −SF49: plant is being stopped, guard locking −BG41 unlocks after the run-down time',
+  'Zuhaltung −BG41 entriegelt: Schutztür kann geöffnet werden': 'Guard locking −BG41 unlocked: guard door can be opened',
   'NOT-HALT {0}: Sicherheitsrelais −KF2 hat Ventile, Schütze und Heizung abgeschaltet': 'E-STOP {0}: safety relay −KF2 has switched off valves, contactors and heater',
   'NOT-HALT {0} betätigt (−KF2 hat bereits abgeschaltet)': 'E-STOP {0} pressed (−KF2 has already switched off)',
   'Not-Halt quittiert {0} ({1}): −KF2 gibt wieder frei, START −SF1 setzt die Anlage wieder in Gang': 'E-stop acknowledged {0} ({1}): −KF2 enables again, START −SF1 sets the plant going again',

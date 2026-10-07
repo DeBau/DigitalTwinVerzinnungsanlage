@@ -15,7 +15,7 @@ import { deckel } from '../anlage/abdeckung.js';
 import { haken, hakenKinematik, schlitten } from '../anlage/portal.js';
 import { VENTIL_LEDS, mm1SchlaeucheAktualisieren } from '../anlage/pneumatik.js';
 import { FELD_LEDS, ketteAktualisieren } from '../anlage/verdrahtung.js';
-import { SAEULE } from '../anlage/umhausung.js';
+import { SAEULE, TUER } from '../anlage/umhausung.js';
 import { KUPFER, ZINN_FARBE, daempfe, koerbe, rauchMat } from '../anlage/koerbe.js';
 import { toastBis } from './ereignisse.js';
 import { ausgang, bcdAnzeige, eingang, ketteLaeuft, wirksam } from '../logik/eingaenge.js';
@@ -119,11 +119,16 @@ export function visual(dt) {
   }
   for (const l of LS_STRAHLEN) l.mat.opacity = eingang(l.signal) ? 0.08 : 0.5;
   for (const m of LICHTVORHANG.leds) { m.emissive.setHex(st.eingriff ? 0xff2a1f : 0x22dd55); m.color.setHex(st.eingriff ? 0x331111 : 0x113311); }
-  LICHTVORHANG.strahlen.count = st.eingriff ? 0 : 41;
+  LICHTVORHANG.strahlen.count = st.eingriff ? 0 : LICHTVORHANG.n;
 
   const blink = (performance.now() % 1000) < 550;
   for (const l of PULT_LAMPEN) l.mat.emissiveIntensity = ausgang(l.signal) ? 1.8 : 0;
   for (const l of QM2.leds) l.mat.emissiveIntensity = wirksam(l.signal) ? 2.4 : 0;
+  // Schutztür: Flügel schwenkt nach außen (ca. 1,4 s), LEDs am Zuhaltemodul (grün = zugehalten, gelb = entriegelt, blinkt bei Anforderung)
+  const zielW = st.tuer.offen ? 1.6 : 0, w = TUER.fluegel.rotation.y;
+  TUER.fluegel.rotation.y = w + Math.max(-dt * 1.2, Math.min(dt * 1.2, zielW - w));
+  TUER.ledVerriegelt.emissiveIntensity = st.tuer.verriegelt && !st.tuer.anf ? 1.6 : 0;
+  TUER.ledOffen.emissiveIntensity = !st.tuer.verriegelt || (st.tuer.anf > 0 && blink) ? 1.6 : 0;
   for (const s of SAEULE) s.mat.emissiveIntensity = ausgang(s.signal) ? (s.signal === 'PF3_Fuellhoehe' && !blink ? 0.2 : 1.6) : 0;
   personBewegen(dt);
   for (const t of PULT_TASTER) {

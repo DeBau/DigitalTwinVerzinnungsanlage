@@ -11,6 +11,18 @@ export const bodenMesh = mesh(new THREE.PlaneGeometry(HALLE.b, HALLE.t), M.boden
 bodenMesh.position.z = HALLE.z;
 bodenMesh.rotation.x = -Math.PI / 2;
 export const UMH = { x0: -980, x1: 1520, z0: -600, z1: 600, h: 1950 };
+// Absicherung um Band 1, Rollenkurve, Band 2 und Kipper: vorn Lichtvorhang −BG20 (SICK deTec4) vom Sender an der linken
+// Eckpfosten der Umhausung über eine Umlenkspiegelsäule vor den Bändern zum Empfänger vor der Ausschussbox;
+// hinten fester Schutzgitterzaun von der rechten Eckpfosten der Umhausung hinter Band 2 bis auf dieselbe Höhe.
+// Pfade in mm (x, z). Strahlen 450 … 1650 mm im Raster 30 mm.
+export const LV = { systeme: [[[-1000, 645], [-1000, 1790], [3820, 1790]]], y0: 450, n: 41, dy: 30 };
+// Zaun hinten (z = UMH.z0): Durchlass Band 1 mit Antrieb −MA1 (x von … bis, Pfostenmitten), Schutztür (Scharnier, Schließseite)
+// rechts: Zaunseite bei x = 2050 – Durchgang ≥ 600 mm neben dem Abstreifzylinder −MM4 (bis x ≈ 1400) in den vorderen Bereich
+// Schutztür an der Ecke (von hinten gesehen ganz links): Scharnier bei 1150, Schließseite am Eckpfosten
+// hinterBand2: Zaunlinie hinter Band 2 (Gang ≈ 650 mm bis zur Kabelbrücke), kamera: Abschlusselement bei x = ende
+// von der Zaunlinie bis vor den Kabelkanal der Prüfstation (z 1220) neben dem Kamerastativ – dort bleibt nur der Durchlass
+// für Vibrorinne und Prüfband
+export const ZAUN = { durchlass: [-230, 330], tuer: [1150, 2050], rechts: 2050, hinterBand2: 300, ende: 3820, kamera: 1190 };
 // Industriehalle: Betonsockel, Sandwichpaneele, HEB-Stützen, Fachwerkbinder, LED-Hallenstrahler, Lichtband
 {
   const { b, t, h, z } = HALLE, x0 = -b / 2, x1 = b / 2, z0 = z - t / 2, z1 = z + t / 2;
@@ -62,8 +74,12 @@ export const UMH = { x0: -980, x1: 1520, z0: -600, z1: 600, h: 1950 };
   // Bodenmarkierung Fahrweg (gelb)
   for (const zz of [3300, 5900]) { const m = box(b - 1200, 1, 100, M.gelb, 0, 0.6, zz); m.castShadow = false; }
 }
-for (const [x, z, w, d] of [[(UMH.x0 + UMH.x1) / 2, UMH.z1 + 80, UMH.x1 - UMH.x0 + 200, 60], [(UMH.x0 + UMH.x1) / 2, UMH.z0 - 80, UMH.x1 - UMH.x0 + 200, 60]]) {
-  const m = box(w, 1, d, M.warn, x, 0.6, z); m.castShadow = false;
-  m.material = M.warn.clone(); m.material.map = TEX.warnband.clone(); m.material.map.needsUpdate = true; m.material.map.repeat.set(w / 240, 1);
-}
+// Gelb-schwarze Bodenmarkierung (Warnband 60 mm) rund um den abgesicherten Bereich, 120 mm außerhalb von Zaun,
+// Lichtvorhang-Säulen und der offenen Seite zum Prüfband (Umlauf gegen den Uhrzeigersinn von oben gesehen)
+export const MARKIERUNG = [[-1120, -720], [2170, -720], [2170, 180], [3940, 180], [3940, 1910], [-1120, 1910]];
+MARKIERUNG.forEach(([ax, az], i) => {
+  const [bx, bz] = MARKIERUNG[(i + 1) % MARKIERUNG.length], L = Math.hypot(bx - ax, bz - az) + 60;   // Ecken überlappen
+  const m = box(L, 1, 60, M.warn, (ax + bx) / 2, 0.6, (az + bz) / 2); m.castShadow = false; m.rotation.y = -Math.atan2(bz - az, bx - ax);
+  m.material = M.warn.clone(); m.material.map = TEX.warnband.clone(); m.material.map.needsUpdate = true; m.material.map.repeat.set(L / 240, 1);
+});
 

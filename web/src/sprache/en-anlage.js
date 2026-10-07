@@ -38,6 +38,8 @@ export default {
   'Spule 14': 'Coil 14',
   'Spule 12': 'Coil 12',
   'Rollenkurve −MA6 (90°, konische Rollen, Rundriemen)': 'Roller curve −MA6 (90°, tapered rollers, round belts)',
+  'Schutztür, Sicherheitsschalter mit Zuhaltung −BG41, Türanforderung −SF49': 'Guard door, safety switch with guard locking −BG41, door request −SF49',
+  'Umlenkspiegelsäule SICK PM4': 'Mirror column SICK PM4',
   'Sprühkühlung (Abschrecken)': 'Spray cooling (quenching)',
   'Sprühventil −MB13': 'Spray valve −MB13',
   'Tank, Umwälzpumpe −MA3': 'Tank, circulation pump −MA3',

@@ -10,7 +10,7 @@ import { MM8, MULDE, ST } from '../anlage/pruefstation.js';
 import { daempfe, koerbe, korbEntfernen, korbErzeugen, korbNrZuruecksetzen, tropfen } from '../anlage/koerbe.js';
 import { ereignis, zuletzt } from './ereignisse.js';
 import { demo } from '../logik/demo-sps.js';
-import { korbAuflegen, prozessZuruecksetzen } from '../logik/prozess.js';
+import { korbAuflegen, prozessZuruecksetzen, tuerKlick } from '../logik/prozess.js';
 import { UMRICHTER, UMRICHTER_LISTE, umrichterZuruecksetzen } from '../logik/umrichter.js';
 import { rollenkurveZuruecksetzen } from '../logik/rollenkurve.js';
 import { wzFensterOeffnen, wzZuruecksetzen } from './diagramm.js';
@@ -55,6 +55,7 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   if (!hit) return;
   const { taster: key, art } = hit.object.userData;
   if (art === 'lichtvorhang') { personStarten(); return; }
+  if (art === 'tuer') { tuerKlick(); return; }                       // Schutztür: Türanforderung, öffnen, schließen
   if (art === 'drossel') { wzFensterOeffnen(key); return; }          // Drosselrückschlagventil: Einstellung im Weg-Zeit-Fenster
   if (art === 'umrichter') { fuFensterOeffnen(key); return; }        // Umrichter −TA2…−TA5 im Schaltschrank
   if (art === 'ablass') { $('btn-ablass').click(); return; }         // Ablasshahn am Kühlwassertank
@@ -298,7 +299,7 @@ function anlageZuruecksetzen() {
   Object.assign(KW, { y: 0, mb17: false, zulauf: 0, verbrauch: 0, ablauf: 0, regelEin: false, sperre: false, sperreGemeldet: false, trocken: false, ohneFluss: 0 });
   demo.kw.i = 0;
   for (const k in st.bedien) st.bedien[k] = false;
-  Object.assign(st, { notHalt: { sf0: false, sf8: false, sf9: false, sf10: false, sf33: false }, kf2: true, anlauf: true, quittAlt: null, eingriff: false, fa1Ok: true, fa5Ok: true, fa7Ok: true, fa8Ok: true, drahtbruch: {}, daumenrad: { H: 0, Z: 1, E: 0 }, sa1: true, sa2: false, sa3: false, sa4: false, sa5: false, sa6: false, sa7: false, pbPoti: 1, heizElement: 0.76 });
+  Object.assign(st, { notHalt: { sf0: false, sf8: false, sf9: false, sf10: false, sf33: false }, kf2: true, anlauf: true, quittAlt: null, eingriff: false, tuer: { offen: false, verriegelt: true, anf: 0 }, fa1Ok: true, fa5Ok: true, fa7Ok: true, fa8Ok: true, drahtbruch: {}, daumenrad: { H: 0, Z: 1, E: 0 }, sa1: true, sa2: false, sa3: false, sa4: false, sa5: false, sa6: false, sa7: false, pbPoti: 1, heizElement: 0.76 });
   Object.assign(BAND2, { v: 0, wende: 0, pruefT: 0, ergebnisT: 0, pumpe: 0, spruehen: 0, blasen: 0 });
   Object.assign(ST, { teile: [], trichter: [], klt: 0, aus: 0, kltTausch: 0, kipBefehl: false, pruefT: 0, ergebnisT: 0, vorOrt: { pruef: false, kip: false, pb: false } });
   Object.assign(MULDE, { v: 0, wende: 0 });

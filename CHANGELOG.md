@@ -8,6 +8,34 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.16.0 – 2026-10-07
+
+Der Zwilling ändert sich (`web\index.html`). In der Bridge ändert sich nur die Versionsnummer. Signalliste und
+TIA-Variablentabellen bleiben gleich: Schutztür und Lichtvorhang wirken direkt im Sicherheitskreis von −KF2.
+
+**Warum**
+Die Absicherung entsprach nicht einer realen Anlage: Die Bänder lagen außerhalb des Schutzfelds, die Umhausung
+hatte keine Tür für die Instandhaltung, und die Bedienplätze standen im Gefahrbereich.
+
+**Neu**
+- **Schutzgitterzaun** (Bauart Axelent X-Guard: gelbe Pfosten, schwarze Gitterpaneele) statt der Polycarbonat-Umhausung:
+  links, hinten und rechts um Portal und Zinnbad, mit Gang neben dem Abstreifzylinder −MM4 und hinter Band 2,
+  Abschlusselement an der Kamera, Durchlass für Band 1.
+- **Schutztür hinten** mit Sicherheitsschalter und Zuhaltung −BG41 (Bauart Euchner MGB2) und Türanforderung −SF49:
+  Anforderung schaltet −KF2 ab, nach 2 s Nachlaufzeit entriegelt die Zuhaltung, die Tür lässt sich öffnen;
+  nach dem Schließen verriegelt sie wieder, dann Quittieren und START.
+- **Lichtvorhang −BG20 vor den Bändern:** Sender an der linken Zaunecke, Umlenkspiegelsäule SICK PM4 (nach
+  Maßzeichnung) vor den Bändern, Empfänger vor der Ausschussbox. Band 1, Rollenkurve, Band 2 und Kipper liegen
+  im Schutzfeld, die KLT können ohne Eingriff entnommen werden.
+- **Bodenmarkierung** gelb-schwarz rund um den ganzen abgesicherten Bereich.
+
+**Geändert**
+- Bedienpult und Vor-Ort-Steuerstelle −S30 stehen vor dem Schutzfeld.
+- Signalsäule auf dem vorderen linken Zaunpfosten.
+- Wrasenrohr der Sprühkühlung senkrecht nach oben, Abluftrohr des Zinnbads innerhalb des Zauns; beide wie die
+  Druckluft-Fallleitungen bis 2600 mm.
+- Werker geht von links durch den Lichtvorhang in die Anlage.
+
 ## 1.15.0 – 2026-10-07
 
 Der Zwilling ändert sich (`web\index.html`). In der Bridge ändert sich nur die Versionsnummer, damit Zwilling und

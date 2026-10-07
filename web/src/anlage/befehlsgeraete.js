@@ -85,7 +85,7 @@ export function meldeleuchte(parent, x, y, signal, farbe) {
 }
 // Bedienpult am Bandanfang (Säule 90x90, Pultgehäuse geneigt)
 {
-  const g = new THREE.Group(); g.position.set(-650, 0, 860); anlage.add(g);
+  const g = new THREE.Group(); g.position.set(-650, 0, 2150); anlage.add(g);                   // vor dem Schutzfeld −BG20 (vorderer Schenkel z = 1790)
   // Rittal Tragarmsystem CP 60: Standrohr Ø60 mit Fußplatte, Gelenk, Komfort-Bediengehäuse (Alu-Rahmen, RAL 7035)
   zyl(30, 900, M.rittalAlu, 0, 462, -40, null, g, 32);
   box(260, 12, 260, M.anthrazit, 0, 6, -40, g);
@@ -185,7 +185,7 @@ export function vorOrtStation(pos, bmk, k) {
 const VORORT = new THREE.Vector3(420, 0, -1080);
 vorOrtStation(VORORT, 'S10', { ry: Math.PI, sa: 'sa2', saT: 'SA2', pf: 'PF6_VorOrt', pfT: 'PF6', links: 'sf6', linksT: 'SF6', halt: 'sf7', haltT: 'SF7', rechts: 'sf5', rechtsT: 'SF5', nh: 'sf8', nhT: 'SF8', q: 'sf41', qT: 'SF41', pfQ: 'PF12_Quitt_S10', dx: 0 });
 vorOrtStation(new THREE.Vector3(2420, 0, 1980), 'S20', { sa: 'sa4', saT: 'SA4', pf: 'PF8_VorOrt2', pfT: 'PF8', links: 'sf24', linksT: 'SF24', halt: 'sf25', haltT: 'SF25', rechts: 'sf23', rechtsT: 'SF23', nh: 'sf9', nhT: 'SF9', q: 'sf42', qT: 'SF42', pfQ: 'PF13_Quitt_S20', dx: 6 });
-vorOrtStation(new THREE.Vector3(-480, 0, 1760), 'S30', { sa: 'sa5', saT: 'SA5', pf: 'PF9_VorOrt3', pfT: 'PF9', links: 'sf31', linksT: 'SF31', halt: 'sf32', haltT: 'SF32', rechts: 'sf30', rechtsT: 'SF30', nh: 'sf10', nhT: 'SF10', q: 'sf43', qT: 'SF43', pfQ: 'PF14_Quitt_S30', dx: 12 });
+vorOrtStation(new THREE.Vector3(-150, 0, 2050), 'S30', { sa: 'sa5', saT: 'SA5', pf: 'PF9_VorOrt3', pfT: 'PF9', links: 'sf31', linksT: 'SF31', halt: 'sf32', haltT: 'SF32', rechts: 'sf30', rechtsT: 'SF30', nh: 'sf10', nhT: 'SF10', q: 'sf43', qT: 'SF43', pfQ: 'PF14_Quitt_S30', dx: 12 });
 // −S40 an der Entleer- und Prüfstation: Bedienerseite (+z) zwischen Kipper und Ausschussbehälter, Blick auf Mulde, Rinne und Prüfband.
 // Leitung über den Kabelkanal der Prüfstation (pruefstation-peripherie.js)
 export const S40_POS = new THREE.Vector3(3480, 0, 2000);

@@ -5,16 +5,23 @@ import { st } from '../logik/zustand.js';
 import { scene } from '../core/szene.js';
 import { V } from '../core/geometrie.js';
 import { ereignis } from '../ui/ereignisse.js';
+import { LV } from './halle.js';
+
+// Abstand des Punkts (x, z) zur Strecke a–b
+function abstandStrecke(x, z, [ax, az], [bx, bz]) {
+  const dx = bx - ax, dz = bz - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz)));
+  return Math.hypot(x - ax - t * dx, z - az - t * dz);
+}
 
 export const PERSON = { g: null, zustand: 'weg', z: 1900, x: 1150, mixer: null, walk: null, idle: null, t: 0 };
 // Person geht hinein, bleibt stehen, geht wieder hinaus. Unterbrochen ist das Schutzfeld nur, solange der Körper
-// die Lichtvorhangebene (z = 600) durchquert. −KF2 bleibt bis zum Quittieren aus (Wiederanlaufsperre).
-// Laufweg im freien Gang zwischen Umhausung (z = 600) und Kabelbrücke (ab z = 950) – weiter hinten
-// stand die Person mit den Füßen in der Brücke und mit der Schulter im Gestell von Band 2.
+// einen Schenkel des Schutzfelds (Umhausung.js, LV) durchquert. −KF2 bleibt bis zum Quittieren aus (Wiederanlaufsperre).
+// Laufweg von links (neben dem Schaltschrank) über die Kabelbrücke durch den linken Schenkel des Schutzfelds,
+// links an Band 1 vorbei in die Umhausung.
 export function personStarten() {
   if (!PERSON.mixer || PERSON.zustand !== 'weg') return;
-  Object.assign(PERSON, { zustand: 'rein', i: 0, weg: [[3400, 800], [1150, 800], [1150, 380]] });
-  PERSON.x = 3400; PERSON.z = 800;
+  Object.assign(PERSON, { zustand: 'rein', i: 0, weg: [[-1700, 1250], [-450, 1250], [-450, 380]] });
+  PERSON.x = -1700; PERSON.z = 1250;
   PERSON.g.visible = true;
   ereignis('Ein Werker geht durch den Lichtvorhang in die Anlage');
 }
@@ -44,7 +51,8 @@ export function personBewegen(dt) {
   let dr = richtung - P.g.rotation.y; dr = Math.atan2(Math.sin(dr), Math.cos(dr));
   P.g.rotation.y += dr * Math.min(1, dt * 5);
   P.g.position.set(P.x / 1000, 0, P.z / 1000);
-  st.eingriff = Math.abs(P.z - 600) < 160;
+  // unterbrochen, solange der Körper einen Schenkel des Schutzfelds kreuzt (Abstand zur Strecke < 160 mm)
+  st.eingriff = LV.systeme.some((pfad) => pfad.some((a, i) => i > 0 && abstandStrecke(P.x, P.z, pfad[i - 1], a) < 160));
 }
 
 // Werker: geriggtes Menschmodell (Mixamo X Bot) mit Lauf- und Stehanimation, Arbeitsoverall, Warnweste, Helm

@@ -8,6 +8,34 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.16.0 – 2026-10-07
+
+The twin changes (`web\index.html`). In the bridge only the version number changes. Signal list and TIA tag tables
+stay the same: guard door and light curtain act directly in the safety circuit of −KF2.
+
+**Why**
+The safeguarding did not match a real plant: the conveyors were outside the protective field, the enclosure had no
+door for maintenance, and the operator stations stood in the danger zone.
+
+**New**
+- **Safety fence** (Axelent X-Guard style: yellow posts, black mesh panels) instead of the polycarbonate enclosure:
+  left, rear and right around gantry and tin bath, with a walkway beside the cover cylinder −MM4 and behind
+  conveyor 2, an end panel at the camera and an opening for conveyor 1.
+- **Rear guard door** with safety switch and guard locking −BG41 (Euchner MGB2 style) and door request −SF49:
+  the request switches off −KF2, after a 2 s run-down time the guard locking releases and the door can be opened;
+  after closing it locks again, then acknowledge and START.
+- **Light curtain −BG20 in front of the conveyors:** sender at the left fence corner, SICK PM4 mirror column
+  (from the dimensional drawing) in front of the conveyors, receiver in front of the reject box. Conveyor 1,
+  roller curve, conveyor 2 and tipper lie in the protective field; the KLT bins can be removed without intervention.
+- **Floor marking** in yellow and black around the whole safeguarded area.
+
+**Changed**
+- Operator panel and local control station −S30 stand in front of the protective field.
+- Signal tower on the front left fence post.
+- Exhaust pipe of the spray cooling straight up, tin bath exhaust inside the fence; both up to 2600 mm like the
+  compressed air drops.
+- The worker walks into the plant from the left through the light curtain.
+
 ## 1.15.0 – 2026-10-07
 
 The twin changes (`web\index.html`). In the bridge only the version number changes, so twin and bridge have the

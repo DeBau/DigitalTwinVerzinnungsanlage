@@ -43,7 +43,7 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   for (const dz of [-L / 2 + 2, L / 2 - 2]) for (let i = 0; i < 7; i++) box(36, 190, 2, lamelle, -129 + i * 43, BAND_Y + 145, zc + dz, b2g);
   // Abluftstutzen mit Wrasenrohr nach oben
   zyl(52, 50, M.edelstahl, 60, yU + H + 27, zc, null, b2g, 24);                                 // Abluftstutzen
-  starrRohr([V(60, yU + H + 50, zc), V(60, yU + H + 130, zc), V(560, yU + H + 130, zc), V(560, yU + H + 1100, zc)], M.verzinkt, 50, 75, b2g);   // Wrasenrohr nach hinten, dann hoch
+  starrRohr([V(60, yU + H + 50, zc), V(60, 2600, zc)], M.verzinkt, 50, 75, b2g);                               // Wrasenrohr senkrecht bis auf 2600 (Höhe der Hallen-Fallleitungen)
   // Sprührohre (oben quer über dem Band, unten unter dem Obertrum) mit Flachstrahldüsen
   const rohr = M.edelstahl, duese = new THREE.MeshStandardMaterial({ color: 0x2f5fa8, roughness: 0.4 });
   const kegelMat = new THREE.MeshBasicMaterial({ color: 0xd8ecff, transparent: true, opacity: 0.28, depthWrite: false });
@@ -71,7 +71,7 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   const tz = zc + 60;
   box(160, 300, 360, M.edelstahl, 260, 160, tz, b2g);
   box(164, 6, 364, M.edelstahl, 260, 313, tz, b2g);
-  // Pumpe im hinteren Tankbereich (z tz − 125): neben dem Pyrometer −BT2 (z zc ± 30) und unter dem Wrasenrohr (ab y 586)
+  // Pumpe im hinteren Tankbereich (z tz − 125): neben dem Pyrometer −BT2 (z zc ± 30) (das Wrasenrohr geht senkrecht über dem Kühlgehäuse hoch)
   const PX = 265, PZ = tz - 125;
   umwaelzpumpe(PX, PZ);
   // Druckleitung DN15: waagrecht aus dem Pumpenkopf über den Tankrand, senkrecht von unten in das Verteilerrohr (x 175, y BAND_Y + 225)
