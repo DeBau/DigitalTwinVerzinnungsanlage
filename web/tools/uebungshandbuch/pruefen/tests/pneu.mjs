@@ -25,6 +25,13 @@ const meldet = async (t, n) => (await t.text('#simstatus')).includes(`${n} 1`);
 const links = (t, x, y) => t.klick([x + 15, y + 30]);
 const rechts = (t, x, y, w = 140) => t.klick([x + w - 15, y + 30]);
 const leitungen = (t) => t.page.$$eval('#edstage .ink [data-c] > path:first-child', (ps) => ps.map((p) => p.getAttribute('d')));
+// Schnelleingabe des Weg-Schritt-Diagramms: Feld leeren, Ablauf eintragen, „Diagramm zeichnen“; Rückgabe: Hinweistext
+async function schnelleingabe(t, text) {
+  await t.page.fill('#editor [data-wsablauf]', text);
+  await t.klick('#editor [data-wsablaufknopf]');
+  return t.text('#editor [data-wsablaufhinweis]');
+}
+const wsStriche = async (t) => ((await t.daten()) || {s: []}).s;
 
 export const tests = [
   {
@@ -217,6 +224,19 @@ export const tests = [
       t.gleich(art('eq').length, 1, 'Zyklusende');
       t.erwarte(art('l').length >= 8, 'Funktionslinien für −MM2 und −MM3');
       t.erwarte(art('l').every((x) => x.p.every(([px]) => px >= 150 && px <= 150 + 7 * 68.75 + 1)), 'Linien in den Schritten 1 bis 7');
+    },
+  },
+  {
+    name: 'W1 Schnelleingabe lehnt eine Wartezeit am Anfang und zwei Zeiten hintereinander ab',
+    lauf: async (t) => {
+      await t.oeffne('wegschritt');
+      t.erwarte((await schnelleingabe(t, 't = 5 s, MM2-, MM2+')).includes('beginnt mit dem Start'), 'Zeit am Anfang');
+      t.gleich((await wsStriche(t)).length, 0, 'nichts gezeichnet');
+      t.erwarte((await schnelleingabe(t, 'MM2-, t = 2 s, t = 3 s, MM2+')).includes('folgt direkt auf eine Wartezeit'),
+        'zwei Zeiten hintereinander');
+      t.gleich((await wsStriche(t)).length, 0, 'nichts gezeichnet');
+      await schnelleingabe(t, 'MM2-, t = 5 s, MM2+');
+      t.gleich((await wsStriche(t)).filter((x) => x.tz).map((x) => x.tz), ['t = 5 s'], 'Zeit nach einer Bewegung');
     },
   },
   {

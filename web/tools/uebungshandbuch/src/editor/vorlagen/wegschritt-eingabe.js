@@ -9,11 +9,20 @@ import { ANTRIEBE, antriebZu } from './anlage-antriebe.js';
 import { WS_RASTER, sigLoop, spalteBei, wsAus, wsPunkt, wsZeilen, zeileBei, zeilenName } from './wegschritt-striche.js';
 
 /* ---------- Ablauf lesen ---------- */
+// Eine Wartezeit braucht eine Bewegung davor: nicht am Anfang, nicht zwei Zeiten hintereinander. Meldung oder ""
+function zeitFehler(schritte, roh){
+  if (!schritte.length) return `Der Ablauf beginnt mit dem Start −SF1 und einer Bewegung. Setz „${roh}“ hinter eine `
+    + `Bewegung, z. B. MM2−, ${roh}, MM2+.`;
+  if (schritte[schritte.length - 1].zeit) return `„${roh}“ folgt direkt auf eine Wartezeit. Fasse beide zu einer Zeit `
+    + `zusammen, z. B. t = 5 s.`;
+  return "";
+}
 // Text → [{moves: [{mm, aus}], zeit}] oder {fehler}. "−", "-" und "–" gelten als Minus.
 export function leseAblauf(text){
   const schritte = [];
   for (const roh of String(text).split(/[,;]/).map(t => t.trim()).filter(Boolean)) {
     const zeit = /^t\s*=\s*(.+)$/i.exec(roh);
+    if (zeit && zeitFehler(schritte, roh)) return {fehler: zeitFehler(schritte, roh)};
     if (zeit) { schritte.push({moves: [], zeit: "t = " + zeit[1].trim()}); continue; }
     const moves = roh.split(/\s+/).map(m => /^[-−–]?(MM\d+)([+\-−–])$/i.exec(m));
     if (!moves.length || moves.some(m => !m)) return {fehler: `„${roh}“ verstehe ich nicht. Beispiel: MM2−, MM3+, t = 10 s`};
@@ -59,7 +68,8 @@ export function funktionslinien(p, zeile){
   }
   return s;
 }
-// Auslöser von Schritt j: Endlagensensoren der Antriebe, die in Schritt j − 1 (bzw. vor der Wartezeit) fertig wurden
+// Auslöser von Schritt j: Endlagensensoren der Antriebe, die in Schritt j − 1 (bzw. vor der Wartezeit) fertig wurden.
+// leseAblauf sorgt dafür, dass vor jeder Wartezeit eine Bewegung steht.
 export function ausloeser(schritte, j){
   const vorher = schritte[j - 1].zeit ? schritte[j - 2] : schritte[j - 1];
   const zeit = schritte[j - 1].zeit, an = vorher ? vorher.moves : [];
