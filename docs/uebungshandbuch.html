@@ -286,6 +286,61 @@ textarea.auto{display:block;width:100%;min-width:0;min-height:0;resize:none;over
 .case textarea.auto{font-size:14px;padding:6px 9px;background:transparent}
 .case .fa textarea.auto{margin-top:2px}
 .tplt th{font-size:12.5px}
+
+/* ---------- Vorlage als Karte und im Popup (vorlage-popup.js) ---------- */
+.tplk{border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:12px 0 18px;background:var(--panel)}
+.tplk.voll{border-color:var(--ok);background:var(--ok-soft)}
+.tplk-kopf{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.tplk-kopf h3{margin:0 0 2px}
+.tplk-hin{margin:18px 0 -6px}
+.tplk-bar{height:8px;border-radius:99px;background:var(--sunk);overflow:hidden;margin-top:12px}
+.tplk-bar i{display:block;height:100%;background:var(--ok);border-radius:99px;transition:width .3s}
+.tplk-kacheln{display:flex;flex-wrap:wrap;gap:4px;margin-top:10px}
+.tplk-kacheln i{width:14px;height:14px;border-radius:4px;background:var(--sunk);border:1px solid var(--line)}
+.tplk-kacheln i.ok{background:var(--ok);border-color:var(--ok)}
+.tplk-kacheln i.auff{background:var(--yellow);border-color:var(--yellow)}
+dialog.tpd{max-width:min(1180px,calc(100vw - 24px));height:min(860px,calc(100vh - 24px))}
+.tpd-in{display:flex;flex-direction:column;height:100%}
+.tpd-kopf{display:flex;gap:16px;align-items:center;padding:16px 22px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tpd-kopf h2{font-size:20px;margin:0}.tpd-kopf>h2{flex:1}
+.tpd-titel{flex:1;min-width:240px}
+.tpd-fort{display:flex;gap:10px;align-items:center;font-size:13.5px;color:var(--ink2)}
+.tpd-fort .tplk-bar{flex:1;margin:0}
+.tpd-filter{display:flex;gap:6px}
+.tpd-filter .btn[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:var(--onblue)}
+.tpd-tab{padding:16px 22px;overflow:auto}
+.tpd-body{flex:1;display:grid;grid-template-columns:320px minmax(0,1fr);min-height:0}
+.tpd-liste{overflow-y:auto;border-right:1px solid var(--line);padding:8px;background:var(--sunk)}
+.tpd-z{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;width:100%;text-align:left;border:1px solid transparent;border-radius:9px;background:none;padding:8px 10px;cursor:pointer;color:var(--ink);font:inherit;font-size:14px}
+.tpd-z:hover{background:var(--panel)}
+.tpd-z.aktiv{background:var(--panel);border-color:var(--blue);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.tpd-z .st{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:600 12px var(--cond);background:var(--panel);border:1px solid var(--line);color:var(--ink2)}
+.tpd-z.ok .st{background:var(--ok);border-color:var(--ok);color:#fff}
+.tpd-z.auff .st{background:var(--yellow);border-color:var(--yellow);color:#000}
+.tpd-z .werte{display:flex;gap:3px}
+.tpd-z .werte i{font:600 11.5px var(--mono);font-style:normal;min-width:20px;text-align:center;padding:2px 4px;border-radius:5px;background:var(--panel);border:1px solid var(--line)}
+.tpd-karte{overflow-y:auto;padding:22px 28px}
+.tpd-nr{font:600 12px var(--cond);text-transform:uppercase;letter-spacing:.05em;color:var(--ink2);margin-bottom:8px}
+.tpd-steck{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:0 0 18px;padding:14px 16px;border-radius:10px;background:var(--blue-soft)}
+.tpd-steck dt{font-size:12px;color:var(--ink2)}
+.tpd-steck dd{margin:2px 0 0;font-weight:600;font-size:15.5px}
+.tpd-felder{display:grid;gap:16px}
+.tpd-feld label{display:block;font-weight:600;margin-bottom:6px}
+.tpd-feld.zu{opacity:.6}
+.tpd-feld textarea{width:100%}
+.tpd-wahl{display:flex;gap:10px}
+.tpd-wahl button{min-width:86px;padding:12px 18px;font:600 20px var(--mono);border:2px solid var(--line);border-radius:10px;background:var(--panel);color:var(--ink);cursor:pointer;transition:transform .08s}
+.tpd-wahl button:hover{border-color:var(--blue)}
+.tpd-wahl button:active{transform:scale(.95)}
+.tpd-wahl button[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:var(--onblue)}
+.tpd-auff{margin:0 0 16px;padding:12px 14px;border-radius:9px;background:var(--yellow-soft);border-left:4px solid var(--yellow)}
+.tpd-geschafft{margin:0 0 16px;padding:12px 14px;border-radius:9px;background:var(--ok-soft);border-left:4px solid var(--ok);font-weight:600;animation:tpd-pop .4s ease-out}
+@keyframes tpd-pop{from{transform:scale(.96);opacity:0}to{transform:none;opacity:1}}
+.tpd-nav{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:24px;padding-top:16px;border-top:1px solid var(--line)}
+.tpd-nav .muted{text-align:center}
+.tpd-bsp{margin:0 0 16px;border:1px dashed var(--line);border-radius:9px;padding:8px 12px}
+.tpd-bsp summary{cursor:pointer;color:var(--ink2);font-size:13.5px}
+.tpd-bsp .tpd-steck{margin:10px 0 2px;background:var(--sunk)}
 /* ---------- Signal-Chips ---------- */
 .sig{display:inline;font:500 .87em var(--mono);padding:0 4px;border-radius:4px;background:var(--blue-soft);color:var(--blue);border:0;cursor:help;white-space:nowrap}
 .sig.nodata{cursor:default}
@@ -423,6 +478,7 @@ pre.code code{font-size:inherit}
 /* ---------- schmal ---------- */
 @media screen and (max-width:1180px){.exgrid{grid-template-columns:200px minmax(0,1fr)}.ctx{grid-column:1/-1;position:static;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}.ctx .nachschlagen{position:fixed;right:16px;bottom:16px;z-index:20;padding:0;border:0;background:none}.nachschlagen h4,.fwthemen{display:none}.nsbtns{grid-template-columns:1fr 1fr}.nsbtns .nsalle{display:inline-flex}.nsbtns .btn{box-shadow:0 6px 20px rgba(0,0,0,.25)}.quick{grid-template-columns:1fr 1fr}}
 @media screen and (max-width:860px){
+  .tpd-body{grid-template-columns:1fr;grid-template-rows:180px minmax(0,1fr)}.tpd-liste{border-right:0;border-bottom:1px solid var(--line)}.tpd-nav .muted{display:none}
   .exgrid{grid-template-columns:1fr}.stepper{position:static}.stepper ol{display:flex;overflow-x:auto;gap:4px}.stepper a{grid-template-columns:30px auto}.stepper .ps,.stepper li a::after{display:none}.stepper .pt{font-size:14px}
   .home-hero{grid-template-columns:1fr}.home-hero .img{display:none}.stages{grid-template-columns:1fr}.belt{grid-template-columns:1fr}.cols2{grid-template-columns:1fr}.phases6{grid-template-columns:1fr 1fr}
   .exhead{grid-template-columns:auto minmax(0,1fr)}.exhead .tools{grid-column:1/-1;justify-content:flex-start}
@@ -553,6 +609,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
 <dialog id="dlg"></dialog>
 <dialog id="editor" class="editor"></dialog>
 <dialog id="lb" class="lb"></dialog>
+<dialog id="tpd" class="tpd"></dialog>
 <div id="print"></div>
 
 <script>
@@ -609,9 +666,9 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
  ergebnis:[{n:"TIA-Projekt Verzinnung", a:"neu", h:"Dein Projekt wächst von L01 bis L36. In L37 führt ihr im Team eure Projekte zusammen. Archiv nach jeder Übung."},{n:"Beobachtungstabelle Eingänge", a:"neu", h:"%I0.0 bis %I2.7"},{n:"Wertetabelle der 24 Eingänge", a:"neu", h:"Grundlage für L12 und das Pflichtenheft in L37"}],
  plus:"Erstelle aus <code>signale.csv</code> eine Symboltabelle in Excel mit den Spalten Typ (DI, DQ, AI, AQ), Gerät und Wirkrichtung (was bedeutet 1?). Ergänze für jedes Gerät seinen Ort in der Anlage.",
  tpls:[
- {id:"werte", cap:"Wertetabelle der Eingänge %I0.0 bis %I2.7", phase:2, head:["Adresse","Kennzeichen","Gerät","Art laut Signalliste","erwartet in Ruhe (vorher eintragen)","gemessen unbetätigt bzw. in Ruhe","gemessen betätigt bzw. belegt","passt zur Art (ja oder nein)","Bemerkung"], muster:["%I1.3","−SF1","Taster START, Bedienpult","Schließer","0","0","1","ja","rastet nicht, nur solange gedrückt"], rows:[["%I0.0","−BG1","Endlage −MM1 eingehängt","Sensor, 1 = Endlage erreicht"],["%I0.1","−BG2","Endlage −MM1 gelöst","Sensor, 1 = Endlage erreicht"],["%I0.2","−BG3","Endlage −MM2 oben","Sensor, 1 = Endlage erreicht"],["%I0.3","−BG4","Endlage −MM2 unten","Sensor, 1 = Endlage erreicht"],["%I0.4","−BG5","Endlage −MM3 über dem Band","Sensor, 1 = Endlage erreicht"],["%I0.5","−BG6","Endlage −MM3 über dem Zinnbad","Sensor, 1 = Endlage erreicht"],["%I0.6","−BG7","Endlage −MM4 Bad offen","Sensor, 1 = Endlage erreicht"],["%I0.7","−BG8","Endlage −MM4 Bad abgedeckt","Sensor, 1 = Endlage erreicht"],["%I1.0","−BG9","Temperatur Zinnbad erreicht (ab 250 °C)","Meldesignal, 1 = in Ordnung"],["%I1.1","−BG10","Füllhöhe Zinnbad ausreichend (ab 40 %)","Meldesignal, 1 = in Ordnung"],["%I1.2","−BG11","Lichtschranke Einlauf Übergabeplatz","Sensor, 1 = Korb erkannt"],["%I1.3","−SF1","Taster START, Bedienpult","Schließer"],["%I1.4","−SF2","Taster STOP, Bedienpult","Öffner"],["%I1.5","−SA3","Wahlschalter HAND/AUTO, Schaltschranktür","rastender Schalter, 1 = HAND"],["%I1.6","−KF2","Rückmeldung Sicherheitsrelais","Meldesignal, 1 = Freigabe"],["%I1.7","−SF4","Taster Quittieren, Bedienpult","Schließer"],["%I2.0","−SA1","Wahlschalter Dauerbetrieb/Einzelzyklus, Bedienpult","rastender Schalter, 1 = Dauerbetrieb"],["%I2.1","−SA2","Schlüsselschalter Vor-Ort-Steuerstelle −S10","rastender Schalter, 1 = aktiv"],["%I2.2","−SF5","Taster Band rechts, −S10","Schließer"],["%I2.3","−SF6","Taster Band links, −S10","Schließer"],["%I2.4","−SF7","Taster Band Halt, −S10","Öffner"],["%I2.5","−BG12","Lichtschranke Bandanfang","Sensor, 1 = Korb erkannt"],["%I2.6","−BG13","Lichtschranke Ende Band 1","Sensor, 1 = Korb erkannt"],["%I2.7","−FA1","Motorschutzschalter Band 1, Hilfskontakt","Meldesignal, 1 = in Ordnung"]], inputs:5},
- {id:"grundst", cap:"Grundstellung: welche Endlagen melden 1?", phase:4, head:["Kennzeichen","Endlage","meldet in Grundstellung (0 oder 1)","Zylinder steht damit …"], muster:["Beispiel: −BG14","−MM5 Anschlag geschlossen","1","Anschlag zu, ein Korb auf Band 1 wird am Anschlag angehalten"], rows:[["−BG1","−MM1 eingehängt"],["−BG2","−MM1 gelöst"],["−BG3","−MM2 oben"],["−BG4","−MM2 unten"],["−BG5","−MM3 über dem Band"],["−BG6","−MM3 über dem Zinnbad"],["−BG7","−MM4 Bad offen"],["−BG8","−MM4 Bad abgedeckt"]], inputs:2},
- {id:"bg9", cap:"Versuch: −BG9 auf 0 geforct", phase:4, head:["Frage","Beobachtung","Begründung"], muster:["Wie zeigt der Signalmonitor den Force?","−BG9 ist markiert und zeigt 0, obwohl das Bad heiß ist","Forcen überschreibt das Signal des Modells"], rows:[["Welcher Schritt startet nicht mehr?"],["Welche Meldeleuchte reagiert, und wie?"],["Warum ist das die sichere Seite?"],["Was passiert, nachdem du den Force mit A zurückgibst?"]], inputs:2}
+ {id:"werte", felder:["01",{typ:"01",ab:4},{typ:"01",ab:4},{typ:"janein",ab:4},{typ:"notiz",ab:4}], vergleich:[0,1], cap:"Wertetabelle der Eingänge %I0.0 bis %I2.7", phase:2, head:["Adresse","Kennzeichen","Gerät","Art laut Signalliste","erwartet in Ruhe (vorher eintragen)","gemessen unbetätigt bzw. in Ruhe","gemessen betätigt bzw. belegt","passt zur Art (ja oder nein)","Bemerkung"], muster:["%I1.3","−SF1","Taster START, Bedienpult","Schließer","0","0","1","ja","rastet nicht, nur solange gedrückt"], rows:[["%I0.0","−BG1","Endlage −MM1 eingehängt","Sensor, 1 = Endlage erreicht"],["%I0.1","−BG2","Endlage −MM1 gelöst","Sensor, 1 = Endlage erreicht"],["%I0.2","−BG3","Endlage −MM2 oben","Sensor, 1 = Endlage erreicht"],["%I0.3","−BG4","Endlage −MM2 unten","Sensor, 1 = Endlage erreicht"],["%I0.4","−BG5","Endlage −MM3 über dem Band","Sensor, 1 = Endlage erreicht"],["%I0.5","−BG6","Endlage −MM3 über dem Zinnbad","Sensor, 1 = Endlage erreicht"],["%I0.6","−BG7","Endlage −MM4 Bad offen","Sensor, 1 = Endlage erreicht"],["%I0.7","−BG8","Endlage −MM4 Bad abgedeckt","Sensor, 1 = Endlage erreicht"],["%I1.0","−BG9","Temperatur Zinnbad erreicht (ab 250 °C)","Meldesignal, 1 = in Ordnung"],["%I1.1","−BG10","Füllhöhe Zinnbad ausreichend (ab 40 %)","Meldesignal, 1 = in Ordnung"],["%I1.2","−BG11","Lichtschranke Einlauf Übergabeplatz","Sensor, 1 = Korb erkannt"],["%I1.3","−SF1","Taster START, Bedienpult","Schließer"],["%I1.4","−SF2","Taster STOP, Bedienpult","Öffner"],["%I1.5","−SA3","Wahlschalter HAND/AUTO, Schaltschranktür","rastender Schalter, 1 = HAND"],["%I1.6","−KF2","Rückmeldung Sicherheitsrelais","Meldesignal, 1 = Freigabe"],["%I1.7","−SF4","Taster Quittieren, Bedienpult","Schließer"],["%I2.0","−SA1","Wahlschalter Dauerbetrieb/Einzelzyklus, Bedienpult","rastender Schalter, 1 = Dauerbetrieb"],["%I2.1","−SA2","Schlüsselschalter Vor-Ort-Steuerstelle −S10","rastender Schalter, 1 = aktiv"],["%I2.2","−SF5","Taster Band rechts, −S10","Schließer"],["%I2.3","−SF6","Taster Band links, −S10","Schließer"],["%I2.4","−SF7","Taster Band Halt, −S10","Öffner"],["%I2.5","−BG12","Lichtschranke Bandanfang","Sensor, 1 = Korb erkannt"],["%I2.6","−BG13","Lichtschranke Ende Band 1","Sensor, 1 = Korb erkannt"],["%I2.7","−FA1","Motorschutzschalter Band 1, Hilfskontakt","Meldesignal, 1 = in Ordnung"]], inputs:5},
+ {id:"grundst", felder:["01","text"], cap:"Grundstellung: welche Endlagen melden 1?", phase:4, head:["Kennzeichen","Endlage","meldet in Grundstellung (0 oder 1)","Zylinder steht damit …"], muster:["Beispiel: −BG14","−MM5 Anschlag geschlossen","1","Anschlag zu, ein Korb auf Band 1 wird am Anschlag angehalten"], rows:[["−BG1","−MM1 eingehängt"],["−BG2","−MM1 gelöst"],["−BG3","−MM2 oben"],["−BG4","−MM2 unten"],["−BG5","−MM3 über dem Band"],["−BG6","−MM3 über dem Zinnbad"],["−BG7","−MM4 Bad offen"],["−BG8","−MM4 Bad abgedeckt"]], inputs:2},
+ {id:"bg9", felder:["text","text"], cap:"Versuch: −BG9 auf 0 geforct", phase:4, head:["Frage","Beobachtung","Begründung"], muster:["Wie zeigt der Signalmonitor den Force?","−BG9 ist markiert und zeigt 0, obwohl das Bad heiß ist","Forcen überschreibt das Signal des Modells"], rows:[["Welcher Schritt startet nicht mehr?"],["Welche Meldeleuchte reagiert, und wie?"],["Warum ist das die sichere Seite?"],["Was passiert, nachdem du den Force mit A zurückgibst?"]], inputs:2}
 ]
 },
 
@@ -630,11 +687,11 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
  ergebnis:[{n:"FC Indication", a:"neu", h:"Leuchtenlogik, schreibt über seine Outputs −PF1 (nur Lampentest), −PF2, −PF3, −PF4"},{n:"OB1 Main", a:"erweitert", h:"ruft Indication auf und verschaltet die PLC-Variablen"},{n:"Funktionstabelle Plausibilität −MM5", a:"neu"}, {n:"Schreibstellenplan", a:"neu", h:"jeder Ausgang mit seiner einzigen Schreibstelle, wächst mit jeder Übung"}],
  plus:"Bilde zusätzlich die Endlagen-Plausibilität für den Tauchzylinder −MM2 (−BG3, −BG4) als weiteren Output. Beobachte im Programmstatus während des automatischen Zyklus, wie oft und wie lange beide Endlagen 0 melden, und notiere die längste Dauer.",
  tpls:[
- {id:"xor", cap:"Funktionstabelle Endlagen-Plausibilität −MM5", phase:2, head:["−BG14 zu","−BG15 offen","plausibel (XOR)","Störung"], rows:[["0","0"],["0","1"],["1","0"],["1","1"]], inputs:2},
- {id:"leuchten", cap:"Bedingungen der Meldeleuchten als Satz", phase:2, head:["Ausgang","Bedeutung","leuchtet, wenn … (ganzer Satz)","beteiligte Eingänge","abgefragt auf 1 oder 0","Verknüpfung"], muster:["−PF3","Füllhöhe unterschritten","−PF3 leuchtet, wenn die Füllhöhe nicht in Ordnung ist","−BG10","0","NICHT, ODER Lampentest"], rows:[["−PF1","nur Lampentest (vorerst)"],["−PF2","Bad bereit"],["−PF4","Korb vorhanden"],["stopperPlausible","Endlagen −MM5 plausibel"]], inputs:4},
- {id:"schnitt", cap:"Schnittstelle FC Indication", phase:2, head:["Bereich","PLC-Variable","Parametername (deine Wahl)","Datentyp","Bedeutung"], muster:["Input","Beispiel: SF1_Start","startButton","Bool","1 = START gedrückt"], rows:[["Input","BG9_Temperatur"],["Input","BG10_Fuellhoehe"],["Input","BG40_Korb_am_Anschlag"],["Input","BG14_MM5_zu"],["Input","BG15_MM5_offen"],["Input","SF4_Quittieren"],["Output","PF1_Automatik"],["Output","PF2_Temperatur"],["Output","PF3_Fuellhoehe"],["Output","PF4_Korb"],["Output","keine (nur beobachten)"]], inputs:3},
- {id:"schreib", cap:"Schreibstellenplan", phase:4, head:["Ausgang","Bedeutung","ab Übung","schreibt (Baustein, einzige Stelle)","Bedingung oder Befehl kommt von","in der Querverweisliste geprüft"], muster:["Beispiel aus L13: −PF7","Handbetrieb","L13","FB Manual, Aufruf im OB1","−SA3 auf HAND","ja, eine Schreibstelle"], rows:[["−PF1","Lampentest","L02"],["−PF2","Bad bereit","L02"],["−PF3","Füllhöhe unterschritten","L02"],["−PF4","Korb vorhanden","L02"]], inputs:3},
- {id:"fupkop", cap:"Vergleich FUP und KOP", phase:4, head:["Netzwerk","Darstellung in FUP","Darstellung in KOP","Was fällt dir auf?"], muster:["−PF1 (nur Lampentest)","Zuweisungsbox, Eingang −SF4","ein Schließerkontakt −SF4 vor der Spule −PF1","gleiche Logik, andere Darstellung"], rows:[["−PF2 Bad bereit (UND)"],["−PF3 Füllhöhe (NICHT)"],["−PF4 Korb vorhanden mit Lampentest (ODER)"],["stopperPlausible (XOR)"]], inputs:3}
+ {id:"xor", felder:["01","01"], cap:"Funktionstabelle Endlagen-Plausibilität −MM5", phase:2, head:["−BG14 zu","−BG15 offen","plausibel (XOR)","Störung"], rows:[["0","0"],["0","1"],["1","0"],["1","1"]], inputs:2},
+ {id:"leuchten", felder:["text","text","text","text"], cap:"Bedingungen der Meldeleuchten als Satz", phase:2, head:["Ausgang","Bedeutung","leuchtet, wenn … (ganzer Satz)","beteiligte Eingänge","abgefragt auf 1 oder 0","Verknüpfung"], muster:["−PF3","Füllhöhe unterschritten","−PF3 leuchtet, wenn die Füllhöhe nicht in Ordnung ist","−BG10","0","NICHT, ODER Lampentest"], rows:[["−PF1","nur Lampentest (vorerst)"],["−PF2","Bad bereit"],["−PF4","Korb vorhanden"],["stopperPlausible","Endlagen −MM5 plausibel"]], inputs:4},
+ {id:"schnitt", felder:["text","text","text"], cap:"Schnittstelle FC Indication", phase:2, head:["Bereich","PLC-Variable","Parametername (deine Wahl)","Datentyp","Bedeutung"], muster:["Input","Beispiel: SF1_Start","startButton","Bool","1 = START gedrückt"], rows:[["Input","BG9_Temperatur"],["Input","BG10_Fuellhoehe"],["Input","BG40_Korb_am_Anschlag"],["Input","BG14_MM5_zu"],["Input","BG15_MM5_offen"],["Input","SF4_Quittieren"],["Output","PF1_Automatik"],["Output","PF2_Temperatur"],["Output","PF3_Fuellhoehe"],["Output","PF4_Korb"],["Output","keine (nur beobachten)"]], inputs:3},
+ {id:"schreib", felder:["text","text","janein"], cap:"Schreibstellenplan", phase:4, head:["Ausgang","Bedeutung","ab Übung","schreibt (Baustein, einzige Stelle)","Bedingung oder Befehl kommt von","in der Querverweisliste geprüft"], muster:["Beispiel aus L13: −PF7","Handbetrieb","L13","FB Manual, Aufruf im OB1","−SA3 auf HAND","ja, eine Schreibstelle"], rows:[["−PF1","Lampentest","L02"],["−PF2","Bad bereit","L02"],["−PF3","Füllhöhe unterschritten","L02"],["−PF4","Korb vorhanden","L02"]], inputs:3},
+ {id:"fupkop", felder:["text","text","text"], cap:"Vergleich FUP und KOP", phase:4, head:["Netzwerk","Darstellung in FUP","Darstellung in KOP","Was fällt dir auf?"], muster:["−PF1 (nur Lampentest)","Zuweisungsbox, Eingang −SF4","ein Schließerkontakt −SF4 vor der Spule −PF1","gleiche Logik, andere Darstellung"], rows:[["−PF2 Bad bereit (UND)"],["−PF3 Füllhöhe (NICHT)"],["−PF4 Korb vorhanden mit Lampentest (ODER)"],["stopperPlausible (XOR)"]], inputs:3}
 ]
 },
 
@@ -654,9 +711,9 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
  ergebnis:[{n:"FB Operation (InstOperation)", a:"neu", h:"Betriebsbereitschaft und Meldung Lichtvorhang, liefert ready und msgLightCurtain"},{n:"FC Indication", a:"erweitert", h:"schreibt jetzt −PF1 bis −PF5, Bedingungen für −PF1 und −PF5 kommen von Operation"},{n:"Schreibstellenplan", a:"erweitert"}],
  plus:"Mache aus der Meldung mit Quittierung einen eigenen FB <code>Message</code> (Inputs signal und ack, Output message) und rufe ihn in Operation als Multiinstanz auf. Später kannst du je Meldung eine Instanz verwenden, statt die Logik zu kopieren.",
  tpls:[
- {id:"schnitt", cap:"Schnittstelle FB Operation", phase:2, head:["Bereich","PLC-Variable","Parametername (deine Wahl)","Datentyp","Bedeutung"], muster:["Input","SF1_Start","start","Bool","steigende Flanke setzt die Betriebsbereitschaft"], rows:[["Input","SF1_Start"],["Input","SF2_Stop"],["Input","KF2_NotHalt_OK"],["Input","BG20_Lichtvorhang_frei"],["Input","SF4_Quittieren"],["Output","an Indication (ready)"],["Output","an Indication (msgLightCurtain)"],["Static","keine (statReady)"],["Static","keine (statMsgLightCurtain)"],["Static","keine (instStartTrig)"]], inputs:3, leer:2},
+ {id:"schnitt", felder:["text","text","text"], cap:"Schnittstelle FB Operation", phase:2, head:["Bereich","PLC-Variable","Parametername (deine Wahl)","Datentyp","Bedeutung"], muster:["Input","SF1_Start","start","Bool","steigende Flanke setzt die Betriebsbereitschaft"], rows:[["Input","SF1_Start"],["Input","SF2_Stop"],["Input","KF2_NotHalt_OK"],["Input","BG20_Lichtvorhang_frei"],["Input","SF4_Quittieren"],["Output","an Indication (ready)"],["Output","an Indication (msgLightCurtain)"],["Static","keine (statReady)"],["Static","keine (statMsgLightCurtain)"],["Static","keine (instStartTrig)"]], inputs:3, leer:2},
  {id:"schreib", erweitert:"L02:schreib", cap:"Schreibstellenplan", phase:2, head:["Ausgang","Bedeutung","ab Übung","schreibt (Baustein, einzige Stelle)","Bedingung oder Befehl kommt von","in der Querverweisliste geprüft"], muster:["−PF2","Bad bereit","L02","FC Indication, Aufruf im OB1","−BG9 UND −BG10, ODER Lampentest −SF4","ja, eine Schreibstelle"], rows:[["−PF1","Betriebsbereitschaft","L03"],["−PF5","Quittieraufforderung Lichtvorhang","L03"]], inputs:3},
- {id:"vergleich", cap:"Vergleich SR-Box und KOP-Selbsthaltung", phase:4, head:["Prüffall","Lösung mit SR (#statReady)","KOP-Selbsthaltung (#statReadyLatch)","gleich? (ja oder nein)"], muster:["START kurz antippen","#statReady = 1 und bleibt","#statReadyLatch = 1 und bleibt","ja"], rows:[["STOP −SF2 gedrückt (auf 0 geforct), dann START"],["Drahtbruch an −SF2 (auf 0 geforct)"],["START gehalten (auf 1 geforct), Not-Halt quittiert"],["Meldung Lichtvorhang steht an, dann START"]], inputs:3}
+ {id:"vergleich", felder:["text","text","janein"], cap:"Vergleich SR-Box und KOP-Selbsthaltung", phase:4, head:["Prüffall","Lösung mit SR (#statReady)","KOP-Selbsthaltung (#statReadyLatch)","gleich? (ja oder nein)"], muster:["START kurz antippen","#statReady = 1 und bleibt","#statReadyLatch = 1 und bleibt","ja"], rows:[["STOP −SF2 gedrückt (auf 0 geforct), dann START"],["Drahtbruch an −SF2 (auf 0 geforct)"],["START gehalten (auf 1 geforct), Not-Halt quittiert"],["Meldung Lichtvorhang steht an, dann START"]], inputs:3}
 ]
 },
 
@@ -2094,17 +2151,17 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   var nummer = (x, y, t, a = "start") => t ? text(x, y, t, { a, g: 7.5, f: GRAU }) : "";
   function umbrechen(t, breite, groesse) {
     const proZeile = Math.max(4, Math.floor(breite / (groesse * 0.55)));
-    const zeilen = [];
+    const zeilen2 = [];
     for (const wort of String(t ?? "").split(/\s+/).filter(Boolean)) {
-      const letzte = zeilen[zeilen.length - 1];
-      if (letzte !== void 0 && (letzte + " " + wort).length <= proZeile) zeilen[zeilen.length - 1] = letzte + " " + wort;
-      else zeilen.push(wort);
+      const letzte = zeilen2[zeilen2.length - 1];
+      if (letzte !== void 0 && (letzte + " " + wort).length <= proZeile) zeilen2[zeilen2.length - 1] = letzte + " " + wort;
+      else zeilen2.push(wort);
     }
-    return zeilen;
+    return zeilen2;
   }
-  function absatz(x, y, zeilen, opt = {}) {
+  function absatz(x, y, zeilen2, opt = {}) {
     const g = opt.g || 10;
-    return zeilen.map((z, i) => text(x, y + i * g * 1.25, z, opt)).join("");
+    return zeilen2.map((z, i) => text(x, y + i * g * 1.25, z, opt)).join("");
   }
 
   // web/tools/uebungshandbuch/src/symbole/iec60617.js
@@ -2504,10 +2561,10 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   }
   var griffSVG = (i, h, q) => `<circle data-hi="${i}" data-h="${h}" cx="${q[0]}" cy="${q[1]}" r="6.5" fill="#fff" stroke="#2F80ED" stroke-width="2"/>`;
   function textSVG(t, i, edit) {
-    const sz = t.s || 16, sel = edit && istMarkiert("t", i), zeilen = String(t.v).split("\n");
+    const sz = t.s || 16, sel = edit && istMarkiert("t", i), zeilen2 = String(t.v).split("\n");
     const strich = sel ? 'stroke="#2F80ED" stroke-width="1.3" stroke-dasharray="4 3"' : "";
-    const rahmen = edit ? `<rect data-ti="${i}" x="${t.x - 4}" y="${t.y - sz - 1}" width="${tw(t.v, sz) + 10}" height="${sz * 1.2 * zeilen.length + 6}" rx="3" fill="transparent" ${strich}/>` : "";
-    const inhalt = zeilen.map((l, j) => j ? `<tspan x="${t.x}" dy="${(1.2 * sz).toFixed(1)}">${esc(l)}</tspan>` : esc(l)).join("");
+    const rahmen = edit ? `<rect data-ti="${i}" x="${t.x - 4}" y="${t.y - sz - 1}" width="${tw(t.v, sz) + 10}" height="${sz * 1.2 * zeilen2.length + 6}" rx="3" fill="transparent" ${strich}/>` : "";
+    const inhalt = zeilen2.map((l, j) => j ? `<tspan x="${t.x}" dy="${(1.2 * sz).toFixed(1)}">${esc(l)}</tspan>` : esc(l)).join("");
     return rahmen + `<text data-ti="${i}" x="${t.x}" y="${t.y}" font-size="${sz}" fill="${t.c}" font-family="${SCHRIFT}" font-weight="500">${inhalt}</text>`;
   }
   function strokesSVG(d, edit = false) {
@@ -3274,8 +3331,34 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
       return `<div class="bezug"><div class="bzk"><h3>${o ? o.d.cap : esc(ref2)} <span class="muted small">aus ${b.von}</span></h3>${link}</div>${b.wozu ? `<p class="small">${chips(b.wozu)}</p>` : ""}` + (o ? docGanz(ref2, "view", sheetPos(s.id), { fremd: true }) : `<p class="muted small">Dieses Dokument gibt es in ${b.von} noch nicht.</p>`) + `</div>`;
     }).join("");
   }
+  var feld = (ex, d, r, ci) => {
+    const fl = d.felder || [], i = r.length + ci - (tplHead(ex, d).length - fl.length), f = fl[i] || "text";
+    return typeof f === "string" ? { typ: f, ab: 0 } : { typ: f.typ || "text", ab: f.ab || 0 };
+  };
+  var zeileWerte = (ex, d, ri, r) => Array.from({ length: tplNIn(d, r, tplHead(ex, d)) }, (_, ci) => String(S.get(tplKey(ex.id, d, ri, ci)) ?? "").trim());
+  function zeileFertig(ex, d, ri, r, p) {
+    const v = zeileWerte(ex, d, ri, r), n = v.map((_, ci) => ci).filter((ci) => {
+      const f = feld(ex, d, r, ci);
+      return f.typ !== "notiz" && f.ab <= p;
+    });
+    return n.length ? n.every((ci) => v[ci]) : v.some(Boolean);
+  }
+  var zeileAuffaellig = (ex, d, ri, r) => {
+    const [a, b] = d.vergleich || [], v = zeileWerte(ex, d, ri, r);
+    return d.vergleich ? !!(v[a] && v[b] && v[a] !== v[b]) : false;
+  };
+  function tplStand(ex, d, p) {
+    const rows = tplRows(d), fertig2 = rows.filter((r, ri) => zeileFertig(ex, d, ri, r, p)).length;
+    return { fertig: fertig2, gesamt: (d.rows || []).length ? rows.length : 0, auffaellig: rows.filter((r, ri) => zeileAuffaellig(ex, d, ri, r)).length };
+  }
+  function tplKarteHTML(s, d, phase) {
+    const st = tplStand(s, d, phase), rows = tplRows(d), voll = st.gesamt && st.fertig === st.gesamt;
+    const kacheln = st.gesamt ? `<div class="tplk-kacheln">${rows.map((r, ri) => `<i class="${zeileAuffaellig(s, d, ri, r) ? "auff" : zeileFertig(s, d, ri, r, phase) ? "ok" : ""}"></i>`).join("")}</div>` : "";
+    const text2 = st.gesamt ? `${st.fertig} von ${st.gesamt} Zeilen fertig${st.auffaellig ? ` · ${st.auffaellig} Abweichung${st.auffaellig > 1 ? "en" : ""}` : ""}` : st.fertig ? `${st.fertig} Einträge` : "Noch leer";
+    return `<div class="tplk${voll ? " voll" : ""}" data-t="${d.id}"><div class="tplk-kopf"><div><h3>${d.cap}</h3><span class="muted small">${text2}</span></div><button class="btn ${voll ? "" : "primary"}" type="button" data-act="tpl-open" data-t="${d.id}" data-p="${phase}">${voll ? "Ansehen und ändern" : st.fertig ? "Weiter ausfüllen" : "Ausfüllen"}</button></div>` + (st.gesamt ? `<div class="tplk-bar"><i style="width:${Math.round(100 * st.fertig / st.gesamt)}%"></i></div>` : "") + kacheln + `</div>`;
+  }
   function tplHTML(s, phase, nurFrueher = false) {
-    return tplsOf(s).filter((d) => nurFrueher ? (d.phase || 4) < phase : (d.phase || 4) <= phase).map((d) => `<h3>${d.cap}</h3>` + ((d.phase || 4) < phase ? `<p class="muted small">Angelegt im Schritt ${PHASES[d.phase || 4].n}. Du kannst hier weiter eintragen.</p>` : "") + (d.erweitert && tplFind(d.erweitert) ? `<p class="muted small">Du schreibst das Dokument „${esc(plain(tplFind(d.erweitert).d.cap))}“ aus ${d.erweitert.split(":")[0]} fort. Die Zeilen aus früheren Übungen stehen oben nur zum Lesen, deine neuen Zeilen darunter.</p>` : "") + docTable(s, d, "edit")).join("");
+    return tplsOf(s).filter((d) => nurFrueher ? (d.phase || 4) < phase : (d.phase || 4) <= phase).map((d) => ((d.phase || 4) < phase ? `<p class="muted small tplk-hin">Angelegt im Schritt ${PHASES[d.phase || 4].n}. Du kannst hier weiter eintragen.</p>` : "") + (d.erweitert && tplFind(d.erweitert) ? `<p class="muted small tplk-hin">Du schreibst das Dokument „${esc(plain(tplFind(d.erweitert).d.cap))}“ aus ${d.erweitert.split(":")[0]} fort. Die Zeilen aus früheren Übungen stehen oben nur zum Lesen, deine neuen Zeilen darunter.</p>` : "") + tplKarteHTML(s, d, phase)).join("");
   }
   function tplEingeklappt(s, phase) {
     const n = tplsOf(s).filter((d) => (d.phase || 4) < phase).length;
@@ -3428,6 +3511,144 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     }
   }
 
+  // web/tools/uebungshandbuch/src/app/vorlage-popup.js
+  var Z = { ex: null, d: null, p: 4, ri: 0, filter: "alle" };
+  var WAHL = { "01": ["0", "1"], "janein": ["ja", "nein"] };
+  var TASTE = { "0": ["01", "0"], "1": ["01", "1"], "j": ["janein", "ja"], "n": ["janein", "nein"] };
+  var FILTER = [["alle", "Alle"], ["offen", "Offen"], ["auff", "Abweichung"]];
+  var dlg = () => $("#tpd");
+  var zeilen = () => tplRows(Z.d);
+  var fertig = (ri) => zeileFertig(Z.ex, Z.d, ri, zeilen()[ri], Z.p);
+  var auff = (ri) => zeileAuffaellig(Z.ex, Z.d, ri, zeilen()[ri]);
+  var sichtbar = (ri) => Z.filter === "offen" ? !fertig(ri) : Z.filter === "auff" ? auff(ri) : true;
+  function openVorlage(id, tid, p) {
+    const ex = BY[id], d = tplsOf(ex).find((x) => x.id === tid);
+    if (!d) return;
+    Object.assign(Z, { ex, d, p, filter: "alle" });
+    Z.ri = Math.max(0, zeilen().findIndex((_, ri) => !fertig(ri)));
+    if (d.felder) zeichne();
+    else {
+      dlg().innerHTML = `<form method="dialog" class="tpd-in"><header class="tpd-kopf"><h2>${d.cap}</h2><button class="btn primary" value="ok">Fertig</button></header><div class="tpd-tab">${docTable(ex, d, "edit")}</div></form>`;
+      restoreInputs(dlg());
+    }
+    dlg().showModal();
+  }
+  function zeichne() {
+    dlg().innerHTML = `<form method="dialog" class="tpd-in"><header class="tpd-kopf">${kopfHTML()}</header>
+    <div class="tpd-body"><nav class="tpd-liste" aria-label="Zeilen">${listeHTML()}</nav><section class="tpd-karte">${karteHTML()}</section></div></form>`;
+    restoreInputs($(".tpd-karte", dlg()));
+    $(".tpd-z.aktiv", dlg())?.scrollIntoView({ block: "nearest" });
+  }
+  function kopfHTML() {
+    const st = tplStand(Z.ex, Z.d, Z.p), pz = Math.round(100 * st.fertig / (st.gesamt || 1));
+    return `<div class="tpd-titel"><h2>${Z.d.cap}</h2><div class="tpd-fort"><div class="tplk-bar"><i style="width:${pz}%"></i></div><span><b>${st.fertig}</b> von ${st.gesamt} fertig</span></div></div>
+    <div class="tpd-filter" role="group" aria-label="Zeilen filtern">${FILTER.map(([k, n]) => `<button type="button" class="btn small" data-act="tpd-filter" data-f="${k}" aria-pressed="${Z.filter === k}">${n}${k === "auff" && st.auffaellig ? ` <b>${st.auffaellig}</b>` : ""}</button>`).join("")}</div>
+    <button class="btn primary" value="ok">Fertig</button>`;
+  }
+  function listeHTML() {
+    const html = zeilen().map((r, ri) => sichtbar(ri) ? `<button type="button" class="tpd-z${ri === Z.ri ? " aktiv" : ""}${auff(ri) ? " auff" : fertig(ri) ? " ok" : ""}" data-act="tpd-zeile" data-r="${ri}">
+    <span class="st">${auff(ri) ? "!" : fertig(ri) ? "✓" : ri + 1}</span><span class="tx"><b>${r.length ? chips(r[0]) : `Zeile ${ri + 1}`}</b> ${r[1] ? chips(r[1]) : ""}<br><span class="small muted">${esc(plain(r[2] ?? ""))}</span></span>
+    <span class="werte">${zeileWerte(Z.ex, Z.d, ri, r).filter((_, ci) => WAHL[feld(Z.ex, Z.d, r, ci).typ]).map((v) => `<i>${esc(v) || "·"}</i>`).join("")}</span></button>` : "").join("");
+    return html || `<p class="muted small" style="padding:12px">Keine Zeile in diesem Filter.</p>`;
+  }
+  function karteHTML() {
+    const r = zeilen()[Z.ri], head = tplHead(Z.ex, Z.d), n = tplNIn(Z.d, r, head), st = tplStand(Z.ex, Z.d, Z.p);
+    const steck = r.map((x, c) => `<div><dt>${trenn(head[c] || "")}</dt><dd>${trenn(chips(x))}</dd></div>`).join("");
+    const felder = Array.from({ length: n }, (_, ci) => feldHTML(head[r.length + ci] || "", ci)).join("");
+    const [a, b] = Z.d.vergleich || [], v = zeileWerte(Z.ex, Z.d, Z.ri, r);
+    const hinweis2 = auff(Z.ri) ? `<div class="tpd-auff"><b>Abweichung:</b> ${esc(plain(head[r.length + a]))} ist <b>${esc(v[a])}</b>, ${esc(plain(head[r.length + b]))} ist <b>${esc(v[b])}</b>. Das ist kein Fehler, wenn du es erklären kannst. Schreib in die Bemerkung, warum.</div>` : "";
+    const fertigAlle = st.gesamt && st.fertig === st.gesamt ? `<div class="tpd-geschafft">Geschafft! Alle ${st.gesamt} Zeilen sind ausgefüllt.</div>` : "";
+    return fertigAlle + beispielHTML(head) + `<div class="tpd-nr">Zeile ${Z.ri + 1} von ${zeilen().length}</div><dl class="tpd-steck">${steck}</dl>${hinweis2}<div class="tpd-felder">${felder}</div>
+    <div class="tpd-nav"><button type="button" class="btn" data-act="tpd-schritt" data-d="-1" ${Z.ri ? "" : "disabled"}>Vorige Zeile</button><span class="muted small">Tasten: 0 und 1, J und N füllen das nächste freie Feld, Pfeile wechseln die Zeile</span><button type="button" class="btn primary" data-act="tpd-schritt" data-d="1" ${Z.ri < zeilen().length - 1 ? "" : "disabled"}>Nächste Zeile</button></div>`;
+  }
+  function feldHTML(titel, ci) {
+    const f = feld(Z.ex, Z.d, zeilen()[Z.ri], ci), k = tplKey(Z.ex.id, Z.d, Z.ri, ci), v = String(S.get(k) ?? "").trim();
+    if (f.ab > Z.p) return `<div class="tpd-feld zu"><label>${trenn(titel)}</label><span class="muted small">Trägst du im Schritt ${PHASES[f.ab].n} ein.${v ? ` Jetzt: <b>${esc(v)}</b>` : ""}</span></div>`;
+    if (!WAHL[f.typ]) return `<div class="tpd-feld"><label for="tpd${ci}">${trenn(titel)}</label><textarea id="tpd${ci}" class="auto" rows="2" data-k="${k}"></textarea></div>`;
+    return `<div class="tpd-feld"><label>${trenn(titel)}</label><div class="tpd-wahl">${WAHL[f.typ].map((w) => `<button type="button" data-act="tpd-set" data-ci="${ci}" data-v="${w}" aria-pressed="${v === w}">${w}</button>`).join("")}</div></div>`;
+  }
+  function beispielHTML(head) {
+    const m = Z.d.muster;
+    if (!m) return "";
+    return `<details class="tpd-bsp"><summary>Beispiel: so trägst du ein</summary><dl class="tpd-steck">${m.map((x, c) => `<div><dt>${trenn(head[c] || "")}</dt><dd>${trenn(chips(x))}</dd></div>`).join("")}</dl></details>`;
+  }
+  function setze(ci, w) {
+    const k = tplKey(Z.ex.id, Z.d, Z.ri, ci), war = fertig(Z.ri);
+    S.set(k, String(S.get(k) ?? "") === w ? null : w);
+    if (!war && fertig(Z.ri) && !auff(Z.ri)) {
+      zeichne();
+      setTimeout(() => {
+        if (dlg().open) springe(naechsteOffene());
+      }, 350);
+    } else zeichne();
+  }
+  var naechsteOffene = () => {
+    const n = zeilen().length;
+    for (let i = 1; i <= n; i++) {
+      const ri = (Z.ri + i) % n;
+      if (!fertig(ri)) return ri;
+    }
+    return Z.ri;
+  };
+  function springe(ri) {
+    Z.ri = Math.max(0, Math.min(zeilen().length - 1, ri));
+    zeichne();
+  }
+  function taste(e) {
+    if (e.target.closest("textarea,input")) return;
+    const t = TASTE[e.key.toLowerCase()];
+    if (t) {
+      const v = zeileWerte(Z.ex, Z.d, Z.ri, zeilen()[Z.ri]), r = zeilen()[Z.ri], ci = v.findIndex((x, i) => {
+        const f = feld(Z.ex, Z.d, r, i);
+        return !x && f.typ === t[0] && f.ab <= Z.p;
+      });
+      if (ci >= 0) {
+        e.preventDefault();
+        setze(ci, t[1]);
+      }
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+      e.preventDefault();
+      springe(Z.ri + 1);
+    }
+    if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      springe(Z.ri - 1);
+    }
+  }
+  var AKTION = {
+    "tpd-set": (a) => setze(+a.dataset.ci, a.dataset.v),
+    "tpd-zeile": (a) => springe(+a.dataset.r),
+    "tpd-schritt": (a) => springe(Z.ri + +a.dataset.d),
+    "tpd-filter": (a) => {
+      Z.filter = a.dataset.f;
+      zeichne();
+    }
+  };
+  function geschlossen() {
+    const alt = $(`.tplk[data-t="${Z.d.id}"]`);
+    if (alt) alt.outerHTML = tplKarteHTML(Z.ex, Z.d, Z.p);
+  }
+  function init() {
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest("[data-act=tpl-open]");
+      const m = location.hash.match(/^#\/(L\d\d)/);
+      if (a && m) openVorlage(m[1], a.dataset.t, +a.dataset.p);
+    });
+    dlg().addEventListener("click", (e) => {
+      const a = e.target.closest("[data-act^=tpd-]");
+      if (a && Z.d.felder) AKTION[a.dataset.act](a);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (dlg().open && Z.d && Z.d.felder) {
+        e.stopPropagation();
+        taste(e);
+      }
+    }, true);
+    dlg().addEventListener("close", geschlossen);
+  }
+
   // web/tools/uebungshandbuch/src/editor/signalfeld.js
   var VORSCHLAEGE_MAX = 12;
   var normKennzeichen = (v) => String(v ?? "").replace(/^[-–]/, "−");
@@ -3445,9 +3666,9 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     const passt = (v) => (!arten.length || arten.includes(v.art)) && (!such || v.tag.toLowerCase().includes(such) || v.name.toLowerCase().includes(such));
     return alle.filter(passt).sort((a, b) => b.uebung - a.uebung || a.tag.localeCompare(b.tag, "de", { numeric: true }));
   }
-  function signalFeld(feld, beschriftung2, wert, { arten = [], ph = "" } = {}) {
-    const liste2 = `sfl-${feld}`;
-    return `<label class="prop sigfeld">${beschriftung2}<input type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${liste2}" data-prop="${feld}" data-sigart="${arten.join(" ")}" value="${esc(wert ?? "")}" placeholder="${esc(ph)}" autocomplete="off"><ul class="sigliste" role="listbox" id="${liste2}" hidden></ul></label>`;
+  function signalFeld(feld2, beschriftung2, wert, { arten = [], ph = "" } = {}) {
+    const liste2 = `sfl-${feld2}`;
+    return `<label class="prop sigfeld">${beschriftung2}<input type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${liste2}" data-prop="${feld2}" data-sigart="${arten.join(" ")}" value="${esc(wert ?? "")}" placeholder="${esc(ph)}" autocomplete="off"><ul class="sigliste" role="listbox" id="${liste2}" hidden></ul></label>`;
   }
   var istSignalFeld = (el) => !!(el && el.matches && el.matches("input[data-sigart]"));
   var listeVon = (el) => document.getElementById(el.getAttribute("aria-controls"));
@@ -3537,8 +3758,8 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     if (!MEHRZEILIG.includes(f)) {
       return `<label class="prop">${lbl}<input type="text" data-prop="${f}" value="${wert}" placeholder="${platz}" autocomplete="off"></label>`;
     }
-    const zeilen = Math.max(1, String(val ?? "").split("\n").length);
-    return `<label class="prop">${lbl}<textarea data-prop="${f}" rows="${zeilen}" placeholder="${platz}" title="Alt+Enter: neue Zeile">${wert}</textarea></label>`;
+    const zeilen2 = Math.max(1, String(val ?? "").split("\n").length);
+    return `<label class="prop">${lbl}<textarea data-prop="${f}" rows="${zeilen2}" placeholder="${platz}" title="Alt+Enter: neue Zeile">${wert}</textarea></label>`;
   }
   function auswahlFeld(f, lbl, opts, cur) {
     const optionen = opts.map(([v, n]) => `<option value="${v}" ${String(v) === String(cur) ? "selected" : ""}>${n}</option>`).join("");
@@ -3613,7 +3834,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   }
   function objektFelder(o) {
     const a = art(o.k);
-    let h = a.felder ? a.felder(o) : (a.feldliste || []).map((feld) => listenFeld(o, a, feld)).join("");
+    let h = a.felder ? a.felder(o) : (a.feldliste || []).map((feld2) => listenFeld(o, a, feld2)).join("");
     if (a.info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${a.info}</p>`;
     if (a.bauteil && a.drehbar !== false) h += DREHKNOEPFE;
     return propsKasten(a.titel || BAUSTEIN[o.k].n, h + (h ? SYMS : "") + loeschKnopf());
@@ -3885,10 +4106,10 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   }
   function editLabel(x, y, anfang2, ph, done) {
     const stage = $("#edstage"), inp = beschriftungsFeld(x, y, anfang2, ph, stage);
-    let fertig = false;
+    let fertig2 = false;
     const commit = (ok, wohin) => {
-      if (fertig) return;
-      fertig = true;
+      if (fertig2) return;
+      fertig2 = true;
       const v = inp.value.trim();
       inp.remove();
       if (!wohin) stage.focus({ preventScroll: true });
@@ -4034,8 +4255,8 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
       return true;
     }
     if (m.art !== "o") return false;
-    const setze2 = art(el.k).setze;
-    if (!(setze2 && setze2(el, f, v))) el[f] = v;
+    const setze3 = art(el.k).setze;
+    if (!(setze3 && setze3(el, f, v))) el[f] = v;
     return true;
   }
   function removeObj(id) {
@@ -4585,9 +4806,9 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     const v = vorlage(key), pal = v.gruppen || [];
     const tool = pal.length ? "sel" : v.startWerkzeug || (ZEICHENWERKZEUGE.includes(ED.tool) ? ED.tool : "pen");
     zuruecksetzen(scope, key, mitListen(ladeSkizze(scope, key) || {}), tool);
-    const dlg = $("#editor");
-    dlg.innerHTML = `<div class="ed">${werkzeugleisteHTML(v, key, pal)}<div class="edbody">${seitenleisteHTML(v, pal)}<div class="edstage" id="edstage" tabindex="-1"></div></div></div>`;
-    dlg.showModal();
+    const dlg2 = $("#editor");
+    dlg2.innerHTML = `<div class="ed">${werkzeugleisteHTML(v, key, pal)}<div class="edbody">${seitenleisteHTML(v, pal)}<div class="edstage" id="edstage" tabindex="-1"></div></div></div>`;
+    dlg2.showModal();
     paintEditor();
     setTool(ED.tool);
     $$("#editor [data-w]").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.w === ED.w));
@@ -4659,9 +4880,9 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     ];
   }
   function werkzeugleisteHTML(v, key, pal) {
-    const zeilen = werkzeugleisteZeilen(v, key, pal.length > 0).map((z) => z.join(""));
+    const zeilen2 = werkzeugleisteZeilen(v, key, pal.length > 0).map((z) => z.join(""));
     return `<div class="edbar">
-    ${zeilen.join("\n    ")}
+    ${zeilen2.join("\n    ")}
   </div>`;
   }
   var AUSWAHL_HILFE = `<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht. <b>?</b> zeigt alle Tastenkürzel.</p>`;
@@ -4791,7 +5012,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     (e) => e.key === "?" && (kuerzelUmschalten(), true),
     werkzeugTaste
   ];
-  function taste(e) {
+  function taste2(e) {
     if (e.target.matches && e.target.matches("input,select,textarea")) {
       if (!signalTaste(e)) tasteImFeld(e);
       return;
@@ -5305,7 +5526,7 @@ END_CASE;`)}
   var ergKey = (n) => String(n).replace(/\s*\([^)]*\)/g, "").trim().replace(BAUART, "").trim().toLowerCase();
   var istBaustein = (n) => BAUART.test(String(n).trim()) || /plantdata/i.test(n);
   function ergMatrix() {
-    const zeilen = /* @__PURE__ */ new Map(), bekannt = /* @__PURE__ */ new Set();
+    const zeilen2 = /* @__PURE__ */ new Map(), bekannt = /* @__PURE__ */ new Set();
     SHEETS.forEach((s) => (s.ergebnis || []).forEach((e) => {
       if (!/,/.test(e.n)) bekannt.add(ergKey(e.n));
     }));
@@ -5313,14 +5534,14 @@ END_CASE;`)}
       const teile = String(e.n).split(/,\s*/), namen = teile.length > 1 && teile.every((t) => bekannt.has(ergKey(t))) ? teile : [e.n];
       namen.forEach((n) => {
         const k = ergKey(n);
-        if (!zeilen.has(k)) zeilen.set(k, { name: n.replace(/\s*\([^)]*\)/g, "").trim(), baustein: false, zellen: {} });
-        const z = zeilen.get(k);
+        if (!zeilen2.has(k)) zeilen2.set(k, { name: n.replace(/\s*\([^)]*\)/g, "").trim(), baustein: false, zellen: {} });
+        const z = zeilen2.get(k);
         if (BAUART.test(n.trim())) z.name = n.replace(/\s*\([^)]*\)/g, "").trim();
         z.baustein ||= istBaustein(n);
         z.zellen[s.id] = { a: e.a, h: e.h };
       });
     }));
-    return [...zeilen.values()];
+    return [...zeilen2.values()];
   }
   function viewProjekt() {
     setNav("projekt");
@@ -5490,7 +5711,7 @@ END_CASE;`)}
     andocken: aktionAndocken,
     punkt: (A, B) => isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + stapelX(B), B.y] : [B.x, B.y + 15]
   };
-  var AKTION = {
+  var AKTION2 = {
     g: "grafcet",
     titel: "Aktion",
     zeichne: zeichneAktion,
@@ -6107,13 +6328,13 @@ END_CASE;`)}
     step: { g: "grafcet", n: "Schritt", ...SCHRITT, zeichne: zeichneSchritt },
     macro: { g: "grafcet", n: "Makroschritt", ...SCHRITT, ...MAKRO },
     trans: { g: "grafcet", n: "Transition", ...TRANSITION },
-    action: { ...AKTION, n: "Aktion kontinuierlich", mk: { t: "kont" } },
+    action: { ...AKTION2, n: "Aktion kontinuierlich", mk: { t: "kont" } },
     actc: { g: "grafcet", n: "Aktion mit Zuweisungsbedingung", mk: { k: "action", t: "kont", b: "", hb: true } },
     acta: { g: "grafcet", n: "Aktion bei Aktivierung ↑", mk: { k: "action", t: "akt" } },
     actd: { g: "grafcet", n: "Aktion bei Deaktivierung ↓", mk: { k: "action", t: "deakt" } },
     acte: { g: "grafcet", n: "Aktion bei Ereignis", mk: { k: "action", t: "ereig", b: "" } },
     actz: { g: "grafcet", n: "Zwangssteuerung", mk: { k: "action", t: "zwang" } },
-    actionq: { ...AKTION, n: "Aktion S7-GRAPH (IEC 61131-3)", mk: { k: "action", t: "q", q: "S" } },
+    actionq: { ...AKTION2, n: "Aktion S7-GRAPH (IEC 61131-3)", mk: { k: "action", t: "q", q: "S" } },
     alt: {
       g: "grafcet",
       n: "ODER-Verzweigung",
@@ -6536,7 +6757,7 @@ END_CASE;`)}
     });
     return s;
   }
-  function ablaufStriche(schritte, zeile, zeilen) {
+  function ablaufStriche(schritte, zeile, zeilen2) {
     const pos = stellungen(schritte), s = Object.keys(pos).flatMap((mm) => funktionslinien(pos[mm], zeile[mm]));
     schritte[0].bewegungen.forEach(({ mm, aus }) => s.push({
       k: "st",
@@ -6549,7 +6770,7 @@ END_CASE;`)}
       if (j > 0 && st.bewegungen.length) s.push(...signallinien(schritte, j, zeile));
     });
     const xEnde = wsPunkt(schritte.length, 0, 1)[0];
-    s.push({ k: "eq", ...LINIENFARBE, w: 2.6, p: [[xEnde, 57]], y2: WS_RASTER.y0 + zeilen * WS_RASTER.zeile });
+    s.push({ k: "eq", ...LINIENFARBE, w: 2.6, p: [[xEnde, 57]], y2: WS_RASTER.y0 + zeilen2 * WS_RASTER.zeile });
     return s;
   }
   var WS_ARTEN = ["l", "sig", "st", "eq", "vk"];
@@ -6574,8 +6795,8 @@ END_CASE;`)}
   var EINGABE_HTML = `<div class="palg" style="display:block"><div class="palh">Schnelleingabe</div><label class="prop">Ablauf, Schritt für Schritt<input type="text" data-wsablauf style="width:100%;box-sizing:border-box" placeholder="MM2−, MM3+, MM2+, t = 10 s" autocomplete="off"></label><button type="button" class="tool" data-wsablaufknopf style="width:100%">Diagramm zeichnen</button><p class="small muted" data-wsablaufhinweis style="margin:6px 0 0">${EINGABE_HINWEIS}</p></div>`;
   function eingabeKlick(e) {
     if (!e.target.closest("[data-wsablaufknopf]")) return false;
-    const feld = $("#editor [data-wsablauf]"), hinweis2 = $("#editor [data-wsablaufhinweis]");
-    const fehler2 = ablaufZeichnen(feld ? feld.value : "");
+    const feld2 = $("#editor [data-wsablauf]"), hinweis2 = $("#editor [data-wsablaufhinweis]");
+    const fehler2 = ablaufZeichnen(feld2 ? feld2.value : "");
     if (hinweis2) {
       hinweis2.textContent = fehler2 || EINGABE_HINWEIS;
       hinweis2.style.color = fehler2 ? "#C0392B" : "";
@@ -6596,12 +6817,12 @@ END_CASE;`)}
     return bewegt.map(linksRechts).filter(([a]) => !ziele.some((z) => nah(z, a)) && !bewegt.some((b) => nah(linksRechts(b)[1], a))).map(([a]) => ({ stufe: "fehler", pt: a, text: `Schritt ${spalteBei(a[0]) + 1}: Die Bewegung hat keinen Auslöser. Zieh eine Signallinie vom Sensor oder setz den Start.` }));
   }
   function nichtInGrundstellung(d) {
-    const zeilen = {};
+    const zeilen2 = {};
     d.s.filter((st) => st.k === "l" && st.p[0][0] >= WS_RASTER.x0 - 1).forEach((st) => st.p.forEach((q) => {
       const i = zeileBei(q[1]);
-      (zeilen[i] = zeilen[i] || []).push(q);
+      (zeilen2[i] = zeilen2[i] || []).push(q);
     }));
-    return Object.entries(zeilen).map(([i, ps]) => [i, linksRechts({ p: ps })]).filter(([, ps]) => wsAus(ps[0][1]) !== wsAus(ps[ps.length - 1][1])).map(([i, ps]) => ({ stufe: "fehler", pt: ps[ps.length - 1], text: `Zeile ${+i + 1}: Der Zyklus endet nicht in der Grundstellung.` }));
+    return Object.entries(zeilen2).map(([i, ps]) => [i, linksRechts({ p: ps })]).filter(([, ps]) => wsAus(ps[0][1]) !== wsAus(ps[ps.length - 1][1])).map(([i, ps]) => ({ stufe: "fehler", pt: ps[ps.length - 1], text: `Zeile ${+i + 1}: Der Zyklus endet nicht in der Grundstellung.` }));
   }
   var zyklusendeFehlt = (d) => d.s.some((st) => st.k === "l") && !d.s.some((st) => st.k === "eq") ? [{ stufe: "hinweis", text: "Das Zyklusende n = 1 fehlt. Setz es in die Spalte nach dem letzten Schritt." }] : [];
   var wsPruefen = (d) => [bewegungOhneAusloeser, nichtInGrundstellung, zyklusendeFehlt].flatMap((r) => r(d));
@@ -7088,8 +7309,8 @@ END_CASE;`)}
   function spiegel(sp, alle) {
     const x = sp.x, y = (blattVon(sp) - 1) * PH + 600;
     const spalte = (k, dx, a) => alle.filter((o) => art(o.k).kontakt === k).map((o, i) => SVGT(x + dx, y + 20 + i * ZEILE, ortVon(o, sp), a, 8, 500, GRAU)).join("");
-    const zeilen = Math.max(1, ...["no", "nc"].map((k) => alle.filter((o) => art(o.k).kontakt === k).length));
-    return `<g class="spiegel">${kopf("no", x - 9, y)}${kopf("nc", x + 7, y)}` + linie(`M${x} ${y}V${y + 12 + zeilen * ZEILE}`, 0.8) + spalte("no", -4, "end") + spalte("nc", 4, "start") + `</g>`;
+    const zeilen2 = Math.max(1, ...["no", "nc"].map((k) => alle.filter((o) => art(o.k).kontakt === k).length));
+    return `<g class="spiegel">${kopf("no", x - 9, y)}${kopf("nc", x + 7, y)}` + linie(`M${x} ${y}V${y + 12 + zeilen2 * ZEILE}`, 0.8) + spalte("no", -4, "end") + spalte("nc", 4, "start") + `</g>`;
   }
   function querverweis(o, sp) {
     const rechts = SEITE.get(o.id) === "r", links = art(o.k).links || 34;
@@ -7187,8 +7408,8 @@ END_CASE;`)}
     zab: (g, vorbei) => g || !vorbei
   };
   function zeitrelais(o, g) {
-    const Z = ED.sim.zeit || (ED.sim.zeit = {}), jetzt = Date.now(), t = 1e3 * (parseFloat(o.t) || 3);
-    const z = Z[o.id] || (Z[o.id] = { gespeist: false, seit: -Infinity });
+    const Z2 = ED.sim.zeit || (ED.sim.zeit = {}), jetzt = Date.now(), t = 1e3 * (parseFloat(o.t) || 3);
+    const z = Z2[o.id] || (Z2[o.id] = { gespeist: false, seit: -Infinity });
     if (z.gespeist !== g) {
       z.gespeist = g;
       z.seit = jetzt;
@@ -7631,7 +7852,7 @@ END_CASE;`)}
     }
     return best;
   }
-  var knopf = (feld, an, text2, titel) => `<button type="button" class="tool" data-pole="${feld}" aria-pressed="${an}" title="${titel}">${text2}</button>`;
+  var knopf = (feld2, an, text2, titel) => `<button type="button" class="tool" data-pole="${feld2}" aria-pressed="${an}" title="${titel}">${text2}</button>`;
   var poleKnoepfe = () => knopf(
     "einpolig",
     !ED.vorlage.einpolig,
@@ -8429,28 +8650,28 @@ END_CASE;`)}
     v53c: { g: "pneu", n: "5/3-Wegeventil Mitte gesperrt", mk: { k: "v53", al: "mag", ar: "mag" } }
   };
   fuelle(BAUSTEIN, PCPAL);
-  var durchgang = (lbl, w, n, zeichne, extra = {}) => ({
+  var durchgang = (lbl, w, n, zeichne2, extra = {}) => ({
     g: "pneu",
     n,
     lbl,
     w,
     h: 60,
-    zeichne,
+    zeichne: zeichne2,
     anschluesse: [["1", w === 30 ? 15 : 20, 60, "d"], ["2", w === 30 ? 15 : 20, 0, "u"]],
     ...extra
   });
-  var anzeige = (lbl, w, n, zeichne, info) => ({
+  var anzeige = (lbl, w, n, zeichne2, info) => ({
     g: "pneu",
     n,
     lbl,
     w,
     h: 60,
     info,
-    zeichne,
+    zeichne: zeichne2,
     anschluesse: [["1", 20, 60, "d"]],
     sim: () => ({})
   });
-  var logik = (n, info, sim, zeichne) => ({
+  var logik = (n, info, sim, zeichne2) => ({
     g: "pneu",
     n,
     lbl: "",
@@ -8458,7 +8679,7 @@ END_CASE;`)}
     h: 60,
     info,
     sim,
-    zeichne,
+    zeichne: zeichne2,
     anschluesse: [["1", 8, 60, "d"], ["3", 52, 60, "d"], ["2", 30, 0, "u"]]
   });
   var zylinder = (n, anschluesse2, feldliste, einfach) => ({
@@ -9304,10 +9525,10 @@ END_CASE;`)}
   function trendFang([x, y]) {
     const dg = TREND.diagramme.find((q) => y >= q.y0 - 10 && y <= q.y0 + q.h + 10);
     if (!dg || x < TREND.x0 - 10 || x > TREND.x1 + 10) return snap([x, y]);
-    const teile = bandAktiv() ? BAND_TEILE : 1, zeilen = dg.zeilen * teile, zh = zeilenHoehe(dg) / teile;
+    const teile = bandAktiv() ? BAND_TEILE : 1, zeilen2 = dg.zeilen * teile, zh = zeilenHoehe(dg) / teile;
     const sw = spaltenBreite(), i = Math.round((x - TREND.x0) / sw), j = Math.round((y - dg.y0) / zh);
     const begrenzt = (v, max) => Math.max(0, Math.min(max, v));
-    return [+(TREND.x0 + begrenzt(i, TREND.spalten) * sw).toFixed(2), +(dg.y0 + begrenzt(j, zeilen) * zh).toFixed(2)];
+    return [+(TREND.x0 + begrenzt(i, TREND.spalten) * sw).toFixed(2), +(dg.y0 + begrenzt(j, zeilen2) * zh).toFixed(2)];
   }
   registriereVorlage("trend", {
     n: "Trendaufzeichnung",
@@ -9764,21 +9985,21 @@ END_CASE;`)}
   var FELD_AN = { poti: ["2", "3"] };
   function analogAnschluss(k) {
     const art2 = k.typ === "AQ" ? "ausgang" : /mA/.test(k.an) ? "strom" : "spannung";
-    const a = ANALOG[art2], feld = FELD_AN[String(k.sym).split(":")[0]], n = k.modul.kanal;
+    const a = ANALOG[art2], feld2 = FELD_AN[String(k.sym).split(":")[0]], n = k.modul.kanal;
     return {
       art: art2,
       text: a.text,
       vonOben: a.vonOben,
-      haupt: { feld: feld ? feld[0] : a.haupt[0], baugruppe: a.haupt[1](n) },
-      seite: { feld: feld ? feld[1] : a.seite[0], baugruppe: a.seite[1](n) }
+      haupt: { feld: feld2 ? feld2[0] : a.haupt[0], baugruppe: a.haupt[1](n) },
+      seite: { feld: feld2 ? feld2[1] : a.seite[0], baugruppe: a.seite[1](n) }
     };
   }
   function neueListe() {
     const liste2 = [], zaehler = {};
-    const neu = (leiste2, feld, schrank, signal2 = "", ziel3 = "") => {
+    const neu = (leiste2, feld2, schrank, signal2 = "", ziel3 = "") => {
       zaehler[leiste2] = (zaehler[leiste2] || 0) + 1;
       const klemme2 = `${leiste2}:${zaehler[leiste2]}`;
-      liste2.push({ klemme: klemme2, feld, schrank, signal: signal2, ziel: ziel3 });
+      liste2.push({ klemme: klemme2, feld: feld2, schrank, signal: signal2, ziel: ziel3 });
       return klemme2;
     };
     return { liste: liste2, neu };
@@ -9832,8 +10053,8 @@ END_CASE;`)}
     }
   }
   var verbraucherVon = (a) => a.glieder[a.glieder.length - 1];
-  function satz(k, feld, schrank, ziel3, mitPE) {
-    const nummern2 = feld.map((f, i) => k.neu("−X1", f, schrank[i], "", ziel3).split(":")[1]);
+  function satz(k, feld2, schrank, ziel3, mitPE) {
+    const nummern2 = feld2.map((f, i) => k.neu("−X1", f, schrank[i], "", ziel3).split(":")[1]);
     nummern2.push(mitPE ? k.neu("−X1", `${ziel3} PE`, "−XPE", "", ziel3).split(":")[1] : "");
     return nummern2;
   }
@@ -9842,9 +10063,9 @@ END_CASE;`)}
       pfad.glieder.forEach((g, i) => {
         if (g.sym !== "klemme") return;
         const vor = pfad.glieder[i - 1], nach = pfad.glieder[i + 1];
-        const feld = g.an === "N" ? `${vor.bmk} N` : `${nach.bmk} ${g.an}`;
+        const feld2 = g.an === "N" ? `${vor.bmk} N` : `${nach.bmk} ${g.an}`;
         const schrank = g.an === "N" ? `${seite2.unten} (Schiene)` : `${vor.bmk} ${String(vor.an).split("/")[1] || ""}`.trim();
-        g.bmk = k.neu(g.bmk, feld, schrank, "", feld.split(" ")[0]);
+        g.bmk = k.neu(g.bmk, feld2, schrank, "", feld2.split(" ")[0]);
       });
       const geraet = pfad.glieder.find((g) => g.sym === "geraet");
       if (pfad.pe && geraet) pfad.peKlemme = k.neu("−X1", `${geraet.bmk} PE`, "−XPE", "", geraet.bmk);
@@ -9944,10 +10165,10 @@ END_CASE;`)}
   function schriftfeld(seite2, gesamt, meta) {
     const y = FUSS, h = UNTEN2 - FUSS, x = FELDER;
     const passend = (t, breite, max) => Math.min(max, Math.round(breite / (String(t).length * 0.52) * 10) / 10);
-    const feld = (i, oben, unten, gross = false) => text(x[i] + 8, y + 18, oben, { g: 8, f: GRAU }) + text(x[i] + 8, y + (gross ? 46 : 42), unten, { g: passend(unten, x[i + 1] - x[i] - 16, gross ? 17 : 11), w: 600, schrift: SCHMAL });
+    const feld2 = (i, oben, unten, gross = false) => text(x[i] + 8, y + 18, oben, { g: 8, f: GRAU }) + text(x[i] + 8, y + (gross ? 46 : 42), unten, { g: passend(unten, x[i + 1] - x[i] - 16, gross ? 17 : 11), w: 600, schrift: SCHMAL });
     let s = linie(`M${X0} ${y}H${X1}`, 1.2) + x.slice(1, -1).map((v) => linie(`M${v} ${y}V${y + h}`, 0.8)).join("");
-    s += feld(0, meta.firma, meta.ersteller) + feld(1, meta.anlage, "Schaltplan der Anlage");
-    s += feld(2, seite2.art || "", seite2.titel, true) + feld(3, `Ort ${seite2.ort || "+A1"}`, `Stand ${meta.stand}`);
+    s += feld2(0, meta.firma, meta.ersteller) + feld2(1, meta.anlage, "Schaltplan der Anlage");
+    s += feld2(2, seite2.art || "", seite2.titel, true) + feld2(3, `Ort ${seite2.ort || "+A1"}`, `Stand ${meta.stand}`);
     s += text(x[4] + 59, y + 38, String(seite2.nr), { a: "middle", g: 22, w: 600, schrift: SCHMAL });
     s += text(x[4] + 59, y + 53, `von ${gesamt}`, { a: "middle", g: 8, f: GRAU });
     return s;
@@ -10135,14 +10356,14 @@ END_CASE;`)}
     (m) => tabellenSeiten("signale", m)
   ];
   function tabellenSeiten(name2, modell, anzahl) {
-    const t = TABELLEN[name2], zeilen = anzahl ?? t.anzahl(modell), n = Math.max(1, Math.ceil(zeilen / t.jeSeite));
+    const t = TABELLEN[name2], zeilen2 = anzahl ?? t.anzahl(modell), n = Math.max(1, Math.ceil(zeilen2 / t.jeSeite));
     return Array.from({ length: n }, (_, i) => ({
       typ: "tabelle",
       tabelle: name2,
       art: "Liste",
       titel: t.titel + (i ? ` (Teil ${i + 1})` : ""),
       von: i * t.jeSeite,
-      bis: Math.min(zeilen, (i + 1) * t.jeSeite)
+      bis: Math.min(zeilen2, (i + 1) * t.jeSeite)
     }));
   }
   function seitenBauen(modell) {
@@ -10168,7 +10389,7 @@ END_CASE;`)}
     return `<g class="sp-bmk" data-bmk="${maskiere(bmk.split(":")[0])}">` + text(x, y, bmk, { a, g: 10, w: 600, schrift: SCHMAL }) + "</g>" + verweis(x, y + 10, ziel3, a) + (angenommen ? annahme(x, y + (ziel3 ? 19 : 10), a) : "");
   }
   var anschluesse = (g, sym) => g.an ? String(g.an).split("/") : sym.an || [];
-  function setze(ctx, g, x, y) {
+  function setze2(ctx, g, x, y) {
     const { sym, schluessel, variante } = zeichen(g.sym);
     if (!sym) return { svg: text(x, y + 20, `? ${g.sym}`, { a: "middle", g: 9, f: "#B3261E" }), h: 30, sym: {} };
     const an = g.nummern || anschluesse(g, sym);
@@ -10266,8 +10487,8 @@ END_CASE;`)}
     return `<g class="sp-bmk" data-bmk="${name2.split(":")[0]}">` + text(x, y, name2, { a: "middle", g: 8.5, w: 600, schrift: SCHMAL }) + "</g>" + verweis(x, y + 10, ziel3, "middle");
   }
   function pfadTitel(x, t) {
-    const zeilen = umbrechen(t, SPALTE - 10, 8).slice(0, 2);
-    return absatz(x, 40, zeilen, { a: "middle", g: 8, f: GRAU });
+    const zeilen2 = umbrechen(t, SPALTE - 10, 8).slice(0, 2);
+    return absatz(x, 40, zeilen2, { a: "middle", g: 8, f: GRAU });
   }
   var modulOben = (s) => s.modul && s.modul.lage === "oben";
   function startHoehe(s, pfad) {
@@ -10292,7 +10513,7 @@ END_CASE;`)}
     for (const g of pfad.glieder) {
       s += linie(`M${x} ${y}V${y + LUECKE}`);
       y += LUECKE;
-      const teil = setze(ctx, g, x, y);
+      const teil = setze2(ctx, g, x, y);
       s += teil.svg + (teil.sym.bu ? sensorRueckleiter(ctx, x, y) : "") + kabel(x, y + teil.h, g.kabel);
       if (teil.sym.rolle === "haupt") spulen.push(g.bmk);
       if (teil.sym.rueck) lage.geraet = { y, sym: teil.sym, bmk: g.bmk };
@@ -10393,7 +10614,7 @@ END_CASE;`)}
         s += POLE2.map((d) => linie(`M${x + d} ${y}V${y + LUECKE2}`)).join("");
         y += LUECKE2;
       }
-      const teil = g.sym === "wende" ? wendeSetzen(ctx, g, x, y) : setze(ctx, { ...g, anText: g.sym === "schuetz3" ? "1/2 3/4 5/6" : "" }, x, y);
+      const teil = g.sym === "wende" ? wendeSetzen(ctx, g, x, y) : setze2(ctx, { ...g, anText: g.sym === "schuetz3" ? "1/2 3/4 5/6" : "" }, x, y);
       const pe = PE_ANSCHLUSS[g.sym], ohnePE = g.sym === "klemme3" && !g.nummern[3];
       if (pe && !ohnePE) {
         s += linie(`M${x + PE_X2} ${peY}V${y + pe[0]}`) + (peY === LEITER2[4][1] ? punkt(x + PE_X2, peY) : "");
@@ -10419,8 +10640,8 @@ END_CASE;`)}
     const x = 200;
     let s = text(x + 25, 52, "Einspeisung 3/N/PE AC 400/230 V 50 Hz, TN-S", { a: "middle", g: 11, w: 600, schrift: SCHMAL });
     s += text(x + 25, 66, "Vorsicherung 35 A gG bauseits (angenommen)", { a: "middle", g: 8, f: GRAU });
-    const x0 = setze(ctx, { sym: "klemme3", bmk: "−X0", nummern: ["L1", "L2", "L3", "PE"] }, x, 90);
-    const qb = setze(ctx, { sym: "qs3", bmk: "−QB1" }, x, 150);
+    const x0 = setze2(ctx, { sym: "klemme3", bmk: "−X0", nummern: ["L1", "L2", "L3", "PE"] }, x, 90);
+    const qb = setze2(ctx, { sym: "qs3", bmk: "−QB1" }, x, 150);
     s += x0.svg + qb.svg + POLE2.map((d) => linie(`M${x + d} ${114}V${150}`)).join("");
     s += linie(`M${x + 50} 90V98M${x + 50} 106V110`) + kreis(x + 50, 102, 4) + text(x + 50, 86, "N", { a: "middle", g: 7.5, f: GRAU });
     return { svg: s, x };
@@ -10438,14 +10659,14 @@ END_CASE;`)}
     return s + linie(`M${x + PE_X2} 90V102`);
   }
   function abgangsListe(ctx) {
-    const zeilen = [
+    const zeilen2 = [
       ...ctx.modell.leistung.map((a) => [a.glieder[0].bmk, a.titel]),
       ["−FA3", "Netzteil 24 V"],
       ["−FA4", "Verteilung 230 V"],
       ["−FA9", "Vibrorinne"]
     ];
     let s = text(480, 410, "Abgänge von der Sammelschiene", { g: 11, w: 600, schrift: SCHMAL });
-    zeilen.forEach(([bmk, titel], i) => {
+    zeilen2.forEach(([bmk, titel], i) => {
       const y = 432 + i * 17, ziel3 = verweisText(hauptort(ctx.lesen, bmk) || (ctx.lesen.orte.get(bmk) || [])[0]);
       s += `<g class="sp-bmk" data-bmk="${bmk}">${text(480, y, bmk, { g: 9.5, w: 600, schrift: SCHMAL })}</g>` + text(560, y, titel, { g: 9 }) + verweis(780, y, ziel3, "start");
     });
@@ -10465,7 +10686,7 @@ END_CASE;`)}
     return text(x + 4, y, kurz, { g: 9, w: kopfspalte ? 600 : 400, schrift: kopfspalte ? SCHMAL : void 0 });
   }
   function listeInhalt(ctx) {
-    const s = ctx.seite, t = TABELLEN[s.tabelle], zeilen = t.zeilen(ctx).slice(s.von, s.bis);
+    const s = ctx.seite, t = TABELLEN[s.tabelle], zeilen2 = t.zeilen(ctx).slice(s.von, s.bis);
     const breite = t.spalten.reduce((a, [, b]) => a + b, 0);
     let svg = ueberschrift(t.titel, s.von ? `Fortsetzung ab Zeile ${s.von + 1}` : "");
     let x = LINKS;
@@ -10474,7 +10695,7 @@ END_CASE;`)}
       x += b;
     }
     svg += linie(`M${LINKS} ${OBEN}H${LINKS + breite}`, 1.2);
-    zeilen.forEach((z, i) => {
+    zeilen2.forEach((z, i) => {
       const y = OBEN + (i + 1) * ZEILE3 - 6;
       let zx = LINKS;
       t.spalten.forEach(([, b], j) => {
@@ -10598,9 +10819,9 @@ END_CASE;`)}
   function hinweise(ctx) {
     let s = text(X0 + 20, 60, "Hinweise", { g: 20, w: 600, schrift: SCHMAL }), y = 92;
     for (const [titel, inhalt] of ctx.modell.plan.hinweise) {
-      const zeilen = umbrechen(inhalt, 540, 9.5);
-      s += text(X0 + 20, y, titel, { g: 11, w: 600, schrift: SCHMAL }) + absatz(X0 + 20, y + 16, zeilen, { g: 9.5 });
-      y += 30 + zeilen.length * 12;
+      const zeilen2 = umbrechen(inhalt, 540, 9.5);
+      s += text(X0 + 20, y, titel, { g: 11, w: 600, schrift: SCHMAL }) + absatz(X0 + 20, y + 16, zeilen2, { g: 9.5 });
+      y += 30 + zeilen2.length * 12;
     }
     s += text(X0 + 20, y + 6, "Querverweis", { g: 9, w: 600 }) + verweis(X0 + 110, y + 6, "/21.3", "start") + text(X0 + 150, y + 6, "Seite 21, Spalte 3", { g: 9, f: GRAU });
     s += annahme(X0 + 20, y + 24, "start") + text(X0 + 110, y + 24, "Angabe ergänzt, nicht aus der Anlage", { g: 9, f: GRAU });
@@ -10927,7 +11148,7 @@ END_CASE;`)}
     f: vollbild,
     F: vollbild
   };
-  function taste2(e) {
+  function taste3(e) {
     if (!imPlan() || e.target.closest("input, textarea, dialog") || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === "Enter" && e.target.closest("#sp-blatt [data-ref], #sp-blatt [data-bmk]")) {
       folge(e.target);
@@ -10962,8 +11183,8 @@ END_CASE;`)}
     if (knopfEl) return KNOEPFE[knopfEl.dataset.sp]();
     if (!warGezogen()) folge(e.target);
   }
-  function init() {
-    document.addEventListener("keydown", taste2);
+  function init2() {
+    document.addEventListener("keydown", taste3);
     document.addEventListener("click", klick);
     document.addEventListener("input", (e) => {
       if (e.target.id === "sp-suche") $("#sp-treffer").innerHTML = trefferHTML(treffer2(e.target.value));
@@ -10984,7 +11205,7 @@ END_CASE;`)}
     tip.style.top = y + "px";
   }
   var hideTip = () => tip.classList.remove("on");
-  function init2() {
+  function init3() {
     document.addEventListener("mouseover", (e) => {
       const el = e.target.closest(".sig");
       if (el) showTip(el);
@@ -11116,7 +11337,7 @@ END_CASE;`)}
     migriereBew();
     migriereTpl();
   }
-  function init3() {
+  function init4() {
     (function umziehen() {
       if (S.get("ver") >= 2) return;
       const alt = S.all(), rx = /^L(\d\d)(?=:)/;
@@ -11197,7 +11418,7 @@ END_CASE;`)}
     };
     $("#dlg").showModal();
   }
-  function init4() {
+  function init5() {
     document.addEventListener("input", (e) => {
       const el = e.target;
       if (el.matches && el.matches("textarea.auto")) autoGrow(el);
@@ -11452,22 +11673,22 @@ END_CASE;`)}
   var schliesseFeld = () => {
     if (ED.tx && ED.tx.schluessel.startsWith("feld:")) schliesse();
   };
-  function init5() {
-    const dlg = $("#editor");
+  function init6() {
+    const dlg2 = $("#editor");
     addEventListener("resize", () => {
       if (ED.svg) sizeSVG();
     });
-    dlg.addEventListener("pointerdown", paletteDruecken);
-    dlg.addEventListener("selectstart", (e) => {
+    dlg2.addEventListener("pointerdown", paletteDruecken);
+    dlg2.addEventListener("selectstart", (e) => {
       if (!e.target.closest || !e.target.closest("input,textarea")) e.preventDefault();
     });
     document.addEventListener("pointermove", paletteZiehen);
     document.addEventListener("pointerup", paletteLoslassen);
-    dlg.addEventListener("click", klick2);
-    dlg.addEventListener("focusin", (e) => {
+    dlg2.addEventListener("click", klick2);
+    dlg2.addEventListener("focusin", (e) => {
       if (e.target.dataset && e.target.dataset.prop) setLastProp(e.target);
     });
-    dlg.addEventListener("input", (e) => {
+    dlg2.addEventListener("input", (e) => {
       const v = vorlage(ED.key);
       if (v.eingabe && v.eingabe(e)) return;
       const f = e.target.dataset && e.target.dataset.prop;
@@ -11477,21 +11698,21 @@ END_CASE;`)}
         applyProp(f, e.target.value);
       }
     });
-    dlg.addEventListener("focusout", (e) => {
+    dlg2.addEventListener("focusout", (e) => {
       if (istSignalFeld(e.target)) schliesseListe(e.target);
       if (e.target.dataset && e.target.dataset.prop) schliesseFeld();
     });
-    dlg.addEventListener("change", feldGeaendert);
-    dlg.addEventListener("pointerdown", (e) => {
+    dlg2.addEventListener("change", feldGeaendert);
+    dlg2.addEventListener("pointerdown", (e) => {
       if (e.target.closest(".sym")) e.preventDefault();
       signalWahl(e);
     });
-    dlg.addEventListener("keydown", taste);
+    dlg2.addEventListener("keydown", taste2);
     document.addEventListener("keydown", (e) => {
-      if (ED.svg && !dlg.contains(e.target)) taste(e);
+      if (ED.svg && !dlg2.contains(e.target)) taste2(e);
     });
-    dlg.addEventListener("cancel", (e) => e.preventDefault());
-    dlg.addEventListener("close", () => {
+    dlg2.addEventListener("cancel", (e) => e.preventDefault());
+    dlg2.addEventListener("close", () => {
       ED.svg = null;
       ED.sim = { on: false, st: {}, pos: {} };
       route();
@@ -11499,11 +11720,12 @@ END_CASE;`)}
   }
 
   // web/tools/uebungshandbuch/src/main.js
+  init6();
   init5();
-  init4();
-  init2();
   init();
   init3();
+  init2();
+  init4();
 })();
 </script>
 </body>

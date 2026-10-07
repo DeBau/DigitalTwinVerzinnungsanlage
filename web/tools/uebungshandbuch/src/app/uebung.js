@@ -138,11 +138,36 @@ export function bezugHTML(s, phase){
 }
 // Vorlagen ab ihrer Phase: In der eigenen Phase und allen späteren Phasen der Übung sichtbar und editierbar
 // (z. B. erst „erwartet“ planen, dann messen). Aus früheren Schritten mit Hinweis.
+// Felder einer Vorlage (uebungVorlage.md, Abschnitt Vorlagen): je Eingabespalte {typ: "01" | "janein" | "text" | "notiz", ab: Phase}.
+// felder gilt für die letzten Spalten von head. Leere Zusatzzeilen haben davor weitere Eingabespalten, die sind "text".
+export const feld = (ex, d, r, ci) => { const fl = d.felder || [], i = r.length + ci - (tplHead(ex, d).length - fl.length), f = fl[i] || "text";
+  return typeof f === "string" ? {typ: f, ab: 0} : {typ: f.typ || "text", ab: f.ab || 0}; };
+export const zeileWerte = (ex, d, ri, r) => Array.from({length: tplNIn(d, r, tplHead(ex, d))}, (_, ci) => String(S.get(tplKey(ex.id, d, ri, ci)) ?? "").trim());
+// Zeile fertig: alle Pflichtfelder (nicht "notiz") bis Phase p gefüllt; ohne Pflichtfelder reicht ein Eintrag
+export function zeileFertig(ex, d, ri, r, p){
+  const v = zeileWerte(ex, d, ri, r), n = v.map((_, ci) => ci).filter(ci => { const f = feld(ex, d, r, ci); return f.typ !== "notiz" && f.ab <= p; });
+  return n.length ? n.every(ci => v[ci]) : v.some(Boolean);
+}
+// Abweichung: d.vergleich = [a, b] zwei Eingabespalten, die gleich sein sollten (z. B. erwartet und gemessen)
+export const zeileAuffaellig = (ex, d, ri, r) => { const [a, b] = d.vergleich || [], v = zeileWerte(ex, d, ri, r); return d.vergleich ? !!(v[a] && v[b] && v[a] !== v[b]) : false; };
+export function tplStand(ex, d, p){
+  const rows = tplRows(d), fertig = rows.filter((r, ri) => zeileFertig(ex, d, ri, r, p)).length;
+  return {fertig, gesamt: (d.rows || []).length ? rows.length : 0, auffaellig: rows.filter((r, ri) => zeileAuffaellig(ex, d, ri, r)).length};
+}
+// Vorlage als Karte im Schritt, Ausfüllen im Popup (vorlage-popup.js)
+export function tplKarteHTML(s, d, phase){
+  const st = tplStand(s, d, phase), rows = tplRows(d), voll = st.gesamt && st.fertig === st.gesamt;
+  const kacheln = st.gesamt ? `<div class="tplk-kacheln">${rows.map((r, ri) => `<i class="${zeileAuffaellig(s, d, ri, r) ? "auff" : zeileFertig(s, d, ri, r, phase) ? "ok" : ""}"></i>`).join("")}</div>` : "";
+  const text = st.gesamt ? `${st.fertig} von ${st.gesamt} Zeilen fertig${st.auffaellig ? ` · ${st.auffaellig} Abweichung${st.auffaellig > 1 ? "en" : ""}` : ""}` : st.fertig ? `${st.fertig} Einträge` : "Noch leer";
+  return `<div class="tplk${voll ? " voll" : ""}" data-t="${d.id}"><div class="tplk-kopf"><div><h3>${d.cap}</h3><span class="muted small">${text}</span></div>`
+    + `<button class="btn ${voll ? "" : "primary"}" type="button" data-act="tpl-open" data-t="${d.id}" data-p="${phase}">${voll ? "Ansehen und ändern" : st.fertig ? "Weiter ausfüllen" : "Ausfüllen"}</button></div>`
+    + (st.gesamt ? `<div class="tplk-bar"><i style="width:${Math.round(100 * st.fertig / st.gesamt)}%"></i></div>` : "") + kacheln + `</div>`;
+}
 export function tplHTML(s, phase, nurFrueher = false){
-  return tplsOf(s).filter(d => nurFrueher ? (d.phase || 4) < phase : (d.phase || 4) <= phase).map(d => `<h3>${d.cap}</h3>`
-    + ((d.phase || 4) < phase ? `<p class="muted small">Angelegt im Schritt ${PHASES[d.phase || 4].n}. Du kannst hier weiter eintragen.</p>` : "")
-    + (d.erweitert && tplFind(d.erweitert) ? `<p class="muted small">Du schreibst das Dokument „${esc(plain(tplFind(d.erweitert).d.cap))}“ aus ${d.erweitert.split(":")[0]} fort. Die Zeilen aus früheren Übungen stehen oben nur zum Lesen, deine neuen Zeilen darunter.</p>` : "")
-    + docTable(s, d, "edit")).join("");
+  return tplsOf(s).filter(d => nurFrueher ? (d.phase || 4) < phase : (d.phase || 4) <= phase).map(d =>
+    ((d.phase || 4) < phase ? `<p class="muted small tplk-hin">Angelegt im Schritt ${PHASES[d.phase || 4].n}. Du kannst hier weiter eintragen.</p>` : "")
+    + (d.erweitert && tplFind(d.erweitert) ? `<p class="muted small tplk-hin">Du schreibst das Dokument „${esc(plain(tplFind(d.erweitert).d.cap))}“ aus ${d.erweitert.split(":")[0]} fort. Die Zeilen aus früheren Übungen stehen oben nur zum Lesen, deine neuen Zeilen darunter.</p>` : "")
+    + tplKarteHTML(s, d, phase)).join("");
 }
 export function tplEingeklappt(s, phase){
   const n = tplsOf(s).filter(d => (d.phase || 4) < phase).length; if (!n) return "";

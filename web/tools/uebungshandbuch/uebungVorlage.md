@@ -11,9 +11,10 @@ wie es aussieht. Die Vorlage wächst mit jeder neuen Idee. Was hier steht, ist b
 3. Nachschlagen: Aufgabe und Fachwissen
 4. Fachwissen
 5. Aufgabenschritte (Ausführen)
-6. Schreibregeln
-7. Quellen
-8. Prüfliste vor dem Abschluss einer Übung
+6. Vorlagen zum Ausfüllen
+7. Schreibregeln
+8. Quellen
+9. Prüfliste vor dem Abschluss einer Übung
 
 ## 1. Wo die Daten liegen
 
@@ -87,7 +88,40 @@ ausführt und danach abhaken kann.
 - **Reihenfolge:** leicht vor schwer, so wie man in TIA wirklich arbeitet. Das Ergebnis eines Schritts braucht der
   nächste.
 
-## 6. Schreibregeln
+## 6. Vorlagen zum Ausfüllen
+
+Vorlagen (`tpls`) stehen nie als große Tabelle im Text. Im Schritt steht eine **Karte** mit Titel, Fortschrittsbalken
+und einer Kachel je Zeile (grau offen, grün fertig, gelb Abweichung). **Ausfüllen** öffnet das Popup.
+
+Im Popup steht links die Liste aller Zeilen mit Status und den eingetragenen Werten, rechts die **Karte der
+gewählten Zeile**: oben der Steckbrief (die festen Spalten), darunter je Eingabespalte ein Feld. Ist eine Zeile
+fertig, springt das Popup selbst zur nächsten offenen Zeile. Die Filter „Offen“ und „Abweichung“ helfen beim
+Nacharbeiten. Mit Tasten: 0 und 1, J und N füllen das nächste freie Feld, die Pfeiltasten wechseln die Zeile.
+
+Jede Vorlage bekommt deshalb `felder`: je Eingabespalte (die Spalten nach den festen Spalten in `rows`) ein Eintrag.
+
+| Typ | Feld im Popup | Pflicht |
+| --- | --- | --- |
+| `"01"` | zwei große Tasten 0 und 1 | ja |
+| `"janein"` | zwei große Tasten ja und nein | ja |
+| `"text"` | Textfeld | ja |
+| `"notiz"` | Textfeld, z. B. Bemerkung | nein |
+
+Mit `{typ: "01", ab: 4}` ist ein Feld erst ab Schritt 4 (Ausführen) offen, vorher steht dort „Trägst du im Schritt
+Ausführen ein“. So plant man in Schritt 2 („erwartet“) und misst in Schritt 4 in derselben Vorlage.
+
+`vergleich: [a, b]` vergleicht zwei Eingabespalten (ab 0 gezählt), zum Beispiel „erwartet“ und „gemessen“. Weichen
+sie ab, wird die Zeile gelb, und die Karte bittet um eine Erklärung in der Bemerkung.
+
+```js
+{id:"werte", felder:["01", {typ:"01", ab:4}, {typ:"01", ab:4}, {typ:"janein", ab:4}, {typ:"notiz", ab:4}], vergleich:[0,1], cap:"…", …}
+```
+
+Feste Spalten in `rows` so wählen, dass die ersten beiden die Zeile benennen (z. B. Adresse und Kennzeichen), die
+dritte sie beschreibt. Daraus entsteht die Zeilenliste. Vorlagen, die ein früheres Dokument fortschreiben
+(`erweitert`), zeigen im Popup weiter die ganze Tabelle mit den früheren Zeilen.
+
+## 7. Schreibregeln
 
 - **Du-Form**, nie Sie-Form.
 - **Keine Gedankenstriche** als Satzzeichen („ – “, „—“, „--“). Stattdessen Punkt, Komma, Doppelpunkt oder Klammer.
@@ -98,7 +132,7 @@ ausführt und danach abhaken kann.
 - **Kennzeichen** nach DIN EN 81346-2 immer mit „−“ schreiben (−BG9, −PF2). Die App macht daraus Chips.
 - **Menüpfade in TIA** kursiv: `<i>Programmbausteine</i>, <i>Neuen Baustein hinzufügen</i>`.
 
-## 7. Quellen
+## 8. Quellen
 
 - Jede fachliche Aussage ist mit Siemens-Unterlagen belegt: zuerst https://docs.tia.siemens.cloud/, sonst Siemens
   Industry Online Support oder SCE-Lehrunterlagen. Wikipedia und Foren zählen nicht.
@@ -106,12 +140,13 @@ ausführt und danach abhaken kann.
   sonst.
 - Was nicht von Siemens belegt ist (allgemeine Praxis), steht ausdrücklich so in `q`.
 
-## 8. Prüfliste vor dem Abschluss einer Übung
+## 9. Prüfliste vor dem Abschluss einer Übung
 
 - [ ] Build läuft ohne neue Warnungen.
 - [ ] Jeder Aufgabenschritt hat 1 bis 3 Fachwissen-Themen in `fw`.
 - [ ] Jedes Fachwissen-Thema ist als Popup allein verständlich und hat eine Siemens-Quelle.
 - [ ] In Schritt 1 sind alle Fachwissen-Themen zugeklappt.
+- [ ] Jede Vorlage hat `felder` mit passenden Typen, wo sinnvoll 0/1 oder ja/nein statt Text.
 - [ ] Jede Aufgabe ist in TIA Portal und am Zwilling machbar.
 - [ ] Du-Form, keine Gedankenstriche, keine unerklärten Begriffe.
 - [ ] Im Browser geprüft: Schritt 1, Schritt 4 mit Popups, schmales Fenster.
