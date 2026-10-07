@@ -185,6 +185,8 @@ export function init(){
   dlg.addEventListener("click", klick);
   dlg.addEventListener("focusin", e => { if (e.target.dataset && e.target.dataset.prop) setLastProp(e.target); });
   dlg.addEventListener("input", e => {
+    const v = vorlage(ED.key);
+    if (v.eingabe && v.eingabe(e)) return;   // Haken eingabe: eigene Eingabefelder der Vorlage, z. B. Achsen im Trend
     const f = e.target.dataset && e.target.dataset.prop;
     if (istSignalFeld(e.target)) signalEingabe(e.target);   // Minuszeichen, Vorschlagsliste
     if (f) { beginneFeld(f); applyProp(f, e.target.value); }

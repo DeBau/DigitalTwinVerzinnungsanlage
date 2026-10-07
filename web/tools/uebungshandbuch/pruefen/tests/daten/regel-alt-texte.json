@@ -1,0 +1,5 @@
+{"uebh2:frei:sk:regelkreis": {"s": [], "o": [], "c": [],
+  "t": [{"x": 262, "y": 475, "v": "Temperatur Ofen", "c": "#1F4E99", "s": 16},
+        {"x": 642, "y": 475, "v": "%IW64", "c": "#1F4E99", "s": 16},
+        {"x": 262, "y": 505, "v": "gemessene Temperatur", "c": "#1F4E99", "s": 16},
+        {"x": 262, "y": 595, "v": "Ofentür offen", "c": "#1F4E99", "s": 16}]}}

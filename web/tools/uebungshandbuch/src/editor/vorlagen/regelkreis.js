@@ -1,42 +1,115 @@
-// Vorlage Regelkreis: vorgedrucktes Blockschaltbild (Regler, Stellglied, Strecke, Messglied) und die Bausteine
-// Block und Summierstelle für eigene Blockschaltbilder. Pfeile zwischen Blöcken sind beschriftbar.
-import { INK, SVGT, tw } from '../svg.js';
-import { BAUSTEIN, SAMPLE, fuelle, registriereGruppe, registriereVorlage } from '../registry.js';
-import { G, G2, TX } from '../vorlagen-svg.js';
-import { LINIE, platzhalter, rund } from '../bausteine.js';
+// Vorlage Regelkreis: Vordruck mit Muster-Regelkreis und Tabelle der Größen, Gruppe "regel" mit Pfeilen, Vorschlägen für
+// die Signalnamen (w, e, y, z, x) und Verzweigungen. Die Bausteine stehen in regelkreis-bausteine.js, die Wege in
+// regelkreis-wege.js. Das Muster ist eine echte Zeichnung (MUSTER): grau im Vordruck, mit "Muster übernehmen" als Bausteine.
+import { ED } from '../status.js';
+import { registriereGruppe, registriereVorlage } from '../registry.js';
+import { G2, TX } from '../vorlagen-svg.js';
+import { mitteVon } from '../bausteine.js';
+import { uid } from '../auswahl.js';
+import { zeichnungSVG } from '../zeichnen.js';
+import { zeigeHinweis } from '../eigenschaften.js';
+import { aendere } from '../verlauf.js';
+import { istRegler } from './regelkreis-glieder.js';
+import { eintrittsSeite, istPunkt, pfeilZug, verbindeRegelkreis } from './regelkreis-wege.js';
+import { SIMKNOPF, SIM_AKTIONEN, simAnleitung, simEingabe } from './regelkreis-simulation.js';
+import { pruefeRegelkreis } from './regelkreis-pruefen.js';
 
-export const bw = o => Math.max(110, Math.round((tw(o.v || "Block") + 30) / 10) * 10);   // Blockbreite nach Text
-
-export function regelkreisBlatt(){
-  const box = (x, y, w, h, lbl) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="4" fill="#fff" stroke="${G}" stroke-width="1.3"/>` + TX(x + w/2, y - 7, 10, lbl, "middle", "#666", 600);
-  const ar = (d) => `<path d="${d}" fill="none" stroke="${G}" stroke-width="1.3" marker-end="url(#ah)"/>`;
-  let s = `<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="${G}"/></marker></defs>`;
-  s += `<circle cx="140" cy="200" r="16" fill="#fff" stroke="${G}" stroke-width="1.3"/><path d="M129 189L151 211M151 189L129 211" stroke="${G}"/>` + TX(126,190,11,"+","end") + TX(150,232,11,"−","start");
-  s += ar("M60 200H122") + TX(60,190,12,"w","start","#555",600);
-  s += box(200,165,150,70,"Regler") + ar("M156 200H198") + TX(176,190,11,"e","middle","#555");
-  s += box(420,165,150,70,"Stellglied") + ar("M350 200H418") + TX(385,190,11,"y","middle","#555");
-  s += box(640,165,150,70,"Strecke") + ar("M570 200H638");
-  s += ar("M790 200H940") + TX(940,190,12,"x","end","#555",600);
-  s += ar("M715 90V163") + TX(725,100,12,"z  Störgröße","start","#555");
-  s += box(420,310,150,60,"Messglied") + ar("M860 200V340H572") + ar("M418 340H140V218");
-  s += TX(60,440,12,"Größe","start","#666",600) + TX(260,440,12,"Bedeutung in dieser Übung","start","#666",600) + TX(640,440,12,"Signal / Adresse","start","#666",600);
-  ["w Führungsgröße","x Regelgröße","e Regeldifferenz","y Stellgröße","z Störgröße"].forEach((r, i) => { const y = 470 + i*30; s += `<path d="M60 ${y+8}H975" stroke="${G2}" stroke-width=".7"/>` + TX(60, y, 12, r, "start", "#555"); });
-  return s;
+/* ---------- Muster und Vordruck ---------- */
+// Der Standard-Regelkreis als Zeichnung: Mitten im 10er-Raster, Blöcke 60 hoch. Die Mitten liegen fast wie im alten
+// Vordruck (Regler 275, Stellglied und Messglied 495, Strecke 715), damit alte, darauf geschriebene Texte passen.
+export const MUSTER = {
+  o: [
+    {id: "w", k: "sig", x: 60, y: 200, v: "w"}, {id: "s", k: "sum", x: 140, y: 200},
+    {id: "r", k: "box", x: 220, y: 170, v: "Regler"}, {id: "g", k: "box", x: 440, y: 170, v: "Stellglied"},
+    {id: "z", k: "sig", x: 720, y: 90, v: "z"}, {id: "t", k: "box", x: 660, y: 170, v: "Strecke"},
+    {id: "v", k: "abzw", x: 860, y: 200}, {id: "x", k: "sig", x: 940, y: 200, v: "x"},
+    {id: "m", k: "box", x: 440, y: 310, v: "Messglied"},
+  ],
+  c: [["w", "s"], ["s", "r", "e"], ["r", "g", "y"], ["g", "t"], ["z", "t"], ["t", "v"], ["v", "x"], ["v", "m"], ["m", "s", "x"]]
+    .map(([a, b, v = ""]) => ({a, b, v})),
+  s: [], t: [],
+};
+// Sobald die Zeichnung einen Baustein hat, blendet diese Regel das Muster aus (CSS :has), damit Muster und gesetzte
+// Bausteine nicht doppelt erscheinen. Der leere Vordruck druckt das Muster weiter.
+export const MUSTER_AUS = `<style>svg:has(.ink [data-o]) .rk-muster{display:none}</style>`;
+export const regelkreisMuster = () =>
+  `<g class="rk-muster" opacity=".45" pointer-events="none">${zeichnungSVG(MUSTER, false, "regelkreis")}</g>`;
+// Tabelle der Größen unter dem Kreis. Spalten bei x 260 und 640 wie im alten Vordruck, die Zeilentexte enden davor.
+// Die Namen bei PID_Compact stehen als eigene Zeile unter der Tabelle, über dem Schriftfeld.
+export const REGELGROESSEN = ["w Führungsgröße (Sollwert)", "x Regelgröße (Istwert)", "e Regeldifferenz (e = w − x)",
+  "y Stellgröße", "z Störgröße"];
+export const PID_ZEILE = "Bei PID_Compact (Siemens) heißen die Signale: w = Setpoint, x = Input, y = Output, z = Disturbance.";
+export function groessenTabelle(){
+  let s = TX(60, 440, 12, "Größe", "start", "#666", 600) + TX(260, 440, 12, "Bedeutung in dieser Übung", "start", "#666", 600)
+    + TX(640, 440, 12, "Signal / Adresse", "start", "#666", 600);
+  REGELGROESSEN.forEach((r, i) => {
+    const y = 470 + i*30;
+    s += `<path d="M60 ${y+8}H975" stroke="${G2}" stroke-width=".7"/>` + TX(60, y, 11, r, "start", "#555");
+  });
+  return s + TX(60, 622, 9.5, PID_ZEILE, "start", "#777");
 }
-registriereVorlage("regelkreis", {n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel"], body: regelkreisBlatt});
-registriereGruppe("regel", {name: "Regelkreis", hinweis: "Blöcke und Summierstelle setzen, mit Verbinden den Signalfluss ziehen. Doppelklick auf einen Pfeil beschriftet ihn.", pfeiltext: true});
+export const regelkreisBlatt = () => MUSTER_AUS + regelkreisMuster() + groessenTabelle();
 
-fuelle(BAUSTEIN, {
-  box: {g: "regel", n: "Block",
-    zeichne(o, edit){
-      const w = bw(o);
-      return `<rect x="${o.x}" y="${o.y}" width="${w}" height="50" rx="3" fill="#fff" ${LINIE}/>` + (o.v ? SVGT(o.x+w/2, o.y+30, o.v) : platzhalter(edit, "Block", o.x+w/2, o.y+30));
-    },
-    umriss: o => ({x: o.x, y: o.y, w: bw(o), h: 50}),
-    neu(o, [px, py]){ o.x = px - 55; o.y = py - 25; o.v = ""; },
-    feldliste: [["v", "Bezeichnung"]],
-    beschriftung: {sofort: true, hinweis: "Bezeichnung, z. B. Regler"}},
-  sum: {g: "regel", n: "Summierstelle", ...rund(15), beschriftung: false,
-    zeichne: o => `<circle cx="${o.x}" cy="${o.y}" r="15" fill="#fff" ${LINIE}/><path d="M${o.x-10.6} ${o.y-10.6}L${o.x+10.6} ${o.y+10.6}M${o.x+10.6} ${o.y-10.6}L${o.x-10.6} ${o.y+10.6}" stroke="${INK}" stroke-width="1"/>`},
+// Muster als Bausteine in die Zeichnung übernehmen (nur, solange sie keine Bausteine hat)
+export function musterUebernehmen(){
+  if (ED.data.o.length) { zeigeHinweis("Das Muster lässt sich nur auf ein Blatt ohne Bausteine übernehmen."); return; }
+  const neu = Object.fromEntries(MUSTER.o.map(o => [o.id, uid()]));
+  aendere(d => {
+    d.o.push(...MUSTER.o.map(o => ({...o, id: neu[o.id]})));
+    d.c.push(...MUSTER.c.map(c => ({...c, a: neu[c.a], b: neu[c.b]})));
+  });
+}
+
+/* ---------- Gruppe: Vorschläge und Verzweigungen ---------- */
+// Vorschlag für den Namen am Pfeil von A nach B: e hinter der Summierstelle, x an der Rückführung, y hinter dem Regler.
+// An einem Signal steht der Name schon am Signal (w, z, x).
+export function signalVorschlag(A, B){
+  if (istPunkt(A) && A.k === "sig") return "";
+  if (A.k === "sum") return "e";
+  if (B.k === "sum" && eintrittsSeite(B, mitteVon(A)) !== "l") return "x";
+  return istRegler(A) ? "y" : "";
+}
+// Signalname für ein neues Signal: der erste freie aus w, x, z
+export const signalName = d => ["w", "x", "z"].find(n => !d.o.some(o => o.k === "sig" && o.v === n)) || "";
+// Hat A schon einen Pfeil, teilt sich das Signal: Auf dem ersten Abschnitt des alten Pfeils entsteht eine Verzweigung,
+// von der beide Pfeile ausgehen.
+export function verzweige(d, A, alt, B, v){
+  const objs = Object.fromEntries(d.o.map(o => [o.id, o])), [p1, p2] = pfeilZug(A, objs[alt.b], objs, d.c).punkte;
+  const id = uid(), r10 = q => Math.round(q / 10) * 10;
+  d.o.push({id, k: "abzw", x: r10((p1[0] + p2[0]) / 2), y: r10((p1[1] + p2[1]) / 2)});
+  d.c.push({a: A.id, b: id, v: ""}, {a: id, b: B.id, v});
+  alt.a = id;
+}
+// Gruppen-Haken vorVerbinden: Pfeil mit Namensvorschlag, bei einem zweiten Pfeil aus A über eine Verzweigung
+export function vorVerbinden(A, B){
+  const v = signalVorschlag(A, B);
+  return {ersetze(d){
+    const alt = d.c.find(c => c.a === A.id && c.pa === undefined && c.b !== B.id);
+    if (alt && A.k !== "abzw") verzweige(d, A, alt, B, v); else d.c.push({a: A.id, b: B.id, v});
+  }};
+}
+
+registriereGruppe("regel", {name: "Regelkreis", pfeiltext: true,
+  hinweis: "Bausteine setzen, mit Verbinden den Signalfluss ziehen. Namen wie e, y und x schlägt der Editor vor, "
+    + "Doppelklick auf einen Pfeil ändert sie. Ein zweiter Pfeil aus demselben Baustein bekommt eine Verzweigung.",
+  verbinde: verbindeRegelkreis, vorVerbinden,
+  kennzeichen: (k, d, vorschlag) => k === "sig" ? signalName(d) : vorschlag,
 });
-fuelle(SAMPLE, {box: [{k:"box", x:2, y:2, v:"Regler"}, "0 0 114 54"], sum: [{k:"sum", x:24, y:24}, "0 0 48 48"]});
+
+export const MUSTERKNOPF = `<button type="button" class="tool" data-rk="muster" `
+  + `title="Den grauen Muster-Regelkreis als Bausteine übernehmen und dann anpassen">Muster übernehmen</button>`;
+// Knöpfe der Vorlage (data-rk)
+export const AKTIONEN_RK = {muster: musterUebernehmen, ...SIM_AKTIONEN};
+registriereVorlage("regelkreis", {
+  n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel", "regelglied"],
+  body: (ex, page) => page ? "" : regelkreisBlatt(),
+  werkzeugleiste: {nachVerbinden: MUSTERKNOPF + SIMKNOPF},
+  anleitung: simAnleitung,
+  pruefe: pruefeRegelkreis,
+  eingabe: simEingabe,
+  klick(e){
+    const k = e.target.closest("[data-rk]"), aktion = k && AKTIONEN_RK[k.dataset.rk];
+    if (aktion) aktion(k);
+    return !!aktion;
+  },
+});
