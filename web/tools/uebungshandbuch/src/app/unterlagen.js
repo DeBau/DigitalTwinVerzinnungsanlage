@@ -6,7 +6,8 @@ import { VORL } from '../editor/registry.js';
 import { ladeSkizze } from '../editor/blaetter.js';
 import { app, setNav } from './start.js';
 import { sketchCards } from './skizzen-kacheln.js';
-import { docGanz, prViewHTML, tplFind, tplHasData, tplTeile, tplsOf } from './uebung.js';
+import { docGanz } from './uebung.js';
+import { prViewHTML, tplFind, tplHasData, tplTeile, tplsOf } from './vorlagen-basis.js';
 import { ansOr, checkPage, doPrint, pageHead, sketchPage, varsPage, whoRow } from './druck.js';
 
 let filt = {st: 0, voll: true};

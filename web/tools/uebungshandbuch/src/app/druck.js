@@ -4,7 +4,8 @@ import { $, $$, ART, BY, IC, S, bewPunkte, bewSumme, chips, esc, hilfeLevel, hil
 import { VORL } from '../editor/registry.js';
 import { pageCount } from '../editor/zeichnen.js';
 import { ladeSkizze, skMeta, sketchSVG } from '../editor/blaetter.js';
-import { curTime, docTable, fmtTime, tplsOf } from './uebung.js';
+import { curTime, docTable, fmtTime } from './uebung.js';
+import { tplsOf } from './vorlagen-basis.js';
 
 export function pageHead(ex, what){
   const st = ex ? STUFEN[ex.st] : null;

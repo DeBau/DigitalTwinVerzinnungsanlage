@@ -1,18 +1,12 @@
-import { $, $$, BY, S, chips, esc, hilfeLevel, listOf, quizKey, quizSet, sigEntries } from './basis.js';
+import { $, $$, BY, S, chips, hilfeLevel, listOf, quizKey, quizSet, sigEntries } from './basis.js';
 import { paintVars, typeOf } from './variablen.js';
-import { autoGrow, aufgabeHTML, fwListHTML, fwThemaHTML, hilfeInner, quizHTML, refreshStatus, restoreInputs, toggleTimer } from './uebung.js';
+import { autoGrow, hilfeInner, quizHTML, refreshStatus, restoreInputs, toggleTimer } from './uebung.js';
 import { openEditor } from '../editor/oeffnen.js';
 import { bewPage, doPrint, openPrintDialog, sketchPage } from './druck.js';
 import { formPage, paintGrade } from './seiten.js';
 import { UMNUM_V, altDatei, migriere, route, sauberImport } from './router.js';
 
 export const curEx = () => (location.hash.match(/^#\/(L\d\d)/) || [])[1];
-
-// Popup zum Nachschlagen: Aufgabenbeschreibung, ein Fachwissen-Thema oder (schmales Fenster) die Themenliste
-function openNachschlagen(titel, unter, inhalt){
-  $("#dlg").innerHTML = `<form class="dlg nsdlg" method="dialog"><h2>${titel}</h2><p class="muted">${unter}</p>${inhalt}<div class="row"><button class="btn primary" value="ok">Schließen</button></div></form>`;
-  $("#dlg").showModal();
-}
 
 export function openDataDialog(){
   $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>Meine Daten</h2><p class="muted">Alle Eingaben, Häkchen und Skizzen bleiben nur in diesem Browser. Sichere sie als Datei, um sie abzugeben oder auf einem anderen Rechner weiterzuarbeiten.</p>
@@ -67,9 +61,6 @@ document.addEventListener("click", e => {
   if (act === "form") doPrint(formPage(a.dataset.f));
   if (act === "bew-print") doPrint(bewPage(BY[a.dataset.id]));
   if (act === "data") openDataDialog();
-  if (act === "ns-aufgabe") openNachschlagen(`Aufgabe ${id}`, esc(BY[id].t), aufgabeHTML(BY[id]));
-  if (act === "ns-alle") openNachschlagen(`Fachwissen ${id}`, esc(BY[id].t), fwListHTML(BY[id], -1));
-  if (act === "ns-fw") { e.preventDefault(); openNachschlagen(BY[id].wissen[+a.dataset.i].t, `Fachwissen ${id}`, fwThemaHTML(BY[id].wissen[+a.dataset.i])); }
 });
 document.addEventListener("keydown", e => {
   if (e.target.closest("input,textarea,select,dialog")) return;

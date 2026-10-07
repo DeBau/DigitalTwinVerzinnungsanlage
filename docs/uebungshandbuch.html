@@ -341,6 +341,14 @@ dialog.tpd{max-width:min(1180px,calc(100vw - 24px));height:min(860px,calc(100vh 
 .tpd-bsp{margin:0 0 16px;border:1px dashed var(--line);border-radius:9px;padding:8px 12px}
 .tpd-bsp summary{cursor:pointer;color:var(--ink2);font-size:13.5px}
 .tpd-bsp .tpd-steck{margin:10px 0 2px;background:var(--sunk)}
+.tpd-ueb tbody tr{cursor:pointer}
+.tpd-ueb tbody tr:hover td{background:var(--blue-soft)}
+.tpd-ueb td.st span{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;font:600 11px var(--cond);border:1px solid var(--line);color:var(--ink2)}
+.tpd-ueb tr.ok td.st span{background:var(--ok);border-color:var(--ok);color:#fff}
+.tpd-ueb tr.auff td.st span{background:var(--yellow);border-color:var(--yellow);color:#000}
+.tpd-ueb tr.auff td{background:var(--yellow-soft)}
+.tpd-ueb td.wahl{font:600 14px var(--mono);text-align:center}
+.tpd-geschafft .btn{margin-left:10px}
 /* ---------- Signal-Chips ---------- */
 .sig{display:inline;font:500 .87em var(--mono);padding:0 4px;border-radius:4px;background:var(--blue-soft);color:var(--blue);border:0;cursor:help;white-space:nowrap}
 .sig.nodata{cursor:default}
@@ -2323,8 +2331,8 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   var tw = (s, px = 13) => Math.max(...String(s ?? "").split("\n").map((l) => l.length)) * px * 0.58;
   var SVGT = (x, y, t, a = "middle", sz = 13, w = 500, f = INK) => {
     const ls = String(t ?? "").split("\n"), y0 = a === "middle" && ls.length > 1 ? y - (ls.length - 1) * 0.6 * sz : y;
-    const zeile = (l, i) => `<tspan x="${x}" dy="${i ? (1.2 * sz).toFixed(1) : 0}">${esc(l)}</tspan>`;
-    const body = ls.length > 1 ? ls.map(zeile).join("") : esc(t);
+    const zeile2 = (l, i) => `<tspan x="${x}" dy="${i ? (1.2 * sz).toFixed(1) : 0}">${esc(l)}</tspan>`;
+    const body = ls.length > 1 ? ls.map(zeile2).join("") : esc(t);
     return `<text x="${x}" y="${y0.toFixed ? +y0.toFixed(1) : y0}" text-anchor="${a}" font-size="${sz}" font-weight="${w}" fill="${f}" font-family="${SCHRIFT}">${body}</text>`;
   };
   function arrowHead(x1, y1, x2, y2, h = 6.5, w = 0.42) {
@@ -3037,7 +3045,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     return Math.max(1, Math.ceil((m + reserve) / PH));
   }
   function wireRef(o, port, key, y, x) {
-    const zeige = art(o.k).anschlussName, pn = zeige ? zeige(o, port) : port;
+    const zeige2 = art(o.k).anschlussName, pn = zeige2 ? zeige2(o, port) : port;
     const b = Math.floor(y / PH) + 1, name2 = istSchiene(o) ? o.v : `${o.v || BAUSTEIN[o.k].n}${pn && pn !== "~" ? ":" + pn : ""}`;
     const v = vorlage(key), pfad = v.verweis ? v.verweis(x, y) : "";
     return `${name2}, Blatt ${b}${pfad}`;
@@ -3182,6 +3190,141 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     el.innerHTML = rows.length ? rows.map((r, i) => `<tr>${["n", "t", "a", "k"].map((f) => `<td><input type="text" data-var="${i}" data-f="${f}" value="${esc(r[f])}" aria-label="${{ n: "Name", t: "Datentyp", a: "Adresse", k: "Kommentar" }[f]}, Zeile ${i + 1}"></td>`).join("")}<td><button class="del" type="button" data-act="var-del" data-i="${i}" aria-label="Zeile ${i + 1} löschen">${IC.trash}</button></td></tr>`).join("") : `<tr><td colspan="5" class="muted small" style="padding:14px 6px">Noch keine Variablen. Übernimm die Signale dieser Übung oder füge eine Zeile hinzu.</td></tr>`;
   }
 
+  // web/tools/uebungshandbuch/src/app/vorlagen-basis.js
+  var tplsOf = (s) => s && s.tpls && s.tpls.length ? s.tpls : s && s.tpl ? [{ ...s.tpl, id: "tpl", phase: s.tplPhase === 2 ? 2 : 4, alt: true }] : [];
+  var tplKey = (id, d, r, c) => d.alt ? `${id}:t${r}_${c}` : `${id}:t:${d.id}:${r}_${c}`;
+  var tplRows = (d) => [...d.rows || [], ...Array.from({ length: +d.leer || 0 }, () => [])];
+  var tplNIn = (d, r, head) => r.length ? head.length - r.length > 0 ? head.length - r.length : +d.inputs || 0 : head.length;
+  var PRUEF = "pruefprotokoll";
+  var tplFind = (ref2) => {
+    const [von, id] = String(ref2 || "").split(":"), ex = BY[von];
+    if (ex && id === PRUEF && ex.pr && ex.pr.length) return { ex, d: { id: PRUEF, cap: `Prüfprotokoll ${von}`, phase: 5, virtuell: true } };
+    const d = ex && tplsOf(ex).find((x) => x.id === id);
+    return d ? { ex, d } : null;
+  };
+  var prViewHTML = (ex) => `<div class="tw"><table class="tplt ro"><thead><tr><th style="width:5%">Nr.</th><th>Prüffall</th><th style="width:14%">Ergebnis</th><th>Beobachtung</th></tr></thead><tbody>${ex.pr.map((c, i) => {
+    const v = S.get(`${ex.id}:p${i}`);
+    return `<tr><td>${i + 1}</td><td>${chips(qt(c))}</td><td>${v === "ok" ? "bestanden" : v === "bad" ? "nicht bestanden" : "offen"}</td><td class="wert">${esc(S.get(`${ex.id}:b${i}`) || "")}</td></tr>`;
+  }).join("")}</tbody></table></div>`;
+  function tplTeile(ref2, bis = Infinity) {
+    const o = tplFind(ref2);
+    if (!o) return [];
+    const out = [o], p0 = sheetPos(o.ex.id);
+    SHEETS.forEach((ex, i) => {
+      if (i > p0 && i < bis) tplsOf(ex).forEach((d) => {
+        if (d.erweitert === ref2) out.push({ ex, d });
+      });
+    });
+    return out;
+  }
+  var tplHead = (ex, d) => d.head || ((tplFind(d.erweitert) || {}).d || {}).head || [];
+  var tplHasData = (id, d) => tplRows(d).some((r, ri) => Array.from({ length: tplNIn(d, r, tplHead(BY[id], d)) }, (_, ci) => S.get(tplKey(id, d, ri, ci))).some((v) => String(v ?? "").trim()));
+
+  // web/tools/uebungshandbuch/src/app/vorlage-stand.js
+  var alsFeld = (f) => typeof f === "string" ? { typ: f, ab: 0 } : { typ: f.typ || "text", ab: f.ab || 0 };
+  function feld(ex, d, r, ci) {
+    const fl = d.felder || [];
+    const i = r.length + ci - (tplHead(ex, d).length - fl.length);
+    return alsFeld(fl[i] || "text");
+  }
+  function zeileWerte(ex, d, ri, r) {
+    const n = tplNIn(d, r, tplHead(ex, d));
+    return Array.from({ length: n }, (_, ci) => String(S.get(tplKey(ex.id, d, ri, ci)) ?? "").trim());
+  }
+  function zeileFertig(ex, d, ri, r, p) {
+    const werte = zeileWerte(ex, d, ri, r);
+    const pflicht = werte.map((_, ci) => ci).filter((ci) => {
+      const f = feld(ex, d, r, ci);
+      return f.typ !== "notiz" && f.ab <= p;
+    });
+    return pflicht.length ? pflicht.every((ci) => werte[ci]) : werte.some(Boolean);
+  }
+  function zeileAuffaellig(ex, d, ri, r) {
+    if (!d.vergleich) return false;
+    const [a, b] = d.vergleich, werte = zeileWerte(ex, d, ri, r);
+    return !!(werte[a] && werte[b] && werte[a] !== werte[b]);
+  }
+  function tplStand(ex, d, p) {
+    const rows = tplRows(d);
+    return {
+      fertig: rows.filter((r, ri) => zeileFertig(ex, d, ri, r, p)).length,
+      gesamt: (d.rows || []).length ? rows.length : 0,
+      // nur freie Zeilen: kein Ziel, nur Anzahl der Einträge
+      auffaellig: rows.filter((r, ri) => zeileAuffaellig(ex, d, ri, r)).length
+    };
+  }
+  function standText(st) {
+    if (!st.gesamt) return st.fertig ? `${st.fertig} Einträge` : "Noch leer";
+    const auff2 = st.auffaellig ? ` · ${st.auffaellig} Abweichung${st.auffaellig > 1 ? "en" : ""}` : "";
+    return `${st.fertig} von ${st.gesamt} Zeilen fertig${auff2}`;
+  }
+  function knopfText(st) {
+    if (st.gesamt && st.fertig === st.gesamt) return "Ansehen und ändern";
+    return st.fertig ? "Weiter ausfüllen" : "Ausfüllen";
+  }
+  function kachelnHTML(ex, d, p) {
+    const klasse = (r, ri) => zeileAuffaellig(ex, d, ri, r) ? "auff" : zeileFertig(ex, d, ri, r, p) ? "ok" : "";
+    return `<div class="tplk-kacheln">${tplRows(d).map((r, ri) => `<i class="${klasse(r, ri)}"></i>`).join("")}</div>`;
+  }
+  function balkenHTML(st) {
+    const prozent2 = Math.round(100 * st.fertig / (st.gesamt || 1));
+    return `<div class="tplk-bar"><i style="width:${prozent2}%"></i></div>`;
+  }
+  function tplKarteHTML(ex, d, p) {
+    const st = tplStand(ex, d, p), voll = st.gesamt && st.fertig === st.gesamt;
+    const knopf3 = `<button class="btn ${voll ? "" : "primary"}" type="button" data-act="tpl-open" data-t="${d.id}" data-p="${p}">${knopfText(st)}</button>`;
+    const kopf3 = `<div class="tplk-kopf"><div><h3>${d.cap}</h3><span class="muted small">${standText(st)}</span></div>${knopf3}</div>`;
+    const fort = st.gesamt ? balkenHTML(st) + kachelnHTML(ex, d, p) : "";
+    return `<div class="tplk${voll ? " voll" : ""}" data-t="${d.id}">${kopf3}${fort}</div>`;
+  }
+  function frueherHTML(d, p) {
+    const ab = d.phase || 4;
+    return ab < p ? `<p class="muted small tplk-hin">Angelegt im Schritt ${PHASES[ab].n}. Du kannst hier weiter eintragen.</p>` : "";
+  }
+
+  // web/tools/uebungshandbuch/src/app/nachschlagen.js
+  var hatWissen = (s) => !!(s.wissen && s.wissen.length);
+  var themaLink = (i, html) => `<a href="#" data-act="ns-fw" data-i="${i}">${html}</a>`;
+  var fwThemaHTML = (w) => `<div class="prose">${chips(w.h)}${quelle(w)}</div>`;
+  function fwListHTML(s, offen) {
+    const thema = (w, i) => `<details${i === offen ? " open" : ""}><summary>${w.t}</summary>${fwThemaHTML(w)}</details>`;
+    return `<div class="fw">${s.wissen.map(thema).join("")}</div>`;
+  }
+  function aufgabeHTML(s) {
+    const text2 = `<div class="prose${s.beschr ? " beschr" : ""}">${chips(s.beschr || s.sit)}</div>`;
+    const tab = s.tab ? `<h3>${s.tab.cap}</h3>` + tableHTML(s.tab.head, s.tab.rows) : "";
+    const list = s.list ? `<h3>${s.list.cap}</h3><ol class="prose">${s.list.items.map((x) => `<li>${chips(x)}</li>`).join("")}</ol>` : "";
+    return text2 + tab + list;
+  }
+  function fwZuHTML(s, i) {
+    const nr = ((s.fw || {})[i] || []).filter((x) => hatWissen(s) && s.wissen[x]);
+    return nr.length ? `<span class="fwzu">${nr.map((x) => themaLink(x, s.wissen[x].t)).join("")}</span>` : "";
+  }
+  function nachschlagenHTML(s) {
+    const alle = hatWissen(s) ? `<button class="btn small nsalle" type="button" data-act="ns-alle">Fachwissen</button>` : "";
+    const liste2 = hatWissen(s) ? `<ul class="fwthemen">${s.wissen.map((w, i) => `<li>${themaLink(i, w.t)}</li>`).join("")}</ul>` : "";
+    const knoepfe = `<div class="nsbtns"><button class="btn small" type="button" data-act="ns-aufgabe">Aufgabe</button>${alle}</div>`;
+    return `<div class="box nachschlagen"><h4>Nachschlagen</h4>${knoepfe}${liste2}</div>`;
+  }
+  function zeige(titel, unter, inhalt) {
+    const schliessen = `<div class="row"><button class="btn primary" value="ok">Schließen</button></div>`;
+    $("#dlg").innerHTML = `<form class="dlg nsdlg" method="dialog"><h2>${titel}</h2><p class="muted">${unter}</p>${inhalt}${schliessen}</form>`;
+    $("#dlg").showModal();
+  }
+  var NS_AKTION = {
+    "ns-aufgabe": (s) => zeige(`Aufgabe ${s.id}`, esc(s.t), aufgabeHTML(s)),
+    "ns-alle": (s) => zeige(`Fachwissen ${s.id}`, esc(s.t), fwListHTML(s, -1)),
+    "ns-fw": (s, i) => zeige(s.wissen[i].t, `Fachwissen ${s.id}`, fwThemaHTML(s.wissen[i]))
+  };
+  function init() {
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest("[data-act^=ns-]"), m = location.hash.match(/^#\/(L\d\d)/);
+      if (!a || !m || !NS_AKTION[a.dataset.act]) return;
+      e.preventDefault();
+      NS_AKTION[a.dataset.act](BY[m[1]], +a.dataset.i);
+    });
+  }
+
   // web/tools/uebungshandbuch/src/app/uebung.js
   var timerId = null, timerEx = null, timerStart = 0;
   function fmtTime(sec) {
@@ -3249,47 +3392,10 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     const cur = $(".stepper a[aria-current]"), ol = $(".stepper ol");
     if (cur && ol.scrollWidth > ol.clientWidth) ol.scrollLeft = cur.offsetLeft - 16;
   }
-  var fwListHTML = (s, offen) => `<div class="fw">${s.wissen.map((w, i) => `<details${i === offen ? " open" : ""}><summary>${w.t}</summary><div class="prose">${chips(w.h)}${quelle(w)}</div></details>`).join("")}</div>`;
-  var fwThemaHTML = (w) => `<div class="prose">${chips(w.h)}${quelle(w)}</div>`;
-  var aufgabeHTML = (s) => (s.beschr ? `<div class="prose beschr">${chips(s.beschr)}</div>` : `<div class="prose">${chips(s.sit)}</div>`) + (s.tab ? `<h3>${s.tab.cap}</h3>` + tableHTML(s.tab.head, s.tab.rows) : "") + (s.list ? `<h3>${s.list.cap}</h3><ol class="prose">${s.list.items.map((x) => `<li>${chips(x)}</li>`).join("")}</ol>` : "");
-  var fwZuHTML = (s, i) => {
-    const n = ((s.fw || {})[i] || []).filter((x) => s.wissen && s.wissen[x]);
-    return n.length ? `<span class="fwzu">${n.map((x) => `<a href="#" data-act="ns-fw" data-i="${x}">${s.wissen[x].t}</a>`).join("")}</span>` : "";
-  };
-  var hatWissen = (s) => !!(s.wissen && s.wissen.length);
-  var nachschlagenHTML = (s) => `<div class="box nachschlagen"><h4>Nachschlagen</h4><div class="nsbtns"><button class="btn small" type="button" data-act="ns-aufgabe">Aufgabe</button>${hatWissen(s) ? `<button class="btn small nsalle" type="button" data-act="ns-alle">Fachwissen</button>` : ""}</div>` + (hatWissen(s) ? `<ul class="fwthemen">${s.wissen.map((w, i) => `<li><a href="#" data-act="ns-fw" data-i="${i}">${w.t}</a></li>`).join("")}</ul>` : "") + `</div>`;
   function ctxHTML(s, p) {
     return (p > 1 ? nachschlagenHTML(s) : "") + `<div class="box"><h4>Bearbeitet von</h4><div style="display:grid;gap:8px"><input type="text" data-k="name" placeholder="Name" aria-label="Name"><input type="text" data-k="${s.id}:datum" placeholder="Datum" aria-label="Datum"></div></div>` + (s.bild ? `<div class="box"><figure><img src="bilder/${s.bild[0]}" alt="${esc(plain(s.bild[1]))}" data-act="zoom" data-src="bilder/${s.bild[0]}" data-cap="${esc(s.bild[1])}"><figcaption>${chips(s.bild[1])}</figcaption></figure></div>` : "") + `<div class="box"><h4>Lernziele: Du kannst …</h4><ol class="goals">${s.ziele.map((z) => `<li>${z}</li>`).join("")}</ol></div><div class="box"><h4>Einstellung im Zwilling</h4><div class="small">${s.einst}</div></div><div class="box"><h4>Beteiligte Signale</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${s.sig.split(" ").map(chip).join("")}</div></div>`;
   }
   var ergList = (list, von) => `<ul class="erg">${list.map((e) => `<li>${artPill(e.a)}<span><b>${esc(e.n)}</b>${von && e.von ? ` <a class="muted small" href="#/${e.von}/6">aus ${e.von}</a>` : ""}${e.h ? `<br><span class="muted small">${chips(e.h)}</span>` : ""}</span></li>`).join("")}</ul>`;
-  var tplsOf = (s) => s && s.tpls && s.tpls.length ? s.tpls : s && s.tpl ? [{ ...s.tpl, id: "tpl", phase: s.tplPhase === 2 ? 2 : 4, alt: true }] : [];
-  var tplKey = (id, d, r, c) => d.alt ? `${id}:t${r}_${c}` : `${id}:t:${d.id}:${r}_${c}`;
-  var tplRows = (d) => [...d.rows || [], ...Array.from({ length: +d.leer || 0 }, () => [])];
-  var tplNIn = (d, r, head) => r.length ? head.length - r.length > 0 ? head.length - r.length : +d.inputs || 0 : head.length;
-  var PRUEF = "pruefprotokoll";
-  var tplFind = (ref2) => {
-    const [von, id] = String(ref2 || "").split(":"), ex = BY[von];
-    if (ex && id === PRUEF && ex.pr && ex.pr.length) return { ex, d: { id: PRUEF, cap: `Prüfprotokoll ${von}`, phase: 5, virtuell: true } };
-    const d = ex && tplsOf(ex).find((x) => x.id === id);
-    return d ? { ex, d } : null;
-  };
-  var prViewHTML = (ex) => `<div class="tw"><table class="tplt ro"><thead><tr><th style="width:5%">Nr.</th><th>Prüffall</th><th style="width:14%">Ergebnis</th><th>Beobachtung</th></tr></thead><tbody>${ex.pr.map((c, i) => {
-    const v = S.get(`${ex.id}:p${i}`);
-    return `<tr><td>${i + 1}</td><td>${chips(qt(c))}</td><td>${v === "ok" ? "bestanden" : v === "bad" ? "nicht bestanden" : "offen"}</td><td class="wert">${esc(S.get(`${ex.id}:b${i}`) || "")}</td></tr>`;
-  }).join("")}</tbody></table></div>`;
-  function tplTeile(ref2, bis = Infinity) {
-    const o = tplFind(ref2);
-    if (!o) return [];
-    const out = [o], p0 = sheetPos(o.ex.id);
-    SHEETS.forEach((ex, i) => {
-      if (i > p0 && i < bis) tplsOf(ex).forEach((d) => {
-        if (d.erweitert === ref2) out.push({ ex, d });
-      });
-    });
-    return out;
-  }
-  var tplHead = (ex, d) => d.head || ((tplFind(d.erweitert) || {}).d || {}).head || [];
-  var tplHasData = (id, d) => tplRows(d).some((r, ri) => Array.from({ length: tplNIn(d, r, tplHead(BY[id], d)) }, (_, ci) => S.get(tplKey(id, d, ri, ci))).some((v) => String(v ?? "").trim()));
   function tplRowsHTML(ex, d, head, mode, fremd = false) {
     const fixed = (d.rows || []).length;
     return tplRows(d).map((r, ri) => {
@@ -3331,34 +3437,14 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
       return `<div class="bezug"><div class="bzk"><h3>${o ? o.d.cap : esc(ref2)} <span class="muted small">aus ${b.von}</span></h3>${link}</div>${b.wozu ? `<p class="small">${chips(b.wozu)}</p>` : ""}` + (o ? docGanz(ref2, "view", sheetPos(s.id), { fremd: true }) : `<p class="muted small">Dieses Dokument gibt es in ${b.von} noch nicht.</p>`) + `</div>`;
     }).join("");
   }
-  var feld = (ex, d, r, ci) => {
-    const fl = d.felder || [], i = r.length + ci - (tplHead(ex, d).length - fl.length), f = fl[i] || "text";
-    return typeof f === "string" ? { typ: f, ab: 0 } : { typ: f.typ || "text", ab: f.ab || 0 };
-  };
-  var zeileWerte = (ex, d, ri, r) => Array.from({ length: tplNIn(d, r, tplHead(ex, d)) }, (_, ci) => String(S.get(tplKey(ex.id, d, ri, ci)) ?? "").trim());
-  function zeileFertig(ex, d, ri, r, p) {
-    const v = zeileWerte(ex, d, ri, r), n = v.map((_, ci) => ci).filter((ci) => {
-      const f = feld(ex, d, r, ci);
-      return f.typ !== "notiz" && f.ab <= p;
-    });
-    return n.length ? n.every((ci) => v[ci]) : v.some(Boolean);
-  }
-  var zeileAuffaellig = (ex, d, ri, r) => {
-    const [a, b] = d.vergleich || [], v = zeileWerte(ex, d, ri, r);
-    return d.vergleich ? !!(v[a] && v[b] && v[a] !== v[b]) : false;
-  };
-  function tplStand(ex, d, p) {
-    const rows = tplRows(d), fertig2 = rows.filter((r, ri) => zeileFertig(ex, d, ri, r, p)).length;
-    return { fertig: fertig2, gesamt: (d.rows || []).length ? rows.length : 0, auffaellig: rows.filter((r, ri) => zeileAuffaellig(ex, d, ri, r)).length };
-  }
-  function tplKarteHTML(s, d, phase) {
-    const st = tplStand(s, d, phase), rows = tplRows(d), voll = st.gesamt && st.fertig === st.gesamt;
-    const kacheln = st.gesamt ? `<div class="tplk-kacheln">${rows.map((r, ri) => `<i class="${zeileAuffaellig(s, d, ri, r) ? "auff" : zeileFertig(s, d, ri, r, phase) ? "ok" : ""}"></i>`).join("")}</div>` : "";
-    const text2 = st.gesamt ? `${st.fertig} von ${st.gesamt} Zeilen fertig${st.auffaellig ? ` · ${st.auffaellig} Abweichung${st.auffaellig > 1 ? "en" : ""}` : ""}` : st.fertig ? `${st.fertig} Einträge` : "Noch leer";
-    return `<div class="tplk${voll ? " voll" : ""}" data-t="${d.id}"><div class="tplk-kopf"><div><h3>${d.cap}</h3><span class="muted small">${text2}</span></div><button class="btn ${voll ? "" : "primary"}" type="button" data-act="tpl-open" data-t="${d.id}" data-p="${phase}">${voll ? "Ansehen und ändern" : st.fertig ? "Weiter ausfüllen" : "Ausfüllen"}</button></div>` + (st.gesamt ? `<div class="tplk-bar"><i style="width:${Math.round(100 * st.fertig / st.gesamt)}%"></i></div>` : "") + kacheln + `</div>`;
-  }
   function tplHTML(s, phase, nurFrueher = false) {
-    return tplsOf(s).filter((d) => nurFrueher ? (d.phase || 4) < phase : (d.phase || 4) <= phase).map((d) => ((d.phase || 4) < phase ? `<p class="muted small tplk-hin">Angelegt im Schritt ${PHASES[d.phase || 4].n}. Du kannst hier weiter eintragen.</p>` : "") + (d.erweitert && tplFind(d.erweitert) ? `<p class="muted small tplk-hin">Du schreibst das Dokument „${esc(plain(tplFind(d.erweitert).d.cap))}“ aus ${d.erweitert.split(":")[0]} fort. Die Zeilen aus früheren Übungen stehen oben nur zum Lesen, deine neuen Zeilen darunter.</p>` : "") + tplKarteHTML(s, d, phase)).join("");
+    const sichtbar2 = (d) => nurFrueher ? (d.phase || 4) < phase : (d.phase || 4) <= phase;
+    return tplsOf(s).filter(sichtbar2).map((d) => frueherHTML(d, phase) + erweitertHTML(d) + tplKarteHTML(s, d, phase)).join("");
+  }
+  function erweitertHTML(d) {
+    const o = d.erweitert && tplFind(d.erweitert);
+    if (!o) return "";
+    return `<p class="muted small tplk-hin">Du schreibst das Dokument „${esc(plain(o.d.cap))}“ aus ${o.ex.id} fort. Die Zeilen aus früheren Übungen stehen oben nur zum Lesen, deine neuen Zeilen darunter.</p>`;
   }
   function tplEingeklappt(s, phase) {
     const n = tplsOf(s).filter((d) => (d.phase || 4) < phase).length;
@@ -3512,117 +3598,166 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   }
 
   // web/tools/uebungshandbuch/src/app/vorlage-popup.js
-  var Z = { ex: null, d: null, p: 4, ri: 0, filter: "alle" };
+  var Z = { ex: null, d: null, p: 4, ri: 0, filter: "alle", ansicht: "karten" };
   var WAHL = { "01": ["0", "1"], "janein": ["ja", "nein"] };
   var TASTE = { "0": ["01", "0"], "1": ["01", "1"], "j": ["janein", "ja"], "n": ["janein", "nein"] };
+  var PFEIL = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 };
   var FILTER = [["alle", "Alle"], ["offen", "Offen"], ["auff", "Abweichung"]];
+  var ANSICHT = [["karten", "Karten"], ["uebersicht", "Übersicht"]];
   var dlg = () => $("#tpd");
   var zeilen = () => tplRows(Z.d);
+  var zeile = () => zeilen()[Z.ri];
   var fertig = (ri) => zeileFertig(Z.ex, Z.d, ri, zeilen()[ri], Z.p);
   var auff = (ri) => zeileAuffaellig(Z.ex, Z.d, ri, zeilen()[ri]);
   var sichtbar = (ri) => Z.filter === "offen" ? !fertig(ri) : Z.filter === "auff" ? auff(ri) : true;
+  var status = (ri) => auff(ri) ? "auff" : fertig(ri) ? "ok" : "";
+  var statusZeichen = (ri) => auff(ri) ? "!" : fertig(ri) ? "✓" : ri + 1;
+  var istWahl = (r, ci) => !!WAHL[feld(Z.ex, Z.d, r, ci).typ];
   function openVorlage(id, tid, p) {
     const ex = BY[id], d = tplsOf(ex).find((x) => x.id === tid);
     if (!d) return;
-    Object.assign(Z, { ex, d, p, filter: "alle" });
+    Object.assign(Z, { ex, d, p, filter: "alle", ansicht: "karten" });
     Z.ri = Math.max(0, zeilen().findIndex((_, ri) => !fertig(ri)));
     if (d.felder) zeichne();
-    else {
-      dlg().innerHTML = `<form method="dialog" class="tpd-in"><header class="tpd-kopf"><h2>${d.cap}</h2><button class="btn primary" value="ok">Fertig</button></header><div class="tpd-tab">${docTable(ex, d, "edit")}</div></form>`;
-      restoreInputs(dlg());
-    }
+    else zeichneTabelle();
     dlg().showModal();
   }
+  function zeichneTabelle() {
+    const kopf3 = `<header class="tpd-kopf"><h2>${Z.d.cap}</h2><button class="btn primary" value="ok">Fertig</button></header>`;
+    dlg().innerHTML = `<form method="dialog" class="tpd-in">${kopf3}<div class="tpd-tab">${docTable(Z.ex, Z.d, "edit")}</div></form>`;
+    restoreInputs(dlg());
+  }
   function zeichne() {
-    dlg().innerHTML = `<form method="dialog" class="tpd-in"><header class="tpd-kopf">${kopfHTML()}</header>
-    <div class="tpd-body"><nav class="tpd-liste" aria-label="Zeilen">${listeHTML()}</nav><section class="tpd-karte">${karteHTML()}</section></div></form>`;
-    restoreInputs($(".tpd-karte", dlg()));
+    const karten = `<div class="tpd-body"><nav class="tpd-liste" aria-label="Zeilen">${listeHTML()}</nav><section class="tpd-karte">${karteHTML()}</section></div>`;
+    const inhalt = Z.ansicht === "uebersicht" ? `<div class="tpd-tab">${uebersichtHTML()}</div>` : karten;
+    dlg().innerHTML = `<form method="dialog" class="tpd-in"><header class="tpd-kopf">${kopfHTML()}</header>${inhalt}</form>`;
+    const karte = $(".tpd-karte", dlg());
+    if (karte) restoreInputs(karte);
     $(".tpd-z.aktiv", dlg())?.scrollIntoView({ block: "nearest" });
   }
+  function umschalterHTML(liste2, aktiv, act, label) {
+    const knopf3 = ([k, n]) => `<button type="button" class="btn small" data-act="${act}" data-f="${k}" aria-pressed="${aktiv === k}">${n}</button>`;
+    return `<div class="tpd-filter" role="group" aria-label="${label}">${liste2.map(knopf3).join("")}</div>`;
+  }
   function kopfHTML() {
-    const st = tplStand(Z.ex, Z.d, Z.p), pz = Math.round(100 * st.fertig / (st.gesamt || 1));
-    return `<div class="tpd-titel"><h2>${Z.d.cap}</h2><div class="tpd-fort"><div class="tplk-bar"><i style="width:${pz}%"></i></div><span><b>${st.fertig}</b> von ${st.gesamt} fertig</span></div></div>
-    <div class="tpd-filter" role="group" aria-label="Zeilen filtern">${FILTER.map(([k, n]) => `<button type="button" class="btn small" data-act="tpd-filter" data-f="${k}" aria-pressed="${Z.filter === k}">${n}${k === "auff" && st.auffaellig ? ` <b>${st.auffaellig}</b>` : ""}</button>`).join("")}</div>
-    <button class="btn primary" value="ok">Fertig</button>`;
+    const st = tplStand(Z.ex, Z.d, Z.p);
+    const auffText = st.auffaellig ? ` · <b>${st.auffaellig}</b> Abweichung` : "";
+    const fort = `<div class="tpd-fort">${balkenHTML(st)}<span><b>${st.fertig}</b> von ${st.gesamt} fertig${auffText}</span></div>`;
+    const filter = Z.ansicht === "karten" ? umschalterHTML(FILTER, Z.filter, "tpd-filter", "Zeilen filtern") : "";
+    return `<div class="tpd-titel"><h2>${Z.d.cap}</h2>${fort}</div>${umschalterHTML(ANSICHT, Z.ansicht, "tpd-ansicht", "Ansicht")}${filter}<button class="btn primary" value="ok">Fertig</button>`;
+  }
+  function listeEintragHTML(r, ri) {
+    const titel = r.length ? chips(r[0]) : `Zeile ${ri + 1}`;
+    const werte = zeileWerte(Z.ex, Z.d, ri, r).filter((_, ci) => istWahl(r, ci)).map((v) => `<i>${esc(v) || "·"}</i>`).join("");
+    return `<button type="button" class="tpd-z ${status(ri)}${ri === Z.ri ? " aktiv" : ""}" data-act="tpd-zeile" data-r="${ri}"><span class="st">${statusZeichen(ri)}</span><span class="tx"><b>${titel}</b> ${r[1] ? chips(r[1]) : ""}<br><span class="small muted">${esc(plain(r[2] ?? ""))}</span></span><span class="werte">${werte}</span></button>`;
   }
   function listeHTML() {
-    const html = zeilen().map((r, ri) => sichtbar(ri) ? `<button type="button" class="tpd-z${ri === Z.ri ? " aktiv" : ""}${auff(ri) ? " auff" : fertig(ri) ? " ok" : ""}" data-act="tpd-zeile" data-r="${ri}">
-    <span class="st">${auff(ri) ? "!" : fertig(ri) ? "✓" : ri + 1}</span><span class="tx"><b>${r.length ? chips(r[0]) : `Zeile ${ri + 1}`}</b> ${r[1] ? chips(r[1]) : ""}<br><span class="small muted">${esc(plain(r[2] ?? ""))}</span></span>
-    <span class="werte">${zeileWerte(Z.ex, Z.d, ri, r).filter((_, ci) => WAHL[feld(Z.ex, Z.d, r, ci).typ]).map((v) => `<i>${esc(v) || "·"}</i>`).join("")}</span></button>` : "").join("");
+    const html = zeilen().map((r, ri) => sichtbar(ri) ? listeEintragHTML(r, ri) : "").join("");
     return html || `<p class="muted small" style="padding:12px">Keine Zeile in diesem Filter.</p>`;
   }
-  function karteHTML() {
-    const r = zeilen()[Z.ri], head = tplHead(Z.ex, Z.d), n = tplNIn(Z.d, r, head), st = tplStand(Z.ex, Z.d, Z.p);
-    const steck = r.map((x, c) => `<div><dt>${trenn(head[c] || "")}</dt><dd>${trenn(chips(x))}</dd></div>`).join("");
-    const felder = Array.from({ length: n }, (_, ci) => feldHTML(head[r.length + ci] || "", ci)).join("");
-    const [a, b] = Z.d.vergleich || [], v = zeileWerte(Z.ex, Z.d, Z.ri, r);
-    const hinweis2 = auff(Z.ri) ? `<div class="tpd-auff"><b>Abweichung:</b> ${esc(plain(head[r.length + a]))} ist <b>${esc(v[a])}</b>, ${esc(plain(head[r.length + b]))} ist <b>${esc(v[b])}</b>. Das ist kein Fehler, wenn du es erklären kannst. Schreib in die Bemerkung, warum.</div>` : "";
-    const fertigAlle = st.gesamt && st.fertig === st.gesamt ? `<div class="tpd-geschafft">Geschafft! Alle ${st.gesamt} Zeilen sind ausgefüllt.</div>` : "";
-    return fertigAlle + beispielHTML(head) + `<div class="tpd-nr">Zeile ${Z.ri + 1} von ${zeilen().length}</div><dl class="tpd-steck">${steck}</dl>${hinweis2}<div class="tpd-felder">${felder}</div>
-    <div class="tpd-nav"><button type="button" class="btn" data-act="tpd-schritt" data-d="-1" ${Z.ri ? "" : "disabled"}>Vorige Zeile</button><span class="muted small">Tasten: 0 und 1, J und N füllen das nächste freie Feld, Pfeile wechseln die Zeile</span><button type="button" class="btn primary" data-act="tpd-schritt" data-d="1" ${Z.ri < zeilen().length - 1 ? "" : "disabled"}>Nächste Zeile</button></div>`;
-  }
-  function feldHTML(titel, ci) {
-    const f = feld(Z.ex, Z.d, zeilen()[Z.ri], ci), k = tplKey(Z.ex.id, Z.d, Z.ri, ci), v = String(S.get(k) ?? "").trim();
-    if (f.ab > Z.p) return `<div class="tpd-feld zu"><label>${trenn(titel)}</label><span class="muted small">Trägst du im Schritt ${PHASES[f.ab].n} ein.${v ? ` Jetzt: <b>${esc(v)}</b>` : ""}</span></div>`;
-    if (!WAHL[f.typ]) return `<div class="tpd-feld"><label for="tpd${ci}">${trenn(titel)}</label><textarea id="tpd${ci}" class="auto" rows="2" data-k="${k}"></textarea></div>`;
-    return `<div class="tpd-feld"><label>${trenn(titel)}</label><div class="tpd-wahl">${WAHL[f.typ].map((w) => `<button type="button" data-act="tpd-set" data-ci="${ci}" data-v="${w}" aria-pressed="${v === w}">${w}</button>`).join("")}</div></div>`;
+  function steckbriefHTML(werte, head) {
+    const eintrag = (x, c) => `<div><dt>${trenn(head[c] || "")}</dt><dd>${trenn(chips(x))}</dd></div>`;
+    return `<dl class="tpd-steck">${werte.map(eintrag).join("")}</dl>`;
   }
   function beispielHTML(head) {
-    const m = Z.d.muster;
-    if (!m) return "";
-    return `<details class="tpd-bsp"><summary>Beispiel: so trägst du ein</summary><dl class="tpd-steck">${m.map((x, c) => `<div><dt>${trenn(head[c] || "")}</dt><dd>${trenn(chips(x))}</dd></div>`).join("")}</dl></details>`;
+    if (!Z.d.muster) return "";
+    return `<details class="tpd-bsp"><summary>Beispiel: so trägst du ein</summary>${steckbriefHTML(Z.d.muster, head)}</details>`;
+  }
+  function abweichungHTML(head) {
+    if (!auff(Z.ri)) return "";
+    const r = zeile(), [a, b] = Z.d.vergleich, v = zeileWerte(Z.ex, Z.d, Z.ri, r);
+    const name2 = (i) => esc(plain(head[r.length + i]));
+    return `<div class="tpd-auff"><b>Abweichung:</b> ${name2(a)} ist <b>${esc(v[a])}</b>, ${name2(b)} ist <b>${esc(v[b])}</b>. Das ist kein Fehler, wenn du es erklären kannst. Schreib in die Bemerkung, warum.</div>`;
+  }
+  function geschafftHTML() {
+    const st = tplStand(Z.ex, Z.d, Z.p);
+    if (!st.gesamt || st.fertig < st.gesamt) return "";
+    return `<div class="tpd-geschafft">Geschafft! Alle ${st.gesamt} Zeilen sind ausgefüllt. <button type="button" class="btn small" data-act="tpd-ansicht" data-f="uebersicht">Zur Übersicht</button></div>`;
+  }
+  function navHTML() {
+    const letzte = Z.ri >= zeilen().length - 1;
+    return `<div class="tpd-nav"><button type="button" class="btn" data-act="tpd-schritt" data-d="-1" ${Z.ri ? "" : "disabled"}>Vorige Zeile</button><span class="muted small">Tasten: 0 und 1, J und N füllen das nächste freie Feld, Pfeile wechseln die Zeile</span><button type="button" class="btn primary" data-act="tpd-schritt" data-d="1" ${letzte ? "disabled" : ""}>Nächste Zeile</button></div>`;
+  }
+  function karteHTML() {
+    const r = zeile(), head = tplHead(Z.ex, Z.d), n = tplNIn(Z.d, r, head);
+    const felder = Array.from({ length: n }, (_, ci) => feldHTML(head[r.length + ci] || "", ci)).join("");
+    return geschafftHTML() + beispielHTML(head) + `<div class="tpd-nr">Zeile ${Z.ri + 1} von ${zeilen().length}</div>` + steckbriefHTML(r, head) + abweichungHTML(head) + `<div class="tpd-felder">${felder}</div>` + navHTML();
+  }
+  function feldHTML(titel, ci) {
+    const f = feld(Z.ex, Z.d, zeile(), ci), k = tplKey(Z.ex.id, Z.d, Z.ri, ci), v = String(S.get(k) ?? "").trim();
+    const label = trenn(titel);
+    if (f.ab > Z.p) {
+      const jetzt = v ? ` Jetzt: <b>${esc(v)}</b>` : "";
+      return `<div class="tpd-feld zu"><label>${label}</label><span class="muted small">Trägst du im Schritt ${PHASES[f.ab].n} ein.${jetzt}</span></div>`;
+    }
+    if (!WAHL[f.typ]) return `<div class="tpd-feld"><label for="tpd${ci}">${label}</label><textarea id="tpd${ci}" class="auto" rows="2" data-k="${k}"></textarea></div>`;
+    const knopf3 = (w) => `<button type="button" data-act="tpd-set" data-ci="${ci}" data-v="${w}" aria-pressed="${v === w}">${w}</button>`;
+    return `<div class="tpd-feld"><label>${label}</label><div class="tpd-wahl">${WAHL[f.typ].map(knopf3).join("")}</div></div>`;
+  }
+  function uebersichtZeileHTML(r, ri, n) {
+    const werte = zeileWerte(Z.ex, Z.d, ri, r);
+    const fest = r.map((x) => `<td>${trenn(chips(x))}</td>`).join("");
+    const ein = Array.from({ length: n }, (_, ci) => `<td class="wert${istWahl(r, ci) ? " wahl" : ""}">${esc(werte[ci] || "")}</td>`).join("");
+    return `<tr class="${status(ri)}" data-act="tpd-zeile" data-r="${ri}"><td class="st"><span>${statusZeichen(ri)}</span></td>${fest}${ein}</tr>`;
+  }
+  function uebersichtHTML() {
+    const head = tplHead(Z.ex, Z.d);
+    const kopf3 = `<tr><th></th>${head.map((x) => `<th>${trenn(x)}</th>`).join("")}</tr>`;
+    const body = zeilen().map((r, ri) => uebersichtZeileHTML(r, ri, tplNIn(Z.d, r, head))).join("");
+    return `<p class="muted small">Klicke auf eine Zeile, um sie zu bearbeiten.</p><div class="tw"><table class="tplt ro tpd-ueb"><thead>${kopf3}</thead><tbody>${body}</tbody></table></div>`;
   }
   function setze(ci, w) {
     const k = tplKey(Z.ex.id, Z.d, Z.ri, ci), war = fertig(Z.ri);
     S.set(k, String(S.get(k) ?? "") === w ? null : w);
-    if (!war && fertig(Z.ri) && !auff(Z.ri)) {
-      zeichne();
-      setTimeout(() => {
-        if (dlg().open) springe(naechsteOffene());
-      }, 350);
-    } else zeichne();
+    zeichne();
+    if (!war && fertig(Z.ri) && !auff(Z.ri)) setTimeout(() => {
+      if (dlg().open) springe(naechsteOffene());
+    }, 350);
   }
-  var naechsteOffene = () => {
+  function naechsteOffene() {
     const n = zeilen().length;
     for (let i = 1; i <= n; i++) {
       const ri = (Z.ri + i) % n;
       if (!fertig(ri)) return ri;
     }
     return Z.ri;
-  };
+  }
   function springe(ri) {
     Z.ri = Math.max(0, Math.min(zeilen().length - 1, ri));
     zeichne();
   }
-  function taste(e) {
-    if (e.target.closest("textarea,input")) return;
-    const t = TASTE[e.key.toLowerCase()];
-    if (t) {
-      const v = zeileWerte(Z.ex, Z.d, Z.ri, zeilen()[Z.ri]), r = zeilen()[Z.ri], ci = v.findIndex((x, i) => {
-        const f = feld(Z.ex, Z.d, r, i);
-        return !x && f.typ === t[0] && f.ab <= Z.p;
-      });
-      if (ci >= 0) {
-        e.preventDefault();
-        setze(ci, t[1]);
-      }
-      return;
-    }
-    if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+  function freiesFeld(typ2) {
+    const r = zeile(), werte = zeileWerte(Z.ex, Z.d, Z.ri, r);
+    return werte.findIndex((v, ci) => {
+      const f = feld(Z.ex, Z.d, r, ci);
+      return !v && f.typ === typ2 && f.ab <= Z.p;
+    });
+  }
+  function tpdTaste(e) {
+    if (Z.ansicht !== "karten" || e.target.closest("textarea,input")) return;
+    const t = TASTE[e.key.toLowerCase()], ci = t ? freiesFeld(t[0]) : -1;
+    if (ci >= 0) {
       e.preventDefault();
-      springe(Z.ri + 1);
+      setze(ci, t[1]);
     }
-    if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+    if (PFEIL[e.key]) {
       e.preventDefault();
-      springe(Z.ri - 1);
+      springe(Z.ri + PFEIL[e.key]);
     }
   }
-  var AKTION = {
+  var TPD_AKTION = {
     "tpd-set": (a) => setze(+a.dataset.ci, a.dataset.v),
-    "tpd-zeile": (a) => springe(+a.dataset.r),
+    "tpd-zeile": (a) => {
+      Z.ansicht = "karten";
+      springe(+a.dataset.r);
+    },
     "tpd-schritt": (a) => springe(Z.ri + +a.dataset.d),
     "tpd-filter": (a) => {
       Z.filter = a.dataset.f;
+      zeichne();
+    },
+    "tpd-ansicht": (a) => {
+      Z.ansicht = a.dataset.f;
       zeichne();
     }
   };
@@ -3630,21 +3765,19 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     const alt = $(`.tplk[data-t="${Z.d.id}"]`);
     if (alt) alt.outerHTML = tplKarteHTML(Z.ex, Z.d, Z.p);
   }
-  function init() {
+  function init2() {
     document.addEventListener("click", (e) => {
-      const a = e.target.closest("[data-act=tpl-open]");
-      const m = location.hash.match(/^#\/(L\d\d)/);
+      const a = e.target.closest("[data-act=tpl-open]"), m = location.hash.match(/^#\/(L\d\d)/);
       if (a && m) openVorlage(m[1], a.dataset.t, +a.dataset.p);
     });
     dlg().addEventListener("click", (e) => {
       const a = e.target.closest("[data-act^=tpd-]");
-      if (a && Z.d.felder) AKTION[a.dataset.act](a);
+      if (a && Z.d.felder) TPD_AKTION[a.dataset.act](a);
     });
     document.addEventListener("keydown", (e) => {
-      if (dlg().open && Z.d && Z.d.felder) {
-        e.stopPropagation();
-        taste(e);
-      }
+      if (!dlg().open || !Z.d || !Z.d.felder) return;
+      e.stopPropagation();
+      tpdTaste(e);
     }, true);
     dlg().addEventListener("close", geschlossen);
   }
@@ -5012,7 +5145,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
     (e) => e.key === "?" && (kuerzelUmschalten(), true),
     werkzeugTaste
   ];
-  function taste2(e) {
+  function taste(e) {
     if (e.target.matches && e.target.matches("input,select,textarea")) {
       if (!signalTaste(e)) tasteImFeld(e);
       return;
@@ -5711,7 +5844,7 @@ END_CASE;`)}
     andocken: aktionAndocken,
     punkt: (A, B) => isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + stapelX(B), B.y] : [B.x, B.y + 15]
   };
-  var AKTION2 = {
+  var AKTION = {
     g: "grafcet",
     titel: "Aktion",
     zeichne: zeichneAktion,
@@ -6328,13 +6461,13 @@ END_CASE;`)}
     step: { g: "grafcet", n: "Schritt", ...SCHRITT, zeichne: zeichneSchritt },
     macro: { g: "grafcet", n: "Makroschritt", ...SCHRITT, ...MAKRO },
     trans: { g: "grafcet", n: "Transition", ...TRANSITION },
-    action: { ...AKTION2, n: "Aktion kontinuierlich", mk: { t: "kont" } },
+    action: { ...AKTION, n: "Aktion kontinuierlich", mk: { t: "kont" } },
     actc: { g: "grafcet", n: "Aktion mit Zuweisungsbedingung", mk: { k: "action", t: "kont", b: "", hb: true } },
     acta: { g: "grafcet", n: "Aktion bei Aktivierung ↑", mk: { k: "action", t: "akt" } },
     actd: { g: "grafcet", n: "Aktion bei Deaktivierung ↓", mk: { k: "action", t: "deakt" } },
     acte: { g: "grafcet", n: "Aktion bei Ereignis", mk: { k: "action", t: "ereig", b: "" } },
     actz: { g: "grafcet", n: "Zwangssteuerung", mk: { k: "action", t: "zwang" } },
-    actionq: { ...AKTION2, n: "Aktion S7-GRAPH (IEC 61131-3)", mk: { k: "action", t: "q", q: "S" } },
+    actionq: { ...AKTION, n: "Aktion S7-GRAPH (IEC 61131-3)", mk: { k: "action", t: "q", q: "S" } },
     alt: {
       g: "grafcet",
       n: "ODER-Verzweigung",
@@ -6699,16 +6832,16 @@ END_CASE;`)}
     return { schritte };
   }
   function zeilenFuer(schritte, namen) {
-    const neu = [...namen], zeile = {};
+    const neu = [...namen], zeile2 = {};
     schritte.flatMap((s) => s.bewegungen).forEach(({ mm }) => {
-      if (zeile[mm] !== void 0) return;
+      if (zeile2[mm] !== void 0) return;
       let i = neu.findIndex((n) => antriebZu(n) && antriebZu(n)[0] === mm);
       if (i < 0) i = neu.findIndex((n) => !n);
       if (i < 0) return;
       if (!neu[i]) neu[i] = "−" + mm;
-      zeile[mm] = i;
+      zeile2[mm] = i;
     });
-    return { zeile, namen: neu };
+    return { zeile: zeile2, namen: neu };
   }
   function stellungen(schritte) {
     const pos = {};
@@ -6722,10 +6855,10 @@ END_CASE;`)}
     return pos;
   }
   var LINIENFARBE = { c: "#17212B" };
-  function funktionslinien(p, zeile) {
+  function funktionslinien(p, zeile2) {
     const s = [];
     for (let j = 0; j + 1 < p.length; j++) {
-      const a = wsPunkt(j, zeile, p[j]), b = wsPunkt(j + 1, zeile, p[j + 1]), letzte = s[s.length - 1];
+      const a = wsPunkt(j, zeile2, p[j]), b = wsPunkt(j + 1, zeile2, p[j + 1]), letzte = s[s.length - 1];
       if (letzte && p[j] === p[j + 1] && letzte.p[0][1] === letzte.p[1][1] && letzte.p[1][1] === a[1]) letzte.p[1] = b;
       else s.push({ k: "l", ...LINIENFARBE, w: 2.8, p: [a, b] });
     }
@@ -6741,12 +6874,12 @@ END_CASE;`)}
       tag: ANTRIEBE[mm] ? "−" + ANTRIEBE[mm][aus ? "s2" : "s1"] : ""
     })) };
   }
-  function signallinien(schritte, j, zeile) {
+  function signallinien(schritte, j, zeile2) {
     const { zeit, sensoren } = ausloeser(schritte, j), s = [];
-    const quellPunkt = (q) => wsPunkt(q.j, zeile[q.mm], q.aus ? 1 : 0);
+    const quellPunkt = (q) => wsPunkt(q.j, zeile2[q.mm], q.aus ? 1 : 0);
     if (!sensoren.length) return s;
     schritte[j].bewegungen.forEach(({ mm, aus }) => {
-      const ziel3 = wsPunkt(j, zeile[mm], aus ? 0 : 1), tz = zeit ? { tz: zeit } : {};
+      const ziel3 = wsPunkt(j, zeile2[mm], aus ? 0 : 1), tz = zeit ? { tz: zeit } : {};
       if (sensoren.length === 1) {
         s.push({ k: "sig", ...LINIENFARBE, w: 1.2, p: [quellPunkt(sensoren[0]), ziel3], lbl: sensoren[0].tag, ...tz });
         return;
@@ -6757,17 +6890,17 @@ END_CASE;`)}
     });
     return s;
   }
-  function ablaufStriche(schritte, zeile, zeilen2) {
-    const pos = stellungen(schritte), s = Object.keys(pos).flatMap((mm) => funktionslinien(pos[mm], zeile[mm]));
+  function ablaufStriche(schritte, zeile2, zeilen2) {
+    const pos = stellungen(schritte), s = Object.keys(pos).flatMap((mm) => funktionslinien(pos[mm], zeile2[mm]));
     schritte[0].bewegungen.forEach(({ mm, aus }) => s.push({
       k: "st",
       ...LINIENFARBE,
       w: 1.2,
-      p: [wsPunkt(0, zeile[mm], aus ? 0 : 1)],
+      p: [wsPunkt(0, zeile2[mm], aus ? 0 : 1)],
       lbl: "−SF1"
     }));
     schritte.forEach((st, j) => {
-      if (j > 0 && st.bewegungen.length) s.push(...signallinien(schritte, j, zeile));
+      if (j > 0 && st.bewegungen.length) s.push(...signallinien(schritte, j, zeile2));
     });
     const xEnde = wsPunkt(schritte.length, 0, 1)[0];
     s.push({ k: "eq", ...LINIENFARBE, w: 2.6, p: [[xEnde, 57]], y2: WS_RASTER.y0 + zeilen2 * WS_RASTER.zeile });
@@ -6778,12 +6911,12 @@ END_CASE;`)}
     const r = leseAblauf(text2);
     if (r.fehler) return r.fehler;
     const namen = wsZeilen(ED.scope).map((v, i) => zeilenName(ED.data.meta, v, i));
-    const { zeile, namen: neu } = zeilenFuer(r.schritte, namen);
-    const fehlt = r.schritte.flatMap((s) => s.bewegungen).find((m) => zeile[m.mm] === void 0);
+    const { zeile: zeile2, namen: neu } = zeilenFuer(r.schritte, namen);
+    const fehlt = r.schritte.flatMap((s) => s.bewegungen).find((m) => zeile2[m.mm] === void 0);
     if (fehlt) return `Für −${fehlt.mm} ist keine Zeile frei.`;
     if (ED.data.s.some((st) => WS_ARTEN.includes(st.k)) && !confirm("Vorhandene Linien im Diagramm ersetzen?")) return "";
     aendere((d) => {
-      d.s = [...d.s.filter((st) => !WS_ARTEN.includes(st.k)), ...ablaufStriche(r.schritte, zeile, namen.length)];
+      d.s = [...d.s.filter((st) => !WS_ARTEN.includes(st.k)), ...ablaufStriche(r.schritte, zeile2, namen.length)];
       if (neu.some((n, i) => n !== namen[i])) {
         d.meta = d.meta || {};
         d.meta.rows = neu;
@@ -7639,11 +7772,11 @@ END_CASE;`)}
   function klemmenplanHTML(d) {
     const klemmen = (d.o || []).filter((o) => o.k === "term").sort((a, b) => (a.v || "").localeCompare(b.v || "", "de", { numeric: true }));
     if (!klemmen.length) return null;
-    const zeile = (o) => {
+    const zeile2 = (o) => {
       const [oben, unten] = portsOf(o);
       return `<tr><td${ZELLE}><b>${esc(o.v || "")}</b></td><td${ZELLE}>${esc(gegenueber(d, o, oben.n))}</td><td${ZELLE}>${esc(gegenueber(d, o, unten.n))}</td><td${ZELLE}>${pfadNummer(o.x)}</td></tr>`;
     };
-    return `<div class="props"><div class="palh">Klemmenplan</div><table class="klemmenplan small" style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:11.5px"><colgroup><col style="width:30%"><col><col><col style="width:17%"></colgroup><thead><tr>${KOPF}</tr></thead><tbody>${klemmen.map(zeile).join("")}</tbody></table><p class="small muted" style="margin:6px 0 0">Element anklicken zum Ändern, Doppelklick beschriftet.</p></div>`;
+    return `<div class="props"><div class="palh">Klemmenplan</div><table class="klemmenplan small" style="width:100%;border-collapse:collapse;table-layout:fixed;font-size:11.5px"><colgroup><col style="width:30%"><col><col><col style="width:17%"></colgroup><thead><tr>${KOPF}</tr></thead><tbody>${klemmen.map(zeile2).join("")}</tbody></table><p class="small muted" style="margin:6px 0 0">Element anklicken zum Ändern, Doppelklick beschriftet.</p></div>`;
   }
 
   // web/tools/uebungshandbuch/src/editor/vorlagen/elektro.js
@@ -8222,15 +8355,15 @@ END_CASE;`)}
     if (!letzte || Object.keys(pos).some((id) => letzte.pos[id] !== pos[id])) simStatusZeigen();
   }
   function wegZeitSVG() {
-    const v = ED.sim.verlauf || [], as = antriebe(), { dauer, breite, zeile } = WEGZEIT;
+    const v = ED.sim.verlauf || [], as = antriebe(), { dauer, breite, zeile: zeile2 } = WEGZEIT;
     if (!as.length || !v.length) return "";
     const t1 = v[v.length - 1].t, x = (t) => (46 + (breite - 50) * (1 - (t1 - t) / dauer)).toFixed(1);
     const reihe = (o, i) => {
-      const y0 = i * zeile + 24, y = (p) => (y0 - p * 18).toFixed(1);
+      const y0 = i * zeile2 + 24, y = (p) => (y0 - p * 18).toFixed(1);
       const pkt = v.filter((s) => s.pos[o.id] !== void 0).map((s) => `${x(s.t)},${y(s.pos[o.id])}`).join(" ");
       return `<text x="0" y="${y0 - 5}" font-size="10" font-weight="600">${esc(o.v || o.k)}</text><path d="M46 ${y0}H${breite - 4}M46 ${y0 - 18}H${breite - 4}" stroke="#C9D0D5" stroke-width=".6" stroke-dasharray="2 2"/><polyline points="${pkt}" fill="none" stroke="#17212B" stroke-width="2"/>`;
     };
-    return `<div class="small muted" style="margin:6px 0 2px">Weg-Zeit-Diagramm (letzte 10 s)</div><svg class="wegzeit" viewBox="0 0 ${breite} ${as.length * zeile + 8}" width="100%" role="img" aria-label="Weg-Zeit-Diagramm der Antriebe">${as.map(reihe).join("")}</svg>`;
+    return `<div class="small muted" style="margin:6px 0 2px">Weg-Zeit-Diagramm (letzte 10 s)</div><svg class="wegzeit" viewBox="0 0 ${breite} ${as.length * zeile2 + 8}" width="100%" role="img" aria-label="Weg-Zeit-Diagramm der Antriebe">${as.map(reihe).join("")}</svg>`;
   }
 
   // web/tools/uebungshandbuch/src/editor/vorlagen/pneumatik-simulation.js
@@ -8393,8 +8526,8 @@ END_CASE;`)}
   // web/tools/uebungshandbuch/src/editor/vorlagen/pneumatik-antriebe.js
   var kz = (tag) => tag ? "−" + tag : "";
   function antriebMenue() {
-    const zeile = ([mm, a]) => `<button type="button" class="tool" data-antrieb="${mm}" style="display:block;width:100%;text-align:left;margin:0 0 6px;white-space:normal"><b>−${mm}</b> ${EXTRA[mm] || ""}<br><span class="small muted">${kz(a.aus)}${a.ein ? " / " + kz(a.ein) : " / Feder"}, ${kz(a.s1)} / ${kz(a.s2)}</span></button>`;
-    return propsKasten("Antrieb aus der Anlage", HINWEIS("Wähle einen Antrieb. Er kommt mit Ventil, Spulen, Endlagensensoren und Drosselrückschlagventilen (Abluftdrosselung) fertig verdrahtet an den nächsten freien Platz.") + Object.entries(ANTRIEBE).map(zeile).join(""));
+    const zeile2 = ([mm, a]) => `<button type="button" class="tool" data-antrieb="${mm}" style="display:block;width:100%;text-align:left;margin:0 0 6px;white-space:normal"><b>−${mm}</b> ${EXTRA[mm] || ""}<br><span class="small muted">${kz(a.aus)}${a.ein ? " / " + kz(a.ein) : " / Feder"}, ${kz(a.s1)} / ${kz(a.s2)}</span></button>`;
+    return propsKasten("Antrieb aus der Anlage", HINWEIS("Wähle einen Antrieb. Er kommt mit Ventil, Spulen, Endlagensensoren und Drosselrückschlagventilen (Abluftdrosselung) fertig verdrahtet an den nächsten freien Platz.") + Object.entries(ANTRIEBE).map(zeile2).join(""));
   }
   function antriebTeile(mm, x0, y0, d) {
     const a = ANTRIEBE[mm], rot = a.art === "rot", id = { z: uid(), v: uid(), da: uid(), db: uid(), q: uid() };
@@ -10101,8 +10234,8 @@ END_CASE;`)}
     const kanal = (teile.byte - startByte(b)) * 8 + teile.bit;
     return { platz: b[0], name: b[1], kanal, pin: 1 + kanal % 8 + 10 * Math.floor(kanal / 8) };
   }
-  function kanalObjekt(typ2, zeile, signale, plan2) {
-    const k = Object.fromEntries(SPALTEN.map((s, i) => [s, zeile[i] ?? ""]));
+  function kanalObjekt(typ2, zeile2, signale, plan2) {
+    const k = Object.fromEntries(SPALTEN.map((s, i) => [s, zeile2[i] ?? ""]));
     const teile = zerlege(k.adr);
     const versorgung2 = plan2.versorgung[typ2] || plan2.versorgung[typ2[1] + teile.byte];
     return {
@@ -11148,7 +11281,7 @@ END_CASE;`)}
     f: vollbild,
     F: vollbild
   };
-  function taste3(e) {
+  function taste2(e) {
     if (!imPlan() || e.target.closest("input, textarea, dialog") || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === "Enter" && e.target.closest("#sp-blatt [data-ref], #sp-blatt [data-bmk]")) {
       folge(e.target);
@@ -11183,8 +11316,8 @@ END_CASE;`)}
     if (knopfEl) return KNOEPFE[knopfEl.dataset.sp]();
     if (!warGezogen()) folge(e.target);
   }
-  function init2() {
-    document.addEventListener("keydown", taste3);
+  function init3() {
+    document.addEventListener("keydown", taste2);
     document.addEventListener("click", klick);
     document.addEventListener("input", (e) => {
       if (e.target.id === "sp-suche") $("#sp-treffer").innerHTML = trefferHTML(treffer2(e.target.value));
@@ -11205,7 +11338,7 @@ END_CASE;`)}
     tip.style.top = y + "px";
   }
   var hideTip = () => tip.classList.remove("on");
-  function init3() {
+  function init4() {
     document.addEventListener("mouseover", (e) => {
       const el = e.target.closest(".sig");
       if (el) showTip(el);
@@ -11337,7 +11470,7 @@ END_CASE;`)}
     migriereBew();
     migriereTpl();
   }
-  function init4() {
+  function init5() {
     (function umziehen() {
       if (S.get("ver") >= 2) return;
       const alt = S.all(), rx = /^L(\d\d)(?=:)/;
@@ -11376,10 +11509,6 @@ END_CASE;`)}
 
   // web/tools/uebungshandbuch/src/app/ereignisse.js
   var curEx = () => (location.hash.match(/^#\/(L\d\d)/) || [])[1];
-  function openNachschlagen(titel, unter, inhalt) {
-    $("#dlg").innerHTML = `<form class="dlg nsdlg" method="dialog"><h2>${titel}</h2><p class="muted">${unter}</p>${inhalt}<div class="row"><button class="btn primary" value="ok">Schließen</button></div></form>`;
-    $("#dlg").showModal();
-  }
   function openDataDialog() {
     $("#dlg").innerHTML = `<form class="dlg" method="dialog"><h2>Meine Daten</h2><p class="muted">Alle Eingaben, Häkchen und Skizzen bleiben nur in diesem Browser. Sichere sie als Datei, um sie abzugeben oder auf einem anderen Rechner weiterzuarbeiten.</p>
     <div class="cols2" style="gap:12px"><div><label class="small muted" for="dn">Name</label><input type="text" id="dn" data-k="name"></div><div><label class="small muted" for="dk">Klasse</label><input type="text" id="dk" data-k="klasse"></div></div>
@@ -11418,7 +11547,7 @@ END_CASE;`)}
     };
     $("#dlg").showModal();
   }
-  function init5() {
+  function init6() {
     document.addEventListener("input", (e) => {
       const el = e.target;
       if (el.matches && el.matches("textarea.auto")) autoGrow(el);
@@ -11515,12 +11644,6 @@ END_CASE;`)}
       if (act === "form") doPrint(formPage(a.dataset.f));
       if (act === "bew-print") doPrint(bewPage(BY[a.dataset.id]));
       if (act === "data") openDataDialog();
-      if (act === "ns-aufgabe") openNachschlagen(`Aufgabe ${id}`, esc(BY[id].t), aufgabeHTML(BY[id]));
-      if (act === "ns-alle") openNachschlagen(`Fachwissen ${id}`, esc(BY[id].t), fwListHTML(BY[id], -1));
-      if (act === "ns-fw") {
-        e.preventDefault();
-        openNachschlagen(BY[id].wissen[+a.dataset.i].t, `Fachwissen ${id}`, fwThemaHTML(BY[id].wissen[+a.dataset.i]));
-      }
     });
     document.addEventListener("keydown", (e) => {
       if (e.target.closest("input,textarea,select,dialog")) return;
@@ -11673,7 +11796,7 @@ END_CASE;`)}
   var schliesseFeld = () => {
     if (ED.tx && ED.tx.schluessel.startsWith("feld:")) schliesse();
   };
-  function init6() {
+  function init7() {
     const dlg2 = $("#editor");
     addEventListener("resize", () => {
       if (ED.svg) sizeSVG();
@@ -11707,9 +11830,9 @@ END_CASE;`)}
       if (e.target.closest(".sym")) e.preventDefault();
       signalWahl(e);
     });
-    dlg2.addEventListener("keydown", taste2);
+    dlg2.addEventListener("keydown", taste);
     document.addEventListener("keydown", (e) => {
-      if (ED.svg && !dlg2.contains(e.target)) taste2(e);
+      if (ED.svg && !dlg2.contains(e.target)) taste(e);
     });
     dlg2.addEventListener("cancel", (e) => e.preventDefault());
     dlg2.addEventListener("close", () => {
@@ -11720,12 +11843,13 @@ END_CASE;`)}
   }
 
   // web/tools/uebungshandbuch/src/main.js
+  init7();
   init6();
-  init5();
-  init();
-  init3();
   init2();
+  init();
   init4();
+  init3();
+  init5();
 })();
 </script>
 </body>

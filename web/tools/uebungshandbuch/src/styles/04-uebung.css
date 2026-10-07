@@ -225,3 +225,11 @@ dialog.tpd{max-width:min(1180px,calc(100vw - 24px));height:min(860px,calc(100vh 
 .tpd-bsp{margin:0 0 16px;border:1px dashed var(--line);border-radius:9px;padding:8px 12px}
 .tpd-bsp summary{cursor:pointer;color:var(--ink2);font-size:13.5px}
 .tpd-bsp .tpd-steck{margin:10px 0 2px;background:var(--sunk)}
+.tpd-ueb tbody tr{cursor:pointer}
+.tpd-ueb tbody tr:hover td{background:var(--blue-soft)}
+.tpd-ueb td.st span{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;font:600 11px var(--cond);border:1px solid var(--line);color:var(--ink2)}
+.tpd-ueb tr.ok td.st span{background:var(--ok);border-color:var(--ok);color:#fff}
+.tpd-ueb tr.auff td.st span{background:var(--yellow);border-color:var(--yellow);color:#000}
+.tpd-ueb tr.auff td{background:var(--yellow-soft)}
+.tpd-ueb td.wahl{font:600 14px var(--mono);text-align:center}
+.tpd-geschafft .btn{margin-left:10px}

@@ -21,8 +21,12 @@ import './editor/blaetter.js';
 import './app/start.js';
 import './app/skizzen-kacheln.js';
 import './app/variablen.js';
+import './app/vorlagen-basis.js';
+import './app/vorlage-stand.js';
+// init steht hier: Eine zweite Importzeile weiter unten würde die Ladereihenfolge (Schicht) verschieben
+import { init as init_app_nachschlagen } from './app/nachschlagen.js';
 import './app/uebung.js';
-import './app/vorlage-popup.js';
+import { init as init_app_vorlage_popup } from './app/vorlage-popup.js';
 import './editor/signalfeld.js';
 import './editor/eigenschaften.js';
 import './editor/anzeige.js';
@@ -99,12 +103,12 @@ import { init as init_schaltplan_ansicht } from './schaltplan/ansicht.js';
 import { init as init_app_tooltip } from './app/tooltip.js';
 import { init as init_app_router } from './app/router.js';
 import { init as init_app_ereignisse } from './app/ereignisse.js';
-import { init as init_app_vorlage_popup } from './app/vorlage-popup.js';
 import { init as init_editor_ereignisse } from './editor/ereignisse.js';
 
 init_editor_ereignisse();
 init_app_ereignisse();
 init_app_vorlage_popup();
+init_app_nachschlagen();
 init_app_tooltip();
 init_schaltplan_ansicht();
 init_app_router();

@@ -2,6 +2,9 @@
 import { PHASES, SHEETS, STUFEN } from './daten.js';
 import { $, $$, BY, HAS_ERG, HSTUFE, IC, S, artPill, chip, chips, chipsQuiet, esc, hilfeLevel, hilfeText, mitbringen, plain, prVal, qt, quelle, quizKey, quizSet, sheetPos, sigEntries, stilFor, stilKey, tableHTML, trenn, typOf, vorIds, zielTag } from './basis.js';
 import { phaseDone, prDone } from './fortschritt.js';
+import { PRUEF, prViewHTML, tplFind, tplHead, tplKey, tplNIn, tplRows, tplTeile, tplsOf } from './vorlagen-basis.js';
+import { frueherHTML, tplKarteHTML } from './vorlage-stand.js';
+import { fwListHTML, fwZuHTML, nachschlagenHTML } from './nachschlagen.js';
 import { app, setNav, viewHome } from './start.js';
 import { paintSketches } from './skizzen-kacheln.js';
 import { paintVars } from './variablen.js';
@@ -46,18 +49,6 @@ export function viewExercise(id, p){
   window.scrollTo(0, 0);
   const cur = $(".stepper a[aria-current]"), ol = $(".stepper ol"); if (cur && ol.scrollWidth > ol.clientWidth) ol.scrollLeft = cur.offsetLeft - 16;
 }
-// Ab Phase 2 Aufgabe und Fachwissen als Popup aus der Seitenleiste, damit niemand zu Phase 1 zurückblättern muss
-export const fwListHTML = (s, offen) => `<div class="fw">${s.wissen.map((w, i) => `<details${i === offen ? " open" : ""}><summary>${w.t}</summary><div class="prose">${chips(w.h)}${quelle(w)}</div></details>`).join("")}</div>`;
-export const fwThemaHTML = w => `<div class="prose">${chips(w.h)}${quelle(w)}</div>`;
-export const aufgabeHTML = s => (s.beschr ? `<div class="prose beschr">${chips(s.beschr)}</div>` : `<div class="prose">${chips(s.sit)}</div>`)
-  + (s.tab ? `<h3>${s.tab.cap}</h3>` + tableHTML(s.tab.head, s.tab.rows) : "")
-  + (s.list ? `<h3>${s.list.cap}</h3><ol class="prose">${s.list.items.map(x => `<li>${chips(x)}</li>`).join("")}</ol>` : "");
-// Fachwissen zum Aufgabenschritt i (Feld fw in uebungen.js), jedes Thema öffnet sein Popup
-const fwZuHTML = (s, i) => { const n = ((s.fw || {})[i] || []).filter(x => s.wissen && s.wissen[x]);
-  return n.length ? `<span class="fwzu">${n.map(x => `<a href="#" data-act="ns-fw" data-i="${x}">${s.wissen[x].t}</a>`).join("")}</span>` : ""; };
-const hatWissen = s => !!(s.wissen && s.wissen.length);
-const nachschlagenHTML = s => `<div class="box nachschlagen"><h4>Nachschlagen</h4><div class="nsbtns"><button class="btn small" type="button" data-act="ns-aufgabe">Aufgabe</button>${hatWissen(s) ? `<button class="btn small nsalle" type="button" data-act="ns-alle">Fachwissen</button>` : ""}</div>`
-  + (hatWissen(s) ? `<ul class="fwthemen">${s.wissen.map((w, i) => `<li><a href="#" data-act="ns-fw" data-i="${i}">${w.t}</a></li>`).join("")}</ul>` : "") + `</div>`;
 export function ctxHTML(s, p){
   return (p > 1 ? nachschlagenHTML(s) : "")
     + `<div class="box"><h4>Bearbeitet von</h4><div style="display:grid;gap:8px"><input type="text" data-k="name" placeholder="Name" aria-label="Name"><input type="text" data-k="${s.id}:datum" placeholder="Datum" aria-label="Datum"></div></div>`
@@ -67,30 +58,6 @@ export function ctxHTML(s, p){
     + `<div class="box"><h4>Beteiligte Signale</h4><div style="display:flex;flex-wrap:wrap;gap:6px">${s.sig.split(" ").map(chip).join("")}</div></div>`;
 }
 export const ergList = (list, von) => `<ul class="erg">${list.map(e => `<li>${artPill(e.a)}<span><b>${esc(e.n)}</b>${von && e.von ? ` <a class="muted small" href="#/${e.von}/6">aus ${e.von}</a>` : ""}${e.h ? `<br><span class="muted small">${chips(e.h)}</span>` : ""}</span></li>`).join("")}</ul>`;
-/* ---------- Vorlagen zum Ausfüllen (Feld tpls, Fallback tpl/tplPhase) ---------- */
-// Eine Vorlage d: {id, cap, phase, head, muster, rows, inputs, leer, erweitert}. Ohne tpls wird das alte tpl zur Vorlage
-// mit der id "tpl" und behält seine alten Speicherschlüssel Lxx:t<r>_<c> (alt: true).
-export const tplsOf = s => s && s.tpls && s.tpls.length ? s.tpls : s && s.tpl ? [{...s.tpl, id: "tpl", phase: s.tplPhase === 2 ? 2 : 4, alt: true}] : [];
-export const tplKey = (id, d, r, c) => d.alt ? `${id}:t${r}_${c}` : `${id}:t:${d.id}:${r}_${c}`;
-// Zeilen: feste linke Spalten aus rows, dazu leer komplett leere Zeilen
-export const tplRows = d => [...(d.rows || []), ...Array.from({length: +d.leer || 0}, () => [])];
-export const tplNIn = (d, r, head) => r.length ? (head.length - r.length > 0 ? head.length - r.length : +d.inputs || 0) : head.length;
-// Virtuelle Vorlage "pruefprotokoll": das Prüfprotokoll aus Phase 5 (pr), nur lesend in bezug und Mappe
-export const PRUEF = "pruefprotokoll";
-export const tplFind = ref => { const [von, id] = String(ref || "").split(":"), ex = BY[von];
-  if (ex && id === PRUEF && ex.pr && ex.pr.length) return {ex, d: {id: PRUEF, cap: `Prüfprotokoll ${von}`, phase: 5, virtuell: true}};
-  const d = ex && tplsOf(ex).find(x => x.id === id); return d ? {ex, d} : null; };
-export const prViewHTML = ex => `<div class="tw"><table class="tplt ro"><thead><tr><th style="width:5%">Nr.</th><th>Prüffall</th><th style="width:14%">Ergebnis</th><th>Beobachtung</th></tr></thead><tbody>${ex.pr.map((c, i) => { const v = S.get(`${ex.id}:p${i}`);
-  return `<tr><td>${i+1}</td><td>${chips(qt(c))}</td><td>${v === "ok" ? "bestanden" : v === "bad" ? "nicht bestanden" : "offen"}</td><td class="wert">${esc(S.get(`${ex.id}:b${i}`) || "")}</td></tr>`; }).join("")}</tbody></table></div>`;
-// Teile eines fortgeschriebenen Dokuments in SHEETS-Reihenfolge: Ursprung, dann alle Erweiterungen vor Position bis
-export function tplTeile(ref, bis = Infinity){
-  const o = tplFind(ref); if (!o) return [];
-  const out = [o], p0 = sheetPos(o.ex.id);
-  SHEETS.forEach((ex, i) => { if (i > p0 && i < bis) tplsOf(ex).forEach(d => { if (d.erweitert === ref) out.push({ex, d}); }); });
-  return out;
-}
-export const tplHead = (ex, d) => d.head || ((tplFind(d.erweitert) || {}).d || {}).head || [];
-export const tplHasData = (id, d) => tplRows(d).some((r, ri) => Array.from({length: tplNIn(d, r, tplHead(BY[id], d))}, (_, ci) => S.get(tplKey(id, d, ri, ci))).some(v => String(v ?? "").trim()));
 // Zeilen eines Teils als HTML. mode: "edit" Eingabefelder, "view" gespeicherte Werte nur lesend, "blank" leer zum Drucken.
 // fremd: Teil einer anderen Übung, leere Zusatzzeilen (leer) entfallen, damit er kurz bleibt.
 export function tplRowsHTML(ex, d, head, mode, fremd = false){
@@ -138,36 +105,14 @@ export function bezugHTML(s, phase){
 }
 // Vorlagen ab ihrer Phase: In der eigenen Phase und allen späteren Phasen der Übung sichtbar und editierbar
 // (z. B. erst „erwartet“ planen, dann messen). Aus früheren Schritten mit Hinweis.
-// Felder einer Vorlage (uebungVorlage.md, Abschnitt Vorlagen): je Eingabespalte {typ: "01" | "janein" | "text" | "notiz", ab: Phase}.
-// felder gilt für die letzten Spalten von head. Leere Zusatzzeilen haben davor weitere Eingabespalten, die sind "text".
-export const feld = (ex, d, r, ci) => { const fl = d.felder || [], i = r.length + ci - (tplHead(ex, d).length - fl.length), f = fl[i] || "text";
-  return typeof f === "string" ? {typ: f, ab: 0} : {typ: f.typ || "text", ab: f.ab || 0}; };
-export const zeileWerte = (ex, d, ri, r) => Array.from({length: tplNIn(d, r, tplHead(ex, d))}, (_, ci) => String(S.get(tplKey(ex.id, d, ri, ci)) ?? "").trim());
-// Zeile fertig: alle Pflichtfelder (nicht "notiz") bis Phase p gefüllt; ohne Pflichtfelder reicht ein Eintrag
-export function zeileFertig(ex, d, ri, r, p){
-  const v = zeileWerte(ex, d, ri, r), n = v.map((_, ci) => ci).filter(ci => { const f = feld(ex, d, r, ci); return f.typ !== "notiz" && f.ab <= p; });
-  return n.length ? n.every(ci => v[ci]) : v.some(Boolean);
-}
-// Abweichung: d.vergleich = [a, b] zwei Eingabespalten, die gleich sein sollten (z. B. erwartet und gemessen)
-export const zeileAuffaellig = (ex, d, ri, r) => { const [a, b] = d.vergleich || [], v = zeileWerte(ex, d, ri, r); return d.vergleich ? !!(v[a] && v[b] && v[a] !== v[b]) : false; };
-export function tplStand(ex, d, p){
-  const rows = tplRows(d), fertig = rows.filter((r, ri) => zeileFertig(ex, d, ri, r, p)).length;
-  return {fertig, gesamt: (d.rows || []).length ? rows.length : 0, auffaellig: rows.filter((r, ri) => zeileAuffaellig(ex, d, ri, r)).length};
-}
-// Vorlage als Karte im Schritt, Ausfüllen im Popup (vorlage-popup.js)
-export function tplKarteHTML(s, d, phase){
-  const st = tplStand(s, d, phase), rows = tplRows(d), voll = st.gesamt && st.fertig === st.gesamt;
-  const kacheln = st.gesamt ? `<div class="tplk-kacheln">${rows.map((r, ri) => `<i class="${zeileAuffaellig(s, d, ri, r) ? "auff" : zeileFertig(s, d, ri, r, phase) ? "ok" : ""}"></i>`).join("")}</div>` : "";
-  const text = st.gesamt ? `${st.fertig} von ${st.gesamt} Zeilen fertig${st.auffaellig ? ` · ${st.auffaellig} Abweichung${st.auffaellig > 1 ? "en" : ""}` : ""}` : st.fertig ? `${st.fertig} Einträge` : "Noch leer";
-  return `<div class="tplk${voll ? " voll" : ""}" data-t="${d.id}"><div class="tplk-kopf"><div><h3>${d.cap}</h3><span class="muted small">${text}</span></div>`
-    + `<button class="btn ${voll ? "" : "primary"}" type="button" data-act="tpl-open" data-t="${d.id}" data-p="${phase}">${voll ? "Ansehen und ändern" : st.fertig ? "Weiter ausfüllen" : "Ausfüllen"}</button></div>`
-    + (st.gesamt ? `<div class="tplk-bar"><i style="width:${Math.round(100 * st.fertig / st.gesamt)}%"></i></div>` : "") + kacheln + `</div>`;
-}
+// Vorlagen ab ihrer Phase als Karte (vorlage-stand.js), ausgefüllt wird im Popup (vorlage-popup.js)
 export function tplHTML(s, phase, nurFrueher = false){
-  return tplsOf(s).filter(d => nurFrueher ? (d.phase || 4) < phase : (d.phase || 4) <= phase).map(d =>
-    ((d.phase || 4) < phase ? `<p class="muted small tplk-hin">Angelegt im Schritt ${PHASES[d.phase || 4].n}. Du kannst hier weiter eintragen.</p>` : "")
-    + (d.erweitert && tplFind(d.erweitert) ? `<p class="muted small tplk-hin">Du schreibst das Dokument „${esc(plain(tplFind(d.erweitert).d.cap))}“ aus ${d.erweitert.split(":")[0]} fort. Die Zeilen aus früheren Übungen stehen oben nur zum Lesen, deine neuen Zeilen darunter.</p>` : "")
-    + tplKarteHTML(s, d, phase)).join("");
+  const sichtbar = d => nurFrueher ? (d.phase || 4) < phase : (d.phase || 4) <= phase;
+  return tplsOf(s).filter(sichtbar).map(d => frueherHTML(d, phase) + erweitertHTML(d) + tplKarteHTML(s, d, phase)).join("");
+}
+function erweitertHTML(d){
+  const o = d.erweitert && tplFind(d.erweitert); if (!o) return "";
+  return `<p class="muted small tplk-hin">Du schreibst das Dokument „${esc(plain(o.d.cap))}“ aus ${o.ex.id} fort. Die Zeilen aus früheren Übungen stehen oben nur zum Lesen, deine neuen Zeilen darunter.</p>`;
 }
 export function tplEingeklappt(s, phase){
   const n = tplsOf(s).filter(d => (d.phase || 4) < phase).length; if (!n) return "";

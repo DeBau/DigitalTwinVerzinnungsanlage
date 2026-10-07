@@ -14,7 +14,8 @@ wie es aussieht. Die Vorlage wächst mit jeder neuen Idee. Was hier steht, ist b
 6. Vorlagen zum Ausfüllen
 7. Schreibregeln
 8. Quellen
-9. Prüfliste vor dem Abschluss einer Übung
+9. Regeln für den Code
+10. Prüfliste vor dem Abschluss einer Übung
 
 ## 1. Wo die Daten liegen
 
@@ -139,12 +140,31 @@ dritte sie beschreibt. Daraus entsteht die Zeilenliste. Vorlagen, die ein frühe
 - Jedes Fachwissen-Thema hat im Feld `q` mindestens einen Link auf siemens.cloud oder siemens.com. Der Build warnt
   sonst.
 - Was nicht von Siemens belegt ist (allgemeine Praxis), steht ausdrücklich so in `q`.
+- **Zum fachlichen Gegenprüfen** (nicht als Link in `q`, weil nur lokal):
+  - TIA Portal V21 Hilfe auf dem Rechner: https://localhost:5112/?api=PortalV21
+  - Siemens-Unterlagen in `devInput/`: Programmierleitfaden, Übersicht der Datentypen, SCE-Module zu Hardware S7-1500,
+    Security, FB, FC, IEC-Zeiten und Zähler, Diagnose, globalen DBs und SCL.
+  Jede Übung wird vor dem Abschluss gegen diese Quellen geprüft.
 
-## 9. Prüfliste vor dem Abschluss einer Übung
+## 9. Regeln für den Code
+
+Alles wird strukturiert, wartbar, einfach und nach Best Practice gebaut.
+
+- **Einzelne Dateien:** je Aufgabe ein Modul (z. B. `src/app/vorlage-popup.js` für das Vorlagen-Popup), Dateien bis etwa
+  300 Zeilen. Neue Module stehen in `src/main.js` in der richtigen Schicht und in `src/README.md` in der Modulkarte.
+- **Kurze Funktionen** mit genau einer Aufgabe und sprechenden deutschen Namen.
+- **Keine überlangen Einzeiler**, keine verschachtelten Ternaries. Lieber zwei Zeilen mehr.
+- **Tabellen statt if- oder switch-Ketten** (z. B. `AKTION`, `WAHL`, `TASTE` in `vorlage-popup.js`).
+- **Daten gehören in die Daten:** Inhalte stehen in `uebungen.js` und `texte/`, nie im Code.
+- **Jede Datei hat einen Kopfkommentar**, der sagt, was sie tut.
+- **Keine Abstraktion auf Vorrat.**
+
+## 10. Prüfliste vor dem Abschluss einer Übung
 
 - [ ] Build läuft ohne neue Warnungen.
 - [ ] Jeder Aufgabenschritt hat 1 bis 3 Fachwissen-Themen in `fw`.
 - [ ] Jedes Fachwissen-Thema ist als Popup allein verständlich und hat eine Siemens-Quelle.
+- [ ] Fachlich gegen die TIA-Hilfe V21 und die Unterlagen in `devInput/` geprüft.
 - [ ] In Schritt 1 sind alle Fachwissen-Themen zugeklappt.
 - [ ] Jede Vorlage hat `felder` mit passenden Typen, wo sinnvoll 0/1 oder ja/nein statt Text.
 - [ ] Jede Aufgabe ist in TIA Portal und am Zwilling machbar.

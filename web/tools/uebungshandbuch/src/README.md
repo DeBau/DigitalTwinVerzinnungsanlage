@@ -43,6 +43,9 @@ importiert nie aus einer Vorlage.
 | `app/daten.js` | Platzhalter `__SIG__`, `__SHEETS__`, `__TEXTE__`, `__QUIZ__`, `__STIL__`, Stammdaten (EXTRA, STUFEN, EXVORL, CYL, PHASES, STIL, CRIT, critOf, TYPN, gradeOf) |
 | `app/basis.js` | `$`, `$$`, `BY`, Speicher `S`, `esc`, Chips, Hilfestufen, Icons `IC`, Signalliste |
 | `app/fortschritt.js` | Phasen erledigt, Prüfpunkte |
+| `app/vorlagen-basis.js` | Vorlagen zum Ausfüllen: `tplsOf`, `tplKey`, `tplRows`, `tplNIn`, `tplHead`, `tplFind`, `tplTeile`, `tplHasData`, `prViewHTML` |
+| `app/vorlage-stand.js` | Felder (`felder`), Fortschritt einer Vorlage, Karte im Schritt (`tplKarteHTML`) |
+| `app/nachschlagen.js` | Kasten „Nachschlagen“, Fachwissen je Aufgabenschritt (`fw`), Popups für Aufgabe und Fachwissen |
 | **Schaltzeichen** (gemeinsam mit dem Schaltplan) | |
 | `symbole/grund.js` | Zeichen-Grundlagen `linie`, `wirklinie`, `kreis`, `kasten`, `punkt`, `text`, `nummer` |
 | `symbole/iec60617.js` | Schaltzeichen nach IEC 60617 als Tabelle `SYM` (Kontakte, Spulen, dreipolige Geräte, Motor, Umrichter) |
@@ -59,7 +62,7 @@ importiert nie aus einer Vorlage.
 | `editor/kette.js` | Ablaufkette: senkrechte Verbindung, Kettenvorgänger, Ausrichten, Andocken, Seitenbausteine |
 | `editor/zeichnen.js` | `bausteinZeichnen`, `verbindungsWeg`, `zeichnungSVG` mit Leitungen, Verbindungen, Bausteinen und Punkten, `abzweigpunkte`, `pageCount`, `wireRef` |
 | `editor/blaetter.js` | Blätter, `sketchSVG`, Schriftfeld-Daten `skMeta`, Speicherschlüssel `skKey`, `ladeSkizze` |
-| **App-Seiten** | `app/start.js`, `app/skizzen-kacheln.js`, `app/variablen.js`, `app/uebung.js` |
+| **App-Seiten** | `app/start.js`, `app/skizzen-kacheln.js`, `app/variablen.js`, `app/uebung.js`, `app/vorlage-popup.js` (Vorlage im Popup: Karten und Übersicht) |
 | **Editor-Kern: Bedienung** | |
 | `editor/signalfeld.js` | Kennzeichenfeld mit Vorschlagsliste: `signalFeld`, `signalVorschlaege`, `normKennzeichen` |
 | `editor/eigenschaften.js` | Eigenschaftsfeld links (`propsHTML`, `updateProps`, `FELDER_JE_ART`), Feldbausteine `textFeld`, `auswahlFeld`, `listenFeld`, `HINWEIS`, `propsKasten`, `FARBEN`, `STAERKEN`, `loeschKnopf` |
