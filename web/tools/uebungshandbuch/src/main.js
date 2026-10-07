@@ -27,6 +27,7 @@ import { init as init_app_interaktiv } from './app/interaktiv/basis.js';
 import './app/interaktiv/signalverlauf.js';
 import './app/interaktiv/logik-bild.js';
 import './app/interaktiv/logik.js';
+import './app/interaktiv/zyklus-modell.js';
 import './app/interaktiv/zyklus.js';
 // init steht hier: Eine zweite Importzeile weiter unten würde die Ladereihenfolge (Schicht) verschieben
 import { init as init_app_nachschlagen } from './app/nachschlagen.js';

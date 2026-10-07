@@ -14,7 +14,7 @@ Für den ersten Blick ohne SPS genügt Schritt 1.
 2. `Bridge\build.bat` doppelklicken. Das Skript sucht die API-DLL von PLCSIM Advanced und erzeugt `ZwillingBridge.exe`.
 3. `Bridge\start.bat` doppelklicken. Der Browser öffnet `http://localhost:8181`.
 
-Zum Anschauen ohne Bridge reicht auch ein Doppelklick auf `web\index.html`. Ohne SPS läuft der Modus **Demo ohne SPS**: Eine Schrittkette im Browser steuert die Anlage, die Automatik startet von selbst.
+Zum Anschauen ohne Bridge reicht auch ein Doppelklick auf `web\index.html`. Ohne SPS läuft der Modus **Demo ohne SPS**: Eine Schrittkette im Browser steuert die Anlage. Sie startet nicht von selbst: −SA1 auf AUTO stellen und **START −SF1** drücken. Nach jedem Umschalten auf die Demo läuft sie erst wieder nach START.
 
 ### Starke Grafikkarte für den Browser einstellen (wichtig bei Laptops)
 
@@ -52,11 +52,23 @@ Programmeinstellungen → Browser wählen → **Hochleistungs-NVIDIA-Prozessor**
 
 ## 2. TIA-Projekt vorbereiten
 
-1. **Simulation erlauben:** Projekt → Eigenschaften → *Schutz* → *Simulation bei Kompilierung von Bausteinen unterstützen*.
-2. **Hardware:** CPU 1516-3 PN/DP, DI 32x24VDC HF, DQ 32x24VDC/0.5A ST, AI 8xU/I/RTD/TC ST (Kanal 0/1 auf %IW64/%IW66). Andere Adressen sind kein Problem, dann nur `signale.csv` anpassen. Für Antriebe am Umrichter je einen SINAMICS G120 mit Standardtelegramm 1 (−TA2…−TA5 auf E/A 256…271) – siehe [Umrichter und Technologieobjekt](04-signale.md#umrichter-und-technologieobjekt).
-3. **Variablen importieren:** PLC-Variablen → Rechtsklick → *Importieren* → `TIA\PLC_Variablen_Zinnbad.xlsx` (deutsche Namen) oder `TIA\PLC_Tags_Tinning_EN.xlsx` (englische Namen, gleiche Adressen). Die Namen im TIA-Projekt sind frei – die Bridge koppelt über die **Adressen**. Der Signalmonitor zeigt in der englischen Oberfläche die englischen Namen.
-4. **Programm schreiben.** Welchen Teil der Anlage dein Programm übernimmt, legst du in der Seitenleiste unter *Übungsumfang* fest – siehe [Übungsaufgaben](05-uebungen.md). Den Rest fährt das Modell selbst, du kannst also mit der Schrittkette anfangen und später erweitern.
-5. Übersetzen.
+1. **Projekt und CPU:** Portalansicht → *Start* → *Neues Projekt erstellen*. Danach *Geräte & Netze* → *Neues Gerät hinzufügen* → *Controller* → *SIMATIC S7-1500* → *CPU* → *CPU 1516-3 PN/DP* → *Hinzufügen*.
+2. **Hardware:** Projektnavigation → CPU → *Gerätekonfiguration* öffnen. Aus dem *Hardware-Katalog* per Doppelklick oder Drag & Drop stecken und die Adressen in der *Geräteübersicht* prüfen. Stimmt eine Adresse nicht: Baugruppe anklicken → *Eigenschaften* → *E/A-Adressen* → *Anfangsadresse*.
+
+   | Steckplatz | Baugruppe | Adressen |
+   |---|---|---|
+   | 0 | PM 190W 120/230VAC | – |
+   | 1 | CPU 1516-3 PN/DP | – |
+   | 2…5 | 4 × DI 32x24VDC HF | %I0.0…%I3.7, %I4.0…%I7.7, %I8.0…%I11.7, %I12.0…%I15.7 |
+   | 6…7 | 2 × DQ 32x24VDC/0.5A ST | %Q0.0…%Q3.7, %Q4.0…%Q7.7 |
+   | 8 | AI 8xU/I/RTD/TC ST | Anfangsadresse 64 (%IW64…%IW78) |
+   | 9 | AQ 4xU/I ST | Anfangsadresse 80 (%QW80…%QW86) |
+
+   Andere Adressen sind kein Problem, dann nur `signale.csv` anpassen. Für Antriebe am Umrichter je einen SINAMICS G120 mit Standardtelegramm 1 (−TA2…−TA5 auf E/A 256…271) – siehe [Umrichter und Technologieobjekt](04-signale.md#umrichter-und-technologieobjekt).
+3. **Simulation erlauben:** Projekt → Eigenschaften → *Schutz* → *Simulation bei Kompilierung von Bausteinen unterstützen*.
+4. **Variablen importieren:** PLC-Variablen → *Standard-Variablentabelle* öffnen → in der Symbolleiste der Tabelle *Importieren* → `TIA\PLC_Variablen_Zinnbad.xlsx` (deutsche Namen) oder `TIA\PLC_Tags_Tinning_EN.xlsx` (englische Namen, gleiche Adressen). Die Namen im TIA-Projekt sind frei – die Bridge koppelt über die **Adressen**. Der Signalmonitor zeigt in der englischen Oberfläche die englischen Namen.
+5. **Programm schreiben.** Welchen Teil der Anlage dein Programm übernimmt, legst du in der Seitenleiste unter *Übungsumfang* fest – siehe [Übungsaufgaben](05-uebungen.md). Den Rest fährt das Modell selbst, du kannst also mit der Schrittkette anfangen und später erweitern.
+6. Übersetzen.
 
 
 

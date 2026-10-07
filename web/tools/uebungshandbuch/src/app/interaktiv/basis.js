@@ -42,15 +42,19 @@ export function iaZeichnen(id){
   el.innerHTML = iaInhalt(id);
   return true;
 }
+function iaBedienen(e){
+  const knopf = e.target.closest("[data-ia-akt]"), wurzel = knopf && knopf.closest("[data-ia]");
+  if (!wurzel) return;
+  e.preventDefault();
+  const z = IA_ZUSTAND.get(wurzel.dataset.ia); if (!z) return;
+  IA_ARTEN[z.art].aktion(z, knopf.dataset.iaAkt, knopf);
+  iaZeichnen(z.id);
+}
+// Maus, Stift und Finger wirken schon beim Drücken: Beim Abspielen wird die Erklärung laufend neu gezeichnet,
+// ein Klick (Drücken und Loslassen auf demselben Knopf) käme dann nie an. Die Tastatur löst weiter über click aus.
 export function init(){
-  document.addEventListener("click", e => {
-    const knopf = e.target.closest("[data-ia-akt]"), wurzel = knopf && knopf.closest("[data-ia]");
-    if (!wurzel) return;
-    e.preventDefault();
-    const z = IA_ZUSTAND.get(wurzel.dataset.ia); if (!z) return;
-    IA_ARTEN[z.art].aktion(z, knopf.dataset.iaAkt, knopf);
-    iaZeichnen(z.id);
-  });
+  document.addEventListener("pointerdown", e => { if (e.button === 0) iaBedienen(e); });
+  document.addEventListener("click", e => { if (e.detail === 0) iaBedienen(e); });
 }
 
 /* ---------- SVG-Bausteine ---------- */

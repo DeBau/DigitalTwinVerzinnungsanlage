@@ -152,7 +152,7 @@ dafür einen Platzhalter im Text (`h`). Die App macht daraus eine interaktive Er
 | Art | Platzhalter | Zeigt |
 | --- | --- | --- |
 | `logik` | `<div data-interaktiv="logik" data-op="UND,ODER,NICHT,XOR" data-a="BG9" data-b="BG10" data-q="PF2" data-sa="#temperatureOk" data-sb="#levelOk" data-sq="#lampBathReady"></div>` | Eingänge zum Anklicken, FUP, KOP und SCL im Programmstatus wie in TIA, Funktionstabelle, Signalverlauf, Satz „VKE = …, weil …“, Begriffe Signalzustand, VKE, Programmstatus |
-| `zyklus` | `<div data-interaktiv="zyklus" data-e="BG40" data-a="PF4"></div>` | STOP, ANLAUF und RUN, den Zyklus „PAA an die Ausgänge, Eingänge ins PAE, OB1 bearbeiten“ animiert, Sensor und kurzen Impuls zum Anklicken, Signalverlauf, Begriffe |
+| `zyklus` | `<div data-interaktiv="zyklus" data-e="BG40" data-a="PF4"></div>` | STOP, ANLAUF und RUN, den Zyklus „Eingänge ins PAE, OB1 bearbeiten, am Zyklusende PAA an die Ausgänge“ (wie SCE 032-200) animiert, Zykluszeit, Reaktionszeit, kurze Impulse, Sensor und kurzen Impuls zum Anklicken, Signalverlauf, Begriffe |
 
 - `data-op` mit mehreren Verknüpfungen zeigt einen Umschalter, mit einer nur diese.
 - Kennzeichen in Attributen **ohne „−“** schreiben (`BG9`), die App setzt es selbst davor.

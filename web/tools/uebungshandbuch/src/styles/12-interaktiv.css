@@ -30,10 +30,21 @@
 .ia-satz.warn{border-left-color:var(--yellow);background:var(--yellow-soft)}
 .ia-satz.an{border-left-color:var(--ok);background:var(--ok-soft)}
 .ia-scl{margin:0;padding:14px 16px;border-radius:9px;background:var(--sunk);font:15px var(--mono);overflow-x:auto}
-.ia-scl-op{padding:1px 4px;border-radius:4px}
-.ia-scl-op sub{font-size:10px;margin-left:2px}
-.ia-scl-op.an{background:var(--ok-soft);color:var(--ok)}
-.ia-scl-op.aus{background:var(--blue-soft)}
+.ia-scl-wrap{display:grid;gap:10px}
+.ia-scl-status{justify-self:start}
+.ia-scl-status{border-collapse:collapse;font:13px var(--mono)}
+.ia-scl-status th,.ia-scl-status td{padding:4px 10px;border:1px solid var(--line);text-align:left}
+.ia-scl-status th{font:600 12px var(--sans);background:var(--sunk)}
+.ia-scl-status tr.an td:last-child{color:var(--ok);font-weight:700}
+.ia-scl-status tr.aus td:last-child{color:var(--blue)}
+.zy-zeiger{fill:var(--ok);stroke:var(--panel);stroke-width:3}
+.zy-zeit{margin-left:auto;font:600 13px var(--mono)}
+.zy-sensor{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.zy-impulse{display:flex;gap:6px;flex-wrap:wrap}
+.zy-knoepfe .btn[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:var(--onblue)}
+.zy-info{padding:10px 14px;border-radius:9px;border:1px solid var(--line)}
+.ia-svg .sv-marke{stroke:var(--ink2);stroke-width:1}
+.ia-svg .sv-punkt{fill:var(--blue)}
 .ia-verlauf{border-top:1px solid var(--line);padding-top:10px}
 .ia-verlauf-kopf{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:14px}
 .ia-verlauf-kopf button{font:13px var(--sans);background:none;border:0;color:var(--blue);cursor:pointer;text-decoration:underline}

@@ -14,7 +14,7 @@ For a first look without a PLC, step 1 is all you need.
 2. Double-click `Bridge\build.bat`. The script locates the PLCSIM Advanced API DLL and builds `ZwillingBridge.exe`.
 3. Double-click `Bridge\start.bat`. The browser opens `http://localhost:8181`.
 
-To just look around without the bridge, double-clicking `web\index.html` is enough. Without a PLC, the twin runs in **Demo without PLC** mode: a step sequence in the browser controls the line, and automatic mode starts by itself.
+To just look around without the bridge, double-clicking `web\index.html` is enough. Without a PLC, the twin runs in **Demo without PLC** mode: a step sequence in the browser controls the line. It does not start by itself: set −SA1 to AUTO and press **START −SF1**. After every switch to the demo, it only runs again after START.
 
 ### Set the browser to the powerful graphics card (important on laptops)
 
@@ -52,11 +52,23 @@ Program settings → select the browser → **High-performance NVIDIA processor*
 
 ## 2. Prepare the TIA project
 
-1. **Allow simulation:** Project → Properties → *Protection* → *Support simulation during block compilation*.
-2. **Hardware:** CPU 1516-3 PN/DP, DI 32x24VDC HF, DQ 32x24VDC/0.5A ST, AI 8xU/I/RTD/TC ST (channel 0/1 at %IW64/%IW66). Other addresses are no problem; just adapt `signale.csv`. For drives on a frequency inverter, add one SINAMICS G120 each with standard telegram 1 (−TA2…−TA5 at I/O 256…271), see [Inverters and technology object](04-signale.en.md#inverters-and-technology-object).
-3. **Import tags:** PLC tags → right-click → *Import* → `TIA\PLC_Variablen_Zinnbad.xlsx` (German names) or `TIA\PLC_Tags_Tinning_EN.xlsx` (English names, same addresses). You are free to choose the names in the TIA project, because the bridge couples via the **addresses**. In the English UI, the signal monitor shows the English names.
-4. **Write the program.** You define which part of the line your program handles in the sidebar under *Exercise scope*, see [Exercises](05-uebungen.en.md). The model runs the rest itself, so you can start with the step sequence and extend it later.
-5. Compile.
+1. **Project and CPU:** Portal view → *Start* → *Create new project*. Then *Devices & networks* → *Add new device* → *Controllers* → *SIMATIC S7-1500* → *CPU* → *CPU 1516-3 PN/DP* → *Add*.
+2. **Hardware:** Project tree → CPU → open *Device configuration*. Insert the modules from the *Hardware catalog* by double-click or drag and drop, then check the addresses in the *Device overview*. If an address is wrong: click the module → *Properties* → *I/O addresses* → *Start address*.
+
+   | Slot | Module | Addresses |
+   |---|---|---|
+   | 0 | PM 190W 120/230VAC | – |
+   | 1 | CPU 1516-3 PN/DP | – |
+   | 2…5 | 4 × DI 32x24VDC HF | %I0.0…%I3.7, %I4.0…%I7.7, %I8.0…%I11.7, %I12.0…%I15.7 |
+   | 6…7 | 2 × DQ 32x24VDC/0.5A ST | %Q0.0…%Q3.7, %Q4.0…%Q7.7 |
+   | 8 | AI 8xU/I/RTD/TC ST | start address 64 (%IW64…%IW78) |
+   | 9 | AQ 4xU/I ST | start address 80 (%QW80…%QW86) |
+
+   Other addresses are no problem; just adapt `signale.csv`. For drives on a frequency inverter, add one SINAMICS G120 each with standard telegram 1 (−TA2…−TA5 at I/O 256…271), see [Inverters and technology object](04-signale.en.md#inverters-and-technology-object).
+3. **Allow simulation:** Project → Properties → *Protection* → *Support simulation during block compilation*.
+4. **Import tags:** PLC tags → open *Default tag table* → *Import* in the table toolbar → `TIA\PLC_Variablen_Zinnbad.xlsx` (German names) or `TIA\PLC_Tags_Tinning_EN.xlsx` (English names, same addresses). You are free to choose the names in the TIA project, because the bridge couples via the **addresses**. In the English UI, the signal monitor shows the English names.
+5. **Write the program.** You define which part of the line your program handles in the sidebar under *Exercise scope*, see [Exercises](05-uebungen.en.md). The model runs the rest itself, so you can start with the step sequence and extend it later.
+6. Compile.
 
 
 

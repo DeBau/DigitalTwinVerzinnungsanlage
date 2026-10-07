@@ -44,11 +44,14 @@ function umschalter(liste, aktiv, akt){
   if (liste.length < 2) return "";
   return `<div class="ia-tabs">${liste.map(x => `<button type="button" data-ia-akt="${akt}:${x}" aria-pressed="${x === aktiv}">${x}</button>`).join("")}</div>`;
 }
+// SCL wie in TIA: links der Code, rechts im Programmstatus eine Tabelle mit Variable und Wert
 function sclHTML(z){
-  const wert = (name, w) => `<span class="ia-scl-op ${w ? "an" : "aus"}" title="Signalzustand ${w}">${esc(name)}<sub>${w}</sub></span>`;
-  const n = {a: wert(z.scl.a, z.a), b: wert(z.scl.b, z.b)};
-  return `<pre class="ia-scl"><code>${wert(z.scl.q, ergebnis(z))} := ${LOGIK_OPS[z.op].scl(n)};</code></pre>`
-    + `<p class="small muted">In SCL steht die Verknüpfung als Zeile. Die kleinen Zahlen zeigen den Signalzustand, wie in TIA im Programmstatus.</p>`;
+  const n = {a: esc(z.scl.a), b: esc(z.scl.b)};
+  const zeile = (name, w) => `<tr class="${w ? "an" : "aus"}"><td>${esc(name)}</td><td>${w ? "TRUE" : "FALSE"}</td></tr>`;
+  const status = [[z.scl.q, ergebnis(z)], [z.scl.a, z.a], ...(zweiEin(z) ? [[z.scl.b, z.b]] : [])].map(([name, w]) => zeile(name, w)).join("");
+  return `<div class="ia-scl-wrap"><pre class="ia-scl"><code>${esc(z.scl.q)} := ${LOGIK_OPS[z.op].scl(n)};</code></pre>`
+    + `<table class="ia-scl-status"><thead><tr><th>Variable</th><th>Wert</th></tr></thead><tbody>${status}</tbody></table></div>`
+    + `<p class="small muted">In SCL steht die Verknüpfung als Zeile. Im Programmstatus zeigt TIA rechts daneben eine Tabelle mit den Werten der Variablen.</p>`;
 }
 function bildHTML(z){
   const werte = {a: z.a, b: z.b, q: ergebnis(z)};
