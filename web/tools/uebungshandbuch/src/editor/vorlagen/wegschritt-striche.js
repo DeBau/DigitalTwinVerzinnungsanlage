@@ -80,12 +80,14 @@ export function zeichneZyklusende(st){
     + SVGT(x + WS_RASTER.spalte/2, 62, `${j + 1} = 1`, "middle", 12, 700, c)
     + `<path d="M${x} 40V${st.y2 || 446}" stroke="${c}" stroke-width="2.6"/>`;
 }
+// Start: Tasterkästchen mit Pfeil auf den Bewegungsbeginn. Die Beschriftung steht über bzw. unter dem Kästchen, nicht
+// daneben, sonst läge sie auf der Funktionslinie der beginnenden Bewegung.
 export function zeichneStart(st){
   const {x, y, e, cy} = startGeo(st), c = st.c || INK;
   return `<rect x="${x + 4}" y="${cy - 7}" width="14" height="14" rx="1.5" fill="#fff" stroke="${c}" stroke-width="1.3"/>`
     + `<path d="M${x + 7} ${cy - 3}H${x + 15}M${x + 11} ${cy - 3}V${cy + 4}" stroke="${c}" stroke-width="1.3" fill="none"/>`
     + `<path d="M${x + 6} ${cy - e*7}L${x + 1.5} ${y + e*3}" stroke="${c}" stroke-width="1.2" fill="none"/>`
-    + arrowHead(x + 6, cy - e*7, x + .8, y + e*1.2, 6) + signalBeschriftung(st, x + 22, cy + 4);
+    + arrowHead(x + 6, cy - e*7, x + .8, y + e*1.2, 6) + signalBeschriftung(st, x + 4, cy + 4 + e*14);
 }
 // Signallinie, die an ihrem Auslösepunkt endet (Schleife): Bogen, Zeitglied rechts, Beschriftung links
 export function zeichneSchleife(st){
@@ -156,7 +158,10 @@ fuelle(STRICH, {
       + HINWEIS("Signallinien sind dünn, Funktionslinien dick. Die Linie beginnt am Signalgeber und endet mit dem Pfeil dort, "
         + "wo die Zustandsänderung ausgelöst wird.")},
   st: {titel: "Startbedingung", zeichne: zeichneStart,
-    form(st){ const {x, cy} = startGeo(st); return `M${x + 2} ${cy - 9}H${x + 56}V${cy + 9}H${x + 2}Z`; },
+    form(st){
+      const {x, e, cy} = startGeo(st), oben = cy - 9 + Math.min(0, e*11), unten = cy + 9 + Math.max(0, e*11);
+      return `M${x + 2} ${oben}H${x + 56}V${unten}H${x + 2}Z`;
+    },
     felder: st => signalFeld("sl", "Starttaster oder Bedingung", st.lbl, {arten: ["SF"], ph: "z. B. −SF1 START"})
       + auswahlFeld("sc", "Farbe", FARBEN, st.c) + HINWEIS("Der Pfeil zeigt auf den Beginn der ersten Bewegung.")},
   eq: {titel: "Zyklusende", zeichne: zeichneZyklusende, griffe: false,

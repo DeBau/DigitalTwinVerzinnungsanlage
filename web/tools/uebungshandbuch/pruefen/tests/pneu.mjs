@@ -323,6 +323,33 @@ export const tests = [
     },
   },
   {
+    name: 'W1 Schnelleingabe: Feld über die volle Breite, Start-Beschriftung nicht auf der Funktionslinie',
+    lauf: async (t) => {
+      await t.oeffne('wegschritt');
+      const breite = async (sel) => (await t.page.locator(sel).boundingBox()).width;
+      t.erwarte(await breite('#editor [data-wsablauf]') > 200, 'Eingabefeld zu schmal');
+      t.erwarte(await breite('#editor [data-wsablaufknopf]') > 200, 'Knopf unter dem Feld über die volle Breite');
+      t.page.on('dialog', (d) => d.accept());   // „Vorhandene Linien ersetzen?“
+      const starts = [];
+      for (const ablauf of ['MM5+, MM2+, MM2-, MM5-', 'MM2-, MM2+']) {
+        await schnelleingabe(t, ablauf);
+        starts.push(JSON.stringify((await wsStriche(t)).find((x) => x.k === 'st').p));
+        const ueber = await t.page.evaluate(() => {
+          const sf = [...document.querySelectorAll('#edstage .ink text')].find((x) => x.textContent === '−SF1').getBBox();
+          const im = (x, y) => x > sf.x && x < sf.x + sf.width && y > sf.y && y < sf.y + sf.height;
+          // Funktionslinien: dicke Linien (stroke-width 2.8); Punkte entlang jeder Linie prüfen
+          return [...document.querySelectorAll('#edstage .ink path[stroke-width="2.8"]')].some((p) => {
+            const n = p.getTotalLength();
+            for (let i = 0; i <= 50; i++) { const q = p.getPointAtLength(n * i / 50); if (im(q.x, q.y)) return true; }
+            return false;
+          });
+        });
+        t.erwarte(!ueber, `−SF1 liegt auf einer Funktionslinie (${ablauf})`);
+      }
+      t.erwarte(starts[0] !== starts[1], 'zweiter Ablauf ersetzt den ersten');
+    },
+  },
+  {
     name: 'W1 Nach erfolgreicher Eingabe verschwindet die alte Fehlermeldung',
     lauf: async (t) => {
       await t.oeffne('wegschritt');

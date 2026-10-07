@@ -125,9 +125,11 @@ export function ablaufZeichnen(text){
 
 /* ---------- Bedienung in der Seitenleiste ---------- */
 const EINGABE_HINWEIS = "+ fährt aus (1), − fährt ein (0). Sensoren und Zeilen kommen aus der Anlage.";
-export const EINGABE_HTML = `<div class="palg"><div class="palh">Schnelleingabe</div>`
-  + `<label class="prop">Ablauf, Schritt für Schritt<input type="text" data-wsablauf placeholder="MM2−, MM3+, MM2+, t = 10 s" `
-  + `autocomplete="off"></label><button type="button" class="tool" data-wsablaufknopf>Diagramm zeichnen</button>`
+// Feld und Knopf untereinander über die volle Breite der Seitenleiste (palg ohne Raster)
+export const EINGABE_HTML = `<div class="palg" style="display:block"><div class="palh">Schnelleingabe</div>`
+  + `<label class="prop">Ablauf, Schritt für Schritt<input type="text" data-wsablauf style="width:100%;box-sizing:border-box" `
+  + `placeholder="MM2−, MM3+, MM2+, t = 10 s" autocomplete="off"></label>`
+  + `<button type="button" class="tool" data-wsablaufknopf style="width:100%">Diagramm zeichnen</button>`
   + `<p class="small muted" data-wsablaufhinweis style="margin:6px 0 0">${EINGABE_HINWEIS}</p></div>`;
 // Haken klick: Knopf „Diagramm zeichnen“; true, wenn erledigt. Ohne Fehler steht wieder der Ausgangshinweis da.
 export function eingabeKlick(e){
