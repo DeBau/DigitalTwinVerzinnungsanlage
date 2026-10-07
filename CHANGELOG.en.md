@@ -8,6 +8,24 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.13.0 – 2026-10-08
+
+Rebuild the bridge (`Bridgeuild.bat`): the bridge now also serves the `docs/` folder.
+The signal list and TIA tag tables stay the same. The 3D model is unchanged.
+
+**Why**
+The exercise handbook sat next to the twin but could not be reached from it.
+
+**New**
+- **"Exercise handbook" button** at the bottom of the 3D view: opens `docs/uebungshandbuch.html` in a new tab.
+
+**Changed**
+- **Bridge:** paths under `/docs/` are served from the docs folder, so the button also works via
+  `http://localhost:8181`. Everything outside `docs/` and `web/` stays blocked.
+
+**Docs**
+- README and chapter 07 mention the new button.
+
 ## 1.12.0 – 2026-10-08
 
 Rebuild the bridge (`Bridge\build.bat`): the bridge code has not changed, but it carries the

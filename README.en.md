@@ -145,7 +145,7 @@ The handbook is currently available in German.
 </tr>
 </table>
 
-Open [`docs/uebungshandbuch.html`](docs/uebungshandbuch.html) in your browser.
+Open [`docs/uebungshandbuch.html`](docs/uebungshandbuch.html) in your browser or use the **Exercise handbook** button in the twin.
 Learn more in **[07 – Exercise Handbook](docs/07-uebungshandbuch.en.md)**.
 
 ---

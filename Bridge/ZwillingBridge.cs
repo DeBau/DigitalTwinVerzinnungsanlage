@@ -248,11 +248,11 @@ namespace ZwillingBridge
     static class Bridge
     {
         // gleich wie web/src/version.js - die Seite warnt, wenn Bridge und Zwilling nicht zusammenpassen
-        public const string Version = "1.12.0";
+        public const string Version = "1.13.0";
 
         static string instanzName = "Zinnbad";
         static int port = 8181;
-        static string webDir;
+        static string webDir, docsDir;
         static List<Signal> signale = new List<Signal>();
         static readonly Dictionary<string, Signal> nachName = new Dictionary<string, Signal>(StringComparer.OrdinalIgnoreCase);
         static readonly List<Client> clients = new List<Client>();
@@ -281,6 +281,7 @@ namespace ZwillingBridge
             var basis = AppDomain.CurrentDomain.BaseDirectory;
             var wurzel = Path.GetFullPath(Path.Combine(basis, ".."));
             webDir = Path.Combine(wurzel, "web");
+            docsDir = Path.Combine(wurzel, "docs");
             var csv = Path.Combine(wurzel, "signale.csv");
 
             Console.WriteLine("==============================================================");
@@ -401,9 +402,12 @@ namespace ZwillingBridge
         {
             var pfad = Uri.UnescapeDataString(ctx.Request.Url.AbsolutePath).TrimStart('/');
             if (pfad == "") pfad = "index.html";
-            var voll = Path.GetFullPath(Path.Combine(webDir, pfad.Replace('/', Path.DirectorySeparatorChar)));
+            // docs/... kommt aus dem Doku-Ordner (Uebungshandbuch), alles andere aus web/
+            var basis = webDir;
+            if (pfad.StartsWith("docs/", StringComparison.OrdinalIgnoreCase)) { basis = docsDir; pfad = pfad.Substring(5); }
+            var voll = Path.GetFullPath(Path.Combine(basis, pfad.Replace('/', Path.DirectorySeparatorChar)));
             var resp = ctx.Response;
-            if (!voll.StartsWith(Path.GetFullPath(webDir), StringComparison.OrdinalIgnoreCase) || !File.Exists(voll))
+            if (!voll.StartsWith(Path.GetFullPath(basis) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) || !File.Exists(voll))
             {
                 resp.StatusCode = 404;
                 resp.Close();

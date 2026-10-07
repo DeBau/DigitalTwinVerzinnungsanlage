@@ -23,6 +23,9 @@ Das Handbuch ist eine einzige Datei: [`docs/uebungshandbuch.html`](uebungshandbu
 per Doppelklick in Chrome oder Edge. Du brauchst keinen Server, keine Installation und kein Internet.
 Die Bilder lädt die Seite aus `docs/bilder/`, lass die Datei deshalb im Ordner `docs`.
 
+Aus dem Zwilling heraus geht es auch: Der Knopf **Übungshandbuch** unten im 3D-Bild öffnet das Handbuch
+in einem neuen Tab. Das klappt per Doppelklick auf `web\index.html` und über die Bridge (`http://localhost:8181`).
+
 Daneben laufen wie gewohnt TIA Portal, PLCSIM Advanced, die Bridge und der Zwilling
 (siehe [01 Inbetriebnahme](01-inbetriebnahme.md)). Das Handbuch selbst spricht nicht mit der SPS.
 Es sagt dir, was du programmierst, wie du den Zwilling einstellst und was du prüfst.

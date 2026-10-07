@@ -23,6 +23,9 @@ The handbook is a single file: [`docs/uebungshandbuch.html`](uebungshandbuch.htm
 to open it in Chrome or Edge. No server, no installation and no internet connection required.
 The page loads its images from `docs/bilder/`, so keep the file in the `docs` folder.
 
+You can also open it from the twin: the **Exercise handbook** button at the bottom of the 3D view opens the
+handbook in a new tab. This works when you double-click `web\index.html` and via the bridge (`http://localhost:8181`).
+
 Alongside it, you run TIA Portal, PLCSIM Advanced, the bridge and the twin as usual
 (see [01 Commissioning](01-inbetriebnahme.en.md)). The handbook itself does not talk to the PLC.
 It tells you what to program, how to set up the twin and what to test.

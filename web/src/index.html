@@ -75,6 +75,7 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(-
 
 .stage-foot { position: absolute; left: 16px; bottom: 14px; right: 16px; display: flex; gap: 6px; flex-wrap: wrap; }
 .chip-btn { font: 500 12px var(--font-label); letter-spacing: .03em; color: var(--fg); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; cursor: pointer; }
+a.chip-btn { text-decoration: none; }
 .chip-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
 .chip-btn:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -429,6 +430,7 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
       <label class="chip-sel"><span>Ansicht</span><select id="ansicht-wahl" aria-label="Feste Ansicht wählen"></select></label>
       <button class="chip-btn" id="btn-hilfe" aria-pressed="true" type="button" title="Maussteuerung anzeigen">Steuerung</button>
       <button class="chip-btn" id="btn-schrank" aria-pressed="false" type="button">Schaltschrank öffnen</button>
+      <a class="chip-btn" id="btn-handbuch" href="../docs/uebungshandbuch.html" target="_blank" rel="noopener" title="Übungshandbuch in einem neuen Tab öffnen">Übungshandbuch</a>
       <button class="chip-btn" id="btn-side" aria-pressed="true" type="button" title="Seitenleiste ein- und ausblenden">Seitenleiste</button>
     </div>
     <div class="legende" id="legende" role="note" aria-label="Maussteuerung">

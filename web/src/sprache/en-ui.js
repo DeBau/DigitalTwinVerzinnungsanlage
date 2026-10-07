@@ -29,6 +29,8 @@ export default {
   'Legende ausblenden': 'Hide legend',
   'Schaltschrank öffnen': 'Open control cabinet',
   'Schaltschrank schließen': 'Close control cabinet',
+  'Übungshandbuch': 'Exercise handbook',
+  'Übungshandbuch in einem neuen Tab öffnen': 'Open the exercise handbook in a new tab (German)',
   'Seitenleiste': 'Sidebar',
   'Seitenleiste ein- und ausblenden': 'Show or hide the sidebar',
   '3D-Ansicht': '3D view',

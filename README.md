@@ -142,7 +142,7 @@ alle deine Dokumente, die Seite „Dein Projekt wächst mit“ zeigt, wie dein T
 </tr>
 </table>
 
-Öffne [`docs/uebungshandbuch.html`](docs/uebungshandbuch.html) im Browser.
+Öffne [`docs/uebungshandbuch.html`](docs/uebungshandbuch.html) im Browser oder im Zwilling über den Knopf **Übungshandbuch**.
 Mehr dazu in **[07 – Übungshandbuch](docs/07-uebungshandbuch.md)**.
 
 ---

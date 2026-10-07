@@ -8,6 +8,24 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.13.0 – 2026-10-08
+
+Bridge neu bauen (`Bridgeuild.bat`): Die Bridge liefert jetzt auch den Ordner `docs/` aus.
+Signalliste und TIA-Variablentabellen bleiben gleich. Am 3D-Modell ändert sich nichts.
+
+**Warum**
+Das Übungshandbuch lag neben dem Zwilling, war aus ihm heraus aber nicht erreichbar.
+
+**Neu**
+- **Knopf „Übungshandbuch“** unten im 3D-Bild: öffnet `docs/uebungshandbuch.html` in einem neuen Tab.
+
+**Geändert**
+- **Bridge:** Adressen unter `/docs/` kommen aus dem Doku-Ordner, damit der Knopf auch über
+  `http://localhost:8181` funktioniert. Alles außerhalb von `docs/` und `web/` bleibt gesperrt.
+
+**Doku**
+- README und Kapitel 07 nennen den neuen Knopf.
+
 ## 1.12.0 – 2026-10-08
 
 Bridge neu bauen (`Bridge\build.bat`): Der Code der Bridge hat sich nicht geändert, aber sie trägt die
