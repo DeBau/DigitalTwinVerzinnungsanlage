@@ -132,10 +132,12 @@ export function beschrifteMarkiertes(){
   const m = ED.markiert, beschrifte = m && AUSWAHL[m.art] && AUSWAHL[m.art].beschriften;
   if (beschrifte) beschrifte(m.id);
 }
-// Esc: angefangene Eingabe der Vorlage (ED.vorlage.angefangen) verwerfen, sonst Markierung und Werkzeug aufheben.
+// Esc: offenes Menü schließen, angefangene Eingabe der Vorlage (ED.vorlage.angefangen) verwerfen, sonst Markierung und Werkzeug aufheben.
 // true, wenn etwas zu tun war
 export function abbrechen(e){
   if (!ED.svg) return false;
+  const menu = $("#editor .takemenu");
+  if (menu) { menu.remove(); return true; }   // offenes Menü „Aus früherer Übung“ zuerst
   if (ED.vorlage.angefangen) {
     e.preventDefault(); ED.vorlage.angefangen = null; $(".ghost", ED.svg).innerHTML = ""; updateProps(true);
     return true;
