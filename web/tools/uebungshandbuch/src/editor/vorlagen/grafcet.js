@@ -9,6 +9,7 @@ import { LINIE, platzhalter, setzeBreite } from '../bausteine.js';
 import { textFeld } from '../eigenschaften.js';
 import { AKTION, BEDINGUNG_KENNBUCHSTABEN, isStep } from './grafcet-aktion.js';
 import { KETTEN_HAKEN, freieSchrittNummer, hinweisAnleitung } from './grafcet-kette.js';
+import { schnipselNachSetzen } from './grafcet-schnipsel.js';
 import { kettenKlick, kettenKnoepfeHTML, kettenTaste } from './grafcet-knoepfe.js';
 import { pruefeGrafcet } from './grafcet-pruefen.js';
 
@@ -45,7 +46,8 @@ export const VERZWEIGUNG = {
   aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y],
   ein: (o, fx) => [clamp(fx, o.x, o.x + verzweigungsBreite(o)), o.y],
   einrueck: 100,
-  neu(o, [px, py]){ o.x = px - 100; o.y = py; o.w = 200; },
+  teilung: 20,
+  neu(o, [px, py], mk){ o.x = px - 100; o.y = py; o.w = 200; if (mk && mk.schnipsel) o.schnipsel = mk.schnipsel; },
   felder: o => textFeld("w", "Breite", undefined, verzweigungsBreite(o)),
   setze: setzeBreite,
   beschriftung: {
@@ -90,6 +92,7 @@ registriereGruppe("grafcet", {
     + "Rest der Kette mit.",
   kette: true,
   ...KETTEN_HAKEN,                    // nachSetzen, vorVerbinden, loeschen, mitziehen (grafcet-kette.js)
+  nachSetzen: schnipselNachSetzen,    // Verzweigungs-Schnipsel ausbauen, dann die Regeln der Kette
 });
 
 export const MAKRO = {
@@ -136,6 +139,8 @@ fuelle(BAUSTEIN, {
     zeichne: o => `<path d="${verzweigungsLinie(o)}${verzweigungsLinie(o, 5)}" stroke="${INK}" stroke-width="1.6"/>`,
     aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y+5],
     umriss: o => ({x: o.x, y: o.y-5, w: verzweigungsBreite(o), h: 15})},
+  oder2: {g: "grafcet", n: "ODER mit 2 Zweigen", mk: {k: "alt", schnipsel: "oder"}},
+  und2: {g: "grafcet", n: "UND mit 2 Zweigen", mk: {k: "par", schnipsel: "und"}},
   ref: {g: "grafcet", n: "Verweis / Sprung", ...VERWEIS},
 });
 export const SAMPLE_LINIE = d => `<path d="${d}" stroke="${INK}" stroke-width="1.6"/>`;
@@ -151,4 +156,9 @@ fuelle(SAMPLE, {
   acte: [{k:"action", t:"ereig", x:4, y:22, v:"Z := Z+1", b:"↑BG1"}, "0 0 98 56"],
   alt: [{k:"alt", x:8, y:24, w:72}, "0 0 88 48", SAMPLE_LINIE("M44 4V24M18 24V44M70 24V44")],
   par: [{k:"par", x:8, y:22, w:72}, "0 0 88 48", SAMPLE_LINIE("M44 4V22M18 27V44M70 27V44")],
+  oder2: [{k:"alt", x:8, y:14, w:72}, "0 0 88 64",
+    SAMPLE_LINIE("M44 2V14M18 14V52M70 14V52M8 52H80M44 52V62") + SAMPLE_LINIE("M12 24H24M64 24H76M12 42H24M64 42H76")],
+  und2: [{k:"par", x:8, y:12, w:72}, "0 0 88 64",
+    SAMPLE_LINIE("M44 2V12M18 17V48M70 17V48M8 48H80M8 53H80M44 53V62")
+    + `<path d="M10 26h16v12h-16zM62 26h16v12h-16z" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`],
 });

@@ -3854,6 +3854,50 @@ END_CASE;`)}
     // Fangweite 70 statt 140: dockt nur an den nahen Nachbarn
   };
 
+  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-schnipsel.js
+  var ZWEIG_X = [40, 160];
+  var SCHNIPSEL = {
+    oder: { zweig: [["trans", 30], ["step", 60], ["trans", 130]], zusammen: ["alt", 160] },
+    und: { zweig: [["step", 35]], zusammen: ["par", 105] }
+  };
+  function gliedBei(d, k, x, y) {
+    const o = neuesGlied(d, k, k === "trans" ? "" : freieSchrittNummer(d));
+    Object.assign(o, k === "trans" ? { x, y } : { x: x - 20, y });
+    return o;
+  }
+  function baueSchnipsel(o, d) {
+    const s = SCHNIPSEL[o.schnipsel];
+    delete o.schnipsel;
+    if (!s) return;
+    const [k, dy] = s.zusammen, unten = neuesGlied(d, k, void 0);
+    Object.assign(unten, { x: o.x, y: o.y + dy, w: o.w });
+    for (const zx of ZWEIG_X) {
+      let vor = o;
+      for (const [gliedArt, y] of s.zweig) {
+        const B = gliedBei(d, gliedArt, o.x + zx, o.y + y);
+        verknuepfe(d, vor, B);
+        vor = B;
+      }
+      verknuepfe(d, vor, unten);
+    }
+  }
+  function schnipselNachSetzen(o, d, info) {
+    if (o.schnipsel) baueSchnipsel(o, d);
+    grafcetNachSetzen(o, d, info);
+  }
+  function linienBreiteAnpassen(d) {
+    for (const o of d.o.filter((o2) => o2.k === "alt" || o2.k === "par")) {
+      const xs = d.c.flatMap((c) => {
+        const B = c.a === o.id ? objIn(d, c.b) : c.b === o.id ? objIn(d, c.a) : null;
+        if (!B || isAct(B)) return [];
+        return [c.a === o.id ? kettenEin(B, o.x)[0] : kettenAus(B, o.x)[0]];
+      });
+      if (xs.length < 2) continue;
+      o.x = Math.min(...xs) - 40;
+      o.w = Math.max(...xs) - Math.min(...xs) + 80;
+    }
+  }
+
   // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-knoepfe.js
   function kettenFolge(d) {
     const glieder = d.o.filter((o) => !isAct(o)).sort((a, b) => a.y - b.y || a.x - b.x);
@@ -3913,6 +3957,7 @@ END_CASE;`)}
         verschiebeAktionen(d, B, weg[B.id]);
       }
     }
+    linienBreiteAnpassen(d);
   }
   function verschiebeAktionen(d, B, [dx, dy]) {
     const ids = new Set(aktionenVon(d, B.id));
@@ -4049,10 +4094,12 @@ END_CASE;`)}
     aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y],
     ein: (o, fx) => [clamp(fx, o.x, o.x + verzweigungsBreite(o)), o.y],
     einrueck: 100,
-    neu(o, [px, py]) {
+    teilung: 20,
+    neu(o, [px, py], mk) {
       o.x = px - 100;
       o.y = py;
       o.w = 200;
+      if (mk && mk.schnipsel) o.schnipsel = mk.schnipsel;
     },
     felder: (o) => textFeld("w", "Breite", void 0, verzweigungsBreite(o)),
     setze: setzeBreite,
@@ -4091,8 +4138,10 @@ END_CASE;`)}
     name: "GRAFCET",
     hinweis: "Anfangsschritt setzen, dann mit „+ Schritt“ Transition und Schritt anhängen, oder Bausteine anklicken: Jeder neue Baustein hängt sich unter den markierten, zwischen zwei Schritte kommt von selbst eine Transition. Aktionen hängen sich rechts an den Schritt, eine weitere Aktion kommt darunter oder (Klick rechts daneben) dahinter. Für den Rücksprung markierst du die letzte Transition, wählst Verbinden und klickst den Anfangsschritt an. Umschalt beim Ziehen nimmt den Rest der Kette mit.",
     kette: true,
-    ...KETTEN_HAKEN
+    ...KETTEN_HAKEN,
     // nachSetzen, vorVerbinden, loeschen, mitziehen (grafcet-kette.js)
+    nachSetzen: schnipselNachSetzen
+    // Verzweigungs-Schnipsel ausbauen, dann die Regeln der Kette
   });
   var MAKRO = {
     einrueck: 0,
@@ -4157,6 +4206,8 @@ END_CASE;`)}
       aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y + 5],
       umriss: (o) => ({ x: o.x, y: o.y - 5, w: verzweigungsBreite(o), h: 15 })
     },
+    oder2: { g: "grafcet", n: "ODER mit 2 Zweigen", mk: { k: "alt", schnipsel: "oder" } },
+    und2: { g: "grafcet", n: "UND mit 2 Zweigen", mk: { k: "par", schnipsel: "und" } },
     ref: { g: "grafcet", n: "Verweis / Sprung", ...VERWEIS }
   });
   var SAMPLE_LINIE = (d) => `<path d="${d}" stroke="${INK}" stroke-width="1.6"/>`;
@@ -4173,7 +4224,17 @@ END_CASE;`)}
     actd: [{ k: "action", t: "deakt", x: 4, y: 22, v: "Z := 0" }, "0 0 98 56"],
     acte: [{ k: "action", t: "ereig", x: 4, y: 22, v: "Z := Z+1", b: "↑BG1" }, "0 0 98 56"],
     alt: [{ k: "alt", x: 8, y: 24, w: 72 }, "0 0 88 48", SAMPLE_LINIE("M44 4V24M18 24V44M70 24V44")],
-    par: [{ k: "par", x: 8, y: 22, w: 72 }, "0 0 88 48", SAMPLE_LINIE("M44 4V22M18 27V44M70 27V44")]
+    par: [{ k: "par", x: 8, y: 22, w: 72 }, "0 0 88 48", SAMPLE_LINIE("M44 4V22M18 27V44M70 27V44")],
+    oder2: [
+      { k: "alt", x: 8, y: 14, w: 72 },
+      "0 0 88 64",
+      SAMPLE_LINIE("M44 2V14M18 14V52M70 14V52M8 52H80M44 52V62") + SAMPLE_LINIE("M12 24H24M64 24H76M12 42H24M64 42H76")
+    ],
+    und2: [
+      { k: "par", x: 8, y: 12, w: 72 },
+      "0 0 88 64",
+      SAMPLE_LINIE("M44 2V12M18 17V48M70 17V48M8 48H80M8 53H80M44 53V62") + `<path d="M10 26h16v12h-16zM62 26h16v12h-16z" fill="#fff" stroke="${INK}" stroke-width="1.6"/>`
+    ]
   });
 
   // web/tools/uebungshandbuch/src/editor/vorlagen/zustand.js

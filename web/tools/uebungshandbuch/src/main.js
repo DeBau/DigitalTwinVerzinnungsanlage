@@ -34,6 +34,7 @@ import './app/seiten.js';
 // Vorlagen zuletzt: Sie melden sich nur in der Registry an und dürfen dafür alles aus dem Kern benutzen.
 import './editor/vorlagen/grafcet-aktion.js';
 import './editor/vorlagen/grafcet-kette.js';
+import './editor/vorlagen/grafcet-schnipsel.js';
 import './editor/vorlagen/grafcet-knoepfe.js';
 import './editor/vorlagen/grafcet-pruefen.js';
 import './editor/vorlagen/grafcet.js';

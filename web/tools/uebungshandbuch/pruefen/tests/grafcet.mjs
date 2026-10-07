@@ -292,6 +292,29 @@ export const tests = [
     },
   },
   {
+    name: 'G10 Verzweigungs-Schnipsel ODER und UND',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('step', 220, 100);
+      await t.setze('oder2', 220, 160);
+      let d = await t.daten();
+      t.gleich(d.o.map((o) => o.k).sort(), ['alt', 'alt', 'step', 'step', 'step', 'trans', 'trans', 'trans', 'trans'], 'ODER-Bausteine');
+      t.gleich(d.c.length, 9, 'ODER-Verbindungen');
+      t.erwarte(!d.o.some((o) => 'schnipsel' in o), 'kein Hilfsfeld gespeichert');
+      await t.knopf('clear');
+      await t.setze('trans', 220, 100); await t.tippe('BG1'); await t.taste('Enter');
+      await t.page.locator('#editor [data-place="und2"]').scrollIntoViewIfNeeded();
+      await t.setze('und2', 220, 160);
+      d = await t.daten();
+      t.gleich(d.o.map((o) => o.k).sort(), ['par', 'par', 'step', 'step', 'trans'], 'UND-Bausteine');
+      const [s1, s2] = d.o.filter((o) => o.k === 'step');
+      await t.ziehe([s2.x + 20, s2.y + 20], [s2.x + 120, s2.y + 20]);   // rechten Zweig weiter nach rechts
+      await t.klick('#editor [data-gc="ausrichten"]');
+      const par = (await t.objekte('par'))[1], s2n = (await t.objekte('step'))[1];
+      t.erwarte(par.x + par.w >= s2n.x + 60, `Linie reicht bis zum Zweig: ${par.x}+${par.w} / ${s2n.x}`);
+    },
+  },
+  {
     name: 'Taste + wie + Schritt (wenn KERN den Haken taste hat)',
     lauf: async (t) => {
       await t.oeffne('grafcet');

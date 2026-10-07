@@ -8,6 +8,7 @@ import { aendere } from '../verlauf.js';
 import { editObjLabel } from '../beschriften.js';
 import { isAct, isStep, isTrans } from './grafcet-aktion.js';
 import { aktionenVon, freieSchrittNummer, haengeEin, legeUnter, nachfolgerUnten, neuesGlied, objIn } from './grafcet-kette.js';
+import { linienBreiteAnpassen } from './grafcet-schnipsel.js';
 
 /* ---------- Reihenfolge der Kette ---------- */
 // Kettenglieder in Lesereihenfolge: ab den Anfangsschritten (sonst den Gliedern ohne Vorgänger), Zweige von links
@@ -68,6 +69,7 @@ export function ketteAusrichten(d){
       verschiebeAktionen(d, B, weg[B.id]);
     }
   }
+  linienBreiteAnpassen(d);
 }
 export function verschiebeAktionen(d, B, [dx, dy]){
   const ids = new Set(aktionenVon(d, B.id));

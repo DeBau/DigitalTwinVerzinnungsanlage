@@ -72,6 +72,7 @@ importiert nie aus einer Vorlage.
 | **Vorlagen** (Reihenfolge = Kacheln) | |
 | `editor/vorlagen/grafcet-aktion.js` | GRAFCET: Bausteinarten (`isStep`, `isTrans`, `isAct`), Aktionen zeichnen, Eigenschaftsfeld, Haken `seite` |
 | `editor/vorlagen/grafcet-kette.js` | GRAFCET: Regeln der Ablaufkette (Haken `nachSetzen`, `vorVerbinden`, `mitziehen`, `loeschen`), Einfügen, Ausrichten, Neu nummerieren |
+| `editor/vorlagen/grafcet-schnipsel.js` | GRAFCET: Verzweigungs-Schnipsel ODER und UND mit 2 Zweigen, `linienBreiteAnpassen` |
 | `editor/vorlagen/grafcet-knoepfe.js` | GRAFCET: Knöpfe „+ Schritt“, „Kette ausrichten“, „Neu nummerieren“ (`data-gc`, Haken `klick`), `kettenFolge` |
 | `editor/vorlagen/grafcet-pruefen.js` | GRAFCET: Regeln für „Prüfen“ (`GRAFCET_REGELN`, Haken `pruefe`) |
 | `editor/vorlagen/grafcet.js` | GRAFCET: Schritte, Transitionen, Verzweigungen, Verweise, Aktionen als Seitenbausteine |
