@@ -11,17 +11,23 @@ import { aktionenVon, freieSchrittNummer, haengeEin, legeUnter, nachfolger, neue
 import { linienBreiteAnpassen } from './grafcet-schnipsel.js';
 
 /* ---------- Reihenfolge der Kette ---------- */
-// Kettenglieder in Lesereihenfolge: ab den Anfangsschritten (sonst den Gliedern ohne Vorgänger), Zweige von links
+export const nachLage = (a, b) => a.y - b.y || a.x - b.x;
+// Kettenglieder in Lesereihenfolge (Breitensuche): ab den Anfangsschritten (dann den übrigen Gliedern), die Warteschlange
+// nach Höhe und von links nach rechts geordnet. Parallele Zweige zählen so Zeile für Zeile von links, ein Glied kommt
+// immer nach seinem Vorgänger.
 export function kettenFolge(d){
-  const glieder = d.o.filter(o => !isAct(o)).sort((a, b) => a.y - b.y || a.x - b.x);
-  const anfang = glieder.filter(o => o.k === "init");
+  const glieder = d.o.filter(o => !isAct(o)).sort(nachLage);
   const folge = [], gesehen = new Set();
-  const besuche = A => {
-    if (gesehen.has(A.id)) return;
-    gesehen.add(A.id); folge.push(A);
-    nachfolger(d, A).sort((a, b) => a.x - b.x).forEach(besuche);
-  };
-  [...anfang, ...glieder].forEach(besuche);
+  for (const start of [...glieder.filter(o => o.k === "init"), ...glieder]) {
+    if (gesehen.has(start.id)) continue;
+    const offen = [start];
+    gesehen.add(start.id);
+    while (offen.length) {
+      const A = offen.sort(nachLage).shift();
+      folge.push(A);
+      for (const B of nachfolger(d, A)) if (!gesehen.has(B.id)) { gesehen.add(B.id); offen.push(B); }
+    }
+  }
   return folge;
 }
 // Kettenglied, an dem eine Aktion hängt (über die Aktionen darüber hinweg)

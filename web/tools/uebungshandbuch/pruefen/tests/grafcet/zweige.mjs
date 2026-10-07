@@ -48,4 +48,17 @@ export const tests = [
       t.erwarte(!text.includes('direkt'), `Wechsel von Schritt und Transition verletzt: ${text}`);
     },
   },
+  {
+    name: 'Neu nummerieren zählt Zeile für Zeile, Zweige von links',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 220, 100);
+      await t.klick('#editor [data-gc="plus"]'); await t.tippe('BG1'); await t.taste('Enter');
+      await setzeSichtbar(t, 'oder2', 220, 270);
+      await plusNachLinie(t, 'alt');
+      await t.klick('#editor [data-gc="nummern"]');
+      const schritte = [...await t.objekte('init'), ...await t.objekte('step')].sort((a, b) => a.y - b.y || a.x - b.x);
+      t.gleich(schritte.map((o) => o.v), ['1', '2', '3', '4', '5'], 'Nummern von oben nach unten, links vor rechts');
+    },
+  },
 ];
