@@ -18,18 +18,18 @@ function zeitFehler(schritte, roh){
     + `zusammen, z. B. t = 5 s.`;
   return "";
 }
-// Text → [{moves: [{mm, aus}], zeit}] oder {fehler}. "−", "-" und "–" gelten als Minus.
+// Text → [{bewegungen: [{mm, aus}], zeit}] oder {fehler}. "−", "-" und "–" gelten als Minus.
 export function leseAblauf(text){
   const schritte = [];
   for (const roh of String(text).split(/[,;]/).map(t => t.trim()).filter(Boolean)) {
     const zeit = /^t\s*=\s*(.+)$/i.exec(roh);
     if (zeit && zeitFehler(schritte, roh)) return {fehler: zeitFehler(schritte, roh)};
-    if (zeit) { schritte.push({moves: [], zeit: "t = " + zeit[1].trim()}); continue; }
-    const moves = roh.split(/\s+/).map(m => /^[-−–]?(MM\d+)([+\-−–])$/i.exec(m));
-    if (!moves.length || moves.some(m => !m)) return {fehler: `„${roh}“ verstehe ich nicht. Beispiel: MM2−, MM3+, t = 10 s`};
-    const unbekannt = moves.map(m => m[1].toUpperCase()).find(mm => !ANTRIEBE[mm]);
+    if (zeit) { schritte.push({bewegungen: [], zeit: "t = " + zeit[1].trim()}); continue; }
+    const teile = roh.split(/\s+/).map(m => /^[-−–]?(MM\d+)([+\-−–])$/i.exec(m));
+    if (!teile.length || teile.some(m => !m)) return {fehler: `„${roh}“ verstehe ich nicht. Beispiel: MM2−, MM3+, t = 10 s`};
+    const unbekannt = teile.map(m => m[1].toUpperCase()).find(mm => !ANTRIEBE[mm]);
     if (unbekannt) return {fehler: `−${unbekannt} gibt es an der Anlage nicht. Es gibt ${ANLAGE_ANTRIEBE}.`};
-    schritte.push({moves: moves.map(m => ({mm: m[1].toUpperCase(), aus: m[2] === "+"}))});
+    schritte.push({bewegungen: teile.map(m => ({mm: m[1].toUpperCase(), aus: m[2] === "+"}))});
   }
   if (!schritte.length) return {fehler: "Trag einen Ablauf ein, z. B. MM2−, MM3+, MM2+."};
   if (schritte.length > WS_RASTER.spalten - 1) return {fehler: `Höchstens ${WS_RASTER.spalten - 1} Schritte passen ins Formular.`};
@@ -38,7 +38,7 @@ export function leseAblauf(text){
 // Zeile je Antrieb: vorhandener Zeilenname mit dem Kennzeichen, sonst die nächste freie Zeile (bekommt den Namen)
 export function zeilenFuer(schritte, namen){
   const neu = [...namen], zeile = {};
-  schritte.flatMap(s => s.moves).forEach(({mm}) => {
+  schritte.flatMap(s => s.bewegungen).forEach(({mm}) => {
     if (zeile[mm] !== undefined) return;
     let i = neu.findIndex(n => antriebZu(n) && antriebZu(n)[0] === mm);
     if (i < 0) i = neu.findIndex(n => !n);
@@ -51,9 +51,9 @@ export function zeilenFuer(schritte, namen){
 // Stellung jedes Antriebs an jeder Schrittgrenze; Grundstellung = Gegenteil der ersten Bewegung
 export function stellungen(schritte){
   const pos = {};
-  schritte.forEach(s => s.moves.forEach(({mm, aus}) => { if (!pos[mm]) pos[mm] = [aus ? 0 : 1]; }));
+  schritte.forEach(s => s.bewegungen.forEach(({mm, aus}) => { if (!pos[mm]) pos[mm] = [aus ? 0 : 1]; }));
   schritte.forEach((s, j) => Object.keys(pos).forEach(mm => {
-    const m = s.moves.find(x => x.mm === mm);
+    const m = s.bewegungen.find(x => x.mm === mm);
     pos[mm][j + 1] = m ? (m.aus ? 1 : 0) : pos[mm][j];
   }));
   return pos;
@@ -75,7 +75,7 @@ export function funktionslinien(p, zeile){
 // leseAblauf sorgt dafür, dass vor jeder Wartezeit eine Bewegung steht.
 export function ausloeser(schritte, j){
   const vorher = schritte[j - 1].zeit ? schritte[j - 2] : schritte[j - 1];
-  const zeit = schritte[j - 1].zeit, an = vorher ? vorher.moves : [];
+  const zeit = schritte[j - 1].zeit, an = vorher ? vorher.bewegungen : [];
   return {zeit, sensoren: an.map(({mm, aus}) => ({mm, aus, j: schritte[j - 1].zeit ? j - 1 : j,
     tag: ANTRIEBE[mm] ? "−" + ANTRIEBE[mm][aus ? "s2" : "s1"] : ""}))};
 }
@@ -84,7 +84,7 @@ export function signallinien(schritte, j, zeile){
   const {zeit, sensoren} = ausloeser(schritte, j), s = [];
   const quelle = q => wsPunkt(q.j, zeile[q.mm], q.aus ? 1 : 0);
   if (!sensoren.length) return s;
-  schritte[j].moves.forEach(({mm, aus}) => {
+  schritte[j].bewegungen.forEach(({mm, aus}) => {
     const ziel = wsPunkt(j, zeile[mm], aus ? 0 : 1), tz = zeit ? {tz: zeit} : {};
     if (sensoren.length === 1) {
       s.push({k: "sig", ...LINIENFARBE, w: 1.2, p: [quelle(sensoren[0]), ziel], lbl: sensoren[0].tag, ...tz});
@@ -99,9 +99,9 @@ export function signallinien(schritte, j, zeile){
 // Alle Striche des Ablaufs: Funktionslinien, Start, Signallinien, Zyklusende
 export function ablaufStriche(schritte, zeile, zeilen){
   const pos = stellungen(schritte), s = Object.keys(pos).flatMap(mm => funktionslinien(pos[mm], zeile[mm]));
-  schritte[0].moves.forEach(({mm, aus}) => s.push({k: "st", ...LINIENFARBE, w: 1.2, p: [wsPunkt(0, zeile[mm], aus ? 0 : 1)],
+  schritte[0].bewegungen.forEach(({mm, aus}) => s.push({k: "st", ...LINIENFARBE, w: 1.2, p: [wsPunkt(0, zeile[mm], aus ? 0 : 1)],
     lbl: "−SF1"}));
-  schritte.forEach((st, j) => { if (j > 0 && st.moves.length) s.push(...signallinien(schritte, j, zeile)); });
+  schritte.forEach((st, j) => { if (j > 0 && st.bewegungen.length) s.push(...signallinien(schritte, j, zeile)); });
   const xEnde = wsPunkt(schritte.length, 0, 1)[0];
   s.push({k: "eq", ...LINIENFARBE, w: 2.6, p: [[xEnde, 57]], y2: WS_RASTER.y0 + zeilen * WS_RASTER.zeile});
   return s;
@@ -113,7 +113,7 @@ export function ablaufZeichnen(text){
   if (r.fehler) return r.fehler;
   const namen = wsZeilen(ED.scope).map((v, i) => zeilenName(ED.data.meta, v, i));
   const {zeile, namen: neu} = zeilenFuer(r.schritte, namen);
-  const fehlt = r.schritte.flatMap(s => s.moves).find(m => zeile[m.mm] === undefined);
+  const fehlt = r.schritte.flatMap(s => s.bewegungen).find(m => zeile[m.mm] === undefined);
   if (fehlt) return `Für −${fehlt.mm} ist keine Zeile frei.`;
   if (ED.data.s.some(st => WS_ARTEN.includes(st.k)) && !confirm("Vorhandene Linien im Diagramm ersetzen?")) return "";
   aendere(d => {

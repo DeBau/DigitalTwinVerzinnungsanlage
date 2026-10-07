@@ -8,7 +8,7 @@ import { TX, grid } from '../vorlagen-svg.js';
 import { DIRV, portsOf } from '../bauteile.js';
 import { signalFeld } from '../signalfeld.js';
 import { listenFeld } from '../eigenschaften.js';
-import { VALVE, betaetigung, cylinder, drawValve, entlueftung, istSpule, rechteStellung, steuerNr, vPairs } from './pneumatik-symbole.js';
+import { VALVE, betaetigung, cylinder, drawValve, entlueftung, istEntlueftung, istSpule, rechteStellung, steuerNr, vPairs } from './pneumatik-symbole.js';
 import { GERAET, oeffnung } from './pneumatik-geraete.js';
 import { simAnleitung } from './pneumatik-simstatus.js';
 import { simulationKlick, simulationWechsel } from './pneumatik-simulation.js';
@@ -80,7 +80,7 @@ const OEFFNUNG = ["of", "Öffnung der Drossel in %", "50"];
 
 /* ---------- Wegeventile ---------- */
 // Unverdrahtete Entlüftungen 3 und 5 sind offen zur Atmosphäre (Simulation)
-const freieAblaesse = (k, belegt) => VALVE[k].ports.map(p => p[0]).filter(n => (n === "3" || n === "5") && !belegt(n));
+const freieAblaesse = (k, belegt) => VALVE[k].ports.map(p => p[0]).filter(n => istEntlueftung(n) && !belegt(n));
 // Bauteileintrag eines Wegeventils k; Anschlüsse aus VALVE, Schaltwege aus vPairs
 function ventil(k, n, w, def, feldliste, info){
   const anschluesse = () => VALVE[k].ports.map(([p, dx, d]) => [p, 70 + dx, d === "u" ? 0 : 60, d]);

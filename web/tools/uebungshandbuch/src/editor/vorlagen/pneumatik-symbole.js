@@ -7,6 +7,9 @@ import { BLUE, DIRV, LB, PN, PP, SK, portsOf, pressed, simOn } from '../bauteile
 // Stellung von Kolben bzw. Schwenkantrieb (0 bis 1) und Schaltstellung eines Ventils, solange die Simulation läuft
 export const posOf = o => simOn() && ED.sim.pos[o.id] !== undefined ? ED.sim.pos[o.id] : 0;
 export const vstate = o => simOn() && ED.sim.st[o.id] || VALVE[o.k].grund;
+// Bauteilarten der Antriebe (Zylinder, Schwenkantrieb) und die Entlüftungsanschlüsse 3 und 5 eines Wegeventils
+export const ANTRIEB_ARTEN = ["zyl1", "zyl2", "rot"];
+export const istEntlueftung = n => n === "3" || n === "5";
 
 /* ---------- Wegeventile ---------- */
 // Quadratische Schaltstellungen VB × VB, Anschlüsse im 10er-Raster: [Name, x im Kästchen, u oben / d unten].
@@ -40,7 +43,7 @@ export function steuerNr(o, s){
 // Durchflusswege (Pfeil vom Druck- bzw. Arbeitsanschluss weg) und Sperren des Kästchens i
 export function vBox(o, i){
   const V = VALVE[o.k], at = n => V.ports.find(p => p[0] === n), pairs = vPairs(o, V.kaesten[i]);
-  const used = new Set(pairs.flat()), ablass = n => n === "3" || n === "5";
+  const used = new Set(pairs.flat()), ablass = istEntlueftung;
   const dir = ([a, b]) => a === "1" || ablass(b) ? [at(a), at(b)] : [at(b), at(a)];
   return {flows: pairs.map(dir), blocked: V.ports.filter(p => !used.has(p[0]))};
 }
@@ -151,7 +154,7 @@ export function endlagen(o, xa = 16, xb = 104){
 // Freie Entlüftungen 3 und 5 eines Wegeventils bekommen ihr Dreieck (Haken zusatz; belegt(n): Anschluss n ist verdrahtet)
 export function entlueftung(o, belegt){
   return portsOf(o).map(q => {
-    if ((q.n !== "3" && q.n !== "5") || belegt(q.n)) return "";
+    if (!istEntlueftung(q.n) || belegt(q.n)) return "";
     const [dx, dy] = DIRV[q.d];
     return `<path d="M${q.x} ${q.y}L${q.x + dx*9 - dy*5} ${q.y + dy*9 - dx*5}L${q.x + dx*9 + dy*5} ${q.y + dy*9 + dx*5}Z" ${SK}/>`;
   }).join("");

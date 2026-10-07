@@ -2,13 +2,13 @@
 // {stufe: "fehler" | "hinweis", text, o?, pt?}. Benutzt von vorlagen/pneumatik.js.
 import { art } from '../registry.js';
 import { portsOf } from '../bauteile.js';
-import { VALVE } from './pneumatik-symbole.js';
+import { ANTRIEB_ARTEN, VALVE, istEntlueftung } from './pneumatik-symbole.js';
 import { leitungsNetze } from './pneumatik-simulation.js';
 
-const ZYLINDER = ["zyl1", "zyl2", "rot"], DOPPELT = ["zyl2", "rot"];
+const DOPPELT = ["zyl2", "rot"];
 const bauteilName = o => o.v || art(o.k).n;
 const pruefKnoten = (o, p) => o.id + ":" + p;
-const istAblass = (o, p) => !!VALVE[o.k] && (p === "3" || p === "5");
+const istAblass = (o, p) => !!VALVE[o.k] && istEntlueftung(p);
 
 // Offene Anschlüsse: alles außer den Entlüftungen 3 und 5 eines Wegeventils braucht eine Leitung
 export function offeneAnschluesse(d, netz){
@@ -27,7 +27,7 @@ export function versorgungAnAblass(d, netz){
 export function zylinderOhneVentil(d, netz){
   const byId = Object.fromEntries(d.o.map(o => [o.id, o]));
   const nachbarn = n => {
-    const [id, p] = n.split(":"), o = byId[id], weiter = o && !VALVE[o.k] && !ZYLINDER.includes(o.k)
+    const [id, p] = n.split(":"), o = byId[id], weiter = o && !VALVE[o.k] && !ANTRIEB_ARTEN.includes(o.k)
       ? portsOf(o).map(q => pruefKnoten(o, q.n)).filter(m => m !== n) : [];
     return [...(netz.get(n) || []), ...weiter];
   };
@@ -42,7 +42,7 @@ export function zylinderOhneVentil(d, netz){
     }
     return false;
   };
-  return d.o.filter(o => ZYLINDER.includes(o.k) && !portsOf(o).some(q => erreichtVentil(pruefKnoten(o, q.n))))
+  return d.o.filter(o => ANTRIEB_ARTEN.includes(o.k) && !portsOf(o).some(q => erreichtVentil(pruefKnoten(o, q.n))))
     .map(o => ({stufe: "fehler", text: `${bauteilName(o)}: Kein Wegeventil steuert diesen Antrieb.`, o: o.id}));
 }
 // Zuluftdrosselung beim doppeltwirkenden Antrieb: Anschluss 1 des Drosselrückschlagventils zeigt zum Zylinder
@@ -63,7 +63,7 @@ export function doppelteKennzeichen(d){
 }
 // Antriebe ohne Endlagensensoren (die SPS erfährt sonst nicht, wann die Bewegung fertig ist)
 export function fehlendeSensoren(d){
-  return d.o.filter(o => ZYLINDER.includes(o.k) && (!o.s1 || !o.s2)).map(o => ({stufe: "hinweis", o: o.id,
+  return d.o.filter(o => ANTRIEB_ARTEN.includes(o.k) && (!o.s1 || !o.s2)).map(o => ({stufe: "hinweis", o: o.id,
     text: `${bauteilName(o)}: Sensor für die ${!o.s1 ? "hintere" : "vordere"} Endlage fehlt. Ohne ihn weiß die SPS nicht, `
       + `wann die Bewegung fertig ist.`}));
 }

@@ -3,10 +3,9 @@
 import { $, esc } from '../../app/basis.js';
 import { ED } from '../status.js';
 import { simOn } from '../bauteile.js';
-import { VALVE, posOf, steuerNr, vstate } from './pneumatik-symbole.js';
+import { ANTRIEB_ARTEN, VALVE, posOf, steuerNr, vstate } from './pneumatik-symbole.js';
 
 export const WEGZEIT = {dauer: 10000, takt: 50, breite: 236, zeile: 30};
-export const ANTRIEB_ARTEN = ["zyl1", "zyl2", "rot"];
 const antriebe = () => ED.data.o.filter(o => ANTRIEB_ARTEN.includes(o.k));
 
 export const SIM_HILFE = `<p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines `

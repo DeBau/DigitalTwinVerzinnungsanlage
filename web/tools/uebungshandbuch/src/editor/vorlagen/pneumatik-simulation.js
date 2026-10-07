@@ -8,8 +8,8 @@ import { art, bauteil } from '../registry.js';
 import { drehung, simOn } from '../bauteile.js';
 import { clearSel, objById } from '../auswahl.js';
 import { zeichnungSVG } from '../zeichnen.js';
-import { VALVE, vstate } from './pneumatik-symbole.js';
-import { ANTRIEB_ARTEN, istBistabil, simStatusZeigen, wegZeitMerken } from './pneumatik-simstatus.js';
+import { ANTRIEB_ARTEN, VALVE, vstate } from './pneumatik-symbole.js';
+import { istBistabil, simStatusZeigen, wegZeitMerken } from './pneumatik-simstatus.js';
 
 export const HUBZEIT = 1.2;   // Sekunden für einen ganzen Hub ohne Drossel
 const knoten = (o, p) => o.id + ":" + p;
