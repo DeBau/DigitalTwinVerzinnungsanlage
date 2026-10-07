@@ -154,6 +154,7 @@ nur `ED.data`.
 | `place`, `ausPalette`, `klickAuslassen` | Palettenart zum Setzen, Ziehen aus der Palette, Klick danach übergehen | ereignisse.js |
 | `markiert` | Markierung `{art, id}` oder null | status.js und die Tabellen unten |
 | `letzterKlick`, `drag`, `strich`, `strichPfad`, `radiert` | Doppelklick, laufendes Ziehen, aufgezogener Strich, Radierer | zeiger.js |
+| `finger` | gedrückte Zeiger auf dem Blatt (pointerId → Bildschirmpunkt); ab zwei Fingern wird nicht gemalt, `gesteAbbrechen` verwirft den Strich bzw. das Ziehen (`verwirf`) | zeiger.js |
 | `verbindenVon` | Werkzeug Verbinden: erster Baustein `{id, anschluss}` | zeiger.js |
 | `hist`, `zukunft`, `tx` | Rückgängig, Wiederholen, offene Transaktion | verlauf.js |
 | `sim` | Pneumatik-Simulation `{on, st, pos, P}` | vorlagen/pneumatik-simulation.js |

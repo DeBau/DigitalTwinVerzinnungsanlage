@@ -1162,6 +1162,8 @@ pre.code code{font-size:inherit}
     // Vorschaupfad dieses Strichs im SVG
     radiert: false,
     // true, solange der Radierer gedrückt ist
+    finger: /* @__PURE__ */ new Map(),
+    // gedrückte Zeiger auf dem Blatt: pointerId → [clientX, clientY]. Ab zwei Fingern wird nicht gemalt
     verbindenVon: null,
     // Werkzeug Verbinden: erster angeklickter Baustein {id, anschluss}
     hist: [],
@@ -2359,6 +2361,14 @@ pre.code code{font-size:inherit}
     ED.tx = null;
     if (tx && JSON.stringify(ED.data) !== tx.vorher) ablegen(tx.vorher);
   }
+  function verwirf() {
+    const tx = ED.tx;
+    ED.tx = null;
+    if (!tx || JSON.stringify(ED.data) === tx.vorher) return;
+    ED.data = JSON.parse(tx.vorher);
+    saveSketch();
+    renderInk();
+  }
   var kannUndo = () => ED.hist.length > 0;
   var kannRedo = () => ED.zukunft.length > 0;
   var mitListen = (d) => {
@@ -2803,7 +2813,12 @@ pre.code code{font-size:inherit}
 
   // web/tools/uebungshandbuch/src/editor/zeiger.js
   var zeigerHaken = () => vorlage(ED.key).zeiger || {};
-  var festhalten = (e) => ED.svg.setPointerCapture(e.pointerId);
+  var festhalten = (e) => {
+    try {
+      ED.svg.setPointerCapture(e.pointerId);
+    } catch {
+    }
+  };
   var UNTEN = {
     place: (e, pt) => {
       e.preventDefault();
@@ -2834,6 +2849,12 @@ pre.code code{font-size:inherit}
     beginneStrich(e, { k: STRICH_DES_WERKZEUGS[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q] });
   }
   function zeigerUnten(e) {
+    if (e.isPrimary) ED.finger.clear();
+    ED.finger.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ED.finger.size > 1) {
+      gesteAbbrechen();
+      return;
+    }
     if (!e.target.closest("input")) {
       e.preventDefault();
       const sl = getSelection();
@@ -2957,9 +2978,17 @@ pre.code code{font-size:inherit}
     ED.strichPfad = path;
     zeigerBewegen(e);
   }
+  function gesteAbbrechen() {
+    if (ED.strichPfad) ED.strichPfad.remove();
+    Object.assign(ED, { strich: null, strichPfad: null, radiert: false, drag: null });
+    verwirf();
+    if (ED.svg) $(".ghost", ED.svg).innerHTML = "";
+  }
   function zeigerBewegen(e) {
     const svg = ED.svg;
     if (!svg) return;
+    if (ED.finger.has(e.pointerId)) ED.finger.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ED.finger.size > 1) return;
     if (ED.radiert) {
       eraseAt(e);
       return;
@@ -3057,7 +3086,8 @@ pre.code code{font-size:inherit}
     avoidBreak(o);
     $(".ghost", ED.svg).innerHTML = marks + `<g opacity=".5">${bausteinZeichnen(o, true)}</g>`;
   }
-  function zeigerLoslassen() {
+  function zeigerLoslassen(e) {
+    if (e) ED.finger.delete(e.pointerId);
     ED.radiert = false;
     ED.zusatzY = 0;
     if (ED.drag) {
@@ -3124,7 +3154,8 @@ pre.code code{font-size:inherit}
       verbindenVon: null,
       place: null,
       drag: null,
-      vorlage: {}
+      vorlage: {},
+      finger: /* @__PURE__ */ new Map()
     });
   }
   var werkzeugKnopf = (tool, inhalt, zusatz = "") => `<button type="button" class="tool" data-tool="${tool}"${zusatz}>${inhalt}</button>`;

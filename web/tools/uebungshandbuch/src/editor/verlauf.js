@@ -56,6 +56,14 @@ export function schliesse(){
   ED.tx = null;
   if (tx && JSON.stringify(ED.data) !== tx.vorher) ablegen(tx.vorher);
 }
+// Offene Transaktion verwerfen: Zeichnung wie bei beginne, kein Verlaufsschritt (z. B. Zwei-Finger-Geste beim Ziehen)
+export function verwirf(){
+  const tx = ED.tx;
+  ED.tx = null;
+  if (!tx || JSON.stringify(ED.data) === tx.vorher) return;
+  ED.data = JSON.parse(tx.vorher);
+  saveSketch(); renderInk();
+}
 export const kannUndo = () => ED.hist.length > 0;
 export const kannRedo = () => ED.zukunft.length > 0;
 // Fehlende Listen einer geladenen Zeichnung anlegen

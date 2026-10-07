@@ -23,6 +23,7 @@ export const ED = {
   strich: null,        // Strich, der gerade aufgezogen wird {k, c, w, p}
   strichPfad: null,    // Vorschaupfad dieses Strichs im SVG
   radiert: false,      // true, solange der Radierer gedrückt ist
+  finger: new Map(),   // gedrückte Zeiger auf dem Blatt: pointerId → [clientX, clientY]. Ab zwei Fingern wird nicht gemalt
   verbindenVon: null,  // Werkzeug Verbinden: erster angeklickter Baustein {id, anschluss}
   hist: [],            // Rückgängig: frühere Stände als JSON (verlauf.js)
   zukunft: [],         // Wiederholen: zurückgenommene Stände als JSON

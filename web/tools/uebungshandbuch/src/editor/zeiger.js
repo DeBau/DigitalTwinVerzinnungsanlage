@@ -12,14 +12,14 @@ import { ausrichten, kettenQuelle } from './kette.js';
 import { bausteinZeichnen, verbindungsWeg } from './zeichnen.js';
 import { updateProps } from './eigenschaften.js';
 import { checkPages, renderInk } from './anzeige.js';
-import { aendere, beginne, schliesse } from './verlauf.js';
+import { aendere, beginne, schliesse, verwirf } from './verlauf.js';
 import { editConnLabel, editLabel, editObjLabel, editTextItem } from './beschriften.js';
 import { blattPunkt, fangen, fokusAufsBlatt } from './werkzeuge.js';
 import { eraseAt } from './bearbeiten.js';
 import { VORSCHAU, avoidBreak, connect, connectPorts, dockLeitung, linked, makeObj, placeObj, smartPos } from './andocken.js';
 
 export const zeigerHaken = () => vorlage(ED.key).zeiger || {};
-export const festhalten = e => ED.svg.setPointerCapture(e.pointerId);
+export const festhalten = e => { try { ED.svg.setPointerCapture(e.pointerId); } catch { /* Zeiger schon weg */ } };
 
 /* ---------- Drücken ---------- */
 // Kernwerkzeuge beim Drücken. Jedes andere Werkzeug zieht eine Linie bzw. einen Kasten auf (formUnten).
@@ -38,6 +38,9 @@ export function formUnten(e, pt){
   beginneStrich(e, {k: STRICH_DES_WERKZEUGS[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q]});
 }
 export function zeigerUnten(e){
+  if (e.isPrimary) ED.finger.clear();   // erster Finger bzw. Maus: verlorene Zeiger vergessen
+  ED.finger.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ED.finger.size > 1) { gesteAbbrechen(); return; }   // zweiter Finger: Geste, kein Malen
   if (!e.target.closest("input")) {   // kein Markieren von Text beim Zeichnen
     e.preventDefault();
     const sl = getSelection(); if (sl && sl.rangeCount) sl.removeAllRanges();
@@ -131,9 +134,19 @@ export function beginneStrich(e, cur){
   ED.svg.querySelector(".ink").appendChild(path); ED.strichPfad = path; zeigerBewegen(e);
 }
 
+// Zwei Finger auf dem Blatt: angefangenen Strich, Radieren und Ziehen verwerfen
+export function gesteAbbrechen(){
+  if (ED.strichPfad) ED.strichPfad.remove();
+  Object.assign(ED, {strich: null, strichPfad: null, radiert: false, drag: null});
+  verwirf();
+  if (ED.svg) $(".ghost", ED.svg).innerHTML = "";
+}
+
 /* ---------- Ziehen ---------- */
 export function zeigerBewegen(e){
   const svg = ED.svg; if (!svg) return;
+  if (ED.finger.has(e.pointerId)) ED.finger.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ED.finger.size > 1) return;
   if (ED.radiert) { eraseAt(e); return; }
   const pt = blattPunkt(svg, e);
   const busy = ED.drag || ED.strich || (ED.tool === "place" && ED.place);
@@ -202,7 +215,8 @@ export function setzVorschau(pt){
 }
 
 /* ---------- Loslassen ---------- */
-export function zeigerLoslassen(){
+export function zeigerLoslassen(e){
+  if (e) ED.finger.delete(e.pointerId);
   ED.radiert = false; ED.zusatzY = 0;
   if (ED.drag) { ziehenEnde(); return; }
   if (!ED.strich) return;

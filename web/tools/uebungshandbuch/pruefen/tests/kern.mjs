@@ -179,4 +179,27 @@ export const tests = [
       t.gleich(await t.daten(), null, 'Entf nach Klick ins Feld und zurück aufs Blatt');
     },
   },
+  /* ---------- K6 ein Zeiger ---------- */
+  {
+    name: 'K6 Zwei-Finger-Geste malt nicht und bricht den Strich ab',
+    lauf: async (t) => {
+      await t.oeffne('trend');
+      await t.werkzeug('pen');
+      const a = await t.punkt(300, 300), b = await t.punkt(600, 300);
+      await t.page.evaluate(([a, b]) => {
+        const svg = document.querySelector('#edstage svg');
+        const ev = (typ, id, [x, y], primaer) => svg.dispatchEvent(new PointerEvent(typ, {pointerId: id, clientX: x, clientY: y,
+          pointerType: 'touch', isPrimary: primaer, bubbles: true, cancelable: true, buttons: 1}));
+        ev('pointerdown', 11, a, true); ev('pointermove', 11, [a[0] + 30, a[1] + 20], true);
+        ev('pointerdown', 12, b, false);
+        ev('pointermove', 11, [a[0] + 80, a[1] + 60], true); ev('pointermove', 12, [b[0] - 50, b[1] + 40], false);
+        ev('pointerup', 12, b, false); ev('pointermove', 11, [a[0] + 120, a[1] + 90], true); ev('pointerup', 11, a, true);
+      }, [a, b]);
+      await t.ruhe();
+      t.gleich(await t.daten(), null, 'kein Strich gespeichert');
+      t.gleich(await t.zaehle('#edstage .ink path'), 0, 'kein Strich auf dem Blatt');
+      await t.ziehe([300, 400], [500, 450]);
+      t.gleich(((await t.daten()) || {s: []}).s.length, 1, 'danach malt ein Finger wieder');
+    },
+  },
 ];

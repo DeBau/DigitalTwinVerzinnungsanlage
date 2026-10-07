@@ -36,7 +36,7 @@ export function openEditor(scope, key){
 // Zustand für die neu geöffnete Zeichnung: Verlauf, Markierung und Zustand der Vorlage beginnen leer
 export function zuruecksetzen(scope, key, data, tool){
   Object.assign(ED, {scope, key, data, tool, hist: [], zukunft: [], tx: null, strich: null, markiert: null, verbindenVon: null,
-    place: null, drag: null, vorlage: {}});
+    place: null, drag: null, vorlage: {}, finger: new Map()});
 }
 
 /* ---------- Werkzeugleiste ---------- */
