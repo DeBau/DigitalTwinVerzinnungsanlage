@@ -3,3 +3,6 @@ Bridge/*.exe
 
 # Werkzeuge / Zwischenstaende
 web/_*_tmp.mjs
+
+# Eigene Arbeitsunterlagen (Siemens-PDFs usw.), nie ins Repo
+devInput/
