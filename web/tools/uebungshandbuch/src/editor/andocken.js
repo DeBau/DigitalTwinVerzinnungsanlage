@@ -89,8 +89,8 @@ export function andockVorschau(o, dock){
 }
 // Ort des Vorschaukreises: am Anschluss pa von dock.a, wenn der Haken andocke ihn nennt, sonst am Andockpunkt der Kette
 export function vorschauPunkt(map, dock){
-  const anschluss = dock.pa !== undefined && portsOf(map[dock.a]).find(q => q.n === dock.pa);
-  return anschluss ? [anschluss.x, anschluss.y] : andockPunkt(map[dock.a], map[dock.b]);
+  const ziel = dock.pa !== undefined && portsOf(map[dock.a]).find(q => q.n === dock.pa);
+  return ziel ? [ziel.x, ziel.y] : andockPunkt(map[dock.a], map[dock.b]);
 }
 export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blattende legen – sonst auf das nächste Blatt
   if (vorlage(ED.key).einblattig) return;
