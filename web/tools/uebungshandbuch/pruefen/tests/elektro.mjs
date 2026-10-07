@@ -113,6 +113,15 @@ export const tests = [
     },
   },
   {
+    name: 'E3 Motorschutz-Öffner und Sicherung zählen gemeinsam −FA',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      const v = [];
+      for (const [k, n] of [['msk', 2], ['fuse', 4], ['msk', 6]]) v.push((await setzeEinzeln(t, k, PFAD(n), 200)).v);
+      t.gleich(v, ['−FA1', '−FA2', '−FA3'], 'keine doppelten −FA');
+    },
+  },
+  {
     name: 'E3 Vorschläge aus der Signalliste',
     lauf: async (t) => {
       await t.oeffne('stromlauf');

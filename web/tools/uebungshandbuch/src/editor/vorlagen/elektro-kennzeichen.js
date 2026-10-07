@@ -47,7 +47,7 @@ export const anschlussAnzeige = (o, n) => (art(o.k).anschlussName ? art(o.k).ans
 export const VORSATZ = {
   coil: "−QA", mbv: "−MB", lamp: "−PF", tno: "−SF", tnc: "−SF", estop: "−SF", estop2: "−SF", key: "−SF",
   lsw: "−BG", sens: "−BG", khs: "−KF", zan: "−KF", zab: "−KF",
-  fuse: "−FA", ps: "−TA", sr: "−KF", ls3: "−FA", ms3: "−FA", k3: "−QA", qs3: "−QB", m3: "−MA", fu: "−TA",
+  fuse: "−FA", msk: "−FA", ps: "−TA", sr: "−KF", ls3: "−FA", ms3: "−FA", k3: "−QA", qs3: "−QB", m3: "−MA", fu: "−TA",
 };
 const AB = {sr: 2, khs: 2, zan: 2, zab: 2};
 // Nummern n aller Kennzeichen „vorsatz n“ an Bausteinen mit diesem Vorsatz ("-" und "−" gelten gleich).
@@ -67,7 +67,7 @@ export function naechsteKlemme(d){
   const n = (d.o || []).map(o => /^[-−]X1:(\d+)$/.exec(o.v || "")).filter(Boolean).map(m => +m[1]);
   return "−X1:" + (Math.max(0, ...n) + 1);
 }
-const BESONDERS = {msk: () => "−FA1", no: letzteSpule, nc: letzteSpule, term: naechsteKlemme, di8: () => "−KF1", dq8: () => "−KF1"};
+const BESONDERS = {no: letzteSpule, nc: letzteSpule, term: naechsteKlemme, di8: () => "−KF1", dq8: () => "−KF1"};
 // Gruppen-Haken kennzeichen(k, d, vorschlag): Vorschlag beim Setzen
 export function kennzeichen(k, d, vorschlag){
   if (BESONDERS[k]) return BESONDERS[k](d);
