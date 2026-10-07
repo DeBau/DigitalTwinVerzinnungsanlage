@@ -226,6 +226,23 @@ export const tests = [
     },
   },
   {
+    name: 'E9 Simulation: Pilzkopf und Kasten des Motorschutzes anklickbar',
+    lauf: async (t) => {
+      await selbsthaltung(t);
+      const ms = await setzeEinzeln(t, 'msk', PFAD(4), 200);
+      const nh = (await t.objekte('estop'))[0];
+      await t.werkzeug('sim');
+      const betaetigt = () => t.zaehle('#edstage .ink rect[stroke="#27AE60"]');
+      // Klickfläche reicht links bis vor den Betätiger, auch neben die gezeichneten Striche
+      await t.klick([nh.x - 32, nh.y + 44]);   // unter dem roten Pilzkopf
+      t.gleich(await betaetigt(), 1, 'Not-Halt über den Pilzkopf betätigt');
+      await t.klick([ms.x - 40, ms.y + 44]);   // unter dem Kasten I> ϑ
+      t.gleich(await betaetigt(), 2, 'Motorschutz über den Kasten ausgelöst');
+      await t.klick([nh.x - 28, nh.y + 29]);   // auf den Pilzkopf
+      t.gleich(await betaetigt(), 1, 'Not-Halt entriegelt');
+    },
+  },
+  {
     name: 'E8 Kontaktspiegel unter der Spule, Querverweis am Kontakt',
     lauf: async (t) => {
       await selbsthaltung(t);

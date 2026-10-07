@@ -6,6 +6,7 @@
 import { IC } from '../../app/basis.js';
 import { PH, SVGT } from '../svg.js';
 import { ED } from '../status.js';
+import { art } from '../registry.js';
 import { istSchiene, portsOf, simOn, virtuelleSchienen, wireD, wireEnds } from '../bauteile.js';
 import { umrissVon } from '../bausteine.js';
 import { clearSel, objById } from '../auswahl.js';
@@ -153,15 +154,19 @@ export function simWechsel(t){
   if (t === "sim" && !simOn()) { clearSel(); ED.sim = {on: true, st: {}, pos: {}, aktiv: new Set()}; }
   else if (t !== "sim" && simOn()) ED.sim = {on: false, st: {}, pos: {}};
 }
-// Klick auf ein Bedienteil: rastend umschalten, tastend bis zum Loslassen drücken
-export function simUnten(e){
+// Bedienteil, dessen Betätiger (Pilzkopf, Kasten I> ϑ, Schlüssel …) links vor der Trefferfläche bei pt liegt
+const betaetigerBei = ([x, y]) => (ED.data.o || []).find(o => BEDIENUNG[o.k] && !o.rot && !o.flip
+  && o.x - (art(o.k).links || 34) <= x && x <= o.x && o.y <= y && y <= o.y + 60);
+// Klick auf ein Bedienteil oder seinen Betätiger: rastend umschalten, tastend bis zum Loslassen drücken
+export function simUnten(e, pt){
   if (ED.tool !== "sim") return false;
-  const h = e.target.closest("[data-o]"), o = h && objById(h.dataset.o);
-  const art_ = o && BEDIENUNG[o.k];
-  if (!art_) return true;
+  const h = e.target.closest("[data-o]"), getroffen = h && objById(h.dataset.o);
+  const o = getroffen && BEDIENUNG[getroffen.k] ? getroffen : pt && betaetigerBei(pt);
+  const bedienung = o && BEDIENUNG[o.k];
+  if (!bedienung) return true;
   const k = kennung(o);
-  ED.sim.st[k] = art_ === "tastend" ? true : !ED.sim.st[k];
-  if (art_ === "tastend") addEventListener("pointerup", () => { ED.sim.st[k] = false; renderInk(); }, {once: true});
+  ED.sim.st[k] = bedienung === "tastend" ? true : !ED.sim.st[k];
+  if (bedienung === "tastend") addEventListener("pointerup", () => { ED.sim.st[k] = false; renderInk(); }, {once: true});
   renderInk();
   return true;
 }
