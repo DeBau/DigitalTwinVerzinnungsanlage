@@ -41,15 +41,23 @@ export function zuruecksetzen(scope, key, data, tool){
 
 /* ---------- Werkzeugleiste ---------- */
 // Knopf für ein Werkzeug (data-tool) bzw. eine Aktion (data-ed); zusatz sind weitere Attribute, z. B. ' title="…"'
-export const werkzeugKnopf = (tool, inhalt, zusatz = "") => `<button type="button" class="tool" data-tool="${tool}"${zusatz}>${inhalt}</button>`;
+export const werkzeugKnopf = (tool, inhalt, zusatz = "") =>
+  `<button type="button" class="tool" data-tool="${tool}"${zusatz}>${inhalt}</button>`;
 export const aktionsKnopf = (ed, inhalt, zusatz = "") => `<button type="button" class="tool" data-ed="${ed}"${zusatz}>${inhalt}</button>`;
 export const titelAttr = t => ` title="${t}"`;
 export const TRENNER = `<span class="sep"></span>`;
-export const farbKnopf = ([c, n]) => `<button type="button" class="tool" data-tool="pen" data-color="${c}"><span class="dot" style="background:${c}"></span>${n}</button>`;
+export const farbKnopf = ([c, n]) =>
+  `<button type="button" class="tool" data-tool="pen" data-color="${c}"><span class="dot" style="background:${c}"></span>${n}</button>`;
 export const staerkeKnopf = ([w, n]) => `<button type="button" class="tool" data-w="${w}">${n}</button>`;
 export const KOPIEREN = `<span class="takewrap">`
   + aktionsKnopf("take", IC.copy + "Aus früherer Übung", ` aria-haspopup="true"`
     + titelAttr("Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren")) + `</span>`;
+export const VERLAUFSKNOEPFE = [
+  aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z")),
+  aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y") + " disabled"),
+  aktionsKnopf("del", IC.trash + "Markiertes löschen", titelAttr("Entf")),
+  aktionsKnopf("clear", "Alles leeren"),
+];
 export const ABSCHLUSS = `<button type="button" class="btn small" data-ed="print">${IC.print}Drucken</button>`
   + `<button type="button" class="btn primary small" data-ed="close">Fertig</button>`;
 
@@ -68,14 +76,14 @@ export function werkzeugleisteZeilen(v, key, mitPalette){
     [werkzeugKnopf("text", IC.text + "Text")],
     [werkzeugKnopf("erase", IC.eraser + "Radierer")],
     [TRENNER],
-    [aktionsKnopf("grid", IC.grid + "Raster fangen", ` aria-pressed="${ED.grid}"` + titelAttr("Bausteine und Linien rasten im 10er-Raster ein"))],
+    [aktionsKnopf("grid", IC.grid + "Raster fangen",
+      ` aria-pressed="${ED.grid}"` + titelAttr("Bausteine und Linien rasten im 10er-Raster ein"))],
     [mitPalette ? aktionsKnopf("dock", IC.magnet + "Andocken", ` aria-pressed="${ED.dock}"`
       + titelAttr("Bausteine richten sich an Nachbarn aus und verbinden sich automatisch")) : ""],
     [TRENNER],
     STAERKEN.map(staerkeKnopf),
     [TRENNER],
-    [KOPIEREN, aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z")), aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y") + " disabled"),
-      aktionsKnopf("del", IC.trash + "Markiertes löschen", titelAttr("Entf")), aktionsKnopf("clear", "Alles leeren"), PRUEFKNOPF(key)],
+    [KOPIEREN, ...VERLAUFSKNOEPFE, PRUEFKNOPF(key)],
     [`<span style="flex:1"></span>`],
     [ABSCHLUSS],
   ];
@@ -86,8 +94,8 @@ export function werkzeugleisteHTML(v, key, pal){
 }
 
 /* ---------- Seitenleiste ---------- */
-export const AUSWAHL_HILFE = `<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, die runden Griffe verändern `
-  + `Linienenden, Doppelklick ändert Text, Entf löscht.</p>`;
+export const AUSWAHL_HILFE = `<p><b>Auswählen</b> markiert Linien, Kästen, Striche und Texte. Ziehen verschiebt, `
+  + `die runden Griffe verändern Linienenden, Doppelklick ändert Text, Entf löscht.</p>`;
 export const PALETTE_HILFE = `<p><b>Ziehen:</b> Bausteine direkt aus dieser Leiste aufs Blatt ziehen – oder anklicken und dann aufs Blatt `
   + `klicken.</p><p><b>Andocken:</b> Ziehen Sie einen Baustein an einen Anschluss – die blaue Vorschau zeigt die Verbindung, beim `
   + `Loslassen rastet er ein.</p><p><b>Doppelklick</b> beschriftet, <b>Ziehen</b> verschiebt, <b>Entf</b> löscht, <b>Pfeiltasten</b> `

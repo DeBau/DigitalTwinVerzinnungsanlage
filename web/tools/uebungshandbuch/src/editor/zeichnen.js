@@ -5,7 +5,7 @@ import { ED, istMarkiert } from './status.js';
 import { BAUSTEIN, art, bauteil, vorlage } from './registry.js';
 import { neueSpuren } from './spuren.js';
 import { strokesSVG } from './vorlagen-svg.js';
-import { BLUE, drehung, istSchiene, portsOf, simOn, virtuelleSchienen, wireD, wireEnds } from './bauteile.js';
+import { BLUE, drehung, istSchiene, portsOf, simOn, versetzt, virtuelleSchienen, wireD, wireEnds } from './bauteile.js';
 import { gruppeVon, mitteVon, umrissVon } from './bausteine.js';
 import { verbindeKette } from './kette.js';
 
@@ -20,10 +20,13 @@ export function gedreht(o, svg){
   const X = drehung(o);
   if (!X) return svg;
   const swap = X.f * X.c < 0;   // Schrift läge sonst auf der falschen Seite
+  const anker = a => swap && a !== "middle" ? GEGENANKER[a] : a;
   const upright = svg.replace(/<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)"/g, (m, x, y, a) =>
-    `<text transform="translate(${x} ${y}) scale(${X.f} 1) rotate(${-X.r}) translate(${-x} ${-y})" x="${x}" y="${y}" text-anchor="${swap && a !== "middle" ? (a === "end" ? "start" : "end") : a}"`);
+    `<text transform="translate(${x} ${y}) scale(${X.f} 1) rotate(${-X.r}) translate(${-x} ${-y})" x="${x}" y="${y}" `
+    + `text-anchor="${anker(a)}"`);
   return `<g transform="translate(${X.cx} ${X.cy}) rotate(${X.r}) scale(${X.f} 1) translate(${-X.cx} ${-X.cy})">${upright}</g>`;
 }
+export const GEGENANKER = {start: "end", end: "start"};
 // Name eines Bausteins im Verweis an einer Abbruchstelle, z. B. „Schritt 7“ (Haken verweisName der Bausteinart)
 export function refName(o, objs, cs, dir){
   const a = art(o.k);
@@ -78,16 +81,18 @@ export function leitungSVG(c, i, gm, objs, key, edit){
   const P = simOn() && ED.sim.P && (ED.sim.P.has(c.a + ":" + c.pa) || ED.sim.P.has(c.b + ":" + c.pb));
   const wc = sel ? "#0E4C92" : P ? BLUE : INK, ww = sel || P ? 2.4 : 1.6, dash = c.st ? 'stroke-dasharray="6 4"' : "";
   if (!blattwechsel(a.y, b.y, key)) {
-    return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash}/>${treffer(gm.d, edit)}${c.v ? SVGT(gm.lbl[0], gm.lbl[1], c.v, "start", 11, 500) : ""}</g>`;
+    const text = c.v ? SVGT(gm.lbl[0], gm.lbl[1], c.v, "start", 11, 500) : "";
+    return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash}/>${treffer(gm.d, edit)}${text}</g>`;
   }
-  const stub = (q, n) => [q.x + (q.d === "r" ? n : q.d === "l" ? -n : 0), q.y + (q.d === "d" ? n : q.d === "u" ? -n : 0)];
-  const e1 = stub(a, 30), e2 = stub(b, 30);
+  const e1 = versetzt(a, 30), e2 = versetzt(b, 30);
   const t1 = `→ ${wireRef(objs[c.b], c.pb, key, b.y, b.x)}`, t2 = `von ${wireRef(objs[c.a], c.pa, key, a.y, a.x)}`;
-  const lab = (q, e, t) => { const v = q.d === "u" || q.d === "d"; return SVGT(e[0] + (v ? 5 : 0), e[1] + (v ? (q.d === "d" ? 4 : 2) : -5), t, "start", 10.5, 600); };
+  const lab = (q, e, t) => SVGT(e[0] + STUMMELTEXT[q.d][0], e[1] + STUMMELTEXT[q.d][1], t, "start", 10.5, 600);
   const d1 = `M${a.x} ${a.y}L${e1[0]} ${e1[1]}`, d2 = `M${e2[0]} ${e2[1]}L${b.x} ${b.y}`;
   const pfeil = d => `<path d="${d}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash} marker-end="url(#arw)"/>`;
   return `<g data-c="${i}">${pfeil(d1)}${pfeil(d2)}${lab(a, e1, t1)}${lab(b, e2, t2)}` + treffer(d1 + d2, edit) + `</g>`;
 }
+// Lage des Verweistexts am Ende eines Leitungsstummels je Anschlussrichtung
+export const STUMMELTEXT = {u: [5, 2], d: [5, 4], l: [0, -5], r: [0, -5]};
 // Verbindung zwischen Bausteinen (Kette, Übergang, Signalfluss) mit Beschriftung oder Platzhalter
 export function verbindungSVG(c, i, gm, objs, cs, key, edit){
   const sel = edit && istMarkiert("c", i), col = sel ? "#0E4C92" : INK, staerke = sel ? 2.2 : 1.6;
@@ -99,11 +104,14 @@ export function verbindungSVG(c, i, gm, objs, cs, key, edit){
       + SVGT(x1 + 10, y1 + 28, zu, "start", 11.5, 600) + SVGT(x2 + 10, y2 - 22, von, "start", 11.5, 600)
       + treffer(`M${x1} ${y1}V${y1 + 30}M${x2} ${y2 - 34}V${y2}`, edit) + `</g>`;
   }
-  const up = gm.up ? `<path d="M${gm.up[0]-6} ${gm.up[1]+5}L${gm.up[0]} ${gm.up[1]-6}L${gm.up[0]+6} ${gm.up[1]+5}" fill="none" stroke="${col}" stroke-width="1.6"/>` : "";
+  const [ux, uy] = gm.up || [], pfeil = `M${ux-6} ${uy+5}L${ux} ${uy-6}L${ux+6} ${uy+5}`;   // Pfeil nach oben am Rücksprung
+  const up = gm.up ? `<path d="${pfeil}" fill="none" stroke="${col}" stroke-width="1.6"/>` : "";
   let lbl = "";
   if (gm.lbl && c.v) lbl = SVGT(gm.lbl[0], gm.lbl[1], c.v, gm.lbl[2], 12, 500);
   else if (gm.lbl && edit && fragtBedingung(objs[c.a])) lbl = SVGT(gm.lbl[0], gm.lbl[1], "Bedingung", gm.lbl[2], 11, 400, MUTE);
-  return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${col}" stroke-width="${staerke}" ${gm.arrow ? 'marker-end="url(#arw)"' : ""}/>${up}${treffer(gm.d, edit)}${lbl}</g>`;
+  const spitze = gm.arrow ? 'marker-end="url(#arw)"' : "";
+  return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${col}" stroke-width="${staerke}" ${spitze}/>`
+    + `${up}${treffer(gm.d, edit)}${lbl}</g>`;
 }
 
 /* ---------- Ganze Zeichnung ---------- */
@@ -111,11 +119,23 @@ export function verbindungSVG(c, i, gm, objs, cs, key, edit){
 export const istRahmen = o => !!art(o.k).rahmen;
 // Baustein mit Markierungsrahmen (im Editor) bzw. greifbarem Rand (Rahmen-Bauteile)
 export function bausteinSVG(o, edit){
-  const b = umrissVon(o), von = edit && ED.verbindenVon && ED.verbindenVon.id === o.id, hi = edit && (istMarkiert("o", o.id) || von), fr = istRahmen(o);
-  let h = "";
-  if (edit && fr) h = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? .25 : 0}" stroke-width="12"/>`;
-  if (edit && !fr) h = `<rect x="${b.x-5}" y="${b.y-5}" width="${b.w+10}" height="${b.h+10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${von ? "2 3" : "5 3"}"` : ""}/>`;
+  const h = edit ? (istRahmen(o) ? rahmenGriff(o) : markierungsRahmen(o)) : "";
   return `<g data-o="${o.id}">${h}${bausteinZeichnen(o, edit)}</g>`;
+}
+// Bausteine, die im Editor hervorgehoben sind: markiert oder Quelle beim Verbinden
+export const istVerbindenQuelle = o => !!ED.verbindenVon && ED.verbindenVon.id === o.id;
+export const istHervorgehoben = o => istMarkiert("o", o.id) || istVerbindenQuelle(o);
+// Greifbarer Rand eines Rahmen-Bauteils
+export function rahmenGriff(o){
+  const b = umrissVon(o), hi = istHervorgehoben(o);
+  return `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" `
+    + `stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? .25 : 0}" stroke-width="12"/>`;
+}
+// Greiffläche um einen Baustein, gestrichelt, wenn er markiert (5 3) oder Quelle beim Verbinden (2 3) ist
+export function markierungsRahmen(o){
+  const b = umrissVon(o), strich = `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${istVerbindenQuelle(o) ? "2 3" : "5 3"}"`;
+  return `<rect x="${b.x-5}" y="${b.y-5}" width="${b.w+10}" height="${b.h+10}" rx="4" fill="transparent" `
+    + `${istHervorgehoben(o) ? strich : ""}/>`;
 }
 // Abzweigpunkte der Leitungen: auf einer Schiene immer, an einem Anschluss ab zwei Leitungen.
 // Rückgabe: SVG und die Zählung cnt["id:Anschluss"] = {n, q} der verdrahteten Anschlüsse
@@ -140,7 +160,8 @@ export function punkteSVG(d, cs, objs, edit){
   (d.o || []).forEach(o => { const z = art(o.k).zusatz; if (z) s += z(o, n => !!cnt[o.id + ":" + n]); });
   if (edit && ED.tool === "conn") (d.o || []).forEach(o => portsOf(o).forEach(q => {
     const v = ED.verbindenVon, f = !!v && v.id === o.id && v.anschluss === q.n;
-    s += `<circle cx="${q.x}" cy="${q.y}" r="${f ? 5 : 3.6}" fill="${f ? BLUE : "#fff"}" stroke="${BLUE}" stroke-width="1.5" pointer-events="none"/>`;
+    s += `<circle cx="${q.x}" cy="${q.y}" r="${f ? 5 : 3.6}" fill="${f ? BLUE : "#fff"}" stroke="${BLUE}" stroke-width="1.5" `
+      + `pointer-events="none"/>`;
   }));
   return s;
 }

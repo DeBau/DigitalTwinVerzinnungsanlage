@@ -50,7 +50,12 @@ export const kannUndo = () => ED.hist.length > 0;
 export const kannRedo = () => ED.zukunft.length > 0;
 // Fehlende Listen einer geladenen Zeichnung anlegen
 export const mitListen = d => { d.s ||= []; d.t ||= []; d.o ||= []; d.c ||= []; return d; };
-export function saveSketch(){ const d = ED.data; d.ts = Date.now(); S.set(skKey(ED.scope, ED.key), (d.s.length || d.t.length || d.o.length || d.meta) ? d : null); }
+// Zeichnung unter uebh2:<scope>:sk:<key> speichern; eine leere Zeichnung löscht den Eintrag
+export function saveSketch(){
+  const d = ED.data;
+  d.ts = Date.now();
+  S.set(skKey(ED.scope, ED.key), (d.s.length || d.t.length || d.o.length || d.meta) ? d : null);
+}
 // Stand aus von holen, den aktuellen nach nach legen (Rückgängig: hist → zukunft, Wiederholen umgekehrt)
 export function holeStand(von, nach){
   schliesse();
@@ -64,27 +69,45 @@ export const redo = () => holeStand(ED.zukunft, ED.hist);
 /* Zeichnung aus einer anderen Übung übernehmen: Kopie, das Original bleibt unverändert */
 export function takeList(){
   const all = S.all(), suf = ":sk:" + ED.key, out = [];
-  Object.entries(all).forEach(([k, d]) => { if (!k.endsWith(suf) || !d) return; const sc = k.slice(0, -suf.length); if (sc === ED.scope) return;
-    const n = (d.o || []).length + (d.s || []).length + (d.t || []).length; if (n) out.push({sc, n, ts: d.ts || 0}); });
+  Object.entries(all).forEach(([k, d]) => {
+    if (!k.endsWith(suf) || !d) return;
+    const sc = k.slice(0, -suf.length);
+    if (sc === ED.scope) return;
+    const n = (d.o || []).length + (d.s || []).length + (d.t || []).length;
+    if (n) out.push({sc, n, ts: d.ts || 0});
+  });
   const ord = sc => { const i = SHEETS.findIndex(x => x.id === sc); return i < 0 ? 999 : i; };
   return out.sort((a, b) => ord(a.sc) - ord(b.sc));
 }
+// Eintrag im Menü „Aus früherer Übung“
+export function takeEintrag(x){
+  const name = BY[x.sc] ? `${x.sc} ${esc(BY[x.sc].t)}` : "Freie Zeichnung (Vorlagen)";
+  return `<button type="button" role="menuitem" data-ed="takeit" data-from="${x.sc}"><b>${name}</b>`
+    + `<span>${x.n} Elemente${x.ts ? " · geändert " + deDate(x.ts) : ""}</span></button>`;
+}
+export const TAKE_HINWEIS = `<p>Die Kopie ersetzt die Zeichnung dieser Übung. Das Original bleibt unverändert, `
+  + `Rückgängig holt den alten Stand zurück.</p>`;
+export const TAKE_LEER = `<p>Noch keine andere Übung hat eine Zeichnung dieser Art. Sobald Sie z. B. in L08 einen Plan `
+  + `gezeichnet haben, erscheint er hier.</p>`;
+// Menü öffnen bzw. schließen; ein Klick außerhalb schließt es
 export function takeMenu(btn){
   const old = $("#editor .takemenu"); if (old) { old.remove(); return; }
-  const list = takeList(), name = sc => BY[sc] ? `${sc} ${esc(BY[sc].t)}` : "Freie Zeichnung (Vorlagen)";
-  const m = document.createElement("div"); m.className = "takemenu"; m.setAttribute("role", "menu");
-  m.innerHTML = `<div class="tmh">${VORL[ED.key].n} aus einer anderen Übung kopieren</div>` + (list.length
-    ? list.map(x => `<button type="button" role="menuitem" data-ed="takeit" data-from="${x.sc}"><b>${name(x.sc)}</b><span>${x.n} Elemente${x.ts ? " · geändert " + deDate(x.ts) : ""}</span></button>`).join("")
-      + `<p>Die Kopie ersetzt die Zeichnung dieser Übung. Das Original bleibt unverändert, Rückgängig holt den alten Stand zurück.</p>`
-    : `<p>Noch keine andere Übung hat eine Zeichnung dieser Art. Sobald Sie z. B. in L08 einen Plan gezeichnet haben, erscheint er hier.</p>`);
+  const list = takeList(), m = document.createElement("div");
+  m.className = "takemenu"; m.setAttribute("role", "menu");
+  m.innerHTML = `<div class="tmh">${VORL[ED.key].n} aus einer anderen Übung kopieren</div>`
+    + (list.length ? list.map(takeEintrag).join("") + TAKE_HINWEIS : TAKE_LEER);
   btn.parentElement.appendChild(m);
-  const off = e => { if (!m.contains(e.target) && e.target !== btn && !btn.contains(e.target)) { m.remove(); document.removeEventListener("pointerdown", off, true); } };
+  const off = e => {
+    if (m.contains(e.target) || e.target === btn || btn.contains(e.target)) return;
+    m.remove(); document.removeEventListener("pointerdown", off, true);
+  };
   document.addEventListener("pointerdown", off, true);
 }
 export function takeSketch(sc){
   const src = S.get(skKey(sc, ED.key)); $("#editor .takemenu")?.remove(); if (!src) return;
   const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
-  if (has && !confirm(`Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`)) return;
+  const frage = `Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`;
+  if (has && !confirm(frage)) return;
   snapshot();
   const d = mitListen(JSON.parse(JSON.stringify(src)));
   if (d.meta) { delete d.meta.title; delete d.meta.datum; }   // Titel und Datum gehören zur neuen Übung

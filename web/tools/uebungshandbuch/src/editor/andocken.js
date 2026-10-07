@@ -14,7 +14,8 @@ import { setTool } from './werkzeuge.js';
 
 export function nextLabel(l){   // -QA1 → nächste freie Nummer
   const m = /^(.*?)(\d+)$/.exec(l); if (!m || l.includes(":")) return l;
-  const used = ED.data.o.map(o => o.v || "").filter(v => v.startsWith(m[1])).map(v => parseInt(v.slice(m[1].length), 10)).filter(n => !isNaN(n));
+  const used = ED.data.o.map(o => o.v || "").filter(v => v.startsWith(m[1]))
+    .map(v => parseInt(v.slice(m[1].length), 10)).filter(n => !isNaN(n));
   return used.length ? m[1] + (Math.max(...used) + 1) : l;
 }
 // Neues Objekt der Palettenart k mit der Mitte bei [px, py]. Lage und Vorgaben setzt der Haken neu der Bausteinart,
@@ -82,7 +83,8 @@ export function andockVorschau(o, dock){
   const map = Object.fromEntries(ED.data.o.map(p => [p.id, p])); map[o.id] = o;
   const gm = verbindungsWeg({a: dock.a, b: dock.b}, map, []);
   const p = andockPunkt(map[dock.a], map[dock.b]);
-  return (gm ? VORSCHAU(gm.d) : "") + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
+  return (gm ? VORSCHAU(gm.d) : "")
+    + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
 }
 export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blattende legen – sonst auf das nächste Blatt
   if (vorlage(ED.key).einblattig) return;
@@ -115,7 +117,8 @@ export function placeObj(k, pt){
 export function connectPorts(a, pa, b, pb){
   if (a === b && pa === pb) return;
   if (a.startsWith("_") && b.startsWith("_")) return;
-  if (ED.data.c.some(c => (c.a === a && c.pa === pa && c.b === b && c.pb === pb) || (c.a === b && c.pa === pb && c.b === a && c.pb === pa))) return;
+  const gleich = c => (c.a === a && c.pa === pa && c.b === b && c.pb === pb) || (c.a === b && c.pa === pb && c.b === a && c.pb === pa);
+  if (ED.data.c.some(gleich)) return;
   aendere(d => { d.c.push({a, pa, b, pb, v: ""}); markiere("c", d.c.length - 1); });
 }
 export function connect(a, b){

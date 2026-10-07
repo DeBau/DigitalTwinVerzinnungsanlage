@@ -1104,14 +1104,17 @@ pre.code code{font-size:inherit}
   // web/tools/uebungshandbuch/src/editor/svg.js
   var INK = "#17212B", MUTE = "#9AA4AD";
   var tw = (s, px = 13) => Math.max(...String(s ?? "").split("\n").map((l) => l.length)) * px * 0.58;
+  var SCHRIFT = "Plex Sans,Segoe UI,sans-serif";
   var SVGT = (x, y, t, a = "middle", sz = 13, w = 500, f = INK) => {
     const ls = String(t ?? "").split("\n"), y0 = a === "middle" && ls.length > 1 ? y - (ls.length - 1) * 0.6 * sz : y;
-    const body = ls.length > 1 ? ls.map((l, i) => `<tspan x="${x}" dy="${i ? (1.2 * sz).toFixed(1) : 0}">${esc(l)}</tspan>`).join("") : esc(t);
-    return `<text x="${x}" y="${y0.toFixed ? +y0.toFixed(1) : y0}" text-anchor="${a}" font-size="${sz}" font-weight="${w}" fill="${f}" font-family="Plex Sans,Segoe UI,sans-serif">${body}</text>`;
+    const zeile = (l, i) => `<tspan x="${x}" dy="${i ? (1.2 * sz).toFixed(1) : 0}">${esc(l)}</tspan>`;
+    const body = ls.length > 1 ? ls.map(zeile).join("") : esc(t);
+    return `<text x="${x}" y="${y0.toFixed ? +y0.toFixed(1) : y0}" text-anchor="${a}" font-size="${sz}" font-weight="${w}" fill="${f}" font-family="${SCHRIFT}">${body}</text>`;
   };
   function arrowHead(x1, y1, x2, y2, h = 6.5, w = 0.42) {
     const a = Math.atan2(y2 - y1, x2 - x1), f = (n) => n.toFixed(1);
-    return `<path d="M${f(x2)} ${f(y2)}L${f(x2 - h * Math.cos(a - w))} ${f(y2 - h * Math.sin(a - w))}L${f(x2 - h * Math.cos(a + w))} ${f(y2 - h * Math.sin(a + w))}Z" fill="${INK}"/>`;
+    const ecke = (s) => `${f(x2 - h * Math.cos(a + s))} ${f(y2 - h * Math.sin(a + s))}`;
+    return `<path d="M${f(x2)} ${f(y2)}L${ecke(-w)}L${ecke(w)}Z" fill="${INK}"/>`;
   }
   var PH = 707;
   var clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -1251,18 +1254,19 @@ pre.code code{font-size:inherit}
     for (let x = x0 + step; x < x1; x += step) for (let y = y0 + step; y < y1; y += step) s += `M${x} ${y}h.01`;
     return `<path d="${s}" stroke="${G}" stroke-width="2.2" stroke-linecap="round"/>`;
   }
+  var URHEBER = "© Bauer Automation Solutions · Dennis Bauer";
   function frame(meta) {
-    const t = (x, y, s, w, txt, f = "#333") => `<text x="${x}" y="${y}" font-size="${s}" font-weight="${w}" fill="${f}" font-family="Plex Sans,Segoe UI,sans-serif">${esc(txt)}</text>`;
+    const t = (x, y, s, w, txt, f = "#333") => `<text x="${x}" y="${y}" font-size="${s}" font-weight="${w}" fill="${f}" font-family="${SCHRIFT}">${esc(txt)}</text>`;
     return `<rect x="15" y="15" width="970" height="677" fill="none" stroke="#333" stroke-width="1.4"/>
   <g><rect x="555" y="632" width="430" height="60" fill="#fff" stroke="#333" stroke-width="1.1"/>
   <path d="M555 652H985M795 632V692M895 652V692M555 672H795" stroke="#333" stroke-width=".7" fill="none"/>
   ${t(561, 646, 9, 500, "Übungshandbuch SPS-Technik", "#0E4C92")}${t(801, 646, 9, 400, meta.vorlage || "")}
   ${t(561, 666, 12, 600, meta.title || "")}${t(561, 686, 8, 400, "Name")}${t(590, 686, 10, 500, meta.name || "")}
   ${t(801, 664, 8, 400, "Datum")}${t(801, 684, 10, 500, meta.datum || "")}${t(901, 664, 8, 400, "Blatt")}${t(901, 684, 10, 500, meta.blatt || "1")}
-  <text x="985" y="701.5" font-size="6.5" fill="#999" text-anchor="end" letter-spacing=".3" font-family="Plex Sans,Segoe UI,sans-serif">© Bauer Automation Solutions · Dennis Bauer</text>
+  <text x="985" y="701.5" font-size="6.5" fill="#999" text-anchor="end" letter-spacing=".3" font-family="${SCHRIFT}">${URHEBER}</text>
   <rect data-sf="1" x="555" y="632" width="430" height="60" fill="transparent"><title>Schriftfeld ändern</title></rect></g>`;
   }
-  var TX = (x, y, s, txt, a = "start", f = G, w = 400) => `<text x="${x}" y="${y}" font-size="${s}" text-anchor="${a}" fill="${f}" font-weight="${w}" font-family="Plex Sans,Segoe UI,sans-serif">${esc(txt)}</text>`;
+  var TX = (x, y, s, txt, a = "start", f = G, w = 400) => `<text x="${x}" y="${y}" font-size="${s}" text-anchor="${a}" fill="${f}" font-weight="${w}" font-family="${SCHRIFT}">${esc(txt)}</text>`;
   var snap = ([x, y]) => ED.grid ? [Math.round(x / 10) * 10, Math.round(y / 10) * 10] : [Math.round(x), Math.round(y)];
   fuelle(STRICH, {
     l: { titel: "Linie", form: ({ p: [[x1, y1], [x2, y2]] }) => `M${x1} ${y1}L${x2} ${y2}` },
@@ -1282,17 +1286,20 @@ pre.code code{font-size:inherit}
   }
   function strichSVG(d, st, i, edit) {
     const a = STRICH[st.k], dd = st.k ? shapeD(st) : glatterPfad(st.p), sel = edit && istMarkiert("s", i);
-    let s = sel ? `<path d="${dd}" stroke="#2F80ED" stroke-width="${+st.w + 7}" stroke-opacity=".28" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` : "";
-    s += a && a.zeichne ? a.zeichne(st, i, d) : `<path data-i="${i}" d="${dd}" stroke="${st.c}" stroke-width="${st.w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+    const kappe = `fill="none" stroke-linecap="round" stroke-linejoin="round"`;
+    let s = sel ? `<path d="${dd}" stroke="#2F80ED" stroke-width="${+st.w + 7}" stroke-opacity=".28" ${kappe}/>` : "";
+    s += a && a.zeichne ? a.zeichne(st, i, d) : `<path data-i="${i}" d="${dd}" stroke="${st.c}" stroke-width="${st.w}" ${kappe}/>`;
     if (edit) s += `<path data-i="${i}" d="${dd}" stroke="transparent" stroke-width="14" fill="none"/>`;
-    if (sel && st.k && !(a && a.griffe === false)) s += st.p.map((q, h) => `<circle data-hi="${i}" data-h="${h}" cx="${q[0]}" cy="${q[1]}" r="6.5" fill="#fff" stroke="#2F80ED" stroke-width="2"/>`).join("");
+    if (sel && st.k && !(a && a.griffe === false)) s += st.p.map((q, h) => griffSVG(i, h, q)).join("");
     return s;
   }
+  var griffSVG = (i, h, q) => `<circle data-hi="${i}" data-h="${h}" cx="${q[0]}" cy="${q[1]}" r="6.5" fill="#fff" stroke="#2F80ED" stroke-width="2"/>`;
   function textSVG(t, i, edit) {
     const sz = t.s || 16, sel = edit && istMarkiert("t", i), zeilen = String(t.v).split("\n");
-    const rahmen = edit ? `<rect data-ti="${i}" x="${t.x - 4}" y="${t.y - sz - 1}" width="${tw(t.v, sz) + 10}" height="${sz * 1.2 * zeilen.length + 6}" rx="3" fill="transparent" ${sel ? 'stroke="#2F80ED" stroke-width="1.3" stroke-dasharray="4 3"' : ""}/>` : "";
+    const strich = sel ? 'stroke="#2F80ED" stroke-width="1.3" stroke-dasharray="4 3"' : "";
+    const rahmen = edit ? `<rect data-ti="${i}" x="${t.x - 4}" y="${t.y - sz - 1}" width="${tw(t.v, sz) + 10}" height="${sz * 1.2 * zeilen.length + 6}" rx="3" fill="transparent" ${strich}/>` : "";
     const inhalt = zeilen.map((l, j) => j ? `<tspan x="${t.x}" dy="${(1.2 * sz).toFixed(1)}">${esc(l)}</tspan>` : esc(l)).join("");
-    return rahmen + `<text data-ti="${i}" x="${t.x}" y="${t.y}" font-size="${sz}" fill="${t.c}" font-family="Plex Sans,Segoe UI,sans-serif" font-weight="500">${inhalt}</text>`;
+    return rahmen + `<text data-ti="${i}" x="${t.x}" y="${t.y}" font-size="${sz}" fill="${t.c}" font-family="${SCHRIFT}" font-weight="500">${inhalt}</text>`;
   }
   function strokesSVG(d, edit = false) {
     if (!d) return "";
@@ -1359,18 +1366,22 @@ pre.code code{font-size:inherit}
   }
   function wireD(a, b, spuren) {
     if ((a.d === "u" || a.d === "d") && (b.d === "u" || b.d === "d") && Math.abs(a.x - b.x) < 1) return `M${a.x} ${a.y}V${b.y}`;
-    const st = 14, ext = (p) => [p.x + (p.d === "r" ? st : p.d === "l" ? -st : 0), p.y + (p.d === "d" ? st : p.d === "u" ? -st : 0)];
-    const A = ext(a), B = ext(b), va = a.d === "u" || a.d === "d", vb = b.d === "u" || b.d === "d";
+    const A = versetzt(a, 14), B = versetzt(b, 14), va = a.d === "u" || a.d === "d", vb = b.d === "u" || b.d === "d";
     let mid;
+    const quer = (u, v, lage) => Math.round((u + v) / 20) * 10 + Math.round(lage / 20) % 4 * 10 - 10;
     if (va && vb) {
-      const my = Math.round((A[1] + B[1]) / 20) * 10 + Math.round(a.x / 20) % 4 * 10 - 10;
+      const my = quer(A[1], B[1], a.x);
       mid = [[A[0], my], [B[0], my]];
     } else if (!va && !vb) {
-      const mx = Math.round((A[0] + B[0]) / 20) * 10 + Math.round(a.y / 20) % 4 * 10 - 10;
+      const mx = quer(A[0], B[0], a.y);
       mid = [[mx, A[1]], [mx, B[1]]];
     } else if (va) mid = [[A[0], B[1]]];
     else mid = [[B[0], A[1]]];
     return "M" + [[a.x, a.y], A, ...mid, B, [b.x, b.y]].map((p) => p.join(" ")).join("L");
+  }
+  function versetzt(q, n) {
+    const [dx, dy] = DIRV[q.d] || [0, 0];
+    return [q.x + dx * n, q.y + dy * n];
   }
   function wireEnds(c, objs) {
     const A = objs[c.a], B = objs[c.b];
@@ -1533,9 +1544,11 @@ pre.code code{font-size:inherit}
     const X = drehung(o);
     if (!X) return svg;
     const swap = X.f * X.c < 0;
-    const upright = svg.replace(/<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)"/g, (m, x, y, a) => `<text transform="translate(${x} ${y}) scale(${X.f} 1) rotate(${-X.r}) translate(${-x} ${-y})" x="${x}" y="${y}" text-anchor="${swap && a !== "middle" ? a === "end" ? "start" : "end" : a}"`);
+    const anker = (a) => swap && a !== "middle" ? GEGENANKER[a] : a;
+    const upright = svg.replace(/<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)"/g, (m, x, y, a) => `<text transform="translate(${x} ${y}) scale(${X.f} 1) rotate(${-X.r}) translate(${-x} ${-y})" x="${x}" y="${y}" text-anchor="${anker(a)}"`);
     return `<g transform="translate(${X.cx} ${X.cy}) rotate(${X.r}) scale(${X.f} 1) translate(${-X.cx} ${-X.cy})">${upright}</g>`;
   }
+  var GEGENANKER = { start: "end", end: "start" };
   function refName(o, objs, cs, dir) {
     const a = art(o.k);
     if (a.verweisName) return a.verweisName(o, objs, cs, dir);
@@ -1581,19 +1594,17 @@ pre.code code{font-size:inherit}
     const P = simOn() && ED.sim.P && (ED.sim.P.has(c.a + ":" + c.pa) || ED.sim.P.has(c.b + ":" + c.pb));
     const wc = sel ? "#0E4C92" : P ? BLUE : INK, ww = sel || P ? 2.4 : 1.6, dash = c.st ? 'stroke-dasharray="6 4"' : "";
     if (!blattwechsel(a.y, b.y, key)) {
-      return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash}/>${treffer(gm.d, edit)}${c.v ? SVGT(gm.lbl[0], gm.lbl[1], c.v, "start", 11, 500) : ""}</g>`;
+      const text = c.v ? SVGT(gm.lbl[0], gm.lbl[1], c.v, "start", 11, 500) : "";
+      return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash}/>${treffer(gm.d, edit)}${text}</g>`;
     }
-    const stub = (q, n) => [q.x + (q.d === "r" ? n : q.d === "l" ? -n : 0), q.y + (q.d === "d" ? n : q.d === "u" ? -n : 0)];
-    const e1 = stub(a, 30), e2 = stub(b, 30);
+    const e1 = versetzt(a, 30), e2 = versetzt(b, 30);
     const t1 = `→ ${wireRef(objs[c.b], c.pb, key, b.y, b.x)}`, t2 = `von ${wireRef(objs[c.a], c.pa, key, a.y, a.x)}`;
-    const lab = (q, e, t) => {
-      const v = q.d === "u" || q.d === "d";
-      return SVGT(e[0] + (v ? 5 : 0), e[1] + (v ? q.d === "d" ? 4 : 2 : -5), t, "start", 10.5, 600);
-    };
+    const lab = (q, e, t) => SVGT(e[0] + STUMMELTEXT[q.d][0], e[1] + STUMMELTEXT[q.d][1], t, "start", 10.5, 600);
     const d1 = `M${a.x} ${a.y}L${e1[0]} ${e1[1]}`, d2 = `M${e2[0]} ${e2[1]}L${b.x} ${b.y}`;
     const pfeil = (d) => `<path d="${d}" fill="none" stroke="${wc}" stroke-width="${ww}" ${dash} marker-end="url(#arw)"/>`;
     return `<g data-c="${i}">${pfeil(d1)}${pfeil(d2)}${lab(a, e1, t1)}${lab(b, e2, t2)}` + treffer(d1 + d2, edit) + `</g>`;
   }
+  var STUMMELTEXT = { u: [5, 2], d: [5, 4], l: [0, -5], r: [0, -5] };
   function verbindungSVG(c, i, gm, objs, cs, key, edit) {
     const sel = edit && istMarkiert("c", i), col = sel ? "#0E4C92" : INK, staerke = sel ? 2.2 : 1.6;
     if (gm.p1 && blattwechsel(gm.p1[1], gm.p2[1] - 1, key)) {
@@ -1602,19 +1613,28 @@ pre.code code{font-size:inherit}
       const stummel = (d) => `<path d="${d}" fill="none" stroke="${col}" stroke-width="${staerke}" marker-end="url(#arw)"/>`;
       return `<g data-c="${i}">${stummel(`M${x1} ${y1}V${y1 + 30}`)}${stummel(`M${x2} ${y2 - 34}V${y2}`)}` + SVGT(x1 + 10, y1 + 28, zu, "start", 11.5, 600) + SVGT(x2 + 10, y2 - 22, von, "start", 11.5, 600) + treffer(`M${x1} ${y1}V${y1 + 30}M${x2} ${y2 - 34}V${y2}`, edit) + `</g>`;
     }
-    const up = gm.up ? `<path d="M${gm.up[0] - 6} ${gm.up[1] + 5}L${gm.up[0]} ${gm.up[1] - 6}L${gm.up[0] + 6} ${gm.up[1] + 5}" fill="none" stroke="${col}" stroke-width="1.6"/>` : "";
+    const [ux, uy] = gm.up || [], pfeil = `M${ux - 6} ${uy + 5}L${ux} ${uy - 6}L${ux + 6} ${uy + 5}`;
+    const up = gm.up ? `<path d="${pfeil}" fill="none" stroke="${col}" stroke-width="1.6"/>` : "";
     let lbl = "";
     if (gm.lbl && c.v) lbl = SVGT(gm.lbl[0], gm.lbl[1], c.v, gm.lbl[2], 12, 500);
     else if (gm.lbl && edit && fragtBedingung(objs[c.a])) lbl = SVGT(gm.lbl[0], gm.lbl[1], "Bedingung", gm.lbl[2], 11, 400, MUTE);
-    return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${col}" stroke-width="${staerke}" ${gm.arrow ? 'marker-end="url(#arw)"' : ""}/>${up}${treffer(gm.d, edit)}${lbl}</g>`;
+    const spitze = gm.arrow ? 'marker-end="url(#arw)"' : "";
+    return `<g data-c="${i}"><path d="${gm.d}" fill="none" stroke="${col}" stroke-width="${staerke}" ${spitze}/>${up}${treffer(gm.d, edit)}${lbl}</g>`;
   }
   var istRahmen = (o) => !!art(o.k).rahmen;
   function bausteinSVG(o, edit) {
-    const b = umrissVon(o), von = edit && ED.verbindenVon && ED.verbindenVon.id === o.id, hi = edit && (istMarkiert("o", o.id) || von), fr = istRahmen(o);
-    let h = "";
-    if (edit && fr) h = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? 0.25 : 0}" stroke-width="12"/>`;
-    if (edit && !fr) h = `<rect x="${b.x - 5}" y="${b.y - 5}" width="${b.w + 10}" height="${b.h + 10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${von ? "2 3" : "5 3"}"` : ""}/>`;
+    const h = edit ? istRahmen(o) ? rahmenGriff(o) : markierungsRahmen(o) : "";
     return `<g data-o="${o.id}">${h}${bausteinZeichnen(o, edit)}</g>`;
+  }
+  var istVerbindenQuelle = (o) => !!ED.verbindenVon && ED.verbindenVon.id === o.id;
+  var istHervorgehoben = (o) => istMarkiert("o", o.id) || istVerbindenQuelle(o);
+  function rahmenGriff(o) {
+    const b = umrissVon(o), hi = istHervorgehoben(o);
+    return `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? 0.25 : 0}" stroke-width="12"/>`;
+  }
+  function markierungsRahmen(o) {
+    const b = umrissVon(o), strich = `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${istVerbindenQuelle(o) ? "2 3" : "5 3"}"`;
+    return `<rect x="${b.x - 5}" y="${b.y - 5}" width="${b.w + 10}" height="${b.h + 10}" rx="4" fill="transparent" ${istHervorgehoben(o) ? strich : ""}/>`;
   }
   function abzweigpunkte(cs, objs) {
     let s = "";
@@ -1699,14 +1719,18 @@ pre.code code{font-size:inherit}
   function pagesSVG(key, ex, meta, n, edit) {
     const body = vorlage(key).body;
     let h = "";
-    for (let i = 0; i < n; i++) h += `<g transform="translate(0 ${i * PH})"><rect width="1000" height="${PH}" fill="#fff"/>${body ? body(ex, i, meta) : ""}${frame({ ...meta, blatt: n > 1 ? `${i + 1} von ${n}` : "1" })}</g>`;
-    if (edit) for (let i = 1; i < n; i++) h += `<g pointer-events="none"><path d="M0 ${i * PH}H1000" stroke="#9AA4AD" stroke-width="1" stroke-dasharray="2 6"/>${SVGT(990, i * PH - 5, `Seitenumbruch – Blatt ${i + 1}`, "end", 9.5, 400, "#9AA4AD")}</g>`;
+    for (let i = 0; i < n; i++) {
+      h += `<g transform="translate(0 ${i * PH})"><rect width="1000" height="${PH}" fill="#fff"/>${body ? body(ex, i, meta) : ""}${frame({ ...meta, blatt: n > 1 ? `${i + 1} von ${n}` : "1" })}</g>`;
+    }
+    if (edit) for (let i = 1; i < n; i++) h += seitenumbruch(i);
     return h;
   }
+  var seitenumbruch = (i) => `<g pointer-events="none"><path d="M0 ${i * PH}H1000" stroke="#9AA4AD" stroke-width="1" stroke-dasharray="2 6"/>${SVGT(990, i * PH - 5, `Seitenumbruch – Blatt ${i + 1}`, "end", 9.5, 400, "#9AA4AD")}</g>`;
+  var PFEIL_MARKER = `<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 1L10 5L0 9z" fill="${INK}"/></marker></defs>`;
   function sketchSVG(key, ex, data, meta, edit = false, page = null) {
     const n = pageCount(key, data), shown = edit || page !== null ? n : 1;
     const vb = page !== null ? `0 ${page * PH} 1000 ${PH}` : `0 0 1000 ${PH * (edit ? n : 1)}`;
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}"><defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 1L10 5L0 9z" fill="${INK}"/></marker></defs><g class="tpl">${pagesSVG(key, ex, meta, shown, edit)}</g><g class="ink">${zeichnungSVG(data, edit, key)}</g><g class="ghost"></g></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${PFEIL_MARKER}<g class="tpl">${pagesSVG(key, ex, meta, shown, edit)}</g><g class="ink">${zeichnungSVG(data, edit, key)}</g><g class="ghost"></g></svg>`;
   }
   var skKey = (scope, key) => `${scope}:sk:${key}`;
   var deDate = (t) => new Date(t).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -2093,7 +2117,16 @@ pre.code code{font-size:inherit}
   }
 
   // web/tools/uebungshandbuch/src/editor/eigenschaften.js
-  var SYMS = `<div class="syms" aria-label="Zeichen einfügen">${[["·", "UND"], ["+", "ODER"], ["¬", "NICHT"], ["↑", "steigende Flanke"], ["↓", "fallende Flanke"], [":=", "Zuweisung"], ["≥", "größer gleich"]].map(([c, t]) => `<button type="button" class="sym" data-sym="${c}" title="${t}">${c}</button>`).join("")}</div>`;
+  var ZEICHEN = [
+    ["·", "UND"],
+    ["+", "ODER"],
+    ["¬", "NICHT"],
+    ["↑", "steigende Flanke"],
+    ["↓", "fallende Flanke"],
+    [":=", "Zuweisung"],
+    ["≥", "größer gleich"]
+  ];
+  var SYMS = `<div class="syms" aria-label="Zeichen einfügen">` + ZEICHEN.map(([c, t]) => `<button type="button" class="sym" data-sym="${c}" title="${t}">${c}</button>`).join("") + `</div>`;
   var propsKey = null, lastProp = null;
   var setLastProp = (el) => {
     lastProp = el;
@@ -2101,7 +2134,9 @@ pre.code code{font-size:inherit}
   var MEHRZEILIG = ["v", "tv", "cv", "b"];
   function textFeld(f, lbl, ph, val) {
     const wert = esc(val ?? ""), platz = esc(ph || "");
-    if (!MEHRZEILIG.includes(f)) return `<label class="prop">${lbl}<input type="text" data-prop="${f}" value="${wert}" placeholder="${platz}" autocomplete="off"></label>`;
+    if (!MEHRZEILIG.includes(f)) {
+      return `<label class="prop">${lbl}<input type="text" data-prop="${f}" value="${wert}" placeholder="${platz}" autocomplete="off"></label>`;
+    }
     const zeilen = Math.max(1, String(val ?? "").split("\n").length);
     return `<label class="prop">${lbl}<textarea data-prop="${f}" rows="${zeilen}" placeholder="${platz}" title="Alt+Enter: neue Zeile">${wert}</textarea></label>`;
   }
@@ -2110,14 +2145,16 @@ pre.code code{font-size:inherit}
     return `<label class="prop">${lbl}<select data-prop="${f}">${optionen}</select></label>`;
   }
   var FARBEN = [["#17212B", "Schwarz"], ["#0E4C92", "Blau"], ["#C0392B", "Rot"]];
+  var propsKasten = (titel, inhalt) => `<div class="props"><div class="palh">${titel}</div>${inhalt}</div>`;
   var loeschKnopf = () => `<div class="propact"><button type="button" class="tool" data-ed="del">${IC.trash}Löschen</button></div>`;
   function propsHTML() {
     const v = vorlage(ED.key), anleitung = v.anleitung && v.anleitung();
     if (anleitung) return anleitung;
     const el = markiertesElement();
     if (el) return FELDER_JE_ART[ED.markiert.art](el);
-    return `<div class="props quiet"><p>Element anklicken zum Ändern, Doppelklick beschriftet. Name und Datum: aufs Schriftfeld klicken.</p></div>`;
+    return RUHE_HINWEIS;
   }
+  var RUHE_HINWEIS = `<div class="props quiet"><p>Element anklicken zum Ändern, Doppelklick beschriftet. Name und Datum: aufs Schriftfeld klicken.</p></div>`;
   var FELDER_JE_ART = {
     o: (o) => objektFelder(o),
     c: (c) => verbindungFelder(c),
@@ -2128,28 +2165,29 @@ pre.code code{font-size:inherit}
   var GROESSEN = [[12, "klein"], [16, "normal"], [20, "groß"], [26, "sehr groß"]];
   var STAERKEN = [[1.4, "dünn"], [2.2, "mittel"], [4, "dick"]];
   function textFelder(t) {
-    return `<div class="props"><div class="palh">Text</div>${textFeld("tv", "Text", "", t.v)}${SYMS}${auswahlFeld("ts", "Größe", GROESSEN, t.s || 16)}${auswahlFeld("sc", "Farbe", FARBEN, t.c)}${loeschKnopf()}</div>`;
+    return propsKasten("Text", textFeld("tv", "Text", "", t.v) + SYMS + auswahlFeld("ts", "Größe", GROESSEN, t.s || 16) + auswahlFeld("sc", "Farbe", FARBEN, t.c) + loeschKnopf());
   }
   function strichFelder(st) {
     const a = STRICH[st.k];
-    if (a && a.felder) return `<div class="props"><div class="palh">${a.titel}</div>${a.felder(st)}${loeschKnopf()}</div>`;
+    if (a && a.felder) return propsKasten(a.titel, a.felder(st) + loeschKnopf());
     const titel = st.k ? (STRICH[st.k] || STRICH.r).titel : "Freihandstrich";
-    const griffe = st.k ? `<p class="small muted" style="margin:0 0 8px">Die runden Griffe an den Enden ziehen.</p>` : "";
-    return `<div class="props"><div class="palh">${titel}</div>${auswahlFeld("sc", "Farbe", FARBEN, st.c)}${auswahlFeld("sw", "Strichstärke", STAERKEN, st.w)}${griffe}${loeschKnopf()}</div>`;
+    const griffe = st.k ? HINWEIS("Die runden Griffe an den Enden ziehen.") : "";
+    return propsKasten(titel, auswahlFeld("sc", "Farbe", FARBEN, st.c) + auswahlFeld("sw", "Strichstärke", STAERKEN, st.w) + griffe + loeschKnopf());
   }
   function verbindungFelder(c) {
     if (c.pa !== void 0 || c.pb !== void 0) {
-      return `<div class="props"><div class="palh">Leitung</div>${textFeld("cv", "Beschriftung (optional)", "z. B. Aderfarbe oder Querschnitt", c.v)}${auswahlFeld("cst", "Leitungsart", [["", "Arbeits-/Hauptleitung"], ["st", "Steuerleitung (gestrichelt)"]], c.st || "")}${loeschKnopf()}</div>`;
+      return propsKasten("Leitung", textFeld("cv", "Beschriftung (optional)", "z. B. Aderfarbe oder Querschnitt", c.v) + auswahlFeld("cst", "Leitungsart", LEITUNGSARTEN, c.st || "") + loeschKnopf());
     }
-    const beschriftung = gruppeVon(objById(c.a)).pfeiltext ? textFeld("cv", "Beschriftung", "z. B. BG13 / QA1", c.v) + SYMS : `<p class="small muted" style="margin:0 0 8px">GRAFCET-Verbindungen tragen keine Beschriftung – die Bedingung steht an der Transition.</p>`;
-    return `<div class="props"><div class="palh">Verbindung</div>${beschriftung}${loeschKnopf()}</div>`;
+    const beschriftung = gruppeVon(objById(c.a)).pfeiltext ? textFeld("cv", "Beschriftung", "z. B. BG13 / QA1", c.v) + SYMS : HINWEIS("GRAFCET-Verbindungen tragen keine Beschriftung – die Bedingung steht an der Transition.");
+    return propsKasten("Verbindung", beschriftung + loeschKnopf());
   }
+  var LEITUNGSARTEN = [["", "Arbeits-/Hauptleitung"], ["st", "Steuerleitung (gestrichelt)"]];
   function schriftfeldFelder() {
-    const inp = textFeld;
     const m = ED.data.meta || {}, auto = skMeta(ED.scope, ED.key, { ...ED.data, meta: {} });
-    return `<div class="props"><div class="palh">Schriftfeld</div>${inp("mt", "Titel", auto.title, m.title)}${inp("mn", "Name", auto.name || "Name eintragen", m.name)}
-    <label class="prop">Datum<span style="display:flex;gap:6px"><input type="text" data-prop="md" value="${esc(m.datum || "")}" placeholder="${esc(auto.datum || deDate(Date.now()))}" autocomplete="off"><button type="button" class="tool" data-ed="heute" style="margin-top:3px">Heute</button></span></label>
-    <p class="small muted" style="margin:0 0 8px">Leer gelassen gelten der Name aus „Meine Daten“ und das Datum der letzten Änderung.</p>
+    const datum = `<input type="text" data-prop="md" value="${esc(m.datum || "")}" placeholder="${esc(auto.datum || deDate(Date.now()))}" autocomplete="off"><button type="button" class="tool" data-ed="heute" style="margin-top:3px">Heute</button>`;
+    return `<div class="props"><div class="palh">Schriftfeld</div>${textFeld("mt", "Titel", auto.title, m.title)}${textFeld("mn", "Name", auto.name || "Name eintragen", m.name)}
+    <label class="prop">Datum<span style="display:flex;gap:6px">${datum}</span></label>
+    ${HINWEIS("Leer gelassen gelten der Name aus „Meine Daten“ und das Datum der letzten Änderung.")}
     <div class="propact"><button type="button" class="tool" data-ed="sfzu">Fertig</button></div></div>`;
   }
   function zeigeHinweis(text) {
@@ -2178,7 +2216,7 @@ pre.code code{font-size:inherit}
     let h = a.felder ? a.felder(o) : (a.feldliste || []).map((feld) => listenFeld(o, a, feld)).join("");
     if (a.info) h += `<p class="small muted" style="margin:0 0 8px;line-height:1.45">${a.info}</p>`;
     if (a.bauteil && a.drehbar !== false) h += DREHKNOEPFE;
-    return `<div class="props"><div class="palh">${a.titel || BAUSTEIN[o.k].n}</div>${h}${h ? SYMS : ""}${loeschKnopf()}</div>`;
+    return propsKasten(a.titel || BAUSTEIN[o.k].n, h + (h ? SYMS : "") + loeschKnopf());
   }
   function kennzeichenFeld(o, lbl, ph) {
     const arten = art(o.k).kennbuchstaben;
@@ -2190,6 +2228,7 @@ pre.code code{font-size:inherit}
     return textFeld(f, lbl, zusatz, o[f]);
   }
   var DREHKNOEPFE = `<div class="propact" style="justify-content:flex-start;gap:6px;margin-bottom:8px"><button type="button" class="tool" data-ed="rot" title="Taste R">↻ Drehen 90°</button><button type="button" class="tool" data-ed="flip" title="Taste M">⇋ Spiegeln</button></div>`;
+  var HINWEIS = (t) => `<p class="small muted" style="margin:0 0 8px">${t}</p>`;
 
   // web/tools/uebungshandbuch/src/editor/anzeige.js
   function sizeSVG() {
@@ -2208,7 +2247,8 @@ pre.code code{font-size:inherit}
     sizeSVG();
   }
   function refreshTpl() {
-    if (ED.svg) ED.svg.querySelector(".tpl").innerHTML = pagesSVG(ED.key, BY[ED.scope], skMeta(ED.scope, ED.key, ED.data), ED.blattzahl, true);
+    if (!ED.svg) return;
+    ED.svg.querySelector(".tpl").innerHTML = pagesSVG(ED.key, BY[ED.scope], skMeta(ED.scope, ED.key, ED.data), ED.blattzahl, true);
   }
   function renderInk() {
     if (ED.svg) {
@@ -2350,23 +2390,27 @@ pre.code code{font-size:inherit}
     };
     return out.sort((a, b) => ord(a.sc) - ord(b.sc));
   }
+  function takeEintrag(x) {
+    const name = BY[x.sc] ? `${x.sc} ${esc(BY[x.sc].t)}` : "Freie Zeichnung (Vorlagen)";
+    return `<button type="button" role="menuitem" data-ed="takeit" data-from="${x.sc}"><b>${name}</b><span>${x.n} Elemente${x.ts ? " · geändert " + deDate(x.ts) : ""}</span></button>`;
+  }
+  var TAKE_HINWEIS = `<p>Die Kopie ersetzt die Zeichnung dieser Übung. Das Original bleibt unverändert, Rückgängig holt den alten Stand zurück.</p>`;
+  var TAKE_LEER = `<p>Noch keine andere Übung hat eine Zeichnung dieser Art. Sobald Sie z. B. in L08 einen Plan gezeichnet haben, erscheint er hier.</p>`;
   function takeMenu(btn) {
     const old = $("#editor .takemenu");
     if (old) {
       old.remove();
       return;
     }
-    const list = takeList(), name = (sc) => BY[sc] ? `${sc} ${esc(BY[sc].t)}` : "Freie Zeichnung (Vorlagen)";
-    const m = document.createElement("div");
+    const list = takeList(), m = document.createElement("div");
     m.className = "takemenu";
     m.setAttribute("role", "menu");
-    m.innerHTML = `<div class="tmh">${VORL[ED.key].n} aus einer anderen Übung kopieren</div>` + (list.length ? list.map((x) => `<button type="button" role="menuitem" data-ed="takeit" data-from="${x.sc}"><b>${name(x.sc)}</b><span>${x.n} Elemente${x.ts ? " · geändert " + deDate(x.ts) : ""}</span></button>`).join("") + `<p>Die Kopie ersetzt die Zeichnung dieser Übung. Das Original bleibt unverändert, Rückgängig holt den alten Stand zurück.</p>` : `<p>Noch keine andere Übung hat eine Zeichnung dieser Art. Sobald Sie z. B. in L08 einen Plan gezeichnet haben, erscheint er hier.</p>`);
+    m.innerHTML = `<div class="tmh">${VORL[ED.key].n} aus einer anderen Übung kopieren</div>` + (list.length ? list.map(takeEintrag).join("") + TAKE_HINWEIS : TAKE_LEER);
     btn.parentElement.appendChild(m);
     const off = (e) => {
-      if (!m.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
-        m.remove();
-        document.removeEventListener("pointerdown", off, true);
-      }
+      if (m.contains(e.target) || e.target === btn || btn.contains(e.target)) return;
+      m.remove();
+      document.removeEventListener("pointerdown", off, true);
     };
     document.addEventListener("pointerdown", off, true);
   }
@@ -2375,7 +2419,8 @@ pre.code code{font-size:inherit}
     $("#editor .takemenu")?.remove();
     if (!src) return;
     const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
-    if (has && !confirm(`Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`)) return;
+    const frage = `Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`;
+    if (has && !confirm(frage)) return;
     snapshot();
     const d = mitListen(JSON.parse(JSON.stringify(src)));
     if (d.meta) {
@@ -2397,18 +2442,7 @@ pre.code code{font-size:inherit}
     el.selectionStart = el.selectionEnd = a + 1;
   }
   function editLabel(x, y, anfang, ph, done) {
-    const svg = ED.svg, stage = $("#edstage"), r = stage.getBoundingClientRect(), m = svg.getScreenCTM();
-    const inp = document.createElement("textarea");
-    inp.className = "txtin";
-    inp.value = anfang;
-    inp.placeholder = (ph || "Text") + " – Enter übernimmt, Alt+Enter neue Zeile";
-    inp.rows = Math.max(1, anfang.split("\n").length);
-    inp.title = "Enter übernimmt, Alt+Enter (oder Umschalt+Enter) beginnt eine neue Zeile";
-    inp.style.left = Math.max(4, Math.min(m.a * x + m.e - r.left, r.width - 270)) + "px";
-    inp.style.top = m.d * y + m.f - r.top + stage.scrollTop - 17 + "px";
-    stage.appendChild(inp);
-    inp.focus();
-    inp.select();
+    const stage = $("#edstage"), inp = beschriftungsFeld(x, y, anfang, ph, stage);
     let fertig = false;
     const commit = (ok, wohin) => {
       if (fertig) return;
@@ -2436,6 +2470,20 @@ pre.code code{font-size:inherit}
       }
     });
     inp.addEventListener("blur", (ev) => commit(true, ev.relatedTarget));
+  }
+  function beschriftungsFeld(x, y, anfang, ph, stage) {
+    const r = stage.getBoundingClientRect(), m = ED.svg.getScreenCTM(), inp = document.createElement("textarea");
+    inp.className = "txtin";
+    inp.value = anfang;
+    inp.placeholder = (ph || "Text") + " – Enter übernimmt, Alt+Enter neue Zeile";
+    inp.rows = Math.max(1, anfang.split("\n").length);
+    inp.title = "Enter übernimmt, Alt+Enter (oder Umschalt+Enter) beginnt eine neue Zeile";
+    inp.style.left = Math.max(4, Math.min(m.a * x + m.e - r.left, r.width - 270)) + "px";
+    inp.style.top = m.d * y + m.f - r.top + stage.scrollTop - 17 + "px";
+    stage.appendChild(inp);
+    inp.focus();
+    inp.select();
+    return inp;
   }
   function editObjLabel(o) {
     if (!o) return;
@@ -2491,7 +2539,8 @@ pre.code code{font-size:inherit}
     ED.tool = t;
     if (t !== "place") ED.place = null;
     if (t !== "conn") ED.verbindenVon = null;
-    $$("#editor [data-tool]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.tool === t && (!b.dataset.color || b.dataset.color === ED.color)));
+    const gedrueckt = (b) => b.dataset.tool === t && (!b.dataset.color || b.dataset.color === ED.color);
+    $$("#editor [data-tool]").forEach((b) => b.setAttribute("aria-pressed", gedrueckt(b)));
     $$("#editor [data-place]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.place === ED.place));
     if (ED.svg) {
       BLATTKLASSEN.forEach((c) => ED.svg.classList.toggle(c, t === c));
@@ -2718,7 +2767,8 @@ pre.code code{font-size:inherit}
   function connectPorts(a, pa, b, pb) {
     if (a === b && pa === pb) return;
     if (a.startsWith("_") && b.startsWith("_")) return;
-    if (ED.data.c.some((c) => c.a === a && c.pa === pa && c.b === b && c.pb === pb || c.a === b && c.pa === pb && c.b === a && c.pb === pa)) return;
+    const gleich = (c) => c.a === a && c.pa === pa && c.b === b && c.pb === pb || c.a === b && c.pa === pb && c.b === a && c.pb === pa;
+    if (ED.data.c.some(gleich)) return;
     aendere((d) => {
       d.c.push({ a, pa, b, pb, v: "" });
       markiere("c", d.c.length - 1);
@@ -3076,6 +3126,12 @@ pre.code code{font-size:inherit}
   var farbKnopf = ([c, n]) => `<button type="button" class="tool" data-tool="pen" data-color="${c}"><span class="dot" style="background:${c}"></span>${n}</button>`;
   var staerkeKnopf = ([w, n]) => `<button type="button" class="tool" data-w="${w}">${n}</button>`;
   var KOPIEREN = `<span class="takewrap">` + aktionsKnopf("take", IC.copy + "Aus früherer Übung", ` aria-haspopup="true"` + titelAttr("Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren")) + `</span>`;
+  var VERLAUFSKNOEPFE = [
+    aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z")),
+    aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y") + " disabled"),
+    aktionsKnopf("del", IC.trash + "Markiertes löschen", titelAttr("Entf")),
+    aktionsKnopf("clear", "Alles leeren")
+  ];
   var ABSCHLUSS = `<button type="button" class="btn small" data-ed="print">${IC.print}Drucken</button><button type="button" class="btn primary small" data-ed="close">Fertig</button>`;
   function werkzeugleisteZeilen(v, key, mitPalette) {
     const ex = BY[ED.scope], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
@@ -3094,19 +3150,16 @@ pre.code code{font-size:inherit}
       [werkzeugKnopf("text", IC.text + "Text")],
       [werkzeugKnopf("erase", IC.eraser + "Radierer")],
       [TRENNER],
-      [aktionsKnopf("grid", IC.grid + "Raster fangen", ` aria-pressed="${ED.grid}"` + titelAttr("Bausteine und Linien rasten im 10er-Raster ein"))],
+      [aktionsKnopf(
+        "grid",
+        IC.grid + "Raster fangen",
+        ` aria-pressed="${ED.grid}"` + titelAttr("Bausteine und Linien rasten im 10er-Raster ein")
+      )],
       [mitPalette ? aktionsKnopf("dock", IC.magnet + "Andocken", ` aria-pressed="${ED.dock}"` + titelAttr("Bausteine richten sich an Nachbarn aus und verbinden sich automatisch")) : ""],
       [TRENNER],
       STAERKEN.map(staerkeKnopf),
       [TRENNER],
-      [
-        KOPIEREN,
-        aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z")),
-        aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y") + " disabled"),
-        aktionsKnopf("del", IC.trash + "Markiertes löschen", titelAttr("Entf")),
-        aktionsKnopf("clear", "Alles leeren"),
-        PRUEFKNOPF(key)
-      ],
+      [KOPIEREN, ...VERLAUFSKNOEPFE, PRUEFKNOPF(key)],
       [`<span style="flex:1"></span>`],
       [ABSCHLUSS]
     ];
@@ -3926,7 +3979,6 @@ END_CASE;`)}
     st.p = [q];
     drag.att.forEach(([j, h]) => ED.data.s[j].p[h] = [...q]);
   }
-  var HINWEIS = (t) => `<p class="small muted" style="margin:0 0 8px">${t}</p>`;
   fuelle(STRICH, {
     sig: {
       titel: "Signallinie",
@@ -5530,9 +5582,10 @@ END_CASE;`)}
       e.preventDefault();
       return;
     }
-    if (!strg && !e.altKey && markiertId("o") && ["r", "m"].includes(e.key.toLowerCase())) {
+    const dreh = { r: "rot", m: "flip" }[e.key.toLowerCase()];
+    if (!strg && !e.altKey && markiertId("o") && dreh) {
       e.preventDefault();
-      turnSel(e.key.toLowerCase() === "r" ? "rot" : "flip");
+      turnSel(dreh);
       return;
     }
     if (e.key === "Escape" && abbrechen(e)) return;

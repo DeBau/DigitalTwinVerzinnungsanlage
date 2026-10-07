@@ -68,13 +68,19 @@ export function virtuelleSchienen(key, n){
 // spuren (spuren.js) ist die Spurbelegung der Zeichnung, noch unbenutzt.
 export function wireD(a, b, spuren){
   if ((a.d === "u" || a.d === "d") && (b.d === "u" || b.d === "d") && Math.abs(a.x - b.x) < 1) return `M${a.x} ${a.y}V${b.y}`;
-  const st = 14, ext = p => [p.x + (p.d === "r" ? st : p.d === "l" ? -st : 0), p.y + (p.d === "d" ? st : p.d === "u" ? -st : 0)];
-  const A = ext(a), B = ext(b), va = a.d === "u" || a.d === "d", vb = b.d === "u" || b.d === "d";
+  const A = versetzt(a, 14), B = versetzt(b, 14), va = a.d === "u" || a.d === "d", vb = b.d === "u" || b.d === "d";
   let mid;
-  if (va && vb) { const my = Math.round((A[1] + B[1]) / 20) * 10 + (Math.round(a.x / 20) % 4) * 10 - 10; mid = [[A[0], my], [B[0], my]]; }   // je Anschluss eigene Querhöhe: verschiedene Potenziale liegen nie übereinander
-  else if (!va && !vb) { const mx = Math.round((A[0] + B[0]) / 20) * 10 + (Math.round(a.y / 20) % 4) * 10 - 10; mid = [[mx, A[1]], [mx, B[1]]]; }
+  // je Anschluss eigene Querhöhe bzw. Querlage: verschiedene Potenziale liegen nie übereinander
+  const quer = (u, v, lage) => Math.round((u + v) / 20) * 10 + (Math.round(lage / 20) % 4) * 10 - 10;
+  if (va && vb) { const my = quer(A[1], B[1], a.x); mid = [[A[0], my], [B[0], my]]; }
+  else if (!va && !vb) { const mx = quer(A[0], B[0], a.y); mid = [[mx, A[1]], [mx, B[1]]]; }
   else if (va) mid = [[A[0], B[1]]]; else mid = [[B[0], A[1]]];
   return "M" + [[a.x, a.y], A, ...mid, B, [b.x, b.y]].map(p => p.join(" ")).join("L");
+}
+// Punkt n weiter in Richtung q.d des Anschlusses q
+export function versetzt(q, n){
+  const [dx, dy] = DIRV[q.d] || [0, 0];
+  return [q.x + dx * n, q.y + dy * n];
 }
 // Endpunkte einer Leitung c; auf einer Schiene liegt das Ende senkrecht über bzw. unter dem Gegenanschluss
 export function wireEnds(c, objs){

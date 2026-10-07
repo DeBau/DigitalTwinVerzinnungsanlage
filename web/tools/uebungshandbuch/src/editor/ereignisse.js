@@ -116,11 +116,18 @@ export function beschrifteMarkiertes(){
   const m = ED.markiert, beschrifte = m && AUSWAHL[m.art] && AUSWAHL[m.art].beschriften;
   if (beschrifte) beschrifte(m.id);
 }
-// Esc: angefangene Eingabe der Vorlage (ED.vorlage.angefangen) verwerfen, sonst Markierung und Werkzeug aufheben; true, wenn etwas zu tun war
+// Esc: angefangene Eingabe der Vorlage (ED.vorlage.angefangen) verwerfen, sonst Markierung und Werkzeug aufheben.
+// true, wenn etwas zu tun war
 export function abbrechen(e){
   if (!ED.svg) return false;
-  if (ED.vorlage.angefangen) { e.preventDefault(); ED.vorlage.angefangen = null; $(".ghost", ED.svg).innerHTML = ""; updateProps(true); return true; }
-  if (ED.place || ED.verbindenVon || anySel()) { e.preventDefault(); clearSel(); ED.verbindenVon = null; werkzeugNachAbbruch(); return true; }
+  if (ED.vorlage.angefangen) {
+    e.preventDefault(); ED.vorlage.angefangen = null; $(".ghost", ED.svg).innerHTML = ""; updateProps(true);
+    return true;
+  }
+  if (ED.place || ED.verbindenVon || anySel()) {
+    e.preventDefault(); clearSel(); ED.verbindenVon = null; werkzeugNachAbbruch();
+    return true;
+  }
   return false;
 }
 // Pfeiltasten verschieben Bausteine, Texte und Striche um 10
@@ -136,7 +143,8 @@ export function taste(e){
   if ((e.key === "Enter" || e.key === "F2") && anySel() && ED.markiert.art !== "f") { e.preventDefault(); beschrifteMarkiertes(); return; }
   if (strg && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
   if (strg && e.key.toLowerCase() === "a") { e.preventDefault(); return; }
-  if (!strg && !e.altKey && markiertId("o") && ["r", "m"].includes(e.key.toLowerCase())) { e.preventDefault(); turnSel(e.key.toLowerCase() === "r" ? "rot" : "flip"); return; }
+  const dreh = {r: "rot", m: "flip"}[e.key.toLowerCase()];   // Taste R dreht, M spiegelt
+  if (!strg && !e.altKey && markiertId("o") && dreh) { e.preventDefault(); turnSel(dreh); return; }
   if (e.key === "Escape" && abbrechen(e)) return;
   if ((e.key === "Delete" || e.key === "Backspace") && anySel()) { e.preventDefault(); delSel(); return; }
   if (e.key.startsWith("Arrow") && anySel() && VERSCHIEBE[ED.markiert.art]) {

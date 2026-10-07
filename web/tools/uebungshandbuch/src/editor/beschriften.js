@@ -8,20 +8,45 @@ import { updateProps } from './eigenschaften.js';
 import { renderInk } from './anzeige.js';
 import { saveSketch, snapshot } from './verlauf.js';
 
-export function newline(el){ const a = el.selectionStart, b = el.selectionEnd; el.value = el.value.slice(0, a) + "\n" + el.value.slice(b); el.selectionStart = el.selectionEnd = a + 1; }
+// Zeilenumbruch an der Schreibmarke eines Textfelds einfügen
+export function newline(el){
+  const a = el.selectionStart, b = el.selectionEnd;
+  el.value = el.value.slice(0, a) + "\n" + el.value.slice(b);
+  el.selectionStart = el.selectionEnd = a + 1;
+}
+// Beschriftungsfeld an der Blattstelle x, y mit Anfangswert anfang. Enter übernimmt (done(Text)), Esc verwirft.
 export function editLabel(x, y, anfang, ph, done){
-  const svg = ED.svg, stage = $("#edstage"), r = stage.getBoundingClientRect(), m = svg.getScreenCTM();
-  const inp = document.createElement("textarea"); inp.className = "txtin"; inp.value = anfang; inp.placeholder = (ph || "Text") + " – Enter übernimmt, Alt+Enter neue Zeile";
-  inp.rows = Math.max(1, anfang.split("\n").length); inp.title = "Enter übernimmt, Alt+Enter (oder Umschalt+Enter) beginnt eine neue Zeile";
-  inp.style.left = Math.max(4, Math.min(m.a * x + m.e - r.left, r.width - 270)) + "px"; inp.style.top = (m.d * y + m.f - r.top + stage.scrollTop - 17) + "px";
-  stage.appendChild(inp); inp.focus(); inp.select();
+  const stage = $("#edstage"), inp = beschriftungsFeld(x, y, anfang, ph, stage);
   let fertig = false;
-  const commit = (ok, wohin) => { if (fertig) return; fertig = true; const v = inp.value.trim(); inp.remove(); if (!wohin) stage.focus({preventScroll: true}); if (ok) done(v); };
-  inp.addEventListener("keydown", ev => { ev.stopPropagation();
-    if (ev.key === "Enter" && (ev.altKey || ev.shiftKey || ev.ctrlKey)) { ev.preventDefault(); newline(inp); inp.rows = inp.value.split("\n").length; return; }
+  const commit = (ok, wohin) => {
+    if (fertig) return;
+    fertig = true;
+    const v = inp.value.trim();
+    inp.remove();
+    if (!wohin) stage.focus({preventScroll: true});
+    if (ok) done(v);
+  };
+  inp.addEventListener("keydown", ev => {
+    ev.stopPropagation();
+    if (ev.key === "Enter" && (ev.altKey || ev.shiftKey || ev.ctrlKey)) {
+      ev.preventDefault(); newline(inp); inp.rows = inp.value.split("\n").length; return;
+    }
     if (ev.key === "Enter") { ev.preventDefault(); commit(true); }
-    if (ev.key === "Escape") { ev.preventDefault(); commit(false); } });
+    if (ev.key === "Escape") { ev.preventDefault(); commit(false); }
+  });
   inp.addEventListener("blur", ev => commit(true, ev.relatedTarget));
+}
+// Textfeld über dem Blatt anlegen, an die Bildschirmlage von x, y setzen und fokussieren
+export function beschriftungsFeld(x, y, anfang, ph, stage){
+  const r = stage.getBoundingClientRect(), m = ED.svg.getScreenCTM(), inp = document.createElement("textarea");
+  inp.className = "txtin"; inp.value = anfang;
+  inp.placeholder = (ph || "Text") + " – Enter übernimmt, Alt+Enter neue Zeile";
+  inp.rows = Math.max(1, anfang.split("\n").length);
+  inp.title = "Enter übernimmt, Alt+Enter (oder Umschalt+Enter) beginnt eine neue Zeile";
+  inp.style.left = Math.max(4, Math.min(m.a * x + m.e - r.left, r.width - 270)) + "px";
+  inp.style.top = (m.d * y + m.f - r.top + stage.scrollTop - 17) + "px";
+  stage.appendChild(inp); inp.focus(); inp.select();
+  return inp;
 }
 // Baustein beschriften. Der Haken beschriftung der Bausteinart bestimmt Ort, Anfangswert, Hinweis und wie der
 // eingegebene Text übernommen wird; beschriftung: false heißt, der Baustein trägt keinen Text.
@@ -42,9 +67,15 @@ export function editObjLabel(o){
 export function editConnLabel(i){
   const c = ED.data.c[i], p = ED.svg.querySelector(`[data-c="${i}"] path`); if (!c || !p) return;
   const L = p.getTotalLength(), m = p.getPointAtLength(L / 2);
-  editLabel(m.x + 8, m.y, c.v || "", "Bedingung / Aktion, z. B. BG1 / MB1", v => { snapshot(); c.v = v; saveSketch(); renderInk(); updateProps(true); });
+  editLabel(m.x + 8, m.y, c.v || "", "Bedingung / Aktion, z. B. BG1 / MB1", v => {
+    snapshot(); c.v = v; saveSketch(); renderInk(); updateProps(true);
+  });
 }
 export function editTextItem(i){
   const t = ED.data.t[i]; if (!t) return;
-  editLabel(t.x, t.y - 5, t.v, "Text", v => { snapshot(); if (v) t.v = v; else { ED.data.t.splice(i, 1); clearSel(); } saveSketch(); renderInk(); updateProps(true); });
+  editLabel(t.x, t.y - 5, t.v, "Text", v => {
+    snapshot();
+    if (v) t.v = v; else { ED.data.t.splice(i, 1); clearSel(); }
+    saveSketch(); renderInk(); updateProps(true);
+  });
 }

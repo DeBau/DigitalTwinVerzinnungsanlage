@@ -4,7 +4,7 @@ import { INK, SVGT, arrowHead, tw } from '../svg.js';
 import { ED } from '../status.js';
 import { STRICH, STRICHFELD, fuelle } from '../registry.js';
 import { shapeD } from '../vorlagen-svg.js';
-import { FARBEN, auswahlFeld, textFeld } from '../eigenschaften.js';
+import { FARBEN, HINWEIS, auswahlFeld, textFeld } from '../eigenschaften.js';
 
 // Raster des Formulars: Schrittspalten von x0 bis x1 in 12 Schritten, erste Zeile bei y0, Zeilenhöhe zeile
 export const WS_RASTER = {x0: 150, x1: 975, spalten: 12, spalte: (975 - 150) / 12, y0: 74, zeile: 62};
@@ -107,7 +107,6 @@ export function zieheVerknuepfung(st, drag, dx, dy){
   drag.att.forEach(([j, h]) => ED.data.s[j].p[h] = [...q]);
 }
 
-export const HINWEIS = t => `<p class="small muted" style="margin:0 0 8px">${t}</p>`;
 fuelle(STRICH, {
   sig: {titel: "Signallinie", form: signalForm, zeichne: (st, i, d) => zeichneSignal(st, signalGruppe(d, i)),
     felder: st => textFeld("sl", "Signalgeber (steht am Ausgangspunkt)", "z. B. −BG2", st.lbl)

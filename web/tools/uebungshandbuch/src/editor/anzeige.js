@@ -17,5 +17,13 @@ export function checkPages(){
   ED.blattzahl = n; ED.svg.setAttribute("viewBox", `0 0 1000 ${PH*n}`);
   refreshTpl(); sizeSVG();
 }
-export function refreshTpl(){ if (ED.svg) ED.svg.querySelector(".tpl").innerHTML = pagesSVG(ED.key, BY[ED.scope], skMeta(ED.scope, ED.key, ED.data), ED.blattzahl, true); }
-export function renderInk(){ if (ED.svg) { ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key); checkPages(); } updateProps(); }
+// Vorgedrucktes und Schriftfeld neu zeichnen (nach einer Änderung an meta oder der Blattzahl)
+export function refreshTpl(){
+  if (!ED.svg) return;
+  ED.svg.querySelector(".tpl").innerHTML = pagesSVG(ED.key, BY[ED.scope], skMeta(ED.scope, ED.key, ED.data), ED.blattzahl, true);
+}
+// Zeichnung neu zeichnen, Blattzahl nachführen, Eigenschaftsfeld auffrischen (nach jeder Änderung an ED.data)
+export function renderInk(){
+  if (ED.svg) { ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key); checkPages(); }
+  updateProps();
+}
