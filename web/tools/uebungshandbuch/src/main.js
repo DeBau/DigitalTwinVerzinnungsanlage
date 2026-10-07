@@ -22,6 +22,12 @@ import './app/start.js';
 import './app/skizzen-kacheln.js';
 import './app/variablen.js';
 import './app/vorlagen-basis.js';
+// Interaktive Erklärungen: Grundlagen, dann die Arten (melden sich in der Registry an)
+import { init as init_app_interaktiv } from './app/interaktiv/basis.js';
+import './app/interaktiv/signalverlauf.js';
+import './app/interaktiv/logik-bild.js';
+import './app/interaktiv/logik.js';
+import './app/interaktiv/zyklus.js';
 // init steht hier: Eine zweite Importzeile weiter unten würde die Ladereihenfolge (Schicht) verschieben
 import { init as init_app_nachschlagen } from './app/nachschlagen.js';
 import './app/vorlage-stand.js';
@@ -109,6 +115,7 @@ init_editor_ereignisse();
 init_app_ereignisse();
 init_app_vorlage_popup();
 init_app_nachschlagen();
+init_app_interaktiv();
 init_app_tooltip();
 init_schaltplan_ansicht();
 init_app_router();

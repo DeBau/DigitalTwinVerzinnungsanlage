@@ -45,6 +45,10 @@ importiert nie aus einer Vorlage.
 | `app/fortschritt.js` | Phasen erledigt, Prüfpunkte |
 | `app/vorlagen-basis.js` | Vorlagen zum Ausfüllen: `tplsOf`, `tplKey`, `tplRows`, `tplNIn`, `tplHead`, `tplFind`, `tplTeile`, `tplHasData`, `prViewHTML` |
 | `app/vorlage-stand.js` | Felder (`felder`), Fortschritt einer Vorlage, Karte im Schritt (`tplKarteHTML`) |
+| `app/interaktiv/basis.js` | Interaktive Erklärungen: Platzhalter `data-interaktiv` ersetzen (`iaEinsetzen`), Registry, Klicks, SVG-Bausteine |
+| `app/interaktiv/signalverlauf.js` | Zeitdiagramm `signalverlaufSVG` |
+| `app/interaktiv/logik-bild.js`, `logik.js` | Verknüpfung UND, ODER, NICHT, XOR: FUP, KOP, SCL, Funktionstabelle |
+| `app/interaktiv/zyklus.js` | Anlauf und SPS-Zyklus animiert |
 | `app/nachschlagen.js` | Kasten „Nachschlagen“, Fachwissen je Aufgabenschritt (`fw`), Popups für Aufgabe und Fachwissen |
 | **Schaltzeichen** (gemeinsam mit dem Schaltplan) | |
 | `symbole/grund.js` | Zeichen-Grundlagen `linie`, `wirklinie`, `kreis`, `kasten`, `punkt`, `text`, `nummer` |

@@ -12,6 +12,7 @@ wie es aussieht. Die Vorlage wächst mit jeder neuen Idee. Was hier steht, ist b
 4. Fachwissen
 5. Aufgabenschritte (Ausführen)
 6. Vorlagen zum Ausfüllen
+6a. Interaktive Erklärungen
 7. Schreibregeln
 8. Quellen
 9. Regeln für den Code
@@ -143,6 +144,27 @@ Feste Spalten in `rows` so wählen, dass die ersten beiden die Zeile benennen (z
 dritte sie beschreibt. Daraus entsteht die Zeilenliste. Vorlagen, die ein früheres Dokument fortschreiben
 (`erweitert`), zeigen im Popup weiter die ganze Tabelle mit den früheren Zeilen.
 
+## 6a. Interaktive Erklärungen
+
+Was man ausprobieren kann, wird nicht nur beschrieben, sondern **zum Anklicken** gezeigt. Ein Fachwissen-Thema bekommt
+dafür einen Platzhalter im Text (`h`). Die App macht daraus eine interaktive Erklärung, im Popup und in Schritt 1.
+
+| Art | Platzhalter | Zeigt |
+| --- | --- | --- |
+| `logik` | `<div data-interaktiv="logik" data-op="UND,ODER,NICHT,XOR" data-a="BG9" data-b="BG10" data-q="PF2" data-sa="#temperatureOk" data-sb="#levelOk" data-sq="#lampBathReady"></div>` | Eingänge zum Anklicken, FUP, KOP und SCL im Programmstatus wie in TIA, Funktionstabelle, Signalverlauf, Satz „VKE = …, weil …“, Begriffe Signalzustand, VKE, Programmstatus |
+| `zyklus` | `<div data-interaktiv="zyklus" data-e="BG40" data-a="PF4"></div>` | STOP, ANLAUF und RUN, den Zyklus „PAA an die Ausgänge, Eingänge ins PAE, OB1 bearbeiten“ animiert, Sensor und kurzen Impuls zum Anklicken, Signalverlauf, Begriffe |
+
+- `data-op` mit mehreren Verknüpfungen zeigt einen Umschalter, mit einer nur diese.
+- Kennzeichen in Attributen **ohne „−“** schreiben (`BG9`), die App setzt es selbst davor.
+- `data-sa`, `data-sb` und `data-sq` sind die Namen in SCL (Parameter des Bausteins). Ohne sie nimmt die App die
+  Kennzeichen in Anführungszeichen.
+- Jede Verknüpfung, jede Zeitfunktion und jeder Ablauf, den die Übung neu einführt, bekommt eine interaktive Erklärung.
+  Fehlt eine passende Art, wird sie als eigene Datei in `src/app/interaktiv/` gebaut und hier eingetragen.
+
+**Programmiersprachen und SCL:** Ab L02 steht zu jedem Netzwerk, das die Azubis in FUP oder KOP bauen, auch die
+SCL-Zeile. SCL wird so von Anfang an mitgelernt (die Ansicht „SCL“ der interaktiven Erklärung zeigt sie). Wann man
+welche Sprache nimmt, erklärt das Fachwissen nach dem Siemens-Programmierleitfaden (Kapitel 3, Programmiersprachen).
+
 ## 7. Schreibregeln
 
 - **Du-Form**, nie Sie-Form.
@@ -193,6 +215,8 @@ Alles wird strukturiert, wartbar, einfach und nach Best Practice gebaut.
 - [ ] Jedes Fachwissen-Thema ist als Popup allein verständlich und hat eine Siemens-Quelle.
 - [ ] Fachlich gegen die TIA-Hilfe V21 und die Unterlagen in `devInput/` geprüft.
 - [ ] In Schritt 1 sind alle Fachwissen-Themen zugeklappt.
+- [ ] Jede neue Verknüpfung, Zeitfunktion und jeder neue Ablauf hat eine interaktive Erklärung (6a); zu jedem
+      FUP-Netzwerk steht die SCL-Zeile.
 - [ ] Jede Vorlage hat `felder` mit passenden Typen, wo sinnvoll 0/1 oder ja/nein statt Text.
 - [ ] Jede Aufgabe ist in TIA Portal und am Zwilling machbar.
 - [ ] Du-Form, keine Gedankenstriche, keine unerklärten und keine erfundenen Begriffe.

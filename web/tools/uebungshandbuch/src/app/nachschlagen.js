@@ -2,11 +2,13 @@
 // Ab Schritt 2 steht in der Seitenleiste der Kasten „Nachschlagen“, unter jedem Aufgabenschritt das passende Fachwissen (fw).
 // Ein Popup zeigt die Aufgabe oder genau ein Fachwissen-Thema (uebungVorlage.md, Abschnitt 3).
 import { $, BY, chips, esc, quelle, tableHTML } from './basis.js';
+import { iaEinsetzen } from './interaktiv/basis.js';
 
 const hatWissen = s => !!(s.wissen && s.wissen.length);
 const themaLink = (i, html) => `<a href="#" data-act="ns-fw" data-i="${i}">${html}</a>`;
 
-export const fwThemaHTML = w => `<div class="prose">${chips(w.h)}${quelle(w)}</div>`;
+// Interaktive Erklärungen (Platzhalter data-interaktiv) erst nach chips() einsetzen
+export const fwThemaHTML = w => `<div class="prose">${iaEinsetzen(chips(w.h))}${quelle(w)}</div>`;
 // Alle Themen als zuklappbare Liste; offen = Nummer des offenen Themas, -1 = alle zu
 export function fwListHTML(s, offen){
   const thema = (w, i) => `<details${i === offen ? " open" : ""}><summary>${w.t}</summary>${fwThemaHTML(w)}</details>`;
