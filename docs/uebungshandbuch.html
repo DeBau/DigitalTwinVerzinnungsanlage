@@ -2554,6 +2554,10 @@ pre.code code{font-size:inherit}
     }
     updateProps(true);
   }
+  var fokusAufsBlatt = () => {
+    const st = document.querySelector("#edstage");
+    if (st) st.focus({ preventScroll: true });
+  };
   function blattPunkt(svg, e) {
     const p = svg.createSVGPoint();
     p.x = e.clientX;
@@ -2835,6 +2839,7 @@ pre.code code{font-size:inherit}
       const sl = getSelection();
       if (sl && sl.rangeCount) sl.removeAllRanges();
     }
+    if (document.activeElement !== $("#edstage")) fokusAufsBlatt();
     const pt = blattPunkt(ED.svg, e), zeiger = zeigerHaken();
     if (zeiger.unten && zeiger.unten(e, pt)) return;
     (UNTEN[ED.tool] || formUnten)(e, pt);
@@ -5505,6 +5510,11 @@ END_CASE;`)}
     }
     const a = AKTIONEN[t.dataset.ed];
     if (a) a(t);
+    zurueckZumBlatt(e, t);
+  }
+  function zurueckZumBlatt(e, knopf) {
+    if (document.activeElement && document.activeElement.matches("input,textarea,select")) return;
+    if (e.detail > 0 || !knopf.isConnected) fokusAufsBlatt();
   }
   function zeichenEinfuegen(zeichen) {
     const el = lastProp;
@@ -5530,6 +5540,7 @@ END_CASE;`)}
   function tasteImFeld(e) {
     if (e.key === "Escape") {
       e.preventDefault();
+      fokusAufsBlatt();
       return;
     }
     if (e.key !== "Enter" || !e.target.dataset.prop) return;
@@ -5538,7 +5549,7 @@ END_CASE;`)}
       newline(e.target);
       e.target.rows = e.target.value.split("\n").length;
       applyProp(e.target.dataset.prop, e.target.value);
-    } else $("#edstage").focus({ preventScroll: true });
+    } else fokusAufsBlatt();
   }
   function beschrifteMarkiertes() {
     const m = ED.markiert, beschrifte = m && AUSWAHL[m.art] && AUSWAHL[m.art].beschriften;
@@ -5604,6 +5615,10 @@ END_CASE;`)}
     if (e.key === "Escape") {
       e.preventDefault();
       abbrechen(e);
+      return;
+    }
+    if (e.key === " ") {
+      e.preventDefault();
       return;
     }
     if ((e.key === "Delete" || e.key === "Backspace") && anySel()) {

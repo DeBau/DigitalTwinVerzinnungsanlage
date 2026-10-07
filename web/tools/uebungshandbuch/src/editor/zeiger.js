@@ -14,7 +14,7 @@ import { updateProps } from './eigenschaften.js';
 import { checkPages, renderInk } from './anzeige.js';
 import { aendere, beginne, schliesse } from './verlauf.js';
 import { editConnLabel, editLabel, editObjLabel, editTextItem } from './beschriften.js';
-import { blattPunkt, fangen } from './werkzeuge.js';
+import { blattPunkt, fangen, fokusAufsBlatt } from './werkzeuge.js';
 import { eraseAt } from './bearbeiten.js';
 import { VORSCHAU, avoidBreak, connect, connectPorts, dockLeitung, linked, makeObj, placeObj, smartPos } from './andocken.js';
 
@@ -42,6 +42,9 @@ export function zeigerUnten(e){
     e.preventDefault();
     const sl = getSelection(); if (sl && sl.rangeCount) sl.removeAllRanges();
   }
+  // preventDefault verhindert den Fokuswechsel: Feld oder Knopf abgeben, damit die Tasten am Blatt ankommen.
+  // Ein offenes Beschriftungsfeld (.txtin) übernimmt dabei seinen Text (blur).
+  if (document.activeElement !== $("#edstage")) fokusAufsBlatt();
   const pt = blattPunkt(ED.svg, e), zeiger = zeigerHaken();
   if (zeiger.unten && zeiger.unten(e, pt)) return;   // Haken zeiger.unten: eigene Werkzeuge der Vorlage
   (UNTEN[ED.tool] || formUnten)(e, pt);

@@ -152,4 +152,31 @@ export const tests = [
       t.gleich(await offen(), 0, 'Fertig schließt');
     },
   },
+  /* ---------- K10 Fokus ---------- */
+  {
+    name: 'K10 nach Klick auf Knopf oder Feld kommen Tasten im Editor an',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await anfangsschritt(t);
+      await t.werkzeug('sel');
+      await t.knopf('grid');
+      const raster = () => t.page.locator('#editor [data-ed="grid"]').getAttribute('aria-pressed');
+      const vorher = await raster();
+      await t.taste('Space');
+      t.gleich(await raster(), vorher, 'Leertaste löst den Knopf nicht erneut aus');
+      await t.klick('#edstage [data-sf]');
+      await t.klick('#props [data-prop="mn"]');
+      await t.klick('#props [data-ed="sfzu"]');
+      await t.klick([200, 150]);
+      await t.taste('Delete');
+      t.gleich(await t.daten(), null, 'Entf löscht den markierten Schritt');
+      await t.setze('init', 300, 150);
+      await t.taste('Escape');
+      await t.klick([300, 150]);
+      await t.klick('#props textarea, #props input');
+      await t.klick([300, 150]);
+      await t.taste('Delete');
+      t.gleich(await t.daten(), null, 'Entf nach Klick ins Feld und zurück aufs Blatt');
+    },
+  },
 ];

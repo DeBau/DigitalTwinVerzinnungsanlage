@@ -20,6 +20,8 @@ export function setTool(t){
   if (ED.svg) { BLATTKLASSEN.forEach(c => ED.svg.classList.toggle(c, t === c)); $(".ghost", ED.svg).innerHTML = ""; renderInk(); }
   updateProps(true);
 }
+// Tasten wieder ans Blatt geben (#edstage), ohne zu rollen
+export const fokusAufsBlatt = () => { const st = document.querySelector("#edstage"); if (st) st.focus({preventScroll: true}); };
 // Zeigerposition von e in Blattkoordinaten, auf 0,1 gerundet
 export function blattPunkt(svg, e){
   const p = svg.createSVGPoint();

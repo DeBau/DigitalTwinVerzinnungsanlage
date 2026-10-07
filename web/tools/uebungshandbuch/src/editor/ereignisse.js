@@ -10,7 +10,7 @@ import { sizeSVG } from './anzeige.js';
 import { pruefeSkizze, waehleBefund, zeigeBefunde } from './pruefung.js';
 import { aendere, beginne, redo, schliesse, takeMenu, takeSketch, undo } from './verlauf.js';
 import { newline } from './beschriften.js';
-import { blattPunkt, setTool } from './werkzeuge.js';
+import { blattPunkt, fokusAufsBlatt, setTool } from './werkzeuge.js';
 import { applyProp, delSel, turnSel } from './bearbeiten.js';
 import { placeObj } from './andocken.js';
 import { AUSWAHL, zeigerBewegen } from './zeiger.js';
@@ -87,6 +87,14 @@ export function klick(e){
   if (t.dataset.w) { ED.w = +t.dataset.w; $$("#editor [data-w]").forEach(b => b.setAttribute("aria-pressed", b === t)); }
   const a = AKTIONEN[t.dataset.ed];
   if (a) a(t);
+  zurueckZumBlatt(e, t);
+}
+// Nach einem Mausklick auf einen Knopf (oder wenn der Knopf beim Neuzeichnen verschwunden ist) gehen die Tasten wieder
+// ans Blatt. Sonst löst die Leertaste den Knopf erneut aus, und Entf oder Pfeile kommen nicht im Editor an.
+// Hat die Aktion selbst ein Eingabefeld fokussiert (z. B. Schriftfeld), bleibt der Fokus dort.
+export function zurueckZumBlatt(e, knopf){
+  if (document.activeElement && document.activeElement.matches("input,textarea,select")) return;
+  if (e.detail > 0 || !knopf.isConnected) fokusAufsBlatt();
 }
 // Zeichenleiste (·, +, ¬ …): Zeichen ins zuletzt benutzte Feld an der Schreibmarke einfügen
 export function zeichenEinfuegen(zeichen){
@@ -112,13 +120,13 @@ export const schliesseFeld = () => { if (ED.tx && ED.tx.schluessel.startsWith("f
 
 /* ---------- Tastatur ---------- */
 export function tasteImFeld(e){
-  if (e.key === "Escape") { e.preventDefault(); return; }   // Esc im Feld schließt den Editor nie
+  if (e.key === "Escape") { e.preventDefault(); fokusAufsBlatt(); return; }   // Esc verlässt das Feld, schließt nie
   if (e.key !== "Enter" || !e.target.dataset.prop) return;
   e.preventDefault();
   if (e.target.tagName === "TEXTAREA" && (e.altKey || e.shiftKey || e.ctrlKey)) {   // neue Zeile
     newline(e.target); e.target.rows = e.target.value.split("\n").length; applyProp(e.target.dataset.prop, e.target.value);
   }
-  else $("#edstage").focus({preventScroll: true});
+  else fokusAufsBlatt();
 }
 export function beschrifteMarkiertes(){
   const m = ED.markiert, beschrifte = m && AUSWAHL[m.art] && AUSWAHL[m.art].beschriften;
@@ -157,6 +165,7 @@ export function taste(e){
   const dreh = {r: "rot", m: "flip"}[e.key.toLowerCase()];   // Taste R dreht, M spiegelt
   if (!strg && !e.altKey && markiertId("o") && dreh) { e.preventDefault(); turnSel(dreh); return; }
   if (e.key === "Escape") { e.preventDefault(); abbrechen(e); return; }   // Esc schließt den Editor nie (nur „Fertig“)
+  if (e.key === " ") { e.preventDefault(); return; }   // Leertaste löst keinen Knopf aus und rollt das Blatt nicht
   if ((e.key === "Delete" || e.key === "Backspace") && anySel()) { e.preventDefault(); delSel(); return; }
   if (e.key.startsWith("Arrow") && anySel() && VERSCHIEBE[ED.markiert.art]) {
     e.preventDefault(); aendere(() => verschiebeMarkiertes(e.key));
