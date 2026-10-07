@@ -3558,7 +3558,8 @@ END_CASE;`)}
     akt: "speichernd bei Aktivierung ↑",
     deakt: "speichernd bei Deaktivierung ↓",
     ereig: "speichernd bei Ereignis",
-    q: "mit Bestimmungszeichen, S7-GRAPH (IEC 61131-3)"
+    q: "mit Bestimmungszeichen, S7-GRAPH (IEC 61131-3)",
+    zwang: "Zwangssteuerung eines Teil-GRAFCET"
   };
   var AKTION_KENNBUCHSTABEN = ["MB", "QA", "PF", "MA", "MM", "TA"];
   var BEDINGUNG_KENNBUCHSTABEN = ["BG", "SF", "BT", "BL", "SA", "KF"];
@@ -3570,10 +3571,12 @@ END_CASE;`)}
   var PFEIL_AUF = (mx, y) => `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 12}L${mx} ${y - 18}L${mx + 4.5} ${y - 12}" ${LINIE} fill="none"/>`;
   var FAEHNCHEN = (mx, y) => `<path d="M${mx} ${y}V${y - 18}H${mx + 8}" ${LINIE} fill="none"/>`;
   var PFEIL_AB = (mx, y) => `<path d="M${mx} ${y}V${y - 18}M${mx - 4.5} ${y - 18}L${mx} ${y - 12}L${mx + 4.5} ${y - 18}" ${LINIE} fill="none"/>`;
+  var DOPPELRAHMEN = (o) => `<rect x="${o.x + 3}" y="${o.y + 3}" width="${aw(o) - 6}" height="24" fill="none" ${LINIE}/>`;
   var AKTIONSMARKE = {
     kont: (o, mx, y, edit) => o.b || o.hb ? `<path d="M${mx} ${y}V${y - 16}" ${LINIE}/>` + markenText(o.b, "Zuweisungsbedingung", mx + 6, y - 6, edit) : "",
     akt: (o, mx, y) => PFEIL_AUF(mx, y),
     deakt: (o, mx, y) => PFEIL_AB(mx, y),
+    zwang: (o) => DOPPELRAHMEN(o),
     ereig: (o, mx, y, edit) => FAEHNCHEN(mx, y) + markenText(o.b, "Ereignis, z. B. ↑BG1", mx + 11, y - 14, edit)
   };
   function zeichneAktion(o, edit) {
@@ -3586,7 +3589,8 @@ END_CASE;`)}
   }
   var AKTION_ZUSATZFELD = {
     kont: (o) => textFeld("b", "Zuweisungsbedingung (optional)", "z. B. BG9 oder 3s/X2", o.b),
-    ereig: (o) => textFeld("b", "Ereignis", "z. B. ↑BG1", o.b)
+    ereig: (o) => textFeld("b", "Ereignis", "z. B. ↑BG1", o.b),
+    zwang: () => HINWEIS("Schreib den Teil-GRAFCET mit der Situation, z. B. G2{INIT} (Anfangssituation), G2{*} (eingefroren), G2{} (alle Schritte inaktiv) oder G2{5, 7}.")
   };
   function aktionFelder(o) {
     const t = atype(o), zusatz = AKTION_ZUSATZFELD[t];
@@ -4134,12 +4138,14 @@ END_CASE;`)}
       o.v = naechsteSchrittNummer();
     },
     verweisName: (o) => `Schritt ${o.v}`,
-    feldliste: [["v", "Schrittnummer"]],
+    feldliste: [["v", "Schrittnummer"], ["km", "Schrittkommentar (optional)", "z. B. Korb einhängen"]],
     beschriftung: { hinweis: "Schrittnummer" }
   };
   var KASTEN = (o) => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/>`;
+  var KOMMENTAR = (o) => o.km ? SVGT(o.x - 8, o.y + 24, `„${o.km}“`, "end", 12, 400) : "";
   var MARKE = (o, edit) => edit && imSpiel("aktiv", o.id) ? `<circle cx="${o.x + 20}" cy="${o.y + 31}" r="3" fill="${INK}"/>` : "";
-  var zeichneAnfangsschritt = (o, edit) => KASTEN(o) + `<rect x="${o.x + 4}" y="${o.y + 4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v) + MARKE(o, edit);
+  var zeichneSchritt = (o, edit) => KASTEN(o) + SVGT(o.x + 20, o.y + 25, o.v) + MARKE(o, edit) + KOMMENTAR(o);
+  var zeichneAnfangsschritt = (o, edit) => KASTEN(o) + `<rect x="${o.x + 4}" y="${o.y + 4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v) + MARKE(o, edit) + KOMMENTAR(o);
   var zeichneMakro = (o, edit) => KASTEN(o) + `<path d="M${o.x} ${o.y + 5}H${o.x + 40}M${o.x} ${o.y + 35}H${o.x + 40}" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v, "middle", 12) + MARKE(o, edit);
   function transitionName(o, objs, cs, dir) {
     const c = cs.find((c2) => dir === "von" ? c2.b === o.id && isStep(objs[c2.a]) : c2.a === o.id && isStep(objs[c2.b]));
@@ -4242,7 +4248,7 @@ END_CASE;`)}
   };
   fuelle(BAUSTEIN, {
     init: { g: "grafcet", n: "Anfangsschritt", ...SCHRITT, zeichne: zeichneAnfangsschritt },
-    step: { g: "grafcet", n: "Schritt", ...SCHRITT, zeichne: (o, edit) => KASTEN(o) + SVGT(o.x + 20, o.y + 25, o.v) + MARKE(o, edit) },
+    step: { g: "grafcet", n: "Schritt", ...SCHRITT, zeichne: zeichneSchritt },
     macro: { g: "grafcet", n: "Makroschritt", ...SCHRITT, ...MAKRO },
     trans: { g: "grafcet", n: "Transition", ...TRANSITION },
     action: { ...AKTION, n: "Aktion kontinuierlich", mk: { t: "kont" } },
@@ -4250,6 +4256,7 @@ END_CASE;`)}
     acta: { g: "grafcet", n: "Aktion bei Aktivierung ↑", mk: { k: "action", t: "akt" } },
     actd: { g: "grafcet", n: "Aktion bei Deaktivierung ↓", mk: { k: "action", t: "deakt" } },
     acte: { g: "grafcet", n: "Aktion bei Ereignis", mk: { k: "action", t: "ereig", b: "" } },
+    actz: { g: "grafcet", n: "Zwangssteuerung", mk: { k: "action", t: "zwang" } },
     actionq: { ...AKTION, n: "Aktion S7-GRAPH (IEC 61131-3)", mk: { k: "action", t: "q", q: "S" } },
     alt: {
       g: "grafcet",
@@ -4279,6 +4286,7 @@ END_CASE;`)}
     ref: [{ k: "ref", x: 16, y: 8, v: "1" }, "0 0 48 48"],
     action: [{ k: "action", t: "kont", x: 4, y: 9, v: "MB1" }, "0 0 98 48"],
     actionq: [{ k: "action", t: "q", x: 4, y: 9, q: "S", v: "MB9" }, "0 0 98 48"],
+    actz: [{ k: "action", t: "zwang", x: 4, y: 9, v: "G2{INIT}" }, "0 0 98 48"],
     actc: [{ k: "action", t: "kont", x: 4, y: 22, v: "MB1", b: "BG9" }, "0 0 98 56"],
     acta: [{ k: "action", t: "akt", x: 4, y: 22, v: "Z := 0" }, "0 0 98 56"],
     actd: [{ k: "action", t: "deakt", x: 4, y: 22, v: "Z := 0" }, "0 0 98 56"],

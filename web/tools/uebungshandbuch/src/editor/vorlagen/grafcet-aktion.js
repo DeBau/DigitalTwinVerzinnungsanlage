@@ -5,7 +5,7 @@ import { SVGT, tw } from '../svg.js';
 import { ED } from '../status.js';
 import { LINIE, platzhalter } from '../bausteine.js';
 import { objById } from '../auswahl.js';
-import { kennzeichenFeld, textFeld } from '../eigenschaften.js';
+import { HINWEIS, kennzeichenFeld, textFeld } from '../eigenschaften.js';
 
 /* ---------- Bausteinarten ---------- */
 export const SCHRITTARTEN = ["step", "init", "macro"];
@@ -26,6 +26,7 @@ export const hasMark = o => isAct(o) && !!(MIT_MARKE[atype(o)] || (() => false))
 export const ACT_T = {
   kont: "kontinuierlich wirkend", akt: "speichernd bei Aktivierung ↑", deakt: "speichernd bei Deaktivierung ↓",
   ereig: "speichernd bei Ereignis", q: "mit Bestimmungszeichen, S7-GRAPH (IEC 61131-3)",
+  zwang: "Zwangssteuerung eines Teil-GRAFCET",
 };
 // Kennbuchstaben für die Vorschlagsliste: was eine Aktion schaltet bzw. was eine Transition abfragt
 export const AKTION_KENNBUCHSTABEN = ["MB", "QA", "PF", "MA", "MM", "TA"];
@@ -44,12 +45,15 @@ export const PFEIL_AUF = (mx, y) =>
 export const FAEHNCHEN = (mx, y) => `<path d="M${mx} ${y}V${y-18}H${mx+8}" ${LINIE} fill="none"/>`;
 export const PFEIL_AB = (mx, y) =>
   `<path d="M${mx} ${y}V${y-18}M${mx-4.5} ${y-18}L${mx} ${y-12}L${mx+4.5} ${y-18}" ${LINIE} fill="none"/>`;
-// Marke über dem Kasten je Art; mx ist die Lage der senkrechten Marke
+// Zwangssteuerung: Aktionskasten mit Doppelrahmen, Inhalt z. B. G2{INIT}
+export const DOPPELRAHMEN = o => `<rect x="${o.x+3}" y="${o.y+3}" width="${aw(o)-6}" height="24" fill="none" ${LINIE}/>`;
+// Marke über dem Kasten bzw. Zusatz je Art; mx ist die Lage der senkrechten Marke
 export const AKTIONSMARKE = {
   kont: (o, mx, y, edit) => o.b || o.hb
     ? `<path d="M${mx} ${y}V${y-16}" ${LINIE}/>` + markenText(o.b, "Zuweisungsbedingung", mx+6, y-6, edit) : "",
   akt: (o, mx, y) => PFEIL_AUF(mx, y),
   deakt: (o, mx, y) => PFEIL_AB(mx, y),
+  zwang: o => DOPPELRAHMEN(o),
   ereig: (o, mx, y, edit) => FAEHNCHEN(mx, y) + markenText(o.b, "Ereignis, z. B. ↑BG1", mx+11, y-14, edit),
 };
 export function zeichneAktion(o, edit){
@@ -64,6 +68,8 @@ export function zeichneAktion(o, edit){
 export const AKTION_ZUSATZFELD = {
   kont: o => textFeld("b", "Zuweisungsbedingung (optional)", "z. B. BG9 oder 3s/X2", o.b),
   ereig: o => textFeld("b", "Ereignis", "z. B. ↑BG1", o.b),
+  zwang: () => HINWEIS("Schreib den Teil-GRAFCET mit der Situation, z. B. G2{INIT} (Anfangssituation), G2{*} "
+    + "(eingefroren), G2{} (alle Schritte inaktiv) oder G2{5, 7}."),
 };
 export function aktionFelder(o){
   const t = atype(o), zusatz = AKTION_ZUSATZFELD[t];

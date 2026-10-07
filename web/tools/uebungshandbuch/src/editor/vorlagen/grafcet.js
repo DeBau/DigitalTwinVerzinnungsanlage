@@ -25,14 +25,18 @@ export const SCHRITT = {
   teilung: 30,   // fester Abstand unter dem Vorgänger, mit der Transition dazwischen Teilung 100
   neu(o, [px, py]){ o.x = px - 20; o.y = py - 20; o.v = naechsteSchrittNummer(); },
   verweisName: o => `Schritt ${o.v}`,
-  feldliste: [["v", "Schrittnummer"]],
+  feldliste: [["v", "Schrittnummer"], ["km", "Schrittkommentar (optional)", "z. B. Korb einhängen"]],
   beschriftung: {hinweis: "Schrittnummer"},
 };
 export const KASTEN = o => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/>`;
+// Schrittkommentar links neben dem Schritt in Anführungszeichen (DIN EN 60848)
+export const KOMMENTAR = o => o.km ? SVGT(o.x-8, o.y+24, `„${o.km}“`, "end", 12, 400) : "";
 // Beim Durchspielen trägt ein aktiver Schritt einen Punkt (Marke)
 export const MARKE = (o, edit) => edit && imSpiel("aktiv", o.id) ? `<circle cx="${o.x+20}" cy="${o.y+31}" r="3" fill="${INK}"/>` : "";
+export const zeichneSchritt = (o, edit) => KASTEN(o) + SVGT(o.x+20, o.y+25, o.v) + MARKE(o, edit) + KOMMENTAR(o);
 export const zeichneAnfangsschritt = (o, edit) => KASTEN(o)
-  + `<rect x="${o.x+4}" y="${o.y+4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x+20, o.y+25, o.v) + MARKE(o, edit);
+  + `<rect x="${o.x+4}" y="${o.y+4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x+20, o.y+25, o.v) + MARKE(o, edit)
+  + KOMMENTAR(o);
 export const zeichneMakro = (o, edit) => KASTEN(o) + `<path d="M${o.x} ${o.y+5}H${o.x+40}M${o.x} ${o.y+35}H${o.x+40}" ${LINIE}/>`
   + SVGT(o.x+20, o.y+25, o.v, "middle", 12) + MARKE(o, edit);
 // Bei einer Abbruchstelle heißt die Transition nach dem Schritt davor bzw. danach
@@ -129,7 +133,7 @@ export const VERWEIS = {
 };
 fuelle(BAUSTEIN, {
   init: {g: "grafcet", n: "Anfangsschritt", ...SCHRITT, zeichne: zeichneAnfangsschritt},
-  step: {g: "grafcet", n: "Schritt", ...SCHRITT, zeichne: (o, edit) => KASTEN(o) + SVGT(o.x+20, o.y+25, o.v) + MARKE(o, edit)},
+  step: {g: "grafcet", n: "Schritt", ...SCHRITT, zeichne: zeichneSchritt},
   macro: {g: "grafcet", n: "Makroschritt", ...SCHRITT, ...MAKRO},
   trans: {g: "grafcet", n: "Transition", ...TRANSITION},
   action: {...AKTION, n: "Aktion kontinuierlich", mk: {t: "kont"}},
@@ -137,6 +141,7 @@ fuelle(BAUSTEIN, {
   acta: {g: "grafcet", n: "Aktion bei Aktivierung ↑", mk: {k: "action", t: "akt"}},
   actd: {g: "grafcet", n: "Aktion bei Deaktivierung ↓", mk: {k: "action", t: "deakt"}},
   acte: {g: "grafcet", n: "Aktion bei Ereignis", mk: {k: "action", t: "ereig", b: ""}},
+  actz: {g: "grafcet", n: "Zwangssteuerung", mk: {k: "action", t: "zwang"}},
   actionq: {...AKTION, n: "Aktion S7-GRAPH (IEC 61131-3)", mk: {k: "action", t: "q", q: "S"}},
   alt: {g: "grafcet", n: "ODER-Verzweigung", ...VERZWEIGUNG,
     zeichne: o => `<path d="${verzweigungsLinie(o)}" stroke="${INK}" stroke-width="1.6"/>`,
@@ -156,6 +161,7 @@ fuelle(SAMPLE, {
   macro: [{k:"macro", x:4, y:4, v:"M1"}, "0 0 48 48"], ref: [{k:"ref", x:16, y:8, v:"1"}, "0 0 48 48"],
   action: [{k:"action", t:"kont", x:4, y:9, v:"MB1"}, "0 0 98 48"],
   actionq: [{k:"action", t:"q", x:4, y:9, q:"S", v:"MB9"}, "0 0 98 48"],
+  actz: [{k:"action", t:"zwang", x:4, y:9, v:"G2{INIT}"}, "0 0 98 48"],
   actc: [{k:"action", t:"kont", x:4, y:22, v:"MB1", b:"BG9"}, "0 0 98 56"],
   acta: [{k:"action", t:"akt", x:4, y:22, v:"Z := 0"}, "0 0 98 56"],
   actd: [{k:"action", t:"deakt", x:4, y:22, v:"Z := 0"}, "0 0 98 56"],

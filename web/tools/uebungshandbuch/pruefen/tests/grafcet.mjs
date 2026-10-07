@@ -11,6 +11,11 @@ const UMRISS = {
 const umriss = (o) => (UMRISS[o.k] || ((p) => [p.x, p.y, 20, 20]))(o);
 const schneiden = (a, b) => a[0] < b[0] + b[2] && b[0] < a[0] + a[2] && a[1] < b[1] + b[3] && b[1] < a[1] + a[3];
 
+// Baustein setzen, dessen Paletteneintrag weiter unten in der Leiste liegt
+async function setzeSichtbar(t, k, x, y) {
+  await t.page.locator(`#editor [data-place="${k}"]`).scrollIntoViewIfNeeded();
+  await t.setze(k, x, y);
+}
 // Transition setzen und ihre Bedingung tippen
 async function transition(t, x, y, text) {
   await t.setze('trans', x, y);
@@ -296,15 +301,14 @@ export const tests = [
     lauf: async (t) => {
       await t.oeffne('grafcet');
       await t.setze('step', 220, 100);
-      await t.setze('oder2', 220, 160);
+      await setzeSichtbar(t, 'oder2', 220, 160);
       let d = await t.daten();
       t.gleich(d.o.map((o) => o.k).sort(), ['alt', 'alt', 'step', 'step', 'step', 'trans', 'trans', 'trans', 'trans'], 'ODER-Bausteine');
       t.gleich(d.c.length, 9, 'ODER-Verbindungen');
       t.erwarte(!d.o.some((o) => 'schnipsel' in o), 'kein Hilfsfeld gespeichert');
       await t.knopf('clear');
-      await t.setze('trans', 220, 100); await t.tippe('BG1'); await t.taste('Enter');
-      await t.page.locator('#editor [data-place="und2"]').scrollIntoViewIfNeeded();
-      await t.setze('und2', 220, 160);
+      await setzeSichtbar(t, 'trans', 220, 100); await t.tippe('BG1'); await t.taste('Enter');
+      await setzeSichtbar(t, 'und2', 220, 160);
       d = await t.daten();
       t.gleich(d.o.map((o) => o.k).sort(), ['par', 'par', 'step', 'step', 'trans'], 'UND-Bausteine');
       const [s1, s2] = d.o.filter((o) => o.k === 'step');
@@ -350,6 +354,22 @@ export const tests = [
       await t.knopf('pruefen');
       const liste = await t.text('#props');
       t.erwarte(liste.includes('Z2 ist nicht erreichbar') && !liste.includes('Z1 ist nicht'), liste);
+    },
+  },
+  {
+    name: 'G12 Zwangssteuerung mit Doppelrahmen, Schrittkommentar in Anführungszeichen',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('step', 220, 140);
+      const s = (await t.objekte('step'))[0];
+      await t.page.locator('#props [data-prop="km"]').fill('Korb einhängen'); await t.ruhe();
+      const texte = await t.page.locator(`#edstage .ink [data-o="${s.id}"] text`).evaluateAll((ts) => ts.map((x) => x.textContent));
+      t.erwarte(texte.includes('„Korb einhängen“'), `Kommentar: ${texte}`);
+      await setzeSichtbar(t, 'actz', 320, 145); await t.tippe('G2{INIT}'); await t.taste('Enter');
+      const a = (await t.objekte('action'))[0];
+      t.gleich(a.t, 'zwang', 'Art Zwangssteuerung');
+      const rahmen = await t.zaehle(`#edstage .ink [data-o="${a.id}"] rect[fill="none"]`);
+      t.gleich(rahmen, 1, 'innerer Rahmen');
     },
   },
   {
