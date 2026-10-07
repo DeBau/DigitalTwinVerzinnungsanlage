@@ -79,9 +79,15 @@ importiert nie aus einer Vorlage.
 | `editor/vorlagen/pneumatik-symbole.js` | Ventile, Zylinder, Entlüftungen nach ISO 1219 |
 | `editor/vorlagen/pneumatik-simulation.js` | Druckverteilung, Zylinderbewegung, Ventile schalten |
 | `editor/vorlagen/pneumatik.js` | Pneumatikschaltplan: Vorlage, Gruppe, Bauteile, Ventil-Varianten |
-| `editor/vorlagen/regelkreis.js` | Regelkreis: Block, Summierstelle |
-| `editor/vorlagen/trend.js` | Trendaufzeichnung (nur Formular) |
-| `editor/vorlagen/raster.js` | Kästchenraster mit allen Gruppen |
+| `editor/vorlagen/regelkreis-glieder.js` | Übertragungsglieder (P, I, PT1, PT2, Totzeit, PI, PID, Zweipunkt) mit Piktogramm, `istRegler` |
+| `editor/vorlagen/regelkreis-bausteine.js` | Regelkreis-Bausteine: Block, Summierstelle mit Vorzeichen, Verzweigung, Signal (PID_Compact-Namen) |
+| `editor/vorlagen/regelkreis-wege.js` | Wege der Pfeile (Gruppen-Haken `verbinde`): Anschlussseiten, rechtwinklig ohne Kreuzung, Spuren |
+| `editor/vorlagen/regelkreis-simulation.js` | „Ausprobieren“: Zeitsimulation Regler → PT1-Strecke im Eigenschaftsfeld |
+| `editor/vorlagen/regelkreis-pruefen.js` | Knopf „Prüfen“ für den Regelkreis (Haken `pruefe`) |
+| `editor/vorlagen/regelkreis.js` | Regelkreis: Vordruck mit Muster (`MUSTER`), Gruppe `regel` (Vorschläge, Verzweigung), Vorlage |
+| `editor/vorlagen/trend-striche.js` | Trendaufzeichnung: Stricharten und Werkzeuge Kurve und Band |
+| `editor/vorlagen/trend.js` | Trendaufzeichnung: Formular, Fangraster der Achsenteilung, Achsenfelder (`meta.achsen`), Legende |
+| `editor/vorlagen/raster.js` | Kästchenraster mit allen Gruppen, im Druck echt 5 mm (`KAESTCHEN`) |
 | **Seiteneffekte** | `app/tooltip.js`, `app/router.js`, `app/ereignisse.js`, `editor/ereignisse.js` (Listener des Editor-Dialogs, `AKTIONEN`, `VERSCHIEBE`) |
 
 Daten bleiben außerhalb von `src/`: `uebungen.js`, `quiz.js`, `stil.js`, `texte/Lxx.json`, `signale.csv`.
@@ -119,7 +125,7 @@ Eine Zeichnung ist ein JSON-Objekt `{s, t, o, c, meta, ts}`:
 | `c` | Verbindungen `{a, b, v}` von Baustein `a` nach `b`. Mit `pa` und `pb` ist es eine Leitung zwischen den Anschlüssen `pa` von a und `pb` von b, `st: "st"` macht sie zur gestrichelten Steuerleitung. Ohne `pa`/`pb` ist es ein Pfeil (Kette, Übergang, Signalfluss) mit Beschriftung `v` |
 | `s` | Striche `{k, c, w, p}`: `k` Strichart (`l` Linie, `r` Kasten, eine Strichart aus `STRICH` oder leer für Freihand), `c` Farbe, `w` Stärke, `p` Punkte `[[x, y], …]`. Stricharten haben eigene Felder, z. B. `lbl` (Signallinie) |
 | `t` | Texte `{x, y, v, c, s}`: Lage, Text, Farbe, Schriftgröße |
-| `meta` | Schriftfeld `{title, name, datum, rows}`, nur gesetzte Einträge. `rows` sind die Zeilennamen im Weg-Schritt-Diagramm |
+| `meta` | Schriftfeld `{title, name, datum, rows}`, nur gesetzte Einträge. `rows` sind die Zeilennamen im Weg-Schritt-Diagramm, `achsen` die Achsen der Trendaufzeichnung (`g1`, `e1`, `a1`, `b1`, `g2` …, `t`) |
 | `ts` | Zeitpunkt der letzten Speicherung (ms) |
 
 Die Zeichnung liegt im localStorage unter `uebh2:<scope>:sk:<key>`: `scope` ist die Übung (`L08`) oder `frei`,
