@@ -17,6 +17,8 @@ function deckungsgleich([a1, b1, a2, b2], [c1, d1, c2, d2]) {
 const BLAU = '#2F80ED';
 // Farbe der Leitung i (blau = führt Druck in der Simulation)
 const farbe = (t, i) => t.page.$eval(`#edstage .ink [data-c="${i}"] > path`, (p) => p.getAttribute('stroke'));
+// Texte im Symbol des Bausteins id
+const texte = (t, id) => t.page.$$eval(`#edstage .ink [data-o="${id}"] text`, (ts) => ts.map((x) => x.textContent));
 const leitungen = (t) => t.page.$$eval('#edstage .ink [data-c] > path:first-child', (ps) => ps.map((p) => p.getAttribute('d')));
 
 export const tests = [
@@ -40,6 +42,45 @@ export const tests = [
       await t.klick([525, 410]);   // sichtbar rechts = Spule 14 (gespiegelt)
       t.gleich(await farbe(t, 1), BLAU, 'nach Klick auf Spule 14: A belüftet');
       t.erwarte(await farbe(t, 2) !== BLAU, 'B entlüftet');
+    },
+  },
+  {
+    name: 'P3 Steueranschlüsse 14/12/10 nach ISO 11727 aus den Schaltwegen',
+    daten: 'pneu-symbole',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      const nr = async (id) => (await texte(t, id)).filter((x) => /^1[024]$/.test(x)).sort();
+      t.gleich(await nr('b'), ['10', '12'], '3/2 NC, zwei Magnete');
+      t.gleich(await nr('c'), ['10'], '3/2 NO, Magnet links');
+      t.gleich(await nr('a'), ['12'], '2/2 NC, Magnet links');
+      t.gleich(await nr('d'), ['12', '14'], '5/2 bistabil');
+    },
+  },
+  {
+    name: 'P4 Federraum des einfachwirkenden Zylinders als offener Anschluss',
+    daten: 'pneu-symbole',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      const wege = await t.page.$$eval('#edstage .ink [data-o="f"] path', (ps) => ps.map((p) => p.getAttribute('d')));
+      t.erwarte(wege.includes('M170 380V388'), 'offener Stummel am Federraum fehlt');
+      t.erwarte(!wege.some((d) => d.includes('H174')), 'Sperrstrich am Federraum');
+    },
+  },
+  {
+    name: 'P6 Spulennamen an 14 und 12 am Ventil',
+    daten: 'pneu-symbole',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      t.erwarte((await texte(t, 'd')).includes('−MB4'), 'Spule 12 −MB4 am Ventil');
+      await t.klick([130, 230]);
+      t.erwarte((await t.text('#props')).includes('Spule 14'), 'Feld Spule 14');
+      t.erwarte((await t.text('#props')).includes('Spule 12'), 'Feld Spule 12');
+      await t.klick('#props [data-prop="spl"]');
+      await t.page.fill('#props [data-prop="spl"]', '');
+      await t.tippe('-MB7');
+      const v = (await t.objekte('v52'))[0];
+      t.gleich(v.spl, '−MB7', 'Spule 14 gespeichert, Minuszeichen gesetzt');
+      t.erwarte((await texte(t, 'd')).includes('−MB7'), 'Spule 14 am Ventil gezeichnet');
     },
   },
 ];
