@@ -18,6 +18,28 @@ const musterSichtbar = (t, sel) => t.page.evaluate((s) => {
   return !!g && getComputedStyle(g).display !== 'none';
 }, sel);
 
+// Punkte des Pfeils i aus dem Pfad im Editor (pfadD: "Mx yLx y…")
+const pfeilPunkte = (t, i) => t.page.evaluate((n) => document.querySelector(`#edstage .ink [data-c="${n}"] path`)
+  .getAttribute('d').slice(1).split('L').map((q) => q.split(' ').map(Number)), i);
+// Schneidet ein Abschnitt des Zugs das Innere des Rechtecks r?
+const kreuzt = (p, r) => p.slice(1).some((q, i) => {
+  const a = p[i], x1 = Math.min(a[0], q[0]), x2 = Math.max(a[0], q[0]), y1 = Math.min(a[1], q[1]), y2 = Math.max(a[1], q[1]);
+  return x1 < r.x + r.w - 1 && x2 > r.x + 1 && y1 < r.y + r.h - 1 && y2 > r.y + 1;
+});
+// Kein Pfeil der Zeichnung kreuzt einen Block (Blöcke ohne Typ, Breite aus dem SVG)
+async function keineKreuzung(t) {
+  const boxen = await t.page.evaluate(() => [...document.querySelectorAll('#edstage .ink [data-o] rect[height="60"]')]
+    .map((r) => ({x: +r.getAttribute('x'), y: +r.getAttribute('y'), w: +r.getAttribute('width'), h: 60})));
+  const n = (await t.daten()).c.length;
+  for (let i = 0; i < n; i++) {
+    const p = await pfeilPunkte(t, i);
+    t.erwarte(!boxen.some((b) => kreuzt(p, b)), `Pfeil ${i} kreuzt einen Block: ${JSON.stringify(p)}`);
+  }
+}
+// Baustein setzen und ein sofort geöffnetes Beschriftungsfeld schließen
+async function setzeRuhig(t, k, x, y) { await t.setze(k, x, y); await t.taste('Escape'); }
+async function verbinde(t, von, nach) { await t.werkzeug('conn'); await t.klick(von); await t.klick(nach); }
+
 export const tests = [
   {
     name: 'R1 Vordruck nur auf Blatt 1, IDs eindeutig',
@@ -49,6 +71,45 @@ export const tests = [
       t.erwarte(!(await musterSichtbar(t, '.th[data-key="regelkreis"]')), 'Kachel mit Baustein ohne Muster');
       await t.klick('.btn[data-act="sk-print"][data-key="regelkreis"][data-with="0"]');
       t.erwarte(await musterSichtbar(t, '#print'), 'leerer Vordruck druckt das Muster');
+    },
+  },
+  {
+    name: 'R3 Pfeile mit Vorschlägen, Rückführung unten, Verzweigung',
+    lauf: async (t) => {
+      await t.oeffne('regelkreis');
+      await setzeRuhig(t, 'sig', 100, 200);
+      await setzeRuhig(t, 'sum', 200, 200);
+      await setzeRuhig(t, 'box', 340, 200);
+      await setzeRuhig(t, 'box', 560, 200);
+      await setzeRuhig(t, 'box', 460, 320);
+      t.gleich((await t.objekte('sig')).map((o) => o.v), ['w'], 'erstes Signal heißt w');
+      await verbinde(t, [100, 200], [200, 200]);
+      await verbinde(t, [200, 200], [340, 200]);
+      await verbinde(t, [340, 200], [560, 200]);
+      await verbinde(t, [560, 200], [460, 320]);
+      await verbinde(t, [460, 320], [200, 200]);
+      const d = await t.daten();
+      t.gleich(d.c.map((c) => c.v), ['', 'e', '', '', 'x'], 'Namen an den Pfeilen');
+      const zurueck = await pfeilPunkte(t, 4), ende = zurueck[zurueck.length - 1];
+      t.gleich(ende, [200, 215], 'Rückführung endet unten an der Summierstelle');
+      await keineKreuzung(t);
+      await setzeRuhig(t, 'sig', 800, 200);
+      await verbinde(t, [560, 200], [800, 200]);
+      t.gleich((await t.objekte('abzw')).length, 1, 'zweiter Pfeil aus der Strecke setzt eine Verzweigung');
+      t.gleich((await t.objekte('sig')).map((o) => o.v), ['w', 'x'], 'zweites Signal heißt x');
+      t.gleich(await t.zaehle('#edstage .ink [data-o] circle[r="3.5"]'), 1, 'Verzweigung als gefüllter Punkt');
+      t.gleich(await texte(t, '#edstage .ink', '−'), 1, 'Minus an der Summierstelle');
+    },
+  },
+  {
+    name: 'R3 Muster übernehmen ergibt Bausteine ohne Kreuzungen',
+    lauf: async (t) => {
+      await t.oeffne('regelkreis');
+      await t.klick('#editor [data-rk="muster"]');
+      const d = await t.daten();
+      t.gleich([d.o.length, d.c.length], [9, 9], 'Muster als Bausteine');
+      await keineKreuzung(t);
+      t.erwarte(!(await musterSichtbar(t, '#edstage')), 'graues Muster danach ausgeblendet');
     },
   },
 ];

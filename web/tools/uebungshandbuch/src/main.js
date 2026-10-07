@@ -41,6 +41,8 @@ import './editor/vorlagen/leistung.js';
 import './editor/vorlagen/pneumatik-symbole.js';
 import './editor/vorlagen/pneumatik-simulation.js';
 import './editor/vorlagen/pneumatik.js';
+import './editor/vorlagen/regelkreis-bausteine.js';
+import './editor/vorlagen/regelkreis-wege.js';
 import './editor/vorlagen/regelkreis.js';
 import './editor/vorlagen/trend.js';
 import './editor/vorlagen/raster.js';
