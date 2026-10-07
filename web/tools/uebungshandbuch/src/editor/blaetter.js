@@ -4,7 +4,7 @@ import { BY, S } from '../app/basis.js';
 import { INK, PH, SVGT } from './svg.js';
 import { VORL, vorlage } from './registry.js';
 import { frame } from './vorlagen-svg.js';
-import { pageCount, zeichnungSVG } from './zeichnen.js';
+import { RESERVE_EDITOR, pageCount, zeichnungSVG } from './zeichnen.js';
 
 export function pagesSVG(key, ex, meta, n, edit){
   const body = vorlage(key).body;
@@ -16,19 +16,27 @@ export function pagesSVG(key, ex, meta, n, edit){
   if (edit) for (let i = 1; i < n; i++) h += seitenumbruch(i);
   return h;
 }
-// Gestrichelte Linie mit Hinweis zwischen Blatt i und i + 1 (nur im Editor)
+// Gestrichelte Linie mit Hinweis zwischen Blatt i und i + 1 (nur im Editor). Der Hinweis steht links unter dem
+// Rahmen, rechts steht das © (frame).
 export const seitenumbruch = i => `<g pointer-events="none">`
   + `<path d="M0 ${i*PH}H1000" stroke="#9AA4AD" stroke-width="1" stroke-dasharray="2 6"/>`
-  + `${SVGT(990, i*PH - 5, `Seitenumbruch – Blatt ${i+1}`, "end", 9.5, 400, "#9AA4AD")}</g>`;
-// Pfeilspitze für alle Verbindungen (marker-end="url(#arw)")
+  + `${SVGT(15, i*PH - 4, `Seitenumbruch: ab hier Blatt ${i+1}`, "start", 9.5, 400, "#9AA4AD")}</g>`;
+// Pfeilspitze für alle Verbindungen. Die Zeichnung verweist mit marker-end="url(#arw)" darauf.
 export const PFEIL_MARKER = `<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" `
   + `markerUnits="userSpaceOnUse" orient="auto"><path d="M0 1L10 5L0 9z" fill="${INK}"/></marker></defs>`;
+// Jede Kachel und jedes Druckblatt bekommt eine eigene Marker-ID (arw-1, arw-2 …). Gleiche IDs in mehreren SVGs
+// nimmt der Browser aus dem ersten, und das liegt im Druck in der ausgeblendeten App: Dann fehlen alle Pfeilspitzen.
+// Nur das Blatt im Editor behält "arw", denn die Vorlagen zeichnen dort .ink direkt neu.
+let markerZaehler = 0;
+export const eigenerMarker = (svg, id) => svg.replaceAll('id="arw"', `id="${id}"`).replaceAll("url(#arw)", `url(#${id})`);
 // Ganze Skizze als SVG: im Editor alle Blätter, für eine Kachel Blatt 1, für den Druck Blatt page
 export function sketchSVG(key, ex, data, meta, edit=false, page=null){
-  const n = pageCount(key, data), shown = edit || page !== null ? n : 1;
+  const n = pageCount(key, data, 0, edit ? RESERVE_EDITOR : 0), shown = edit || page !== null ? n : 1;
   const vb = page !== null ? `0 ${page*PH} 1000 ${PH}` : `0 0 1000 ${PH*(edit ? n : 1)}`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${PFEIL_MARKER}<g class="tpl">${pagesSVG(key, ex, meta, shown, edit)}</g>`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${PFEIL_MARKER}`
+    + `<g class="tpl">${pagesSVG(key, ex, meta, shown, edit)}</g>`
     + `<g class="ink">${zeichnungSVG(data, edit, key)}</g><g class="ghost"></g></svg>`;
+  return edit ? svg : eigenerMarker(svg, "arw-" + (++markerZaehler));
 }
 export const skKey = (scope, key) => `${scope}:sk:${key}`;
 export const deDate = t => new Date(t).toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit", year: "numeric"});

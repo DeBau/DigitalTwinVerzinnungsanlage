@@ -3,7 +3,7 @@
 import { $, $$, BY, IC, S } from '../app/basis.js';
 import { ED } from './status.js';
 import { BAUSTEIN, GRUPPE, SAMPLE, vorlage } from './registry.js';
-import { bausteinZeichnen, pageCount, pcSample } from './zeichnen.js';
+import { RESERVE_EDITOR, bausteinZeichnen, pageCount, pcSample } from './zeichnen.js';
 import { skKey, skMeta, sketchSVG } from './blaetter.js';
 import { FARBEN, STAERKEN } from './eigenschaften.js';
 import { sizeSVG } from './anzeige.js';
@@ -12,7 +12,7 @@ import { mitListen } from './verlauf.js';
 import { setTool } from './werkzeuge.js';
 import { zeigerBewegen, zeigerLoslassen, zeigerUnten } from './zeiger.js';
 
-// Bild für Wiederholen: gespiegeltes Rückgängig (IC.undo). Der Knopf bleibt aus, bis KERN K2 ihn schaltet.
+// Bild für Wiederholen: gespiegeltes Rückgängig (IC.undo). verlaufKnoepfe (verlauf.js) schaltet beide Knöpfe.
 export const IC_REDO = '<svg class="ic" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg>';
 // Knopf „Prüfen“ nur für Vorlagen mit dem Haken pruefe (pruefung.js)
 export const PRUEFKNOPF = key => hatPruefung(key)
@@ -36,7 +36,7 @@ export function openEditor(scope, key){
 // Zustand für die neu geöffnete Zeichnung: Verlauf, Markierung und Zustand der Vorlage beginnen leer
 export function zuruecksetzen(scope, key, data, tool){
   Object.assign(ED, {scope, key, data, tool, hist: [], zukunft: [], tx: null, strich: null, markiert: null, verbindenVon: null,
-    place: null, drag: null, vorlage: {}});
+    place: null, drag: null, vorlage: {}, finger: new Map()});
 }
 
 /* ---------- Werkzeugleiste ---------- */
@@ -53,8 +53,8 @@ export const KOPIEREN = `<span class="takewrap">`
   + aktionsKnopf("take", IC.copy + "Aus früherer Übung", ` aria-haspopup="true"`
     + titelAttr("Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren")) + `</span>`;
 export const VERLAUFSKNOEPFE = [
-  aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z")),
-  aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y") + " disabled"),
+  aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z") + ` aria-disabled="true"`),
+  aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y oder Strg+Umschalt+Z") + ` aria-disabled="true"`),
   aktionsKnopf("del", IC.trash + "Markiertes löschen", titelAttr("Entf")),
   aktionsKnopf("clear", "Alles leeren"),
 ];
@@ -124,7 +124,7 @@ export function paletteHTML(groups){
 
 /* ---------- Blatt ---------- */
 export function paintEditor(){
-  ED.blattzahl = pageCount(ED.key, ED.data); ED.zusatzY = 0;
+  ED.blattzahl = pageCount(ED.key, ED.data, 0, RESERVE_EDITOR); ED.zusatzY = 0;
   $("#edstage").innerHTML = sketchSVG(ED.key, BY[ED.scope], ED.data, skMeta(ED.scope, ED.key, ED.data), true);
   const svg = ED.svg = $("#edstage svg"); sizeSVG();
   svg.addEventListener("pointerdown", zeigerUnten); svg.addEventListener("pointermove", zeigerBewegen);

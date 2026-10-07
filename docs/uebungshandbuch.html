@@ -275,7 +275,9 @@ dialog::backdrop{background:rgba(10,20,30,.55)}
 
 /* Skizzen-Editor */
 dialog.editor{max-width:none;width:calc(100vw - 24px);height:calc(100vh - 24px);max-height:none}
-.ed{display:grid;grid-template-rows:auto minmax(0,1fr);height:100%}
+.ed{display:grid;grid-template-rows:auto minmax(0,1fr);height:100%;position:relative}
+.edwarn{position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:30;max-width:min(560px,90%);padding:10px 14px;border:2px solid #C0392B;border-radius:9px;background:#FDECEA;color:#7B1E14;font-size:13.5px;line-height:1.4;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.edwarn[hidden]{display:none}
 .edbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--line)}
 .edbar .ttl{font:600 16px var(--cond);margin-right:10px}
 .edbar .sep{width:1px;height:26px;background:var(--line);margin:0 6px}
@@ -287,6 +289,7 @@ dialog.editor{max-width:none;width:calc(100vw - 24px);height:calc(100vh - 24px);
 .takemenu button span{font-size:12px;color:var(--muted,#7a8691)}
 .takemenu p{margin:6px 6px 2px;font-size:12px;color:var(--muted,#7a8691);line-height:1.4}
 .tool{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:6px 10px;cursor:pointer;font-size:13.5px}
+.tool[aria-disabled=true]{opacity:.45;cursor:default}
 .tool[aria-pressed=true]{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
 .tool .dot{width:12px;height:12px;border-radius:50%}
 .edstage{background:var(--sunk);padding:14px;overflow:auto;position:relative}
@@ -1003,11 +1006,14 @@ pre.code code{font-size:inherit}
         return d;
       }
     },
+    // Speichern; false, wenn der Browser-Speicher voll oder gesperrt ist
     set(k, v) {
       try {
         if (v === null || v === void 0 || v === "" || v === false) localStorage.removeItem("uebh2:" + k);
         else localStorage.setItem("uebh2:" + k, JSON.stringify(v));
+        return true;
       } catch {
+        return false;
       }
     },
     all() {
@@ -1161,6 +1167,8 @@ pre.code code{font-size:inherit}
     // Vorschaupfad dieses Strichs im SVG
     radiert: false,
     // true, solange der Radierer gedrückt ist
+    finger: /* @__PURE__ */ new Map(),
+    // gedrückte Zeiger auf dem Blatt: pointerId → [clientX, clientY]. Ab zwei Fingern wird nicht gemalt
     verbindenVon: null,
     // Werkzeug Verbinden: erster angeklickter Baustein {id, anschluss}
     hist: [],
@@ -1671,7 +1679,7 @@ pre.code code{font-size:inherit}
   function zeichnungSVG(d, edit = false, key = null) {
     if (!d) return "";
     const objs = Object.fromEntries((d.o || []).map((o) => [o.id, o])), cs = d.c || [];
-    virtuelleSchienen(key, pageCount(key, d)).forEach((r) => {
+    virtuelleSchienen(key, pageCount(key, d, 0, edit ? RESERVE_EDITOR : 0)).forEach((r) => {
       objs[r.id] = r;
     });
     const v = vorlage(key);
@@ -1685,9 +1693,10 @@ pre.code code{font-size:inherit}
     const os = [...d.o || []].sort((a, b) => istRahmen(b) - istRahmen(a)).map((o) => bausteinSVG(o, edit)).join("");
     return rails + conns + os + punkteSVG(d, cs, objs, edit) + strokesSVG(d, edit);
   }
-  function pageCount(key, d, extraY = 0) {
+  var RESERVE_EDITOR = 160;
+  function pageCount(key, d, zusatzY = 0, reserve = 0) {
     if (vorlage(key).einblattig) return 1;
-    let m = extraY;
+    let m = zusatzY;
     (d && d.o || []).forEach((o) => {
       const b = umrissVon(o);
       m = Math.max(m, b.y + b.h);
@@ -1698,7 +1707,7 @@ pre.code code{font-size:inherit}
     (d && d.t || []).forEach((t) => {
       m = Math.max(m, t.y);
     });
-    return Math.max(1, Math.ceil((m + 160) / PH));
+    return Math.max(1, Math.ceil((m + reserve) / PH));
   }
   function wireRef(o, port, key, y, x) {
     const b = Math.floor(y / PH) + 1, name = istSchiene(o) ? o.v : `${o.v || BAUSTEIN[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
@@ -1725,12 +1734,15 @@ pre.code code{font-size:inherit}
     if (edit) for (let i = 1; i < n; i++) h += seitenumbruch(i);
     return h;
   }
-  var seitenumbruch = (i) => `<g pointer-events="none"><path d="M0 ${i * PH}H1000" stroke="#9AA4AD" stroke-width="1" stroke-dasharray="2 6"/>${SVGT(990, i * PH - 5, `Seitenumbruch – Blatt ${i + 1}`, "end", 9.5, 400, "#9AA4AD")}</g>`;
+  var seitenumbruch = (i) => `<g pointer-events="none"><path d="M0 ${i * PH}H1000" stroke="#9AA4AD" stroke-width="1" stroke-dasharray="2 6"/>${SVGT(15, i * PH - 4, `Seitenumbruch: ab hier Blatt ${i + 1}`, "start", 9.5, 400, "#9AA4AD")}</g>`;
   var PFEIL_MARKER = `<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto"><path d="M0 1L10 5L0 9z" fill="${INK}"/></marker></defs>`;
+  var markerZaehler = 0;
+  var eigenerMarker = (svg, id) => svg.replaceAll('id="arw"', `id="${id}"`).replaceAll("url(#arw)", `url(#${id})`);
   function sketchSVG(key, ex, data, meta, edit = false, page = null) {
-    const n = pageCount(key, data), shown = edit || page !== null ? n : 1;
+    const n = pageCount(key, data, 0, edit ? RESERVE_EDITOR : 0), shown = edit || page !== null ? n : 1;
     const vb = page !== null ? `0 ${page * PH} 1000 ${PH}` : `0 0 1000 ${PH * (edit ? n : 1)}`;
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${PFEIL_MARKER}<g class="tpl">${pagesSVG(key, ex, meta, shown, edit)}</g><g class="ink">${zeichnungSVG(data, edit, key)}</g><g class="ghost"></g></svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${PFEIL_MARKER}<g class="tpl">${pagesSVG(key, ex, meta, shown, edit)}</g><g class="ink">${zeichnungSVG(data, edit, key)}</g><g class="ghost"></g></svg>`;
+    return edit ? svg : eigenerMarker(svg, "arw-" + ++markerZaehler);
   }
   var skKey = (scope, key) => `${scope}:sk:${key}`;
   var deDate = (t) => new Date(t).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -2239,7 +2251,7 @@ pre.code code{font-size:inherit}
     svg.style.height = w * PH * ED.blattzahl / 1e3 + "px";
   }
   function checkPages() {
-    const n = pageCount(ED.key, ED.data, ED.zusatzY || 0);
+    const n = pageCount(ED.key, ED.data, ED.zusatzY || 0, RESERVE_EDITOR);
     if (!ED.svg || n === ED.blattzahl) return;
     ED.blattzahl = n;
     ED.svg.setAttribute("viewBox", `0 0 1000 ${PH * n}`);
@@ -2323,6 +2335,14 @@ pre.code code{font-size:inherit}
     ED.hist.push(stand);
     if (ED.hist.length > 80) ED.hist.shift();
     ED.zukunft = [];
+    verlaufKnoepfe();
+  }
+  function verlaufKnoepfe() {
+    const aus = { undo: !ED.hist.length && !ED.tx, redo: !ED.zukunft.length };
+    for (const [ed, inaktiv] of Object.entries(aus)) {
+      const b = document.querySelector(`#editor [data-ed="${ed}"]`);
+      if (b) b.setAttribute("aria-disabled", inaktiv);
+    }
   }
   function snapshot() {
     ablegen(JSON.stringify(ED.data));
@@ -2337,6 +2357,7 @@ pre.code code{font-size:inherit}
     saveSketch();
     if (JSON.stringify(ED.data.meta) !== metaVorher) refreshTpl();
     if (!ohneRender) renderInk();
+    if (ED.tx) verlaufKnoepfe();
     return true;
   }
   function beginne(schluessel) {
@@ -2348,6 +2369,14 @@ pre.code code{font-size:inherit}
     const tx = ED.tx;
     ED.tx = null;
     if (tx && JSON.stringify(ED.data) !== tx.vorher) ablegen(tx.vorher);
+  }
+  function verwirf() {
+    const tx = ED.tx;
+    ED.tx = null;
+    if (!tx || JSON.stringify(ED.data) === tx.vorher) return;
+    ED.data = JSON.parse(tx.vorher);
+    saveSketch();
+    renderInk();
   }
   var kannUndo = () => ED.hist.length > 0;
   var kannRedo = () => ED.zukunft.length > 0;
@@ -2361,7 +2390,25 @@ pre.code code{font-size:inherit}
   function saveSketch() {
     const d = ED.data;
     d.ts = Date.now();
-    S.set(skKey(ED.scope, ED.key), d.s.length || d.t.length || d.o.length || d.meta ? d : null);
+    speicherWarnung(!S.set(skKey(ED.scope, ED.key), d.s.length || d.t.length || d.o.length || d.meta ? d : null));
+  }
+  var SPEICHER_VOLL = "Speicher voll: Die Zeichnung ist gerade nicht gespeichert. Lösche Zeichnungen, die du nicht mehr brauchst, oder drucke diese aus, bevor du den Editor schließt.";
+  function speicherWarnung(an) {
+    let w = document.getElementById("edwarn");
+    if (!an) {
+      if (w) w.hidden = true;
+      return;
+    }
+    const ed = document.querySelector("#editor .ed");
+    if (!w && ed) {
+      w = document.createElement("div");
+      w.id = "edwarn";
+      w.className = "edwarn";
+      w.setAttribute("role", "alert");
+      w.textContent = SPEICHER_VOLL;
+      ed.appendChild(w);
+    }
+    if (w) w.hidden = false;
   }
   function holeStand(von, nach) {
     schliesse();
@@ -2371,7 +2418,9 @@ pre.code code{font-size:inherit}
     befundeWeg();
     clearSel();
     saveSketch();
+    refreshTpl();
     renderInk();
+    verlaufKnoepfe();
   }
   var undo = () => holeStand(ED.hist, ED.zukunft);
   var redo = () => holeStand(ED.zukunft, ED.hist);
@@ -2421,17 +2470,13 @@ pre.code code{font-size:inherit}
     const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
     const frage = `Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`;
     if (has && !confirm(frage)) return;
-    snapshot();
     const d = mitListen(JSON.parse(JSON.stringify(src)));
     if (d.meta) {
       delete d.meta.title;
       delete d.meta.datum;
     }
-    ED.data = d;
     clearSel();
-    saveSketch();
-    refreshTpl();
-    renderInk();
+    aendere(() => d);
     updateProps(true);
   }
 
@@ -2494,11 +2539,10 @@ pre.code code{font-size:inherit}
     const at = B && B.ort ? B.ort(o) : [b.x, b.y + b.h / 2];
     const hinweis = B && (typeof B.hinweis === "function" ? B.hinweis(o) : B.hinweis);
     editLabel(at[0], at[1], wert, hinweis, (v) => {
-      snapshot();
-      if (B && B.setze) B.setze(o, v);
-      else o.v = v;
-      saveSketch();
-      renderInk();
+      aendere(() => {
+        if (B && B.setze) B.setze(o, v);
+        else o.v = v;
+      });
       updateProps(true);
     });
   }
@@ -2507,10 +2551,9 @@ pre.code code{font-size:inherit}
     if (!c || !p) return;
     const L = p.getTotalLength(), m = p.getPointAtLength(L / 2);
     editLabel(m.x + 8, m.y, c.v || "", "Bedingung / Aktion, z. B. BG1 / MB1", (v) => {
-      snapshot();
-      c.v = v;
-      saveSketch();
-      renderInk();
+      aendere(() => {
+        c.v = v;
+      });
       updateProps(true);
     });
   }
@@ -2518,14 +2561,13 @@ pre.code code{font-size:inherit}
     const t = ED.data.t[i];
     if (!t) return;
     editLabel(t.x, t.y - 5, t.v, "Text", (v) => {
-      snapshot();
-      if (v) t.v = v;
-      else {
-        ED.data.t.splice(i, 1);
-        clearSel();
-      }
-      saveSketch();
-      renderInk();
+      aendere((d) => {
+        if (v) t.v = v;
+        else {
+          d.t.splice(i, 1);
+          clearSel();
+        }
+      });
       updateProps(true);
     });
   }
@@ -2549,6 +2591,10 @@ pre.code code{font-size:inherit}
     }
     updateProps(true);
   }
+  var fokusAufsBlatt = () => {
+    const st = document.querySelector("#edstage");
+    if (st) st.focus({ preventScroll: true });
+  };
   function blattPunkt(svg, e) {
     const p = svg.createSVGPoint();
     p.x = e.clientX;
@@ -2565,13 +2611,11 @@ pre.code code{font-size:inherit}
 
   // web/tools/uebungshandbuch/src/editor/bearbeiten.js
   function applyProp(f, v) {
-    if (SCHRIFTFELD[f]) {
-      setzeSchriftfeld(f, v);
-      return;
-    }
-    if (!setzeFeld(f, v)) return;
-    saveSketch();
-    ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
+    const geaendert = aendere(() => {
+      if (SCHRIFTFELD[f]) setzeSchriftfeld(f, v);
+      else setzeFeld(f, v);
+    }, { ohneRender: true });
+    if (geaendert && !SCHRIFTFELD[f]) ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
   }
   var SCHRIFTFELD = { mt: "title", mn: "name", md: "datum" };
   var FELDNAME = { t: { tv: "v", ts: "s", sc: "c" }, s: STRICHFELD, c: { cv: "v", cst: "st" } };
@@ -2583,8 +2627,6 @@ pre.code code{font-size:inherit}
       if (!m[k]) delete m[k];
     });
     if (!Object.keys(m).length) delete ED.data.meta;
-    saveSketch();
-    refreshTpl();
   }
   function setzeFeld(f, v) {
     const m = ED.markiert, el = markiertesElement();
@@ -2728,9 +2770,13 @@ pre.code code{font-size:inherit}
   function andockVorschau(o, dock) {
     const map = Object.fromEntries(ED.data.o.map((p2) => [p2.id, p2]));
     map[o.id] = o;
-    const gm = verbindungsWeg({ a: dock.a, b: dock.b }, map, []);
-    const p = andockPunkt(map[dock.a], map[dock.b]);
+    const gm = verbindungsWeg(dockLeitung(dock), map, []);
+    const p = vorschauPunkt(map, dock);
     return (gm ? VORSCHAU(gm.d) : "") + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
+  }
+  function vorschauPunkt(map, dock) {
+    const anschluss = dock.pa !== void 0 && portsOf(map[dock.a]).find((q) => q.n === dock.pa);
+    return anschluss ? [anschluss.x, anschluss.y] : andockPunkt(map[dock.a], map[dock.b]);
   }
   function avoidBreak(o) {
     if (vorlage(ED.key).einblattig) return;
@@ -2798,7 +2844,12 @@ pre.code code{font-size:inherit}
 
   // web/tools/uebungshandbuch/src/editor/zeiger.js
   var zeigerHaken = () => vorlage(ED.key).zeiger || {};
-  var festhalten = (e) => ED.svg.setPointerCapture(e.pointerId);
+  var festhalten = (e) => {
+    try {
+      ED.svg.setPointerCapture(e.pointerId);
+    } catch {
+    }
+  };
   var UNTEN = {
     place: (e, pt) => {
       e.preventDefault();
@@ -2829,11 +2880,18 @@ pre.code code{font-size:inherit}
     beginneStrich(e, { k: STRICH_DES_WERKZEUGS[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q] });
   }
   function zeigerUnten(e) {
+    if (e.isPrimary) ED.finger.clear();
+    ED.finger.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ED.finger.size > 1) {
+      gesteAbbrechen();
+      return;
+    }
     if (!e.target.closest("input")) {
       e.preventDefault();
       const sl = getSelection();
       if (sl && sl.rangeCount) sl.removeAllRanges();
     }
+    if (document.activeElement !== $("#edstage")) fokusAufsBlatt();
     const pt = blattPunkt(ED.svg, e), zeiger = zeigerHaken();
     if (zeiger.unten && zeiger.unten(e, pt)) return;
     (UNTEN[ED.tool] || formUnten)(e, pt);
@@ -2940,7 +2998,6 @@ pre.code code{font-size:inherit}
   }
   function beginneStrich(e, cur) {
     festhalten(e);
-    snapshot();
     ED.strich = cur;
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
     path.setAttribute("stroke", ED.color);
@@ -2952,9 +3009,17 @@ pre.code code{font-size:inherit}
     ED.strichPfad = path;
     zeigerBewegen(e);
   }
+  function gesteAbbrechen() {
+    if (ED.strichPfad) ED.strichPfad.remove();
+    Object.assign(ED, { strich: null, strichPfad: null, radiert: false, drag: null });
+    verwirf();
+    if (ED.svg) $(".ghost", ED.svg).innerHTML = "";
+  }
   function zeigerBewegen(e) {
     const svg = ED.svg;
     if (!svg) return;
+    if (ED.finger.has(e.pointerId)) ED.finger.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ED.finger.size > 1) return;
     if (ED.radiert) {
       eraseAt(e);
       return;
@@ -2989,29 +3054,31 @@ pre.code code{font-size:inherit}
     if (e.clientY > r.bottom - 36) st.scrollTop += 18;
     else if (e.clientY < r.top + 36) st.scrollTop -= 18;
   }
+  var ZIEHE = {
+    h: (dr, pt) => {
+      ED.data.s[dr.i].p[dr.h] = fangen(pt);
+    },
+    t: (dr, pt, dx, dy) => {
+      const t = ED.data.t[dr.i];
+      [t.x, t.y] = snap([dr.ox + dx, dr.oy + dy]);
+    },
+    s: (dr, pt, dx, dy) => zieheStrich(ED.data.s[dr.i], dx, dy)
+  };
   function ziehen(pt) {
     const dr = ED.drag, dx = pt[0] - dr.sx, dy = pt[1] - dr.sy;
     if (!dr.moved && Math.hypot(dx, dy) < 3) return;
     if (!dr.moved) {
-      snapshot();
+      beginne("ziehen");
       dr.moved = true;
     }
-    if (dr.kind === "h") {
-      ED.data.s[dr.i].p[dr.h] = fangen(pt);
-      renderInk();
-      return;
-    }
-    if (dr.kind === "t") {
-      const t = ED.data.t[dr.i];
-      [t.x, t.y] = snap([dr.ox + dx, dr.oy + dy]);
-      renderInk();
-      return;
-    }
-    if (dr.kind === "s") {
-      zieheStrich(ED.data.s[dr.i], dx, dy);
-      renderInk();
-      return;
-    }
+    let marks = "";
+    aendere(() => {
+      if (ZIEHE[dr.kind]) ZIEHE[dr.kind](dr, pt, dx, dy);
+      else marks = zieheBaustein(dr, dx, dy);
+    });
+    $(".ghost", ED.svg).innerHTML = marks;
+  }
+  function zieheBaustein(dr, dx, dy) {
     const o = objById(dr.id);
     [o.x, o.y] = snap([dr.ox + dx, dr.oy + dy]);
     const r = smartPos(o);
@@ -3021,8 +3088,7 @@ pre.code code{font-size:inherit}
       m.p.y = m.y + o.y - dr.oy;
     }
     dr.dock = r.dock && !linked(r.dock.a, r.dock.b) ? r.dock : null;
-    renderInk();
-    $(".ghost", ED.svg).innerHTML = r.marks;
+    return r.marks;
   }
   function zieheStrich(st, dx, dy) {
     const a = STRICH[st.k], o0 = ED.drag.orig[0];
@@ -3051,7 +3117,8 @@ pre.code code{font-size:inherit}
     avoidBreak(o);
     $(".ghost", ED.svg).innerHTML = marks + `<g opacity=".5">${bausteinZeichnen(o, true)}</g>`;
   }
-  function zeigerLoslassen() {
+  function zeigerLoslassen(e) {
+    if (e) ED.finger.delete(e.pointerId);
     ED.radiert = false;
     ED.zusatzY = 0;
     if (ED.drag) {
@@ -3063,23 +3130,45 @@ pre.code code{font-size:inherit}
     if (ED.strich.k && p0[0] === p1[0] && p0[1] === p1[1]) {
       const k = ED.strich.k;
       ED.strich = null;
-      ED.hist.pop();
       if (zeiger.angeklickt && zeiger.angeklickt(p0, k)) return;
       renderInk();
       return;
     }
     const neu = ED.strich;
-    ED.data.s.push(neu);
     ED.strich = null;
-    saveSketch();
+    if (!neu.k) neu.p = vereinfache(neu.p);
+    aendere((d) => {
+      d.s.push(neu);
+    }, { ohneRender: true });
     if (zeiger.gezogen && zeiger.gezogen(neu)) return;
     renderInk();
+  }
+  function vereinfache(p, eps = 1) {
+    const gerundet = rdp(p, eps).map(([x, y]) => [Math.round(x), Math.round(y)]);
+    return gerundet.filter((q, i) => !i || q[0] !== gerundet[i - 1][0] || q[1] !== gerundet[i - 1][1]);
+  }
+  function rdp(p, eps) {
+    if (p.length < 3) return p;
+    const [a, b] = [p[0], p[p.length - 1]], dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy);
+    const abstand = (q) => len ? Math.abs(dy * (q[0] - a[0]) - dx * (q[1] - a[1])) / len : Math.hypot(q[0] - a[0], q[1] - a[1]);
+    let iMax = 0, dMax = 0;
+    for (let i = 1; i < p.length - 1; i++) {
+      const d = abstand(p[i]);
+      if (d > dMax) {
+        dMax = d;
+        iMax = i;
+      }
+    }
+    if (dMax <= eps) return [a, b];
+    return [...rdp(p.slice(0, iMax + 1), eps).slice(0, -1), ...rdp(p.slice(iMax), eps)];
   }
   function ziehenEnde() {
     const dk = ED.drag.dock;
     if (ED.drag.moved) {
-      if (dk && !linked(dk.a, dk.b)) ED.data.c.push(dockLeitung(dk));
-      saveSketch();
+      aendere((d) => {
+        if (dk && !linked(dk.a, dk.b)) d.c.push(dockLeitung(dk));
+      });
+      schliesse();
       renderInk();
     }
     ED.drag = null;
@@ -3116,7 +3205,8 @@ pre.code code{font-size:inherit}
       verbindenVon: null,
       place: null,
       drag: null,
-      vorlage: {}
+      vorlage: {},
+      finger: /* @__PURE__ */ new Map()
     });
   }
   var werkzeugKnopf = (tool, inhalt, zusatz = "") => `<button type="button" class="tool" data-tool="${tool}"${zusatz}>${inhalt}</button>`;
@@ -3127,8 +3217,8 @@ pre.code code{font-size:inherit}
   var staerkeKnopf = ([w, n]) => `<button type="button" class="tool" data-w="${w}">${n}</button>`;
   var KOPIEREN = `<span class="takewrap">` + aktionsKnopf("take", IC.copy + "Aus früherer Übung", ` aria-haspopup="true"` + titelAttr("Eine eigene Zeichnung dieser Art aus einer anderen Übung in diese Übung kopieren")) + `</span>`;
   var VERLAUFSKNOEPFE = [
-    aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z")),
-    aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y") + " disabled"),
+    aktionsKnopf("undo", IC.undo + "Rückgängig", titelAttr("Strg+Z") + ` aria-disabled="true"`),
+    aktionsKnopf("redo", IC_REDO + "Wiederholen", titelAttr("Strg+Y oder Strg+Umschalt+Z") + ` aria-disabled="true"`),
     aktionsKnopf("del", IC.trash + "Markiertes löschen", titelAttr("Entf")),
     aktionsKnopf("clear", "Alles leeren")
   ];
@@ -3189,7 +3279,7 @@ pre.code code{font-size:inherit}
     return groups.map(gruppeHTML).join("") + `<div class="palhelp">${hinweis ? `<p>${hinweis}</p>` : ""}${PALETTE_HILFE}</div>`;
   }
   function paintEditor() {
-    ED.blattzahl = pageCount(ED.key, ED.data);
+    ED.blattzahl = pageCount(ED.key, ED.data, 0, RESERVE_EDITOR);
     ED.zusatzY = 0;
     $("#edstage").innerHTML = sketchSVG(ED.key, BY[ED.scope], ED.data, skMeta(ED.scope, ED.key, ED.data), true);
     const svg = ED.svg = $("#edstage svg");
@@ -5450,7 +5540,6 @@ END_CASE;`)}
     heute: () => {
       const f = $('#props [data-prop="md"]');
       if (f) {
-        snapshot();
         f.value = deDate(Date.now());
         applyProp("md", f.value);
       }
@@ -5464,17 +5553,15 @@ END_CASE;`)}
       ED.dock = !ED.dock;
       t.setAttribute("aria-pressed", ED.dock);
     },
-    clear: () => {
-      if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
-      snapshot();
-      ED.data = { s: [], t: [], o: [], c: [] };
-      clearSel();
-      saveSketch();
-      renderInk();
-    },
+    clear: () => alleLeeren(),
     print: () => doPrint(sketchPage(ED.scope, ED.key, true)),
     close: () => $("#editor").close()
   };
+  function alleLeeren() {
+    if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
+    clearSel();
+    aendere((d) => ({ s: [], t: [], o: [], c: [], ...d.meta ? { meta: d.meta } : {} }));
+  }
   function klick(e) {
     if (ED.klickAuslassen) {
       ED.klickAuslassen = false;
@@ -5505,6 +5592,11 @@ END_CASE;`)}
     }
     const a = AKTIONEN[t.dataset.ed];
     if (a) a(t);
+    zurueckZumBlatt(e, t);
+  }
+  function zurueckZumBlatt(e, knopf) {
+    if (document.activeElement && document.activeElement.matches("input,textarea,select")) return;
+    if (e.detail > 0 || !knopf.isConnected) fokusAufsBlatt();
   }
   function zeichenEinfuegen(zeichen) {
     const el = lastProp;
@@ -5523,14 +5615,23 @@ END_CASE;`)}
     const again = $(`#props [data-prop="${f}"]`);
     if (again) again.focus();
   }
+  var beginneFeld = (f) => beginne("feld:" + (ED.markiert ? ED.markiert.art + ED.markiert.id : "") + ":" + f);
+  var schliesseFeld = () => {
+    if (ED.tx && ED.tx.schluessel.startsWith("feld:")) schliesse();
+  };
   function tasteImFeld(e) {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      fokusAufsBlatt();
+      return;
+    }
     if (e.key !== "Enter" || !e.target.dataset.prop) return;
     e.preventDefault();
     if (e.target.tagName === "TEXTAREA" && (e.altKey || e.shiftKey || e.ctrlKey)) {
       newline(e.target);
       e.target.rows = e.target.value.split("\n").length;
       applyProp(e.target.dataset.prop, e.target.value);
-    } else $("#edstage").focus({ preventScroll: true });
+    } else fokusAufsBlatt();
   }
   function beschrifteMarkiertes() {
     const m = ED.markiert, beschrifte = m && AUSWAHL[m.art] && AUSWAHL[m.art].beschriften;
@@ -5538,6 +5639,11 @@ END_CASE;`)}
   }
   function abbrechen(e) {
     if (!ED.svg) return false;
+    const menu = $("#editor .takemenu");
+    if (menu) {
+      menu.remove();
+      return true;
+    }
     if (ED.vorlage.angefangen) {
       e.preventDefault();
       ED.vorlage.angefangen = null;
@@ -5565,6 +5671,7 @@ END_CASE;`)}
     const dx = { ArrowLeft: -10, ArrowRight: 10 }[key] || 0, dy = { ArrowUp: -10, ArrowDown: 10 }[key] || 0;
     VERSCHIEBE[ED.markiert.art](markiertesElement(), dx, dy);
   }
+  var VERLAUFSTASTEN = { z: () => undo(), y: () => redo(), "Umschalt+z": () => redo() };
   function taste(e) {
     if (e.target.matches("input,select,textarea")) {
       if (!signalTaste(e)) tasteImFeld(e);
@@ -5576,9 +5683,10 @@ END_CASE;`)}
       beschrifteMarkiertes();
       return;
     }
-    if (strg && e.key.toLowerCase() === "z") {
+    const verlauf = strg && VERLAUFSTASTEN[(e.shiftKey ? "Umschalt+" : "") + e.key.toLowerCase()];
+    if (verlauf) {
       e.preventDefault();
-      undo();
+      verlauf();
       return;
     }
     if (strg && e.key.toLowerCase() === "a") {
@@ -5591,7 +5699,15 @@ END_CASE;`)}
       turnSel(dreh);
       return;
     }
-    if (e.key === "Escape" && abbrechen(e)) return;
+    if (e.key === "Escape") {
+      e.preventDefault();
+      abbrechen(e);
+      return;
+    }
+    if (e.key === " ") {
+      e.preventDefault();
+      return;
+    }
     if ((e.key === "Delete" || e.key === "Backspace") && anySel()) {
       e.preventDefault();
       delSel();
@@ -5615,18 +5731,19 @@ END_CASE;`)}
     document.addEventListener("pointerup", paletteLoslassen);
     dlg.addEventListener("click", klick);
     dlg.addEventListener("focusin", (e) => {
-      if (e.target.dataset && e.target.dataset.prop) {
-        snapshot();
-        setLastProp(e.target);
-      }
+      if (e.target.dataset && e.target.dataset.prop) setLastProp(e.target);
     });
     dlg.addEventListener("input", (e) => {
       const f = e.target.dataset && e.target.dataset.prop;
       if (istSignalFeld(e.target)) signalEingabe(e.target);
-      if (f) applyProp(f, e.target.value);
+      if (f) {
+        beginneFeld(f);
+        applyProp(f, e.target.value);
+      }
     });
     dlg.addEventListener("focusout", (e) => {
       if (istSignalFeld(e.target)) schliesseListe(e.target);
+      if (e.target.dataset && e.target.dataset.prop) schliesseFeld();
     });
     dlg.addEventListener("change", feldGeaendert);
     dlg.addEventListener("pointerdown", (e) => {
@@ -5634,7 +5751,10 @@ END_CASE;`)}
       signalWahl(e);
     });
     dlg.addEventListener("keydown", taste);
-    dlg.addEventListener("cancel", abbrechen);
+    document.addEventListener("keydown", (e) => {
+      if (ED.svg && !dlg.contains(e.target)) taste(e);
+    });
+    dlg.addEventListener("cancel", (e) => e.preventDefault());
     dlg.addEventListener("close", () => {
       ED.svg = null;
       ED.sim = { on: false, st: {}, pos: {} };

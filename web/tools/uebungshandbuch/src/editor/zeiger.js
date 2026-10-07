@@ -12,14 +12,14 @@ import { ausrichten, kettenQuelle } from './kette.js';
 import { bausteinZeichnen, verbindungsWeg } from './zeichnen.js';
 import { updateProps } from './eigenschaften.js';
 import { checkPages, renderInk } from './anzeige.js';
-import { aendere, saveSketch, snapshot } from './verlauf.js';
+import { aendere, beginne, schliesse, verwirf } from './verlauf.js';
 import { editConnLabel, editLabel, editObjLabel, editTextItem } from './beschriften.js';
-import { blattPunkt, fangen } from './werkzeuge.js';
+import { blattPunkt, fangen, fokusAufsBlatt } from './werkzeuge.js';
 import { eraseAt } from './bearbeiten.js';
 import { VORSCHAU, avoidBreak, connect, connectPorts, dockLeitung, linked, makeObj, placeObj, smartPos } from './andocken.js';
 
 export const zeigerHaken = () => vorlage(ED.key).zeiger || {};
-export const festhalten = e => ED.svg.setPointerCapture(e.pointerId);
+export const festhalten = e => { try { ED.svg.setPointerCapture(e.pointerId); } catch { /* Zeiger schon weg */ } };
 
 /* ---------- Drücken ---------- */
 // Kernwerkzeuge beim Drücken. Jedes andere Werkzeug zieht eine Linie bzw. einen Kasten auf (formUnten).
@@ -38,10 +38,16 @@ export function formUnten(e, pt){
   beginneStrich(e, {k: STRICH_DES_WERKZEUGS[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q]});
 }
 export function zeigerUnten(e){
+  if (e.isPrimary) ED.finger.clear();   // erster Finger bzw. Maus: verlorene Zeiger vergessen
+  ED.finger.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ED.finger.size > 1) { gesteAbbrechen(); return; }   // zweiter Finger: Geste, kein Malen
   if (!e.target.closest("input")) {   // kein Markieren von Text beim Zeichnen
     e.preventDefault();
     const sl = getSelection(); if (sl && sl.rangeCount) sl.removeAllRanges();
   }
+  // preventDefault verhindert den Fokuswechsel: Feld oder Knopf abgeben, damit die Tasten am Blatt ankommen.
+  // Ein offenes Beschriftungsfeld (.txtin) übernimmt dabei seinen Text (blur).
+  if (document.activeElement !== $("#edstage")) fokusAufsBlatt();
   const pt = blattPunkt(ED.svg, e), zeiger = zeigerHaken();
   if (zeiger.unten && zeiger.unten(e, pt)) return;   // Haken zeiger.unten: eigene Werkzeuge der Vorlage
   (UNTEN[ED.tool] || formUnten)(e, pt);
@@ -120,7 +126,7 @@ export function neuerText(pt){
 }
 // Strich cur aufziehen: Zeiger festhalten, Stand merken, Vorschaupfad anlegen. Auch für die Werkzeuge der Vorlagen.
 export function beginneStrich(e, cur){
-  festhalten(e); snapshot();
+  festhalten(e);
   ED.strich = cur;
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("stroke", ED.color); path.setAttribute("stroke-width", ED.w); path.setAttribute("fill", "none");
@@ -128,9 +134,19 @@ export function beginneStrich(e, cur){
   ED.svg.querySelector(".ink").appendChild(path); ED.strichPfad = path; zeigerBewegen(e);
 }
 
+// Zwei Finger auf dem Blatt: angefangenen Strich, Radieren und Ziehen verwerfen
+export function gesteAbbrechen(){
+  if (ED.strichPfad) ED.strichPfad.remove();
+  Object.assign(ED, {strich: null, strichPfad: null, radiert: false, drag: null});
+  verwirf();
+  if (ED.svg) $(".ghost", ED.svg).innerHTML = "";
+}
+
 /* ---------- Ziehen ---------- */
 export function zeigerBewegen(e){
   const svg = ED.svg; if (!svg) return;
+  if (ED.finger.has(e.pointerId)) ED.finger.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ED.finger.size > 1) return;
   if (ED.radiert) { eraseAt(e); return; }
   const pt = blattPunkt(svg, e);
   const busy = ED.drag || ED.strich || (ED.tool === "place" && ED.place);
@@ -151,21 +167,30 @@ export function randScrollen(e){
   if (e.clientY > r.bottom - 36) st.scrollTop += 18;
   else if (e.clientY < r.top + 36) st.scrollTop -= 18;
 }
-// Markiertes ziehen: Griff, Text, Strich oder Baustein (mit Andocken und Hilfslinien)
+// Was beim Ziehen je Art geschieht: Griff am Strichende, Text, Strich; alles andere ist ein Baustein (zieheBaustein)
+export const ZIEHE = {
+  h: (dr, pt) => { ED.data.s[dr.i].p[dr.h] = fangen(pt); },
+  t: (dr, pt, dx, dy) => { const t = ED.data.t[dr.i]; [t.x, t.y] = snap([dr.ox + dx, dr.oy + dy]); },
+  s: (dr, pt, dx, dy) => zieheStrich(ED.data.s[dr.i], dx, dy),
+};
+// Markiertes ziehen. Die ganze Geste ist ein Verlaufsschritt (beginne hier, schliesse in ziehenEnde).
 export function ziehen(pt){
   const dr = ED.drag, dx = pt[0] - dr.sx, dy = pt[1] - dr.sy;
   if (!dr.moved && Math.hypot(dx, dy) < 3) return;   // kleines Zittern ist noch ein Klick
-  if (!dr.moved) { snapshot(); dr.moved = true; }
-  if (dr.kind === "h") { ED.data.s[dr.i].p[dr.h] = fangen(pt); renderInk(); return; }
-  if (dr.kind === "t") { const t = ED.data.t[dr.i]; [t.x, t.y] = snap([dr.ox + dx, dr.oy + dy]); renderInk(); return; }
-  if (dr.kind === "s") { zieheStrich(ED.data.s[dr.i], dx, dy); renderInk(); return; }
+  if (!dr.moved) { beginne("ziehen"); dr.moved = true; }
+  let marks = "";
+  aendere(() => { if (ZIEHE[dr.kind]) ZIEHE[dr.kind](dr, pt, dx, dy); else marks = zieheBaustein(dr, dx, dy); });
+  $(".ghost", ED.svg).innerHTML = marks;
+}
+// Baustein mit Andocken und Hilfslinien ziehen, Mitgenommene folgen; gibt die blaue Vorschau zurück
+export function zieheBaustein(dr, dx, dy){
   const o = objById(dr.id);
   [o.x, o.y] = snap([dr.ox + dx, dr.oy + dy]);
   const r = smartPos(o);
   avoidBreak(o);
   for (const m of dr.mit) { m.p.x = m.x + o.x - dr.ox; m.p.y = m.y + o.y - dr.oy; }
   dr.dock = r.dock && !linked(r.dock.a, r.dock.b) ? r.dock : null;
-  renderInk(); $(".ghost", ED.svg).innerHTML = r.marks;
+  return r.marks;
 }
 export function zieheStrich(st, dx, dy){
   const a = STRICH[st.k], o0 = ED.drag.orig[0];
@@ -190,27 +215,44 @@ export function setzVorschau(pt){
 }
 
 /* ---------- Loslassen ---------- */
-export function zeigerLoslassen(){
+export function zeigerLoslassen(e){
+  if (e) ED.finger.delete(e.pointerId);
   ED.radiert = false; ED.zusatzY = 0;
   if (ED.drag) { ziehenEnde(); return; }
   if (!ED.strich) return;
   const zeiger = zeigerHaken(), [p0, p1] = ED.strich.p;
   if (ED.strich.k && p0[0] === p1[0] && p0[1] === p1[1]) {   // nur geklickt, nicht gezogen: kein Strich
     const k = ED.strich.k;
-    ED.strich = null; ED.hist.pop();
+    ED.strich = null;
     if (zeiger.angeklickt && zeiger.angeklickt(p0, k)) return;   // Haken zeiger.angeklickt
     renderInk(); return;
   }
   const neu = ED.strich;
-  ED.data.s.push(neu); ED.strich = null; saveSketch();
+  ED.strich = null;
+  if (!neu.k) neu.p = vereinfache(neu.p);   // Freihand: weniger Punkte, ganze Zahlen (spart Speicher)
+  aendere(d => { d.s.push(neu); }, {ohneRender: true});
   if (zeiger.gezogen && zeiger.gezogen(neu)) return;   // Haken zeiger.gezogen
   renderInk();
+}
+// Freihandstrich vereinfachen (Ramer-Douglas-Peucker, Abweichung höchstens eps), Punkte auf ganze Zahlen runden
+export function vereinfache(p, eps = 1){
+  const gerundet = rdp(p, eps).map(([x, y]) => [Math.round(x), Math.round(y)]);
+  return gerundet.filter((q, i) => !i || q[0] !== gerundet[i-1][0] || q[1] !== gerundet[i-1][1]);
+}
+export function rdp(p, eps){
+  if (p.length < 3) return p;
+  const [a, b] = [p[0], p[p.length - 1]], dx = b[0] - a[0], dy = b[1] - a[1], len = Math.hypot(dx, dy);
+  const abstand = q => len ? Math.abs(dy * (q[0] - a[0]) - dx * (q[1] - a[1])) / len : Math.hypot(q[0] - a[0], q[1] - a[1]);
+  let iMax = 0, dMax = 0;
+  for (let i = 1; i < p.length - 1; i++) { const d = abstand(p[i]); if (d > dMax) { dMax = d; iMax = i; } }
+  if (dMax <= eps) return [a, b];
+  return [...rdp(p.slice(0, iMax + 1), eps).slice(0, -1), ...rdp(p.slice(iMax), eps)];
 }
 export function ziehenEnde(){
   const dk = ED.drag.dock;
   if (ED.drag.moved) {
-    if (dk && !linked(dk.a, dk.b)) ED.data.c.push(dockLeitung(dk));   // angedockt: verbinden
-    saveSketch(); renderInk();
+    aendere(d => { if (dk && !linked(dk.a, dk.b)) d.c.push(dockLeitung(dk)); });   // angedockt: verbinden
+    schliesse(); renderInk();
   }
   ED.drag = null;
   if (ED.svg) $(".ghost", ED.svg).innerHTML = "";

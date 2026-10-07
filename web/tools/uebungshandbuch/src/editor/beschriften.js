@@ -5,8 +5,7 @@ import { art } from './registry.js';
 import { umrissVon } from './bausteine.js';
 import { clearSel } from './auswahl.js';
 import { updateProps } from './eigenschaften.js';
-import { renderInk } from './anzeige.js';
-import { saveSketch, snapshot } from './verlauf.js';
+import { aendere } from './verlauf.js';
 
 // Zeilenumbruch an der Schreibmarke eines Textfelds einfügen
 export function newline(el){
@@ -59,23 +58,21 @@ export function editObjLabel(o){
   const at = B && B.ort ? B.ort(o) : [b.x, b.y + b.h/2];
   const hinweis = B && (typeof B.hinweis === "function" ? B.hinweis(o) : B.hinweis);
   editLabel(at[0], at[1], wert, hinweis, v => {
-    snapshot();
-    if (B && B.setze) B.setze(o, v); else o.v = v;
-    saveSketch(); renderInk(); updateProps(true);
+    aendere(() => { if (B && B.setze) B.setze(o, v); else o.v = v; });
+    updateProps(true);
   });
 }
 export function editConnLabel(i){
   const c = ED.data.c[i], p = ED.svg.querySelector(`[data-c="${i}"] path`); if (!c || !p) return;
   const L = p.getTotalLength(), m = p.getPointAtLength(L / 2);
   editLabel(m.x + 8, m.y, c.v || "", "Bedingung / Aktion, z. B. BG1 / MB1", v => {
-    snapshot(); c.v = v; saveSketch(); renderInk(); updateProps(true);
+    aendere(() => { c.v = v; }); updateProps(true);
   });
 }
 export function editTextItem(i){
   const t = ED.data.t[i]; if (!t) return;
   editLabel(t.x, t.y - 5, t.v, "Text", v => {
-    snapshot();
-    if (v) t.v = v; else { ED.data.t.splice(i, 1); clearSel(); }
-    saveSketch(); renderInk(); updateProps(true);
+    aendere(d => { if (v) t.v = v; else { d.t.splice(i, 1); clearSel(); } });
+    updateProps(true);
   });
 }

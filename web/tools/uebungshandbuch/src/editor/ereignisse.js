@@ -6,11 +6,11 @@ import { anySel, clearSel, markiertesElement, markiertesObjekt } from './auswahl
 import { deDate } from './blaetter.js';
 import { istSignalFeld, schliesseListe, signalEingabe, signalTaste, signalWahl } from './signalfeld.js';
 import { lastProp, setLastProp, updateProps } from './eigenschaften.js';
-import { renderInk, sizeSVG } from './anzeige.js';
+import { sizeSVG } from './anzeige.js';
 import { pruefeSkizze, waehleBefund, zeigeBefunde } from './pruefung.js';
-import { aendere, redo, saveSketch, snapshot, takeMenu, takeSketch, undo } from './verlauf.js';
+import { aendere, beginne, redo, schliesse, takeMenu, takeSketch, undo } from './verlauf.js';
 import { newline } from './beschriften.js';
-import { blattPunkt, setTool } from './werkzeuge.js';
+import { blattPunkt, fokusAufsBlatt, setTool } from './werkzeuge.js';
 import { applyProp, delSel, turnSel } from './bearbeiten.js';
 import { placeObj } from './andocken.js';
 import { AUSWAHL, zeigerBewegen } from './zeiger.js';
@@ -59,17 +59,20 @@ export const AKTIONEN = {
   rot: () => turnSel("rot"),
   flip: () => turnSel("flip"),
   sfzu: () => { clearSel(); updateProps("neu"); },
-  heute: () => { const f = $('#props [data-prop="md"]'); if (f) { snapshot(); f.value = deDate(Date.now()); applyProp("md", f.value); } },
+  heute: () => { const f = $('#props [data-prop="md"]'); if (f) { f.value = deDate(Date.now()); applyProp("md", f.value); } },
   del: () => delSel(),
   grid: t => { ED.grid = !ED.grid; t.setAttribute("aria-pressed", ED.grid); },
   dock: t => { ED.dock = !ED.dock; t.setAttribute("aria-pressed", ED.dock); },
-  clear: () => {
-    if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
-    snapshot(); ED.data = {s:[], t:[], o:[], c:[]}; clearSel(); saveSketch(); renderInk();
-  },
+  clear: () => alleLeeren(),
   print: () => doPrint(sketchPage(ED.scope, ED.key, true)),
   close: () => $("#editor").close(),
 };
+// „Alles leeren“: Bausteine, Striche und Texte weg, das Schriftfeld (meta) bleibt
+export function alleLeeren(){
+  if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
+  clearSel();
+  aendere(d => ({s: [], t: [], o: [], c: [], ...(d.meta ? {meta: d.meta} : {})}));
+}
 export function klick(e){
   if (ED.klickAuslassen) { ED.klickAuslassen = false; if (e.target.closest("[data-place]")) return; }   // Klick nach Ziehen aus der Palette
   const pb = e.target.closest("[data-place]");
@@ -84,6 +87,14 @@ export function klick(e){
   if (t.dataset.w) { ED.w = +t.dataset.w; $$("#editor [data-w]").forEach(b => b.setAttribute("aria-pressed", b === t)); }
   const a = AKTIONEN[t.dataset.ed];
   if (a) a(t);
+  zurueckZumBlatt(e, t);
+}
+// Nach einem Mausklick auf einen Knopf (oder wenn der Knopf beim Neuzeichnen verschwunden ist) gehen die Tasten wieder
+// ans Blatt. Sonst löst die Leertaste den Knopf erneut aus, und Entf oder Pfeile kommen nicht im Editor an.
+// Hat die Aktion selbst ein Eingabefeld fokussiert (z. B. Schriftfeld), bleibt der Fokus dort.
+export function zurueckZumBlatt(e, knopf){
+  if (document.activeElement && document.activeElement.matches("input,textarea,select")) return;
+  if (e.detail > 0 || !knopf.isConnected) fokusAufsBlatt();
 }
 // Zeichenleiste (·, +, ¬ …): Zeichen ins zuletzt benutzte Feld an der Schreibmarke einfügen
 export function zeichenEinfuegen(zeichen){
@@ -103,23 +114,30 @@ export function feldGeaendert(e){
   const again = $(`#props [data-prop="${f}"]`); if (again) again.focus();
 }
 
+// Tippen in einem Feld ist ein Verlaufsschritt je Feld und markiertem Element (Transaktion in verlauf.js)
+export const beginneFeld = f => beginne("feld:" + (ED.markiert ? ED.markiert.art + ED.markiert.id : "") + ":" + f);
+export const schliesseFeld = () => { if (ED.tx && ED.tx.schluessel.startsWith("feld:")) schliesse(); };
+
 /* ---------- Tastatur ---------- */
 export function tasteImFeld(e){
+  if (e.key === "Escape") { e.preventDefault(); fokusAufsBlatt(); return; }   // Esc verlässt das Feld, schließt nie
   if (e.key !== "Enter" || !e.target.dataset.prop) return;
   e.preventDefault();
   if (e.target.tagName === "TEXTAREA" && (e.altKey || e.shiftKey || e.ctrlKey)) {   // neue Zeile
     newline(e.target); e.target.rows = e.target.value.split("\n").length; applyProp(e.target.dataset.prop, e.target.value);
   }
-  else $("#edstage").focus({preventScroll: true});
+  else fokusAufsBlatt();
 }
 export function beschrifteMarkiertes(){
   const m = ED.markiert, beschrifte = m && AUSWAHL[m.art] && AUSWAHL[m.art].beschriften;
   if (beschrifte) beschrifte(m.id);
 }
-// Esc: angefangene Eingabe der Vorlage (ED.vorlage.angefangen) verwerfen, sonst Markierung und Werkzeug aufheben.
+// Esc: offenes Menü schließen, angefangene Eingabe der Vorlage (ED.vorlage.angefangen) verwerfen, sonst Markierung und Werkzeug aufheben.
 // true, wenn etwas zu tun war
 export function abbrechen(e){
   if (!ED.svg) return false;
+  const menu = $("#editor .takemenu");
+  if (menu) { menu.remove(); return true; }   // offenes Menü „Aus früherer Übung“ zuerst
   if (ED.vorlage.angefangen) {
     e.preventDefault(); ED.vorlage.angefangen = null; $(".ghost", ED.svg).innerHTML = ""; updateProps(true);
     return true;
@@ -137,15 +155,19 @@ export function verschiebeMarkiertes(key){
   const dx = {ArrowLeft: -10, ArrowRight: 10}[key] || 0, dy = {ArrowUp: -10, ArrowDown: 10}[key] || 0;
   VERSCHIEBE[ED.markiert.art](markiertesElement(), dx, dy);
 }
+// Strg+Z nimmt zurück, Strg+Y und Strg+Umschalt+Z wiederholen
+export const VERLAUFSTASTEN = {z: () => undo(), y: () => redo(), "Umschalt+z": () => redo()};
 export function taste(e){
   if (e.target.matches("input,select,textarea")) { if (!signalTaste(e)) tasteImFeld(e); return; }
   const strg = e.ctrlKey || e.metaKey;
   if ((e.key === "Enter" || e.key === "F2") && anySel() && ED.markiert.art !== "f") { e.preventDefault(); beschrifteMarkiertes(); return; }
-  if (strg && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
+  const verlauf = strg && VERLAUFSTASTEN[(e.shiftKey ? "Umschalt+" : "") + e.key.toLowerCase()];
+  if (verlauf) { e.preventDefault(); verlauf(); return; }
   if (strg && e.key.toLowerCase() === "a") { e.preventDefault(); return; }
   const dreh = {r: "rot", m: "flip"}[e.key.toLowerCase()];   // Taste R dreht, M spiegelt
   if (!strg && !e.altKey && markiertId("o") && dreh) { e.preventDefault(); turnSel(dreh); return; }
-  if (e.key === "Escape" && abbrechen(e)) return;
+  if (e.key === "Escape") { e.preventDefault(); abbrechen(e); return; }   // Esc schließt den Editor nie (nur „Fertig“)
+  if (e.key === " ") { e.preventDefault(); return; }   // Leertaste löst keinen Knopf aus und rollt das Blatt nicht
   if ((e.key === "Delete" || e.key === "Backspace") && anySel()) { e.preventDefault(); delSel(); return; }
   if (e.key.startsWith("Arrow") && anySel() && VERSCHIEBE[ED.markiert.art]) {
     e.preventDefault(); aendere(() => verschiebeMarkiertes(e.key));
@@ -161,16 +183,21 @@ export function init(){
   document.addEventListener("pointermove", paletteZiehen);
   document.addEventListener("pointerup", paletteLoslassen);
   dlg.addEventListener("click", klick);
-  dlg.addEventListener("focusin", e => { if (e.target.dataset && e.target.dataset.prop) { snapshot(); setLastProp(e.target); } });
+  dlg.addEventListener("focusin", e => { if (e.target.dataset && e.target.dataset.prop) setLastProp(e.target); });
   dlg.addEventListener("input", e => {
     const f = e.target.dataset && e.target.dataset.prop;
     if (istSignalFeld(e.target)) signalEingabe(e.target);   // Minuszeichen, Vorschlagsliste
-    if (f) applyProp(f, e.target.value);
+    if (f) { beginneFeld(f); applyProp(f, e.target.value); }
   });
-  dlg.addEventListener("focusout", e => { if (istSignalFeld(e.target)) schliesseListe(e.target); });
+  dlg.addEventListener("focusout", e => {
+    if (istSignalFeld(e.target)) schliesseListe(e.target);
+    if (e.target.dataset && e.target.dataset.prop) schliesseFeld();
+  });
   dlg.addEventListener("change", feldGeaendert);
   dlg.addEventListener("pointerdown", e => { if (e.target.closest(".sym")) e.preventDefault(); signalWahl(e); });   // Fokus im Feld lassen
   dlg.addEventListener("keydown", taste);
-  dlg.addEventListener("cancel", abbrechen);   // Esc im Dialog: erst abbrechen, erst dann schließen
+  // Liegt der Fokus nach einem Klick auf eine leere Fläche auf body, kommen die Tasten trotzdem im Editor an
+  document.addEventListener("keydown", e => { if (ED.svg && !dlg.contains(e.target)) taste(e); });
+  dlg.addEventListener("cancel", e => e.preventDefault());   // Esc schließt den Editor nie, nur „Fertig“
   dlg.addEventListener("close", () => { ED.svg = null; ED.sim = {on: false, st: {}, pos: {}}; route(); });
 }

@@ -15,6 +15,15 @@ export function ablegen(stand){
   ED.hist.push(stand);
   if (ED.hist.length > 80) ED.hist.shift();
   ED.zukunft = [];
+  verlaufKnoepfe();
+}
+// Knöpfe Rückgängig und Wiederholen passend zu den Stapeln (aria-disabled, bleiben fokussierbar)
+export function verlaufKnoepfe(){
+  const aus = {undo: !ED.hist.length && !ED.tx, redo: !ED.zukunft.length};   // offene Transaktion: schon geändert
+  for (const [ed, inaktiv] of Object.entries(aus)) {
+    const b = document.querySelector(`#editor [data-ed="${ed}"]`);
+    if (b) b.setAttribute("aria-disabled", inaktiv);
+  }
 }
 // Übergang: Stand merken, auch wenn danach nichts geändert wird. Neue Aufrufer nehmen aendere().
 export function snapshot(){ ablegen(JSON.stringify(ED.data)); }
@@ -32,6 +41,7 @@ export function aendere(aenderung, {ohneRender = false} = {}){
   saveSketch();
   if (JSON.stringify(ED.data.meta) !== metaVorher) refreshTpl();
   if (!ohneRender) renderInk();
+  if (ED.tx) verlaufKnoepfe();
   return true;
 }
 // Transaktion für Ziehen und Tippen: alle aendere() bis schliesse() ergeben einen Verlaufsschritt.
@@ -46,15 +56,38 @@ export function schliesse(){
   ED.tx = null;
   if (tx && JSON.stringify(ED.data) !== tx.vorher) ablegen(tx.vorher);
 }
+// Offene Transaktion verwerfen: Zeichnung wie bei beginne, kein Verlaufsschritt (z. B. Zwei-Finger-Geste beim Ziehen)
+export function verwirf(){
+  const tx = ED.tx;
+  ED.tx = null;
+  if (!tx || JSON.stringify(ED.data) === tx.vorher) return;
+  ED.data = JSON.parse(tx.vorher);
+  saveSketch(); renderInk();
+}
 export const kannUndo = () => ED.hist.length > 0;
 export const kannRedo = () => ED.zukunft.length > 0;
 // Fehlende Listen einer geladenen Zeichnung anlegen
 export const mitListen = d => { d.s ||= []; d.t ||= []; d.o ||= []; d.c ||= []; return d; };
-// Zeichnung unter uebh2:<scope>:sk:<key> speichern; eine leere Zeichnung löscht den Eintrag
+// Zeichnung unter uebh2:<scope>:sk:<key> speichern; eine leere Zeichnung löscht den Eintrag.
+// Ist der Speicher voll, erscheint die Warnung #edwarn, bis das Speichern wieder klappt.
 export function saveSketch(){
   const d = ED.data;
   d.ts = Date.now();
-  S.set(skKey(ED.scope, ED.key), (d.s.length || d.t.length || d.o.length || d.meta) ? d : null);
+  speicherWarnung(!S.set(skKey(ED.scope, ED.key), (d.s.length || d.t.length || d.o.length || d.meta) ? d : null));
+}
+export const SPEICHER_VOLL = "Speicher voll: Die Zeichnung ist gerade nicht gespeichert. Lösche Zeichnungen, die du nicht mehr "
+  + "brauchst, oder drucke diese aus, bevor du den Editor schließt.";
+// Warnung über dem Blatt; sie entsteht erst, wenn das Speichern scheitert
+export function speicherWarnung(an){
+  let w = document.getElementById("edwarn");
+  if (!an) { if (w) w.hidden = true; return; }
+  const ed = document.querySelector("#editor .ed");
+  if (!w && ed) {
+    w = document.createElement("div");
+    w.id = "edwarn"; w.className = "edwarn"; w.setAttribute("role", "alert"); w.textContent = SPEICHER_VOLL;
+    ed.appendChild(w);
+  }
+  if (w) w.hidden = false;
 }
 // Stand aus von holen, den aktuellen nach nach legen (Rückgängig: hist → zukunft, Wiederholen umgekehrt)
 export function holeStand(von, nach){
@@ -62,7 +95,7 @@ export function holeStand(von, nach){
   if (!von.length) return;
   nach.push(JSON.stringify(ED.data));
   ED.data = JSON.parse(von.pop());
-  befundeWeg(); clearSel(); saveSketch(); renderInk();
+  befundeWeg(); clearSel(); saveSketch(); refreshTpl(); renderInk(); verlaufKnoepfe();
 }
 export const undo = () => holeStand(ED.hist, ED.zukunft);
 export const redo = () => holeStand(ED.zukunft, ED.hist);
@@ -108,8 +141,7 @@ export function takeSketch(sc){
   const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
   const frage = `Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`;
   if (has && !confirm(frage)) return;
-  snapshot();
   const d = mitListen(JSON.parse(JSON.stringify(src)));
   if (d.meta) { delete d.meta.title; delete d.meta.datum; }   // Titel und Datum gehören zur neuen Übung
-  ED.data = d; clearSel(); saveSketch(); refreshTpl(); renderInk(); updateProps(true);
+  clearSel(); aendere(() => d); updateProps(true);
 }

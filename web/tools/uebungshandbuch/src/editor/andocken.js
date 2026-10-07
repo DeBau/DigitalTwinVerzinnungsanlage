@@ -3,6 +3,7 @@ import { PH } from './svg.js';
 import { ED, markiere } from './status.js';
 import { BAUSTEIN, art, bauteil, vorlage } from './registry.js';
 import { snap } from './vorlagen-svg.js';
+import { portsOf } from './bauteile.js';
 import { gruppeVon, mitteVon, umrissVon } from './bausteine.js';
 import { objById, uid } from './auswahl.js';
 import { andockPunkt, andockStelle, ausrichten, kettenQuelle } from './kette.js';
@@ -81,10 +82,15 @@ export function hilfslinien(o, marks){
 // Vorschau der Verbindung, die beim Loslassen entsteht, und Kreis um den Anschluss
 export function andockVorschau(o, dock){
   const map = Object.fromEntries(ED.data.o.map(p => [p.id, p])); map[o.id] = o;
-  const gm = verbindungsWeg({a: dock.a, b: dock.b}, map, []);
-  const p = andockPunkt(map[dock.a], map[dock.b]);
+  const gm = verbindungsWeg(dockLeitung(dock), map, []);   // mit pa/pb: Leitung von Anschluss zu Anschluss
+  const p = vorschauPunkt(map, dock);
   return (gm ? VORSCHAU(gm.d) : "")
     + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
+}
+// Ort des Vorschaukreises: am Anschluss pa von dock.a, wenn der Haken andocke ihn nennt, sonst am Andockpunkt der Kette
+export function vorschauPunkt(map, dock){
+  const anschluss = dock.pa !== undefined && portsOf(map[dock.a]).find(q => q.n === dock.pa);
+  return anschluss ? [anschluss.x, anschluss.y] : andockPunkt(map[dock.a], map[dock.b]);
 }
 export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blattende legen – sonst auf das nächste Blatt
   if (vorlage(ED.key).einblattig) return;
