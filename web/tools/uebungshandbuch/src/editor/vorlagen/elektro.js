@@ -5,7 +5,7 @@ import { INK, PH, SVGT } from '../svg.js';
 import { BAUSTEIN, SAMPLE, art, bauteil, fuelle, registriereBauteile, registriereGruppe, registriereVorlage } from '../registry.js';
 import { G, G2, TX, grid } from '../vorlagen-svg.js';
 import { LB, PD, PN, PP, SK, portsOf } from '../bauteile.js';
-import { LINIE, gruppenId } from '../bausteine.js';
+import { LINIE, gruppenId, umrissVon } from '../bausteine.js';
 
 export const cNO = (x, y) => `M${x} ${y}V${y+20}M${x} ${y+60}V${y+42}L${x-13} ${y+19}`;
 export const cNC = (x, y) => `M${x} ${y}V${y+20}H${x+9}M${x} ${y+60}V${y+42}L${x+12} ${y+16}`;
@@ -18,17 +18,39 @@ export function stromlaufBlatt(){
   for (let i = 1; i <= 20; i++) { const x = 40 + i*46; s += TX(x, 52, 9, String(i), "middle") + `<path d="M${x} 74V586" stroke="${G2}" stroke-width=".6" stroke-dasharray="2 5"/>`; }
   return grid(10, "#EEF1F3", 40, 80, 975, 580) + s + TX(40, 615, 9, "Strompfad-Nr. oben, Kontaktspiegel unter den Spulen eintragen");
 }
-// Glieder eines Strompfads ohne eigene Leitung nach oben bzw. unten verbinden sich mit L+ und M des eigenen Blatts
-export function strompfadAnschluesse(d, cs){
-  let s = "";
-  const imPfad = o => gruppenId(o) === "elektro" && (bauteil(o.k) ? bauteil(o.k).bx : art(o.k).anschluesse);
-  (d.o || []).filter(imPfad).forEach(o => {
-    const ps = portsOf(o), top = ps[0], bot = ps[1], base = Math.floor(o.y / PH) * PH, yT = base + 70, yB = base + 590;
-    const wired = p => cs.some(c => (c.a === o.id && c.pa === p.n) || (c.b === o.id && c.pb === p.n));
-    if (!cs.some(c => c.b === o.id && c.pa === undefined) && !wired(top) && o.y > yT) s += `<path d="M${o.x} ${yT}V${o.y}" stroke="${INK}" stroke-width="1.6"/><circle cx="${o.x}" cy="${yT}" r="2.6" fill="${INK}"/>`;
-    if (!cs.some(c => c.a === o.id && c.pa === undefined) && !wired(bot) && o.y + 60 < yB) s += `<path d="M${o.x} ${o.y+60}V${yB}" stroke="${INK}" stroke-width="1.6"/><circle cx="${o.x}" cy="${yB}" r="2.6" fill="${INK}"/>`;
+// Glied eines Strompfads: Baustein der Gruppe elektro mit Anschluss oben (0) und unten (1)
+export const imPfad = o => gruppenId(o) === "elektro" && !!(bauteil(o.k) ? bauteil(o.k).bx : art(o.k).anschluesse);
+const istKettenLink = c => c.pa === undefined && c.pb === undefined;
+// Ketten des Steuerstromkreises: je Glied, ob es Anfang und Ende seiner Kette ist. Ein Glied ohne Kettenlink zählt nicht.
+export function kettenEnden(d, cs){
+  const glieder = (d.o || []).filter(imPfad), ids = new Set(glieder.map(o => o.id));
+  const links = cs.filter(c => istKettenLink(c) && ids.has(c.a) && ids.has(c.b));
+  return glieder.filter(o => links.some(c => c.a === o.id || c.b === o.id))
+    .map(o => ({o, anfang: !links.some(c => c.b === o.id), ende: !links.some(c => c.a === o.id)}));
+}
+// Liegt zwischen y1 und y2 auf der Senkrechten x ein anderer Baustein?
+export function verdeckt(d, x, y1, y2, ohne){
+  return (d.o || []).some(p => {
+    if (p.id === ohne) return false;
+    const b = umrissVon(p);
+    return b.x < x && x < b.x + b.w && b.y < y2 && y1 < b.y + b.h;
   });
-  return s;
+}
+// Automatische Leitungen: Kettenanfang oben zu L+, Kettenende unten zu M, je auf dem eigenen Blatt.
+// Nur, wenn der Anschluss frei ist und die Leitung durch keinen anderen Baustein liefe. [{o, p, y}] mit Schienenhöhe y
+export function autoLeitungen(d, cs){
+  const r = [];
+  const belegt = (o, p) => cs.some(c => (c.a === o.id && c.pa === p.n) || (c.b === o.id && c.pb === p.n));
+  kettenEnden(d, cs).forEach(({o, anfang, ende}) => {
+    const [oben, unten] = portsOf(o), basis = Math.floor(o.y / PH) * PH, yL = basis + 70, yM = basis + 590;
+    if (anfang && !belegt(o, oben) && oben.y > yL && !verdeckt(d, oben.x, yL, oben.y, o.id)) r.push({o, p: oben, y: yL});
+    if (ende && !belegt(o, unten) && unten.y < yM && !verdeckt(d, unten.x, unten.y, yM, o.id)) r.push({o, p: unten, y: yM});
+  });
+  return r;
+}
+export function strompfadAnschluesse(d, cs){
+  return autoLeitungen(d, cs).map(({p, y}) => `<path class="autoleitung" d="M${p.x} ${y}V${p.y}" stroke="${INK}" `
+    + `stroke-width="1.6"/><circle cx="${p.x}" cy="${y}" r="2.6" fill="${INK}"/>`).join("");
 }
 registriereVorlage("stromlauf", {
   n: "Stromlaufplan", d: "Steuerstromkreis zwischen L+ und M – Taster, Not-Halt, SPS, Sicherheitsrelais",
