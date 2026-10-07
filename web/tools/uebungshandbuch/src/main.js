@@ -43,6 +43,7 @@ import './editor/vorlagen/pneumatik-geraete.js';
 import './editor/vorlagen/pneumatik-simstatus.js';
 import './editor/vorlagen/pneumatik-simulation.js';
 import './editor/vorlagen/pneumatik-antriebe.js';
+import './editor/vorlagen/pneumatik-pruefen.js';
 import './editor/vorlagen/pneumatik.js';
 import './editor/vorlagen/regelkreis.js';
 import './editor/vorlagen/trend.js';

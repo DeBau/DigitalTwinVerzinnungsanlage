@@ -13,6 +13,7 @@ import { GERAET, oeffnung } from './pneumatik-geraete.js';
 import { simAnleitung } from './pneumatik-simstatus.js';
 import { simulationKlick, simulationWechsel } from './pneumatik-simulation.js';
 import { ANTRIEB_KNOPF, antriebKlick } from './pneumatik-antriebe.js';
+import { pneuPruefen } from './pneumatik-pruefen.js';
 
 registriereVorlage("pneumatik", {
   n: "Pneumatikschaltplan", d: "Zylinder, Wegeventile, Drosseln nach ISO 1219, mit Simulation", gruppen: ["pneu"],
@@ -21,6 +22,7 @@ registriereVorlage("pneumatik", {
   werkzeugleiste: {nachVerbinden: `<button type="button" class="tool" data-tool="sim" `
     + `title="Ventile per Klick schalten, Druck und Zylinderbewegung ansehen">${IC.play}Simulation</button>` + ANTRIEB_KNOPF},
   klick: antriebKlick,
+  pruefe: pneuPruefen,
   anleitung: () => ED.tool === "sim" ? simAnleitung() : null,
   werkzeugWechsel: simulationWechsel,
   zeiger: {unten: simulationKlick},

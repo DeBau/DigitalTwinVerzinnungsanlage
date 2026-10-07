@@ -180,4 +180,27 @@ export const tests = [
       t.erwarte(await farbe(t, 7) !== BLAU, 'Taster losgelassen: Ventil fällt zurück');
     },
   },
+  {
+    name: 'P8 Prüfen: offene Anschlüsse, Versorgung an 3, ohne Ventil, Zuluftdrosselung, doppelt, Sensoren',
+    daten: 'pneu-pruefen',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      await t.knopf('pruefen');
+      const text = await t.text('#props');
+      for (const s of ['Anschluss 1 ist offen', 'Versorgung hängt an 3', 'Kein Wegeventil', 'Zuluftdrosselung',
+        '−MB1 kommt 2-mal vor', '−MM1 kommt 2-mal vor', 'vordere Endlage fehlt']) t.erwarte(text.includes(s), `Befund fehlt: ${s}`);
+      t.erwarte(await t.zaehle('#edstage .befund rect') >= 5, 'rote Markierungen auf dem Blatt');
+    },
+  },
+  {
+    name: 'P8 Prüfen: ein Antrieb aus der Anlage ist fehlerfrei',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      await t.klick('#editor [data-pneu="antrieb"]');
+      await t.klick('#props [data-antrieb="MM3"]');
+      await t.knopf('pruefen');
+      const text = await t.text('#props');
+      t.erwarte(!text.includes('Fehler') && !text.includes('Hinweis'), `unerwartete Befunde: ${text}`);
+    },
+  },
 ];
