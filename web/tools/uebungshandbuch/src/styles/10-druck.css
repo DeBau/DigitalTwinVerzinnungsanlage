@@ -44,6 +44,6 @@
 }
 @media print{
   #print table{table-layout:auto;width:100%}
-  #print th,#print td{overflow-wrap:anywhere;hyphens:auto}
-  #print td:first-child{overflow-wrap:normal}
+  #print th,#print td{overflow-wrap:normal;hyphens:auto}
+  #print td.wert,#print .ans{overflow-wrap:break-word;white-space:pre-wrap}
 }

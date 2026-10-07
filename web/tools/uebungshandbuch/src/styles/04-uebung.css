@@ -156,7 +156,13 @@ ul.erg li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align-it
 .tplfr summary{cursor:pointer}
 /* Breite Vorlagentabellen passen in die Spalte: Zellen brechen um (Silbentrennung, notfalls im Wort), Eingaben schrumpfen mit.
    .tw bleibt als Rückfall scrollbar. */
-.tplt th,.tplt td{overflow-wrap:anywhere;hyphens:auto}
-.tplt td:first-child{overflow-wrap:normal}   /* Adressen und Kennzeichen nicht im Wort trennen */
-.tplt input{min-width:0;width:100%}
+/* Wörter brechen nur an Silbengrenzen: weiche Trennstellen (trenn() in basis.js) und, wo der Browser es kann, hyphens:auto.
+   Mitten im Wort bricht nur ein Eintrag, der allein breiter ist als seine Spalte. */
+.tplt th,.tplt td{overflow-wrap:normal;word-break:normal;hyphens:auto}
+.tplt td.wert,.tplt td textarea{overflow-wrap:break-word}
+.tplt td:has(textarea){min-width:3.5em}
+textarea.auto{display:block;width:100%;min-width:0;min-height:0;resize:none;overflow:hidden;line-height:1.4;padding:4px 2px}
+.tplt textarea.auto{border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;font-size:14.5px}
+.case textarea.auto{font-size:14px;padding:6px 9px;background:transparent}
+.case .fa textarea.auto{margin-top:2px}
 .tplt th{font-size:12.5px}

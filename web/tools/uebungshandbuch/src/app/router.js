@@ -90,7 +90,31 @@ export function migriereTpl(){
     S.set(k, null);
   });
 }
-export function migriere(){ migriereStil(); migriereBew(); migriereTpl(); }
+// Sicherheit: Daten aus „Meine Daten“ (Import) oder einem veränderten Speicher sind nicht vertrauenswürdig.
+// Schlüssel: nur Zeichen, die die App selbst erzeugt. Skizzen (Lxx:sk:…): Der Editor setzt Koordinaten, Farben und
+// Strichstärken direkt in SVG-Attribute. Darin dürfen keine Zeichen stehen, die ein Attribut verlassen können.
+// Texte (Beschriftungen, Schriftfeld) maskiert der Editor selbst, sie bleiben unverändert.
+export const KEY_OK = /^[\w:.\-]+$/;
+const SK_TEXT = new Set(["v", "lbl", "title", "name", "datum", "rows"]), SK_ZAHL = new Set(["x", "y", "w", "h", "s", "r", "rot", "fw", "fh", "ts", "p"]);
+const zahl = v => { const n = typeof v === "number" ? v : parseFloat(v); return Number.isFinite(n) ? n : 0; };
+// art: "text" (Editor maskiert selbst), "zahl" (Koordinaten, Größen, Punkte) oder sonst Bezeichner und Farben
+export function sauberSkizze(d, art = ""){
+  if (Array.isArray(d)) return d.map(x => sauberSkizze(x, art));
+  if (d && typeof d === "object") return Object.fromEntries(Object.entries(d).filter(([k]) => KEY_OK.test(k)).map(([k, v]) => [k, sauberSkizze(v, art === "text" || SK_TEXT.has(k) ? "text" : SK_ZAHL.has(k) ? "zahl" : "")]));
+  if (art === "zahl" && (typeof d === "string" || typeof d === "number")) return zahl(d);
+  if (typeof d === "string") return art === "text" ? d : d.replace(/[<>"'`&]/g, "");
+  return typeof d === "number" && !Number.isFinite(d) ? 0 : d;
+}
+export const sauber = (k, v) => /:sk:/.test(k) ? sauberSkizze(v) : v;
+// Importierte Einträge: unzulässige Schlüssel fallen weg, Skizzen werden bereinigt
+export const sauberImport = d => Object.fromEntries(Object.entries(d && typeof d === "object" ? d : {}).filter(([k]) => KEY_OK.test(k)).map(([k, v]) => [k, sauber(k, v)]));
+export function migriereSicher(){
+  Object.entries(S.all()).forEach(([k, v]) => {
+    if (!KEY_OK.test(k)) return S.set(k, null);
+    const n = sauber(k, v); if (JSON.stringify(n) !== JSON.stringify(v)) S.set(k, n);
+  });
+}
+export function migriere(){ migriereSicher(); migriereStil(); migriereBew(); migriereTpl(); }
 // Seiteneffekte: Listener, Migrationen, Start. main.js ruft init() in der ursprünglichen Reihenfolge auf.
 export function init(){
 (function umziehen(){

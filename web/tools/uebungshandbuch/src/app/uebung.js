@@ -1,6 +1,6 @@
 /* ---------- Übungsansicht ---------- */
 import { PHASES, SHEETS, STUFEN } from './daten.js';
-import { $, $$, BY, HAS_ERG, HSTUFE, IC, S, artPill, chip, chips, chipsQuiet, esc, hilfeLevel, hilfeText, mitbringen, plain, sheetPos, qt, quelle, quizKey, quizSet, sigEntries, stilFor, stilKey, tableHTML, typOf, vorIds, zielTag } from './basis.js';
+import { $, $$, BY, HAS_ERG, HSTUFE, IC, S, artPill, chip, chips, chipsQuiet, esc, hilfeLevel, hilfeText, listOf, mitbringen, plain, prVal, sheetPos, qt, quelle, quizKey, quizSet, sigEntries, stilFor, stilKey, tableHTML, trenn, typOf, vorIds, zielTag } from './basis.js';
 import { phaseDone, prDone } from './fortschritt.js';
 import { app, setNav, viewHome } from './start.js';
 import { paintSketches } from './skizzen-kacheln.js';
@@ -8,7 +8,7 @@ import { paintVars } from './variablen.js';
 
 export let timerId = null, timerEx = null, timerStart = 0;
 export function fmtTime(sec){ const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60; return `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`; }
-export function curTime(id){ let t = S.get(id+":zeit", 0); if (timerEx === id) t += Math.floor((Date.now() - timerStart)/1000); return t; }
+export function curTime(id){ let t = +S.get(id+":zeit", 0) || 0; if (timerEx === id) t += Math.floor((Date.now() - timerStart)/1000); return t; }
 export function toggleTimer(id){
   if (timerEx) { S.set(timerEx+":zeit", curTime(timerEx)); clearInterval(timerId); const was = timerEx; timerEx = null; if (was === id) return paintTimer(id); }
   timerEx = id; timerStart = Date.now(); timerId = setInterval(() => paintTimer(id), 1000); paintTimer(id);
@@ -85,8 +85,8 @@ export function tplRowsHTML(ex, d, head, mode, fremd = false){
   return tplRows(d).map((r, ri) => {
     const n = tplNIn(d, r, head), vals = Array.from({length: n}, (_, ci) => mode === "blank" ? "" : S.get(tplKey(ex.id, d, ri, ci)) ?? "");
     if (fremd && ri >= fixed && !vals.some(v => String(v).trim())) return "";
-    const fest = r.map(x => `<td>${chips(x)}</td>`).join("");
-    const ein = vals.map((v, ci) => mode === "edit" ? `<td><input type="text" data-k="${tplKey(ex.id, d, ri, ci)}" aria-label="${esc(plain(head[r.length + ci] || ""))}, Zeile ${ri + 1}"></td>` : `<td class="${mode === "blank" ? "leer" : "wert"}">${esc(v) || "&nbsp;"}</td>`).join("");
+    const fest = r.map(x => `<td>${trenn(chips(x))}</td>`).join("");
+    const ein = vals.map((v, ci) => mode === "edit" ? `<td><textarea class="auto" rows="1" data-k="${tplKey(ex.id, d, ri, ci)}" aria-label="${esc(plain(head[r.length + ci] || ""))}, Zeile ${ri + 1}"></textarea></td>` : `<td class="${mode === "blank" ? "leer" : "wert"}">${esc(v) || "&nbsp;"}</td>`).join("");
     return `<tr>${fest}${ein}</tr>`;
   }).join("");
 }
@@ -99,14 +99,14 @@ export function docTable(ex, d, mode, opt = {}){
   const muster = mode === "view" ? null : d.muster || (teile[0] && teile[0].d.muster);   // Beispielzeile nur zum Ausfüllen und leer gedruckt
   const vorher = mode === "blank" ? "blank" : "view";
   const tl = (t, own) => `<tr class="teil"><td colspan="${cols}">${t.ex.id} ${esc(t.ex.t)}${own || opt.ohneLink ? "" : ` <a class="small" href="#/${t.ex.id}/${t.d.phase || 4}">bearbeiten in ${t.ex.id}</a>`}</td></tr>`;
-  let body = muster ? `<tr class="muster"><td colspan="${cols}" class="mlab">Beispiel, so trägst du ein</td></tr><tr class="muster">${muster.map(x => `<td>${chips(x)}</td>`).join("")}</tr>` : "";
+  let body = muster ? `<tr class="muster"><td colspan="${cols}" class="mlab">Beispiel, so trägst du ein</td></tr><tr class="muster">${muster.map(x => `<td>${trenn(chips(x))}</td>`).join("")}</tr>` : "";
   teile.forEach(t => { body += tl(t, false) + tplRowsHTML(t.ex, t.d, head, vorher, true); });
   if (teile.length || (opt.danach || []).length) body += tl({ex, d}, !opt.fremd);
   body += tplRowsHTML(ex, d, head, mode, !!opt.fremd);
   (opt.danach || []).forEach(t => { body += tl(t, false) + tplRowsHTML(t.ex, t.d, head, vorher, true); });
   // Nur lesend und noch nichts eingetragen (z. B. freie Liste ohne feste Zeilen): Hinweis statt leerer Tabelle
   if (!/<tr>/.test(body)) body += `<tr class="noch"><td colspan="${cols}" class="muted small">Noch keine Einträge.</td></tr>`;
-  return `<div class="tw"><table class="tplt${mode === "edit" ? "" : " ro"}"><thead><tr>${head.map(x => `<th>${x}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`;
+  return `<div class="tw"><table class="tplt${mode === "edit" ? "" : " ro"}"><thead><tr>${head.map(x => `<th>${trenn(x)}</th>`).join("")}</tr></thead><tbody>${body}</tbody></table></div>`;
 }
 // Ein Dokument mit allen Erweiterungen von Übungen vor Position bis (bezug, Mappe). ref = "Lxx:id"
 export function docGanz(ref, mode, bis = Infinity, opt = {}){
@@ -201,10 +201,10 @@ export function phaseHTML(s, p){
   }
   if (p === 5) {
     let h = H("Kontrollieren", "Arbeite das Prüfprotokoll Fall für Fall ab. Provoziere Fehler gezielt durch Forcen im Signalmonitor und notiere, was du beobachtest. Ist ein Fall nicht bestanden, halte Ursache, Änderung und Nachtest fest.")
-      + `<div class="summary" id="sum"></div><div class="checks">${s.pr.map((c, i) => { const v = S.get(k+":p"+i); return `<div class="case ${v||""}" data-case="${k}:p${i}"><div class="ct">${chips(qt(c))}${zielTag(c)}</div>
+      + `<div class="summary" id="sum"></div><div class="checks">${s.pr.map((c, i) => { const v = prVal(S.get(k+":p"+i)); return `<div class="case ${v||""}" data-case="${k}:p${i}"><div class="ct">${chips(qt(c))}${zielTag(c)}</div>
         <div class="segbtn" role="group" aria-label="Ergebnis Prüffall ${i+1}"><button type="button" data-set="${k}:p${i}" data-val="ok" aria-pressed="${v==="ok"}">bestanden</button><button type="button" data-set="${k}:p${i}" data-val="bad" aria-pressed="${v==="bad"}">nicht bestanden</button></div>
-        <div class="obs"><input type="text" data-k="${k}:b${i}" placeholder="Beobachtung" aria-label="Beobachtung zu Prüffall ${i+1}"></div>
-        <div class="fa"><b class="small">Fehleranalyse</b>${[["u","Ursache","Warum hat es nicht funktioniert?"],["m","Änderung","Was hast du geändert?"],["n","Nachtest","Wie hast du erneut geprüft, mit welchem Ergebnis?"]].map(([x, l, ph]) => `<label class="small">${l}<input type="text" data-k="${k}:p${i}${x}" placeholder="${ph}"></label>`).join("")}</div></div>`; }).join("")}</div>`;
+        <div class="obs"><textarea class="auto" rows="1" data-k="${k}:b${i}" placeholder="Beobachtung" aria-label="Beobachtung zu Prüffall ${i+1}"></textarea></div>
+        <div class="fa"><b class="small">Fehleranalyse</b>${[["u","Ursache","Warum hat es nicht funktioniert?"],["m","Änderung","Was hast du geändert?"],["n","Nachtest","Wie hast du erneut geprüft, mit welchem Ergebnis?"]].map(([x, l, ph]) => `<label class="small">${l}<textarea class="auto" rows="1" data-k="${k}:p${i}${x}" placeholder="${ph}"></textarea></label>`).join("")}</div></div>`; }).join("")}</div>`;
     if (s.lfk && s.lfk.length) h += `<h3>Kontrollfragen</h3><p class="muted small">Diese Fragen kannst du erst nach Versuch oder Messung beantworten.</p>` + lfHTML(k, s.lfk, "lfk");
     h += bezugHTML(s, 5) + tplHTML(s, 5);
     h += stilCheckHTML(s);
@@ -247,16 +247,25 @@ export function quizHTML(k, qi, q, w="ein"){
 }
 
 /* ================= Ereignisse ================= */
+// Mitwachsende Textfelder: Höhe folgt dem Inhalt (nur sichtbare Felder, versteckte beim Aufklappen)
+// In Tabellen bekommt die Zelle eine Mindestbreite nach dem längsten Wort, damit Wörter nicht mitten drin umbrechen.
+export const autoGrow = el => {
+  if (!el.offsetParent) return;
+  const td = el.closest(".tplt td");
+  if (td) { const w = Math.max(0, ...String(el.value).split(/\s+/).map(x => x.length)); td.style.minWidth = w > 4 ? Math.min(14, 1 + w * .62) + "em" : ""; }
+  el.style.height = "auto"; el.style.height = el.scrollHeight + 2 + "px";
+};
 export function restoreInputs(root){
   $$("[data-k]", root).forEach(el => { const v = S.get(el.dataset.k); if (el.type === "checkbox") el.checked = !!v; else el.value = v ?? ""; });
   $$("[data-k='name'],[data-k='klasse']", root).forEach(el => el.value = S.get(el.dataset.k) || "");
+  $$("textarea.auto", root).forEach(autoGrow);
   refreshStatus();
 }
 export function refreshStatus(){
   const m = location.hash.match(/^#\/(L\d\d)\/(\d)/); if (!m) return;
   const s = BY[m[1]]; if (!s) return;
   $$(".stepper a[data-step]").forEach(a => { const n = +a.dataset.step, d = phaseDone(s, n); a.classList.toggle("done", d); a.querySelector(".n").textContent = d ? "✓" : n; });
-  $$("[data-state]").forEach(el => el.textContent = (S.get(el.dataset.state) || "").trim() ? "beantwortet" : "");
+  $$("[data-state]").forEach(el => el.textContent = String(S.get(el.dataset.state) ?? "").trim() ? "beantwortet" : "");
   const sum = $("#sum"); if (sum) { const ok = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "ok").length, bad = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "bad").length;
     const ana = s.pr.filter((_, i) => S.get(s.id+":p"+i) === "bad" && prDone(s.id, i)).length;
     sum.innerHTML = `<span><b>${ok}</b>bestanden</span><span><b>${bad}</b>nicht bestanden${bad ? `, davon ${ana} analysiert` : ""}</span><span><b>${s.pr.length-ok-bad}</b>offen</span>`; }

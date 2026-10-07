@@ -1,6 +1,6 @@
 /* ================= Drucken ================= */
 import { EXVORL, STUFEN, TYPN, critMax, critOf, gradeOf } from './daten.js';
-import { $, $$, ART, BY, IC, S, bewPunkte, bewSumme, chips, esc, hilfeLevel, hilfeText, mitbringen, qt, quelle, sigEntries, stilFor, stilKey, tableHTML, typOf, zielTag } from './basis.js';
+import { $, $$, ART, BY, IC, S, bewPunkte, bewSumme, chips, esc, hilfeLevel, hilfeText, listOf, mitbringen, qt, quelle, sigEntries, stilFor, stilKey, tableHTML, typOf, zielTag } from './basis.js';
 import { filled } from './fortschritt.js';
 import { VORL } from '../editor/registry.js';
 import { pageCount } from '../editor/zeichnen.js';
@@ -56,7 +56,7 @@ export function stilPrint(ex, f){
   return `<h2>Programmierstil nach Siemens-Styleguide</h2><table><tbody>${st.map(x => `<tr><td style="width:6%"><span class="box">${f && S.get(stilKey(ex.id, x.i)) ? "✓" : ""}</span></td><td>${x.neu ? "<b>(neu)</b> " : ""}${x.r.t}</td></tr>`).join("")}</tbody></table>`;
 }
 export function varsPage(ex, f){
-  const rows = f ? S.get(ex.id+":vars", []) : [];
+  const rows = f ? listOf(S.get(ex.id+":vars", [])) : [];
   const blank = Math.max(0, (f ? 6 : 22) - rows.length);
   return `<section class="pp">${pageHead(ex, "Variablenliste")}${whoRow(ex, f)}
     <table><thead><tr><th style="width:28%">Name</th><th style="width:12%">Datentyp</th><th style="width:14%">Adresse</th><th>Kommentar</th></tr></thead><tbody>${
@@ -80,7 +80,7 @@ export function sketchPage(scope, key, f){
 }
 export const nivTable = crit => `<h2>Niveaustufen</h2><p>Passend zur Selbsteinschätzung: 1 = noch nicht, 2 = mit Hilfe, 3 = selbstständig, 4 = sicher und kann es erklären. Richtwert für die Punkte: Stufe 1 bis 25 %, Stufe 2 bis 50 %, Stufe 3 bis 75 %, Stufe 4 bis 100 % des Höchstwerts.</p>
   <table><thead><tr><th style="width:16%">Kriterium</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead><tbody>${crit.map(c => `<tr><td><b>${c[0]}</b></td>${(c[3] || []).map(n => `<td>${n}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
-export const bewTable = (crit, pts) => `<table><thead><tr><th>Kriterium</th><th>Erfüllt, wenn</th><th>max.</th><th>Punkte</th></tr></thead><tbody>${crit.map((c, i) => `<tr><td>${c[0]}</td><td>${c[2]}</td><td>${c[1]}</td><td>${pts ? pts[i] ?? "" : ""}</td></tr>`).join("")}
+export const bewTable = (crit, pts) => `<table><thead><tr><th>Kriterium</th><th>Erfüllt, wenn</th><th>max.</th><th>Punkte</th></tr></thead><tbody>${crit.map((c, i) => `<tr><td>${c[0]}</td><td>${c[2]}</td><td>${c[1]}</td><td>${pts ? esc(pts[i] ?? "") : ""}</td></tr>`).join("")}
     <tr><td colspan="2"><b>Summe</b></td><td>${critMax(crit)}</td><td><b>${pts && pts.some(v => v !== null) ? pts.reduce((a, v) => a + (+v || 0), 0) : ""}</b></td></tr></tbody></table>`;
 export function bewPage(ex){
   const k = ex.id, crit = critOf(ex), sum = bewSumme(ex);

@@ -22,6 +22,32 @@ export const esc = s => String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;
 export const chip = tag => `<span class="sig${SIG[tag]||EXTRA[tag] ? "" : " nodata"}" tabindex="0" data-tag="${tag}">&minus;${tag}</span>`;
 export const chipsQuiet = html => chips(html).replace(/ tabindex="0"/g, "");
 export const chips = html => String(html).replace(/−([A-Z]{1,3}\d{1,2})(?![\d_])/g, (m, t) => chip(t));
+// Weiche Trennstellen (&shy;) in langen deutschen Wörtern, nur im Text außerhalb von Tags, nicht in Code und Kennzeichen.
+// Chrome trennt Deutsch mit hyphens:auto nicht überall, deshalb einfache Silbenregeln: vor einem einzelnen Konsonanten
+// zwischen Vokalen (ge-mes-sen), vor dem letzten Konsonanten einer Gruppe (Kenn-zei-chen) oder vor einem Silbenanfang wie tr, pl, st. ch, ck, sch, ph, qu zählen
+// als ein Laut; Doppellaute (ei, au, eu, äu, ie) werden nicht getrennt. Ein Wort bricht dann nur an einer Silbengrenze.
+const ONS = /^(schr|schl|schw|str|spr|bl|br|dr|fl|fr|gl|gr|kl|kr|pl|pr|tr|zw|sp|st)$/i;   // sp, st nur nach weiterem Konsonanten (Bes-tim-mung, aber Schreib-stel-le)
+const SV = "aeiouyäöüAEIOUYÄÖÜ", SL = /^(sch|ch|ck|ph|qu|[a-zäöüß])/i, DL = /^(ei|ai|au|eu|äu|ie)/i;
+export const silben = w => {
+  if (w.length < 8 || !/^[A-Za-zÄÖÜäöüß]+$/.test(w)) return w;
+  const t = []; for (let i = 0; i < w.length;) { const m = DL.exec(w.slice(i)) || SL.exec(w.slice(i)); const l = m ? m[0].length : 1; t.push(w.slice(i, i + l)); i += l; }
+  const vok = x => SV.includes(x[0]);
+  let out = "", pos = 0;
+  for (let i = 0; i < t.length; i++) {
+    if (i > 0 && vok(t[i]) === false) {
+      let j = i; while (j < t.length && !vok(t[j])) j++;   // Konsonantengruppe t[i..j-1], danach Vokal
+      if (j < t.length && vok(t[i - 1]) && j - i >= 1) {
+        let cut = j - 1;   // vor dem letzten Konsonanten trennen, außer die letzten bilden einen Silbenanfang (tr, pl, st, schr …)
+        for (let n = Math.min(3, j - i); n >= 2; n--) { const o = t.slice(j - n, j).join(""); if (ONS.test(o) && (!/^s[pt]$/i.test(o) || j - n > i)) { cut = j - n; break; } }
+        for (let k = i; k < j; k++) { if (k === cut && pos >= 2 && w.length - pos >= 3) out += "­"; out += t[k]; pos += t[k].length; }
+        i = j - 1; continue;
+      }
+    }
+    out += t[i]; pos += t[i].length;
+  }
+  return out;
+};
+export const trenn = html => String(html ?? "").replace(/(<code[\s\S]*?<\/code>|<[^>]+>)|([^<]+)/g, (m, tag, txt) => tag ? m : txt.replace(/[A-Za-zÄÖÜäöüß]{8,}/g, silben));
 export const plain = html => String(html).replace(/<[^>]+>/g, "");
 // Leitfrage, Prüfpunkt: Text oder [Text, [Zielindex, …]]
 export const qt = e => Array.isArray(e) ? e[0] : e;
@@ -42,7 +68,10 @@ export const ART = {neu:["N","neu angelegt"], erweitert:["E","erweitert"], "übe
 export const artPill = a => ART[a] ? `<span class="art art-${ART[a][0]}" title="${ART[a][1]}">${ART[a][0]}</span>` : "";
 export const HAS_ERG = SHEETS.some(s => s.ergebnis && s.ergebnis.length);
 export const HSTUFE = ["Denkanstoß", "Vorgehen", "Lösungsskizze"];
-export const hilfeLevel = (s, i) => +S.get(`${s.id}:h${i}`) || 0;
+export const hilfeLevel = (s, i) => Math.max(0, Math.min(3, Math.floor(+S.get(`${s.id}:h${i}`) || 0)));
+// Gespeicherte Werte mit festem Typ (Schutz gegen veränderte Daten aus einer importierten Datei)
+export const prVal = v => v === "ok" || v === "bad" ? v : null;
+export const listOf = v => Array.isArray(v) ? v.filter(r => r && typeof r === "object") : [];
 export const hilfeUsed = s => Object.keys(s.hilfe || {}).map(i => [+i, hilfeLevel(s, i)]).filter(([, l]) => l > 0).sort((a, b) => a[0] - b[0]);
 export const hilfeText = s => { const u = hilfeUsed(s); return u.length ? u.map(([i, l]) => `Schritt ${i+1} mit Hilfe ${l} (${HSTUFE[l-1]}) gelöst`).join(", ") + "." : "Ohne Hilfen gelöst."; };
 export const tableHTML = (head, rows) => `<div class="tw"><table><thead><tr>${head.map(h=>`<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${chips(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;

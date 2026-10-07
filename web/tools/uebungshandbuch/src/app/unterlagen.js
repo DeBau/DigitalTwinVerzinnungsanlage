@@ -1,6 +1,6 @@
 /* ---------- Mappe „Meine Unterlagen“: alle Dokumente aller Übungen ---------- */
 import { EXVORL, STUFEN, SHEETS } from './daten.js';
-import { $, $$, BY, IC, S, chips, esc, plain, qt } from './basis.js';
+import { $, $$, BY, IC, S, chips, esc, listOf, plain, qt } from './basis.js';
 import { filled } from './fortschritt.js';
 import { VORL } from '../editor/registry.js';
 import { skKey } from '../editor/blaetter.js';
@@ -35,7 +35,7 @@ export function mappeDocs(ex){
     zeige: () => `<ol class="mfr">${fr.map(([q, key, t]) => `<li><b>${chips(qt(q))}</b> <span class="muted small">${t}</span><div class="wert">${esc(S.get(key) || "") || '<span class="muted">noch keine Antwort</span>'}</div></li>`).join("")}</ol>`,
     druck: () => `<section class="pp">${pageHead(ex, "Leitfragen und Antworten")}${whoRow(ex, true)}${fr.map(([q, key, t], i) => `<div class="qp"><p><b>${i+1}. ${chips(qt(q))}</b> (${t})</p>${ansOr(S.get(key), 3)}</div>`).join("")}</section>`});
   // Variablenliste
-  const vars = S.get(k + ":vars", []);
+  const vars = listOf(S.get(k + ":vars", []));
   if (vars.length) out.push({ex, art: "Variablenliste", titel: `Variablenliste ${k}`, voll: true,
     zeige: () => `<div class="tw"><table class="tplt ro"><thead><tr><th>Name</th><th>Datentyp</th><th>Adresse</th><th>Kommentar</th></tr></thead><tbody>${vars.map(r => `<tr>${["n","t","a","k"].map(f => `<td>${esc(r[f])}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`,
     druck: () => varsPage(ex, true)});
