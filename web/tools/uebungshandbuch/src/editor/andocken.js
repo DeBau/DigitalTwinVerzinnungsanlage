@@ -5,7 +5,7 @@ import { BAUSTEIN, art, bauteil, vorlage } from './registry.js';
 import { snap } from './vorlagen-svg.js';
 import { gruppeVon, mitteVon, umrissVon } from './bausteine.js';
 import { objById, uid } from './auswahl.js';
-import { andockPunkt, andockStelle, ausrichten, kettenQuelle } from './kette.js';
+import { andockPunkt, andockStelle, ausrichten, kettenQuelle, seite } from './kette.js';
 import { fragtBedingung, verbindungsWeg } from './zeichnen.js';
 import { zeigeHinweis } from './eigenschaften.js';
 import { aendere } from './verlauf.js';
@@ -86,26 +86,17 @@ export function andockVorschau(o, dock){
   return (gm ? VORSCHAU(gm.d) : "")
     + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
 }
-// Bausteine nicht in Schriftfeld/Rand am Blattende legen, sonst auf das nächste Blatt. Liegt dort schon ein Baustein,
-// rutscht o weiter nach unten, damit sich die Bausteine einer Kette nicht übereinander stapeln.
-export function avoidBreak(o){
-  if (vorlage(ED.key).einblattig) return;
-  let verschoben = false;
-  for (let i = 0; i < 80; i++) {
-    const b = umrissVon(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
-    if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) { o.y += B + 70 - b.y; verschoben = true; }
-    else if (verschoben && ueberdeckt(o)) o.y += 10;
-    else break;
-  }
+// Wie weit o nach unten muss, damit es nicht im Bereich um ein Blattende liegt (Rand, Schriftfeld, Verweise der
+// Abbruchstellen): bis 70 unter den Anfang des nächsten Blatts. 0, wenn o frei liegt oder die Vorlage einblattig ist.
+export function umbruchWeg(o){
+  if (vorlage(ED.key).einblattig) return 0;
+  const b = umrissVon(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
+  return k >= 1 && b.y < B + 70 && b.y + b.h > B - 80 ? B + 70 - b.y : 0;
 }
-// Liegt o auf einem anderen Baustein (mit 10 Abstand)?
-export function ueberdeckt(o){
-  const a = umrissVon(o);
-  return ED.data.o.some(p => {
-    if (p.id === o.id) return false;
-    const b = umrissVon(p);
-    return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h + 10 && b.y < a.y + a.h + 10;
-  });
+// Baustein aus dem Bereich um das Blattende auf das nächste Blatt legen. Seitenbausteine (GRAFCET-Aktionen) bleiben
+// bei ihrem Kettenglied. Was danach in der Kette folgt, schiebt die Vorlage selbst mit (GRAFCET: meideUmbruch).
+export function avoidBreak(o){
+  if (!seite(o)) o.y += umbruchWeg(o);
 }
 // Verbindung, die beim Andocken entsteht; zwischen Anschlüssen, wenn der Haken andocke pa und pb nennt
 export function dockLeitung(dock){

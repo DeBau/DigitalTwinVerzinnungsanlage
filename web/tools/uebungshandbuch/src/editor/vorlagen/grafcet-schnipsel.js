@@ -1,7 +1,8 @@
 // GRAFCET: Verzweigungs-Schnipsel der Palette. „ODER mit 2 Zweigen“ und „UND mit 2 Zweigen“ setzen die Verzweigungslinie
 // und hängen beim Setzen (Gruppen-Haken nachSetzen) die Zweige und die Zusammenführung darunter. Die Breite der Linien
 // passt „Kette ausrichten“ an die Zweige an (linienBreiteAnpassen).
-import { kettenAus, kettenEin } from '../bausteine.js';
+import { kettenAus, kettenEin, umrissVon } from '../bausteine.js';
+import { umbruchWeg } from '../andocken.js';
 import { isAct } from './grafcet-aktion.js';
 import { freieSchrittNummer, grafcetNachSetzen, neuesGlied, objIn, verknuepfe } from './grafcet-kette.js';
 
@@ -22,13 +23,22 @@ export function baueSchnipsel(o, d){
   const s = SCHNIPSEL[o.schnipsel];
   delete o.schnipsel;
   if (!s) return;
-  const [k, dy] = s.zusammen, unten = neuesGlied(d, k, undefined);
+  const vorher = new Set(d.o.map(q => q.id)), [k, dy] = s.zusammen, unten = neuesGlied(d, k, undefined);
   Object.assign(unten, {x: o.x, y: o.y + dy, w: o.w});
   for (const zx of ZWEIG_X) {
     let vor = o;
     for (const [gliedArt, y] of s.zweig) { const B = gliedBei(d, gliedArt, o.x + zx, o.y + y); verknuepfe(d, vor, B); vor = B; }
     verknuepfe(d, vor, unten);
   }
+  schnipselUmbruch(o, d.o.filter(B => !vorher.has(B.id)));
+}
+// Liegt ein Glied des Schnipsels im Bereich um ein Blattende, springt der ganze Schnipsel auf das nächste Blatt:
+// die Linie o 70 unter den Blattanfang, die Zweige mit ihr
+export function schnipselUmbruch(o, neue){
+  const B = neue.find(q => umbruchWeg(q));
+  if (!B) return;
+  const dy = umrissVon(B).y + umbruchWeg(B) - umrissVon(o).y;
+  [o, ...neue].forEach(q => { q.y += dy; });
 }
 // Haken nachSetzen der Gruppe: erst den Schnipsel ausbauen, dann die Regeln der Kette
 export function schnipselNachSetzen(o, d, info){

@@ -5,6 +5,7 @@ import { markiere } from '../status.js';
 import { markiertesObjekt, objById } from '../auswahl.js';
 import { aendere } from '../verlauf.js';
 import { editObjLabel } from '../beschriften.js';
+import { umbruchWeg } from '../andocken.js';
 import { isAct, isStep, isTrans } from './grafcet-aktion.js';
 import { aktionenVon, freieSchrittNummer, haengeEin, legeUnter, nachfolger, neuesGlied, objIn, vorgaengerIn } from './grafcet-kette.js';
 import { linienBreiteAnpassen } from './grafcet-schnipsel.js';
@@ -56,7 +57,8 @@ export function plusSchritt(){
 
 /* ---------- Kette ausrichten ---------- */
 export const legbar = o => isStep(o) || isTrans(o);
-// Schritte und Transitionen unter ihren Vorgänger legen (Teilung 100), Verzweigungen und Aktionen ziehen mit
+// Schritte und Transitionen unter ihren Vorgänger legen (Teilung 100), Verzweigungen und Aktionen ziehen mit.
+// Ein Glied im Bereich um ein Blattende springt auf das nächste Blatt, die Glieder darunter legen sich darunter.
 export function ketteAusrichten(d){
   const unten = Object.fromEntries(d.o.map(o => [o.id, o.y])), weg = {};
   for (const A of kettenFolge(d)) {
@@ -66,6 +68,7 @@ export function ketteAusrichten(d){
       if (!B || isAct(B) || B.id in weg || unten[B.id] <= unten[A.id]) continue;
       const [x0, y0] = [B.x, B.y];
       if (legbar(A) && legbar(B)) legeUnter(B, A); else { B.x += weg[A.id][0]; B.y += weg[A.id][1]; }
+      B.y += umbruchWeg(B);
       weg[B.id] = [B.x - x0, B.y - y0];
       verschiebeAktionen(d, B, weg[B.id]);
     }

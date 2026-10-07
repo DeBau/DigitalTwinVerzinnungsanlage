@@ -3,12 +3,14 @@
 // eine Transition, zwei Transitionen hintereinander lehnt der Editor mit Hinweis ab) und fügen echt ein (haengeEin).
 // mitziehen nimmt Aktionen (mit Umschalt den Rest der Kette) mit, loeschen nimmt Aktionen mit und schließt die Kette,
 // andocke fängt nur bis 70.
+import { PH } from '../svg.js';
 import { ED, istMarkiert } from '../status.js';
 import { art } from '../registry.js';
-import { kettenAus, kettenEin, mitteVon } from '../bausteine.js';
+import { kettenAus, kettenEin, mitteVon, umrissVon } from '../bausteine.js';
 import { objById, uid } from '../auswahl.js';
 import { andockKette } from '../kette.js';
 import { FELDER_JE_ART } from '../eigenschaften.js';
+import { umbruchWeg } from '../andocken.js';
 import { isAct, isStep, isTrans } from './grafcet-aktion.js';
 
 export const TEILUNG = 100;   // Abstand zweier Schritte in der Kette (Schritt 40, Linie 30, Transition, Linie 30)
@@ -43,7 +45,7 @@ export function hinweisAnleitung(){
 export const PAAR_REGELN = [
   {passt: (A, B) => isStep(A) && isStep(B), tue: (A, B, d, neu) => {
     if (neu === B) B.y = Math.max(B.y, A.y + TEILUNG);
-    transitionDazwischen(A, B, d);
+    meideUmbruch(d, [transitionDazwischen(A, B, d).id]);
   }},
   {passt: (A, B) => isTrans(A) && isTrans(B), tue: (A, B, d, neu) => {
     loeseVerbindung(d, A, B);
@@ -51,6 +53,7 @@ export const PAAR_REGELN = [
   }},
 ];
 export function grafcetNachSetzen(o, d, {A, dock}){
+  if (!A && !dock) ausweichen(o, d);
   if (A && einfuegen(A, o, d)) return;
   const [oben, unten] = A ? [A, o] : dock ? [objIn(d, dock.a), objIn(d, dock.b)] : [];
   const regel = oben && unten && PAAR_REGELN.find(r => r.passt(oben, unten));
@@ -108,6 +111,25 @@ export function verschiebeRest(d, ids, dy){
   d.o.forEach(o => { if (alle.has(o.id)) o.y += dy; });
 }
 
+/* ---------- Seitenumbruch ---------- */
+// Kettenglieder ids von oben nach unten prüfen: Liegt eins im Bereich um ein Blattende, springt es mit dem Rest der
+// Kette und allen Aktionen auf das nächste Blatt. Aktionen allein verschiebt avoidBreak nie.
+export function meideUmbruch(d, ids){
+  const glieder = ids.map(id => objIn(d, id)).filter(Boolean).sort((a, b) => a.y - b.y);
+  for (const B of glieder) {
+    const dy = umbruchWeg(B);
+    if (dy) verschiebeRest(d, [B.id, ...kettenRest(d, B)], dy);
+  }
+}
+// Ein frei gesetztes Glied, das avoidBreak an den Anfang eines Blatts gelegt hat, rutscht unter ein Glied, das dort
+// schon liegt (nur beim Setzen, nur GRAFCET)
+export const ueberlappen = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h + 10 && b.y < a.y + a.h + 10;
+export function ausweichen(o, d){
+  if (isAct(o) || umrissVon(o).y % PH !== 70) return;
+  const andere = d.o.filter(p => p.id !== o.id && !isAct(p)).map(umrissVon);
+  for (let n = 0; n < 40 && andere.some(b => ueberlappen(umrissVon(o), b)); n++) o.y += 10;
+}
+
 /* ---------- Einfügen ---------- */
 // Freie Schrittnummer in d und neue Bausteine für das Einfügen (Lage setzt legeUnter)
 export function freieSchrittNummer(d){
@@ -134,6 +156,7 @@ export function haengeEin(A, glieder, d, nachher){
   let vor = A;
   for (const B of glieder) { legeUnter(B, vor); verknuepfe(d, vor, B); vor = B; }
   if (nachher) verknuepfe(d, vor, nachher);
+  meideUmbruch(d, [...glieder.map(B => B.id), ...(nachher ? [nachher.id, ...kettenRest(d, nachher)] : [])]);
 }
 // Echtes Einfügen: Hatte A schon einen Nachfolger, kommt o (mit Partner) zwischen A und den Nachfolger.
 // false, wenn A keinen Nachfolger hat oder die Arten nicht passen.
@@ -155,8 +178,10 @@ export function ketteSchliessen(o, d){
   const T1 = vorgaengerIn(d, o), T2 = nachfolger(d, o)[0], N = T2 && nachfolger(d, T2)[0];
   if (!T1 || !isTrans(T2)) return [];
   if (N && N.id !== o.id) {
-    if (N.y > o.y) verschiebeRest(d, [N.id, ...kettenRest(d, N)], o.y - N.y);
+    const rest = [N.id, ...kettenRest(d, N)];
+    if (N.y > o.y) verschiebeRest(d, rest, o.y - N.y);
     verknuepfe(d, T1, N);
+    meideUmbruch(d, rest);
   }
   return [T2.id, ...aktionenVon(d, T2.id)];
 }

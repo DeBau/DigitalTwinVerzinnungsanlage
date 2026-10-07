@@ -141,7 +141,9 @@ nie um, sonst lassen sich alte Zeichnungen nicht mehr öffnen. Alte Werte bleibe
 Ein Blatt ist 1000 breit und `PH` = 707 hoch (Zeichnungseinheiten, entspricht A4 quer). Blatt n beginnt bei
 `y = (n - 1) * PH`, die Zeichnung wächst nach unten um weitere Blätter (`pageCount`), außer bei Vorlagen mit
 `einblattig: true`. Rahmen: x 15 bis 985, y 15 bis 692. Das Schriftfeld liegt unten rechts (x 555 bis 985,
-y 632 bis 692). `avoidBreak` schiebt Bausteine aus dem Bereich um das Blattende.
+y 632 bis 692). `avoidBreak` schiebt Bausteine aus dem Bereich um das Blattende (80 darüber bis 70 darunter) auf das
+nächste Blatt; Seitenbausteine (GRAFCET-Aktionen) bleiben bei ihrem Kettenglied. `umbruchWeg(o)` sagt, wie weit o dafür
+nach unten muss. GRAFCET schiebt beim Einhängen und Ausrichten den Rest der Kette mit (`meideUmbruch`, grafcet-kette.js).
 
 Mit „Raster fangen“ rastet alles im 10er-Raster (`snap`, `fangen`). Eine Vorlage kann eigene Fangpunkte haben
 (Haken `fangPunkt`, z. B. das Weg-Schritt-Diagramm mit `WS_RASTER`). `blattPunkt(svg, e)` rechnet einen
