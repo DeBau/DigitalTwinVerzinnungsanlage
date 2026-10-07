@@ -12,6 +12,12 @@ const doppelteIds = (t, sel) => t.page.evaluate((s) => [...document.querySelecto
   return ids.filter((id, i) => ids.indexOf(id) !== i);
 }), sel);
 
+// Ist das Muster des Regelkreises im ersten SVG unter sel zu sehen?
+const musterSichtbar = (t, sel) => t.page.evaluate((s) => {
+  const g = document.querySelector(`${s} .rk-muster`);
+  return !!g && getComputedStyle(g).display !== 'none';
+}, sel);
+
 export const tests = [
   {
     name: 'R1 Vordruck nur auf Blatt 1, IDs eindeutig',
@@ -26,6 +32,23 @@ export const tests = [
       t.gleich(await blattTexte(t, '#print section.land:nth-of-type(2)', 1, 'Bedeutung in dieser Übung'), 0, 'Druck Blatt 2');
       t.gleich(await blattTexte(t, '#print section.land:nth-of-type(1)', 0, 'Bedeutung in dieser Übung'), 1, 'Druck Blatt 1');
       t.gleich(await doppelteIds(t, '#print svg'), [], 'doppelte IDs im Druck');
+    },
+  },
+  {
+    name: 'R2 Muster verschwindet mit dem ersten Baustein',
+    lauf: async (t) => {
+      await t.oeffne('regelkreis');
+      t.erwarte(await musterSichtbar(t, '#edstage'), 'Muster im leeren Editor sichtbar');
+      await t.setze('sum', 300, 550);
+      t.erwarte(!(await musterSichtbar(t, '#edstage')), 'Muster nach dem Setzen ausgeblendet');
+      await t.taste('Escape');
+      await t.taste('Control+z');
+      t.erwarte(await musterSichtbar(t, '#edstage'), 'Muster nach Rückgängig wieder da');
+      await t.setze('sum', 300, 550);
+      await t.knopf('close');
+      t.erwarte(!(await musterSichtbar(t, '.th[data-key="regelkreis"]')), 'Kachel mit Baustein ohne Muster');
+      await t.klick('.btn[data-act="sk-print"][data-key="regelkreis"][data-with="0"]');
+      t.erwarte(await musterSichtbar(t, '#print'), 'leerer Vordruck druckt das Muster');
     },
   },
 ];
