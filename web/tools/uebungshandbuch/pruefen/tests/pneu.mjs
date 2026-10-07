@@ -222,14 +222,32 @@ export const tests = [
     },
   },
   {
-    name: 'P8 Prüfen: offene Anschlüsse, Versorgung an 3, ohne Ventil, Zuluftdrosselung, doppelt, Sensoren',
+    name: 'P9 Im Stillstand schreibt die Simulation die Signalanzeige nicht neu',
+    daten: 'pneu-symbole',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      await t.werkzeug('sim');
+      await t.ruhe(300);
+      await t.page.evaluate(() => {   // Änderungen zählen; die Uhr der Seite steht, ruhe lässt sie laufen
+        window.simstatusAenderungen = 0;
+        new MutationObserver((m) => { window.simstatusAenderungen += m.length; })
+          .observe(document.querySelector('#simstatus'), { childList: true, subtree: true, characterData: true });
+      });
+      await t.ruhe(600);
+      t.gleich(await t.page.evaluate(() => window.simstatusAenderungen), 0, 'keine Änderung an #simstatus im Stillstand');
+    },
+  },
+  {
+    name: 'P8 Prüfen: offene Anschlüsse, Versorgung an 3, ohne Ventil, Zuluftdrosselung, doppelt, beide Sensoren',
     daten: 'pneu-pruefen',
     lauf: async (t) => {
       await t.oeffne('pneumatik');
       await t.knopf('pruefen');
       const text = await t.text('#props');
       for (const s of ['Anschluss 1 ist offen', 'Versorgung hängt an 3', 'Kein Wegeventil', 'Zuluftdrosselung',
-        '−MB1 kommt 2-mal vor', '−MM1 kommt 2-mal vor', 'vordere Endlage fehlt']) t.erwarte(text.includes(s), `Befund fehlt: ${s}`);
+        '−MB1 kommt 2-mal vor', '−MM1 kommt 2-mal vor', 'vordere Endlage fehlt',
+        '−MM9: Sensor für die hintere Endlage fehlt', '−MM9: Sensor für die vordere Endlage fehlt'])
+        t.erwarte(text.includes(s), `Befund fehlt: ${s}`);
       t.erwarte(await t.zaehle('#edstage .befund rect') >= 5, 'rote Markierungen auf dem Blatt');
     },
   },

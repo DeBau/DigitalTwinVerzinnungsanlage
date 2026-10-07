@@ -61,11 +61,12 @@ export function doppelteKennzeichen(d){
   return [...wer].filter(([, os]) => os.length > 1)
     .map(([k, os]) => ({stufe: "fehler", text: `${k} kommt ${os.length}-mal vor.`, o: os[1].id}));
 }
-// Antriebe ohne Endlagensensoren (die SPS erfährt sonst nicht, wann die Bewegung fertig ist)
+// Antriebe ohne Endlagensensoren (die SPS erfährt sonst nicht, wann die Bewegung fertig ist); je fehlendem Sensor ein Befund
+const ENDLAGEN = [["s1", "hintere"], ["s2", "vordere"]];
 export function fehlendeSensoren(d){
-  return d.o.filter(o => ANTRIEB_ARTEN.includes(o.k) && (!o.s1 || !o.s2)).map(o => ({stufe: "hinweis", o: o.id,
-    text: `${bauteilName(o)}: Sensor für die ${!o.s1 ? "hintere" : "vordere"} Endlage fehlt. Ohne ihn weiß die SPS nicht, `
-      + `wann die Bewegung fertig ist.`}));
+  return d.o.filter(o => ANTRIEB_ARTEN.includes(o.k)).flatMap(o => ENDLAGEN.filter(([f]) => !o[f]).map(([, lage]) => ({
+    stufe: "hinweis", o: o.id, text: `${bauteilName(o)}: Sensor für die ${lage} Endlage fehlt. Ohne ihn weiß die SPS nicht, `
+      + `wann die Bewegung fertig ist.`})));
 }
 export const PNEU_REGELN = [offeneAnschluesse, versorgungAnAblass, zylinderOhneVentil, zuluftDrosselung, doppelteKennzeichen,
   fehlendeSensoren];

@@ -57,13 +57,15 @@ export function simStatusZeigen(){
 }
 
 /* ---------- Weg-Zeit-Diagramm ---------- */
-// Lage aller Antriebe alle WEGZEIT.takt ms merken; ältere Werte als WEGZEIT.dauer fallen weg
+// Lage aller Antriebe alle WEGZEIT.takt ms merken; ältere Werte als WEGZEIT.dauer fallen weg.
+// Die Anzeige wird nur neu geschrieben, wenn sich eine Lage geändert hat (im Stillstand steht sie).
 export function wegZeitMerken(t){
-  const v = ED.sim.verlauf || (ED.sim.verlauf = []);
-  if (v.length && t - v[v.length - 1].t < WEGZEIT.takt) return;
-  v.push({t, pos: Object.fromEntries(antriebe().map(o => [o.id, posOf(o)]))});
+  const v = ED.sim.verlauf || (ED.sim.verlauf = []), letzte = v[v.length - 1];
+  if (letzte && t - letzte.t < WEGZEIT.takt) return;
+  const pos = Object.fromEntries(antriebe().map(o => [o.id, posOf(o)]));
+  v.push({t, pos});
   while (v.length && t - v[0].t > WEGZEIT.dauer) v.shift();
-  simStatusZeigen();
+  if (!letzte || Object.keys(pos).some(id => letzte.pos[id] !== pos[id])) simStatusZeigen();
 }
 // Je Antrieb eine Zeile: Kennzeichen, Linie 0 (unten) bis 1 (oben) über die Zeit
 export function wegZeitSVG(){
