@@ -112,4 +112,24 @@ export const tests = [
       t.erwarte(!(await musterSichtbar(t, '#edstage')), 'graues Muster danach ausgeblendet');
     },
   },
+  {
+    name: 'T1 Trend: Fangraster gleich Achsenteilung, Achsenfelder, Legende',
+    lauf: async (t) => {
+      await t.oeffne('trend');
+      for (const [f, v] of [['g1', 'Temperatur'], ['e1', '°C'], ['a1', '0'], ['b1', '80'], ['t', '160']]) {
+        await t.klick(`#editor [data-tr="${f}"]`); await t.tippe(v);
+      }
+      const a = (await t.daten()).meta.achsen;
+      t.gleich(a, {g1: 'Temperatur', e1: '°C', a1: '0', b1: '80', t: '160'}, 'Achsen gespeichert');
+      for (const s of ['Temperatur', '°C', '80', '40', '160', '10']) t.gleich(await texte(t, '#edstage .ink', s) >= 1, true, `Wert ${s}`);
+      for (const s of ['Istwert x', 'Sollwert w', 'Stellgröße y']) t.gleich(await texte(t, '#edstage .tpl', s), 1, `Legende ${s}`);
+      await t.werkzeug('line');
+      await t.ziehe([100, 100], [300, 250]);
+      const p = (await t.daten()).s[0].p;
+      t.gleich(p, [[80, 87.5], [301.25, 230]], 'Linie rastet auf den Teilstrichen');
+      await t.knopf('close');
+      await t.oeffne('trend');
+      t.gleich(await t.page.inputValue('#editor [data-tr="b1"]'), '80', 'Feld nach erneutem Öffnen');
+    },
+  },
 ];
