@@ -10,6 +10,7 @@ import { zeichnungSVG } from '../zeichnen.js';
 import { zeigeHinweis } from '../eigenschaften.js';
 import { aendere } from '../verlauf.js';
 import { eintrittsSeite, istPunkt, pfeilZug, verbindeRegelkreis } from './regelkreis-wege.js';
+import { SIMKNOPF, SIM_AKTIONEN, simAnleitung, simEingabe } from './regelkreis-simulation.js';
 
 /* ---------- Muster und Vordruck ---------- */
 // Der Standard-Regelkreis als Zeichnung: Mitten im 10er-Raster, Blöcke 60 hoch
@@ -95,11 +96,13 @@ registriereGruppe("regel", {name: "Regelkreis", pfeiltext: true,
 export const MUSTERKNOPF = `<button type="button" class="tool" data-rk="muster" `
   + `title="Den grauen Muster-Regelkreis als Bausteine übernehmen und dann anpassen">Muster übernehmen</button>`;
 // Knöpfe der Vorlage (data-rk)
-export const AKTIONEN_RK = {muster: musterUebernehmen};
+export const AKTIONEN_RK = {muster: musterUebernehmen, ...SIM_AKTIONEN};
 registriereVorlage("regelkreis", {
   n: "Regelkreis", d: "Blockschaltbild Regler, Stellglied, Strecke, Messglied", gruppen: ["regel", "regelglied"],
   body: (ex, page) => page ? "" : regelkreisBlatt(),
-  werkzeugleiste: {nachVerbinden: MUSTERKNOPF},
+  werkzeugleiste: {nachVerbinden: MUSTERKNOPF + SIMKNOPF},
+  anleitung: simAnleitung,
+  eingabe: simEingabe,
   klick(e){
     const k = e.target.closest("[data-rk]"), aktion = k && AKTIONEN_RK[k.dataset.rk];
     if (aktion) aktion(k);

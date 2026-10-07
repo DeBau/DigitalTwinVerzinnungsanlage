@@ -168,4 +168,24 @@ export const tests = [
       t.gleich(await texte(t, '#edstage .ink', 'PID_Compact: Setpoint'), 1, 'Hinweis am Signal w');
     },
   },
+  {
+    name: '6c Regelkreis ausprobieren: Simulation mit Sollwertsprung, Kp und Tn',
+    lauf: async (t) => {
+      await t.oeffne('regelkreis');
+      await t.klick('#editor [data-rk="sim"]');
+      t.gleich(await t.zaehle('#props #rk-sim-bild .rk-linie'), 0, 'vor dem Sprung keine Kurven');
+      await t.klick('#editor [data-rk="sprung"]');
+      t.gleich(await t.zaehle('#props #rk-sim-bild .rk-linie'), 3, 'w, x und y nach dem Sollwertsprung');
+      t.erwarte((await t.text('#rk-sim-text')).includes('Regeldifferenz ist am Ende weg'), 'PI regelt aus');
+      await t.page.selectOption('#props select[data-rks="regler"]', 'P'); await t.ruhe();
+      const vorher = await t.text('#rk-sim-text');
+      t.erwarte(vorher.includes('bleibt eine Regeldifferenz'), `P lässt eine Regeldifferenz: ${vorher}`);
+      await t.page.fill('#props input[data-rks="kp"]', '8'); await t.ruhe();
+      const rest = (s) => +s.match(/von (-?[\d,]+) %/)[1].replace(',', '.');
+      t.erwarte(rest(await t.text('#rk-sim-text')) < rest(vorher), 'größeres Kp, kleinere Regeldifferenz');
+      t.gleich(await t.daten(), null, 'Simulation speichert nichts');
+      await t.klick('#editor [data-rk="simzu"]');
+      t.gleich(await t.zaehle('#props #rk-sim-bild'), 0, 'Simulation geschlossen');
+    },
+  },
 ];
