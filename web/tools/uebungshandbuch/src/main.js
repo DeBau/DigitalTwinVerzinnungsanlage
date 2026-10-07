@@ -22,9 +22,9 @@ import './app/start.js';
 import './app/skizzen-kacheln.js';
 import './app/variablen.js';
 import './app/vorlagen-basis.js';
-import './app/vorlage-stand.js';
 // init steht hier: Eine zweite Importzeile weiter unten würde die Ladereihenfolge (Schicht) verschieben
 import { init as init_app_nachschlagen } from './app/nachschlagen.js';
+import './app/vorlage-stand.js';
 import './app/uebung.js';
 import { init as init_app_vorlage_popup } from './app/vorlage-popup.js';
 import './editor/signalfeld.js';

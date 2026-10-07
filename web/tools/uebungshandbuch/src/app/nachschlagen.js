@@ -18,11 +18,13 @@ export function aufgabeHTML(s){
   const list = s.list ? `<h3>${s.list.cap}</h3><ol class="prose">${s.list.items.map(x => `<li>${chips(x)}</li>`).join("")}</ol>` : "";
   return text + tab + list;
 }
-// Fachwissen zum Aufgabenschritt i (Feld fw in uebungen.js)
-export function fwZuHTML(s, i){
-  const nr = ((s.fw || {})[i] || []).filter(x => hatWissen(s) && s.wissen[x]);
+// Fachwissen-Themen als Chips; ein Klick öffnet das Thema als Popup
+export function fwChipsHTML(s, nummern){
+  const nr = (nummern || []).filter(x => hatWissen(s) && s.wissen[x]);
   return nr.length ? `<span class="fwzu">${nr.map(x => themaLink(x, s.wissen[x].t)).join("")}</span>` : "";
 }
+// Fachwissen zum Aufgabenschritt i (Feld fw in uebungen.js)
+export const fwZuHTML = (s, i) => fwChipsHTML(s, (s.fw || {})[i]);
 // Kasten in der Seitenleiste; „Fachwissen“ (alle Themen) ist nur im schmalen Fenster sichtbar, dort fehlt die Liste
 export function nachschlagenHTML(s){
   const alle = hatWissen(s) ? `<button class="btn small nsalle" type="button" data-act="ns-alle">Fachwissen</button>` : "";

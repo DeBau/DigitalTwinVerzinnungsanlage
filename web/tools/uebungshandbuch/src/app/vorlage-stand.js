@@ -1,9 +1,11 @@
 /* ---------- Vorlagen: Felder, Fortschritt und Karte im Schritt ---------- */
 // felder (uebungVorlage.md, Abschnitt 6): je Eingabespalte {typ: "01" | "janein" | "text" | "notiz", ab: Phase}.
 // Im Schritt steht jede Vorlage als Karte mit Fortschritt, ausgefüllt wird im Popup (vorlage-popup.js).
+// d.fw: Fachwissen, das erklärt, was die Vorlage ist und warum du sie ausfüllst (Chips auf Karte und im Popup).
 import { PHASES } from './daten.js';
 import { S } from './basis.js';
 import { tplHead, tplKey, tplNIn, tplRows } from './vorlagen-basis.js';
+import { fwChipsHTML } from './nachschlagen.js';
 
 const alsFeld = f => typeof f === "string" ? {typ: f, ab: 0} : {typ: f.typ || "text", ab: f.ab || 0};
 
@@ -63,7 +65,8 @@ export function balkenHTML(st){
 export function tplKarteHTML(ex, d, p){
   const st = tplStand(ex, d, p), voll = st.gesamt && st.fertig === st.gesamt;
   const knopf = `<button class="btn ${voll ? "" : "primary"}" type="button" data-act="tpl-open" data-t="${d.id}" data-p="${p}">${knopfText(st)}</button>`;
-  const kopf = `<div class="tplk-kopf"><div><h3>${d.cap}</h3><span class="muted small">${standText(st)}</span></div>${knopf}</div>`;
+  const kopf = `<div class="tplk-kopf"><div><h3>${d.cap}</h3><span class="muted small">${standText(st)}</span></div>${knopf}</div>`
+    + fwChipsHTML(ex, d.fw);
   const fort = st.gesamt ? balkenHTML(st) + kachelnHTML(ex, d, p) : "";
   return `<div class="tplk${voll ? " voll" : ""}" data-t="${d.id}">${kopf}${fort}</div>`;
 }

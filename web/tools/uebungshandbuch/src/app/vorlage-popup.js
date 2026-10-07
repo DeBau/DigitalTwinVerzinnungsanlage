@@ -7,6 +7,7 @@ import { PHASES } from './daten.js';
 import { tplHead, tplKey, tplNIn, tplRows, tplsOf } from './vorlagen-basis.js';
 import { balkenHTML, feld, tplKarteHTML, tplStand, zeileAuffaellig, zeileFertig, zeileWerte } from './vorlage-stand.js';
 import { docTable, restoreInputs } from './uebung.js';
+import { fwChipsHTML } from './nachschlagen.js';
 
 const Z = {ex: null, d: null, p: 4, ri: 0, filter: "alle", ansicht: "karten"};
 const WAHL = {"01": ["0", "1"], "janein": ["ja", "nein"]};
@@ -56,7 +57,7 @@ function kopfHTML(){
   const auffText = st.auffaellig ? ` · <b>${st.auffaellig}</b> Abweichung` : "";
   const fort = `<div class="tpd-fort">${balkenHTML(st)}<span><b>${st.fertig}</b> von ${st.gesamt} fertig${auffText}</span></div>`;
   const filter = Z.ansicht === "karten" ? umschalterHTML(FILTER, Z.filter, "tpd-filter", "Zeilen filtern") : "";
-  return `<div class="tpd-titel"><h2>${Z.d.cap}</h2>${fort}</div>${umschalterHTML(ANSICHT, Z.ansicht, "tpd-ansicht", "Ansicht")}${filter}`
+  return `<div class="tpd-titel"><h2>${Z.d.cap}</h2>${fort}${fwChipsHTML(Z.ex, Z.d.fw)}</div>${umschalterHTML(ANSICHT, Z.ansicht, "tpd-ansicht", "Ansicht")}${filter}`
     + `<button class="btn primary" value="ok">Fertig</button>`;
 }
 
@@ -190,7 +191,7 @@ export function init(){
   // auf document und in der Capture-Phase: Nach dem Neuzeichnen liegt der Fokus nicht mehr im Popup, und die Pfeiltasten
   // dürfen nicht den Schritt der Übung wechseln (ereignisse.js)
   document.addEventListener("keydown", e => {
-    if (!dlg().open || !Z.d || !Z.d.felder) return;
+    if (!dlg().open || $("#dlg").open || !Z.d || !Z.d.felder) return;   // #dlg: Fachwissen liegt über dem Popup
     e.stopPropagation();
     tpdTaste(e);
   }, true);

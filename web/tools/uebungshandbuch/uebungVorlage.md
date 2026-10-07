@@ -60,6 +60,19 @@ Damit das Popup ohne die Seite drumherum verständlich ist, muss jedes Fachwisse
 
 ## 4. Fachwissen
 
+**Grundregel: Wer mit den Unterlagen arbeitet, kennt nichts, was zum ersten Mal vorkommt.** Jeder Begriff, jedes
+Werkzeug in TIA oder im Zwilling, jede Vorlage und jede Arbeitsweise, die in einer Übung zum ersten Mal vorkommt, bekommt
+in genau dieser Übung ein eigenes Fachwissen-Thema. Ein Verweis auf eine spätere Übung reicht nicht. Jedes Thema
+beantwortet:
+
+1. **Was ist das?**
+2. **Was machst du damit?** Schritt für Schritt.
+3. **Warum machst du das?** Wozu dient es in der Anlage, im Projekt, im Beruf, und wo brauchst du es später wieder?
+4. **Wie sieht es aus?** Ein konkretes Beispiel aus der Verzinnungsanlage.
+5. **Wo findest du es?** Menüpfad in TIA oder Stelle im Zwilling, bei Vorlagen: wie das Popup bedient wird.
+
+Muster: L01, Thema „Die Wertetabelle: was sie ist und warum du sie ausfüllst“.
+
 Ein Thema in `texte/Lxx.json`, Feld `wissen`, sieht so aus: `{t: "Titel", h: "HTML-Text", q: "Quellen"}`.
 
 - **Ein Thema, eine Frage.** Der Titel sagt, worum es geht, zum Beispiel „Lampentest“ oder „Flanken: R_TRIG und
@@ -99,7 +112,11 @@ gewählten Zeile**: oben der Steckbrief (die festen Spalten), darunter je Eingab
 fertig, springt das Popup selbst zur nächsten offenen Zeile. Die Filter „Offen“ und „Abweichung“ helfen beim
 Nacharbeiten. Mit Tasten: 0 und 1, J und N füllen das nächste freie Feld, die Pfeiltasten wechseln die Zeile.
 
-Jede Vorlage bekommt deshalb `felder`: je Eingabespalte (die Spalten nach den festen Spalten in `rows`) ein Eintrag.
+Jede Vorlage bekommt `fw`: die Fachwissen-Themen, die erklären, was die Vorlage ist und warum man sie ausfüllt, das
+wichtigste zuerst. Sie stehen als Chips auf der Karte und oben im Popup. Ist die Vorlage neu, ist das erste Thema ihr
+eigenes (siehe 4).
+
+Jede Vorlage bekommt außerdem `felder`: je Eingabespalte (die Spalten nach den festen Spalten in `rows`) ein Eintrag.
 
 | Typ | Feld im Popup | Pflicht |
 | --- | --- | --- |
@@ -115,7 +132,7 @@ Ausführen ein“. So plant man in Schritt 2 („erwartet“) und misst in Schri
 sie ab, wird die Zeile gelb, und die Karte bittet um eine Erklärung in der Bemerkung.
 
 ```js
-{id:"werte", felder:["01", {typ:"01", ab:4}, {typ:"01", ab:4}, {typ:"janein", ab:4}, {typ:"notiz", ab:4}], vergleich:[0,1], cap:"…", …}
+{id:"werte", fw:[10,0,5], felder:["01", {typ:"01", ab:4}, {typ:"01", ab:4}, {typ:"janein", ab:4}, {typ:"notiz", ab:4}], vergleich:[0,1], cap:"…", …}
 ```
 
 Feste Spalten in `rows` so wählen, dass die ersten beiden die Zeile benennen (z. B. Adresse und Kennzeichen), die
@@ -162,7 +179,9 @@ Alles wird strukturiert, wartbar, einfach und nach Best Practice gebaut.
 ## 10. Prüfliste vor dem Abschluss einer Übung
 
 - [ ] Build läuft ohne neue Warnungen.
-- [ ] Jeder Aufgabenschritt hat 1 bis 3 Fachwissen-Themen in `fw`.
+- [ ] Alles, was in der Übung zum ersten Mal vorkommt (Begriffe, Werkzeuge, Vorlagen, Arbeitsweisen), hat ein eigenes
+      Fachwissen-Thema mit Was, Wie, Warum, Beispiel und Wo.
+- [ ] Jeder Aufgabenschritt hat 1 bis 3 Fachwissen-Themen in `fw`, jede Vorlage hat `fw`.
 - [ ] Jedes Fachwissen-Thema ist als Popup allein verständlich und hat eine Siemens-Quelle.
 - [ ] Fachlich gegen die TIA-Hilfe V21 und die Unterlagen in `devInput/` geprüft.
 - [ ] In Schritt 1 sind alle Fachwissen-Themen zugeklappt.
