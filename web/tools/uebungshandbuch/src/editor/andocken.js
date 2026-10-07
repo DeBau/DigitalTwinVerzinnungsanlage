@@ -6,7 +6,7 @@ import { snap } from './vorlagen-svg.js';
 import { portsOf } from './bauteile.js';
 import { gruppeVon, mitteVon, umrissVon } from './bausteine.js';
 import { objById, uid } from './auswahl.js';
-import { andockPunkt, andockStelle, ausrichten, kettenQuelle } from './kette.js';
+import { andockPunkt, andockStelle, ausrichten, kettenQuelle, seite } from './kette.js';
 import { fragtBedingung, verbindungsWeg } from './zeichnen.js';
 import { zeigeHinweis } from './eigenschaften.js';
 import { aendere } from './verlauf.js';
@@ -92,10 +92,17 @@ export function vorschauPunkt(map, dock){
   const ziel = dock.pa !== undefined && portsOf(map[dock.a]).find(q => q.n === dock.pa);
   return ziel ? [ziel.x, ziel.y] : andockPunkt(map[dock.a], map[dock.b]);
 }
-export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blattende legen – sonst auf das nächste Blatt
-  if (vorlage(ED.key).einblattig) return;
-  for (let i = 0; i < 4; i++) { const b = umrissVon(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
-    if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) o.y += B + 70 - b.y; else break; }
+// Wie weit o nach unten muss, damit es nicht im Bereich um ein Blattende liegt (Rand, Schriftfeld, Verweise der
+// Abbruchstellen): bis 70 unter den Anfang des nächsten Blatts. 0, wenn o frei liegt oder die Vorlage einblattig ist.
+export function umbruchWeg(o){
+  if (vorlage(ED.key).einblattig) return 0;
+  const b = umrissVon(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
+  return k >= 1 && b.y < B + 70 && b.y + b.h > B - 80 ? B + 70 - b.y : 0;
+}
+// Baustein aus dem Bereich um das Blattende auf das nächste Blatt legen. Seitenbausteine (GRAFCET-Aktionen) bleiben
+// bei ihrem Kettenglied. Was danach in der Kette folgt, schiebt die Vorlage selbst mit (GRAFCET: meideUmbruch).
+export function avoidBreak(o){
+  if (!seite(o)) o.y += umbruchWeg(o);
 }
 // Verbindungen, die beim Andocken entstehen; Leitungen zwischen Anschlüssen, wenn der Haken andocke pa und pb nennt
 export function dockLeitung(dock){

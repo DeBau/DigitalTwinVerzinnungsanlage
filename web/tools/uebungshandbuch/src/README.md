@@ -74,6 +74,12 @@ importiert nie aus einer Vorlage.
 | `editor/tastatur.js` | Tastatur: `taste` mit der Tabelle `TASTENSCHRITTE` (Haken `taste`, Kürzel V P L T E C G, Pfeile, Verlauf), `abbrechen` (Esc schließt nie), Übersicht „?“ (`KUERZEL`) |
 | **Druck und Seiten** | `app/druck.js`, `app/seiten.js` |
 | **Vorlagen** (Reihenfolge = Kacheln) | |
+| `editor/vorlagen/grafcet-aktion.js` | GRAFCET: Bausteinarten (`isStep`, `isTrans`, `isAct`), Aktionen zeichnen, Eigenschaftsfeld, Haken `seite` |
+| `editor/vorlagen/grafcet-kette.js` | GRAFCET: Regeln der Ablaufkette (Haken `nachSetzen`, `vorVerbinden`, `mitziehen`, `loeschen`), Einfügen, Ausrichten, Neu nummerieren |
+| `editor/vorlagen/grafcet-schnipsel.js` | GRAFCET: Verzweigungs-Schnipsel ODER und UND mit 2 Zweigen, `linienBreiteAnpassen` |
+| `editor/vorlagen/grafcet-knoepfe.js` | GRAFCET: Knöpfe „+ Schritt“, „Kette ausrichten“, „Neu nummerieren“ (`data-gc`, Haken `klick`), `kettenFolge` |
+| `editor/vorlagen/grafcet-pruefen.js` | GRAFCET: Regeln für „Prüfen“ (`GRAFCET_REGELN`, Haken `pruefe`) |
+| `editor/vorlagen/grafcet-spiel.js` | GRAFCET: Kette durchspielen (Werkzeug `sim`, Haken `werkzeugWechsel`, `zeiger.unten`, `anleitung`) |
 | `editor/vorlagen/grafcet.js` | GRAFCET: Schritte, Transitionen, Verzweigungen, Verweise, Aktionen als Seitenbausteine |
 | `editor/vorlagen/zustand.js` | Zustandsdiagramm: Zustände, Übergänge als gebogene Pfeile |
 | `editor/vorlagen/anlage-antriebe.js` | Antriebe −MM1 bis −MM8 der Anlage (`ANTRIEBE`: Spulen, Endlagensensoren, Bedeutung 1/0), `antriebZu` |
@@ -161,7 +167,9 @@ nie um, sonst lassen sich alte Zeichnungen nicht mehr öffnen. Alte Werte bleibe
 Ein Blatt ist 1000 breit und `PH` = 707 hoch (Zeichnungseinheiten, entspricht A4 quer). Blatt n beginnt bei
 `y = (n - 1) * PH`, die Zeichnung wächst nach unten um weitere Blätter (`pageCount`), außer bei Vorlagen mit
 `einblattig: true`. Rahmen: x 15 bis 985, y 15 bis 692. Das Schriftfeld liegt unten rechts (x 555 bis 985,
-y 632 bis 692). `avoidBreak` schiebt Bausteine aus dem Bereich um das Blattende.
+y 632 bis 692). `avoidBreak` schiebt Bausteine aus dem Bereich um das Blattende (80 darüber bis 70 darunter) auf das
+nächste Blatt; Seitenbausteine (GRAFCET-Aktionen) bleiben bei ihrem Kettenglied. `umbruchWeg(o)` sagt, wie weit o dafür
+nach unten muss. GRAFCET schiebt beim Einhängen und Ausrichten den Rest der Kette mit (`meideUmbruch`, grafcet-kette.js).
 
 Mit „Raster fangen“ rastet alles im 10er-Raster (`snap`, `fangen`). Eine Vorlage kann eigene Fangpunkte haben
 (Haken `fangPunkt`, z. B. das Weg-Schritt-Diagramm mit `WS_RASTER`). `blattPunkt(svg, e)` rechnet einen
@@ -250,6 +258,7 @@ Der Kern erkennt Treffer und Knöpfe an diesen Attributen. Eine Vorlage darf sie
 | `data-place` | Palettenknopf | Bausteinart zum Setzen |
 | `data-sym` | Zeichenleiste | Zeichen zum Einfügen |
 | `data-ws` | Seitenleiste des Weg-Schritt-Diagramms | gehört der Vorlage (Haken `klick`) |
+| `data-gc` | Knöpfe der GRAFCET-Kette | gehört der Vorlage (Haken `klick`, grafcet-knoepfe.js) |
 
 ## 8. Registry: der Vertrag mit den Vorlagen
 
@@ -326,6 +335,7 @@ und `fuelle(tabelle, einträge)`.
 | --- | --- | --- | --- |
 | `name`, `hinweis` | Text | Palette (`paletteHTML`) | |
 | `kette` | `true` | `kettenQuelle`, `andockStelle` (kette.js), `verbindungsWeg` | kein Fortsetzen, kein Andocken |
+| `ruecksprungFrei` | `true` | `verbindeKette` (kette.js): `routeV` bekommt die Bausteine, die Rücksprungbahn läuft links an allen vorbei, die sie kreuzen würde (`freieBahn`) | Bahn 50 links neben der Kette |
 | `verbinde` | `(c, A, B, objs, alle, spuren) → {d, arrow, lbl}` | `verbindungsWeg` (zeichnen.js) nach der Gruppe von A | rechtwinklig von Rand zu Rand |
 | `schleife` | `true` | `connect` (andocken.js) | keine Verbindung auf sich selbst |
 | `pfeiltext` | `true` | `verbindungFelder` (eigenschaften.js) | Verbindung ohne Beschriftung |
@@ -354,6 +364,7 @@ einfachen Verbindung (ein Verlaufsschritt).
 | `mitte` | alle | `(o) → [x, y]` | `mitteVon` | Mitte des Umrisses |
 | `aus`, `ein` | alle | `(o, x) → [x, y]` | `kettenAus`, `kettenEin`: Kettenanschluss unten bzw. oben | Mitte der Unter- bzw. Oberkante |
 | `einrueck` | alle | Zahl | `ausrichten` (kette.js) | 0 |
+| `teilung` | alle | Zahl: Abstand des Kettenanschlusses unter dem Vorgänger | `ausrichten` (kette.js) beim Fortsetzen einer Kette | Höhe vom Klick |
 | `radius` | alle | Zahl, am einfachsten über `...rund(r)` | Pfeile an den Kreisrand (zeichnen.js, zustand.js) | Rechteckrand |
 | `neu` | alle | `(o, pt, mk)`, Bauteil `(o, pt)`; setzt `x`, `y`, `v` … | `makeObj`, `neuesBauteil` (andocken.js) | Mitte bei pt |
 | `anschluesse` | alle | `[[Name, dx, dy, Richtung]]` oder `(o) → […]`, Richtung u, d, l, r | `portsOf` (bauteile.js): Verbinden, Leitungen | keine Anschlüsse |

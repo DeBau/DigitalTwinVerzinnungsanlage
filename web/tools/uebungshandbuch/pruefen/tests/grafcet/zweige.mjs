@@ -1,0 +1,99 @@
+// GRAFCET-Tests an Verzweigungen: „+ Schritt“ nach einer Zusammenführung, Neu nummerieren, Prüfregel Linienart,
+// Rücksprung an den Zweigen vorbei.
+import { nach, setzeSichtbar, transition, wege } from './hilfen.mjs';
+
+// Arten der Kette ab A: A und die n ersten Kettennachfolger (ohne Aktionen)
+async function kettenArten(t, A, n) {
+  const d = await t.daten(), arten = [];
+  for (let o = A, i = 0; o && i <= n; i++) {
+    arten.push(o.k);
+    const c = d.c.find((c) => c.a === o.id && d.o.find((p) => p.id === c.b).k !== 'action');
+    o = c && d.o.find((p) => p.id === c.b);
+  }
+  return arten;
+}
+// Unterste Linie der Art k markieren und „+ Schritt“ drücken
+async function plusNachLinie(t, k) {
+  const linie = (await t.objekte(k)).sort((a, b) => b.y - a.y)[0];
+  await t.klick([linie.x + 10, linie.y + (k === 'par' ? 2 : 0)]);
+  await t.klick('#editor [data-gc="plus"]'); await t.tippe('BG9'); await t.taste('Enter');
+  return linie;
+}
+// Prüfen drücken; Text des Eigenschaftsfelds
+async function befunde(t) { await t.knopf('pruefen'); return t.text('#props'); }
+
+export const tests = [
+  {
+    name: '+ Schritt nach der ODER-Zusammenführung: erst Schritt, dann Transition',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 220, 100);
+      await setzeSichtbar(t, 'oder2', 220, 170);
+      const linie = await plusNachLinie(t, 'alt');
+      t.gleich(await kettenArten(t, linie, 2), ['alt', 'step', 'trans'], 'nach der ODER-Zusammenführung');
+      const text = await befunde(t);
+      t.erwarte(!/direkt|Verzweigung:/.test(text), `Wechsel oder Linienart verletzt: ${text}`);
+    },
+  },
+  {
+    name: '+ Schritt nach der UND-Zusammenführung: erst Transition, dann Schritt',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 220, 100);
+      await transition(t, 220, 170, 'BG1');
+      await setzeSichtbar(t, 'und2', 220, 200);
+      const linie = await plusNachLinie(t, 'par');
+      t.gleich(await kettenArten(t, linie, 2), ['par', 'trans', 'step'], 'nach der UND-Zusammenführung');
+      const text = await befunde(t);
+      t.erwarte(!/direkt|Verzweigung:/.test(text), `Wechsel oder Linienart verletzt: ${text}`);
+    },
+  },
+  {
+    name: 'Neu nummerieren zählt Zeile für Zeile, Zweige von links',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 220, 100);
+      await t.klick('#editor [data-gc="plus"]'); await t.tippe('BG1'); await t.taste('Enter');
+      await setzeSichtbar(t, 'oder2', 220, 270);
+      await plusNachLinie(t, 'alt');
+      await t.klick('#editor [data-gc="nummern"]');
+      const schritte = [...await t.objekte('init'), ...await t.objekte('step')].sort((a, b) => a.y - b.y || a.x - b.x);
+      t.gleich(schritte.map((o) => o.v), ['1', '2', '3', '4', '5'], 'Nummern von oben nach unten, links vor rechts');
+    },
+  },
+  {
+    name: 'Prüfen: einfache Linie nach Transition und Doppellinie nach Schritt sind Fehler',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await transition(t, 220, 100, 'BG1');
+      await setzeSichtbar(t, 'oder2', 220, 140);   // einfache Linie unter einer Transition
+      let text = await befunde(t);
+      t.erwarte(text.includes('UND-Verzweigung: Zeichne sie mit Doppellinie'), `Befund UND fehlt: ${text}`);
+      t.erwarte(!text.includes('ODER-Verzweigung:'), `ODER-Zusammenführung fälschlich gemeldet: ${text}`);
+      await t.knopf('clear');
+      await t.setze('step', 220, 100);
+      await setzeSichtbar(t, 'und2', 220, 160);    // Doppellinie unter einem Schritt
+      text = await befunde(t);
+      t.erwarte(text.includes('ODER-Verzweigung: Zeichne sie mit einfacher Linie'), `Befund ODER fehlt: ${text}`);
+      t.erwarte(!text.includes('UND-Verzweigung:'), `UND-Zusammenführung fälschlich gemeldet: ${text}`);
+    },
+  },
+  {
+    name: 'Rücksprung läuft links an den Zweigen einer UND-Verzweigung vorbei',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 320, 100);
+      await transition(t, 320, 170, 'BG1');
+      await setzeSichtbar(t, 'und2', 320, 200);
+      await plusNachLinie(t, 'par');
+      const s = (await t.objekte('step')).sort((a, b) => b.y - a.y)[0];
+      await setzeSichtbar(t, 'trans', s.x + 20, s.y + 70); await t.tippe('BG3'); await t.taste('Enter');
+      const d = await t.daten(), init = nach(d, '1', 'init'), t3 = nach(d, 'BG3');
+      await t.werkzeug('conn'); await t.klick([t3.x, t3.y]); await t.klick([init.x + 20, init.y + 20]);
+      const rueck = (await wege(t)).map((w) => /^M[\d.]+ [\d.]+V[\d.]+H([\d.-]+)V[\d.]+H[\d.]+V[\d.]+$/.exec(w)).filter(Boolean);
+      t.gleich(rueck.length, 1, 'ein Rücksprung');
+      const links = Math.min(...d.o.map((o) => (o.k === 'trans' ? o.x - 16 : o.x)));
+      t.erwarte(+rueck[0][1] <= links - 20, `Bahn bei x ${rueck[0][1]}, linkester Baustein bei x ${links}`);
+    },
+  },
+];
