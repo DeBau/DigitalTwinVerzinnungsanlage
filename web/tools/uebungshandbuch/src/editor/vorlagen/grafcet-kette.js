@@ -1,0 +1,59 @@
+// GRAFCET: Regeln beim Bearbeiten der Ablaufkette. Haken der Gruppe grafcet (registriert in vorlagen/grafcet.js):
+// nachSetzen und vorVerbinden halten den Wechsel von Schritt und Transition ein (zwischen zwei Schritten kommt von selbst
+// eine Transition, zwei Transitionen hintereinander lehnt der Editor mit Hinweis ab).
+import { ED, istMarkiert } from '../status.js';
+import { kettenAus } from '../bausteine.js';
+import { objById, uid } from '../auswahl.js';
+import { FELDER_JE_ART } from '../eigenschaften.js';
+import { isStep, isTrans } from './grafcet-aktion.js';
+
+export const TEILUNG = 100;   // Abstand zweier Schritte in der Kette (Schritt 40, Linie 30, Transition, Linie 30)
+export const TEXT_TRANS_TRANS = "Auf eine Transition folgt immer ein Schritt. Setz zuerst einen Schritt dazwischen, "
+  + "dann verbindest du ihn mit der nächsten Transition.";
+
+/* ---------- Bausteine und Verbindungen in der Zeichnung d ---------- */
+export const objIn = (d, id) => d.o.find(o => o.id === id);
+export const verknuepfe = (d, A, B) => { d.c.push({a: A.id, b: B.id, v: ""}); };
+export const loeseVerbindung = (d, A, B) => { d.c = d.c.filter(c => !(c.a === A.id && c.b === B.id)); };
+
+// Transition zwischen den Schritten A und B einfügen (A → Transition → B statt A → B). Liegt B unter A, kommt T in die Mitte.
+export function transitionDazwischen(A, B, d){
+  const [x, y1] = kettenAus(A), y = B.y > y1 ? Math.round((y1 + B.y) / 20) * 10 : y1 + 30;
+  const zwischen = {id: uid(), k: "trans", x, y, v: ""};
+  d.o.push(zwischen);
+  loeseVerbindung(d, A, B);
+  verknuepfe(d, A, zwischen); verknuepfe(d, zwischen, B);
+  return zwischen;
+}
+
+/* ---------- Hinweis an einem Baustein ---------- */
+// Der Hinweis steht über den Feldern im Eigenschaftsfeld, solange der Baustein markiert ist (Haken anleitung)
+export const merkeHinweis = (id, text) => { ED.vorlage.hinweis = {id, text}; };
+export function hinweisAnleitung(){
+  const h = ED.vorlage.hinweis, o = h && istMarkiert("o", h.id) && objById(h.id);
+  return o ? `<div class="props quiet"><p>${h.text}</p></div>` + FELDER_JE_ART.o(o) : null;
+}
+
+/* ---------- Haken nachSetzen und vorVerbinden ---------- */
+// Regeln für ein neues Paar oben → unten in der Kette; neu ist der eben gesetzte Baustein
+export const PAAR_REGELN = [
+  {passt: (A, B) => isStep(A) && isStep(B), tue: (A, B, d, neu) => {
+    if (neu === B) B.y = Math.max(B.y, A.y + TEILUNG);
+    transitionDazwischen(A, B, d);
+  }},
+  {passt: (A, B) => isTrans(A) && isTrans(B), tue: (A, B, d, neu) => {
+    loeseVerbindung(d, A, B);
+    merkeHinweis(neu.id, TEXT_TRANS_TRANS);
+  }},
+];
+export function grafcetNachSetzen(o, d, {A, dock}){
+  const [oben, unten] = A ? [A, o] : dock ? [objIn(d, dock.a), objIn(d, dock.b)] : [];
+  const regel = oben && unten && PAAR_REGELN.find(r => r.passt(oben, unten));
+  if (regel) regel.tue(oben, unten, d, o);
+}
+export function grafcetVorVerbinden(A, B){
+  if (isTrans(A) && isTrans(B)) return {ok: false, text: TEXT_TRANS_TRANS};
+  if (isStep(A) && isStep(B)) return {ersetze: d => { transitionDazwischen(objIn(d, A.id), objIn(d, B.id), d); }};
+  return null;
+}
+

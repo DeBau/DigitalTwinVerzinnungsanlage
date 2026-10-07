@@ -24,6 +24,15 @@ async function verbindungen(t) {
 // Baustein mit Kennzeichen v
 const nach = (d, v, k = null) => d.o.find((o) => o.v === v && (!k || o.k === k));
 
+// Kette 1, BG1, 2 mit Aktion MB1 (Anfangsschritt bei 200, 100)
+async function kurzeKette(t) {
+  await t.setze('init', 220, 120);
+  await transition(t, 220, 190, 'BG1');
+  await t.setze('step', 220, 240);
+  await t.setze('action', 320, 245);
+  await t.tippe('MB1'); await t.taste('Enter');
+}
+
 export const tests = [
   {
     name: 'G1 Seitenumbruch: Bausteine liegen nicht übereinander',
@@ -41,6 +50,52 @@ export const tests = [
       }
       const ys = os.map((o) => o.y);
       t.erwarte(ys.every((y, i) => i === 0 || y > ys[i - 1]), `Reihenfolge von oben nach unten: ${ys}`);
+    },
+  },
+  {
+    name: 'G2 Schritt nach Schritt setzt eine Transition dazwischen',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 200, 100);
+      await transition(t, 220, 190, 'BG1');
+      await t.setze('step', 220, 240);
+      await t.setze('step', 220, 300);
+      t.gleich((await t.objekte('trans')).length, 2, 'Transitionen');
+      t.gleich(await verbindungen(t), ['init>trans', 'trans>step', 'step>trans', 'trans>step'], 'Kette');
+      const [, s2, s3] = [...await t.objekte('init'), ...await t.objekte('step')];
+      t.erwarte(s3.y - s2.y >= 100, `Abstand der Schritte ${s3.y - s2.y}`);
+    },
+  },
+  {
+    name: 'G2 Transition nach Transition wird abgelehnt',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 200, 100);
+      await transition(t, 220, 190, 'BG1');
+      await transition(t, 220, 260, 'BG2');
+      t.gleich(await verbindungen(t), ['init>trans'], 'nur die erste Transition hängt an der Kette');
+      t.erwarte((await t.text('#props')).includes('folgt immer ein Schritt'), 'Hinweis im Eigenschaftsfeld');
+    },
+  },
+  {
+    name: 'G2 Verbinden: Schritt mit Schritt bekommt Transition, Transition mit Transition nicht',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('step', 200, 100);
+      await t.klick([700, 500]);   // Markierung aufheben
+      await t.setze('step', 400, 300);
+      const [a, b] = await t.objekte('step');
+      await t.werkzeug('conn');
+      await t.klick(`[data-o="${a.id}"]`); await t.klick(`[data-o="${b.id}"]`);
+      t.gleich(await verbindungen(t), ['step>trans', 'trans>step'], 'Transition eingefügt');
+      await t.werkzeug('sel'); await t.klick([700, 500]);
+      await transition(t, 600, 100, 'BG1'); await t.klick([700, 500]);
+      await transition(t, 600, 300, 'BG2');
+      const [, x, y] = await t.objekte('trans');
+      await t.werkzeug('conn');
+      await t.klick(`[data-o="${x.id}"]`); await t.klick(`[data-o="${y.id}"]`);
+      t.gleich((await verbindungen(t)).length, 2, 'keine Verbindung Transition mit Transition');
+      t.erwarte((await t.text('#props')).includes('folgt immer ein Schritt'), 'Hinweis im Eigenschaftsfeld');
     },
   },
 ];

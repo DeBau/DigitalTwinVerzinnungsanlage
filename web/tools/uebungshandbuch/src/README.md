@@ -71,6 +71,7 @@ importiert nie aus einer Vorlage.
 | **Druck und Seiten** | `app/druck.js`, `app/seiten.js` |
 | **Vorlagen** (Reihenfolge = Kacheln) | |
 | `editor/vorlagen/grafcet-aktion.js` | GRAFCET: Bausteinarten (`isStep`, `isTrans`, `isAct`), Aktionen zeichnen, Eigenschaftsfeld, Haken `seite` |
+| `editor/vorlagen/grafcet-kette.js` | GRAFCET: Regeln der Ablaufkette (Haken `nachSetzen`, `vorVerbinden`, `mitziehen`, `loeschen`), Einfügen, Ausrichten, Neu nummerieren |
 | `editor/vorlagen/grafcet.js` | GRAFCET: Schritte, Transitionen, Verzweigungen, Verweise, Aktionen als Seitenbausteine |
 | `editor/vorlagen/zustand.js` | Zustandsdiagramm: Zustände, Übergänge als gebogene Pfeile |
 | `editor/vorlagen/wegschritt-striche.js` | Weg-Schritt-Diagramm: Raster `WS_RASTER`, Stricharten Signallinie, Start, Zyklusende, Verknüpfung |

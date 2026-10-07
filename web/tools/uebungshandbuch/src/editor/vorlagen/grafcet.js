@@ -8,6 +8,7 @@ import { G, TX, dots } from '../vorlagen-svg.js';
 import { LINIE, platzhalter, setzeBreite } from '../bausteine.js';
 import { textFeld } from '../eigenschaften.js';
 import { AKTION_SEITE, AKTION_TEXT, aktionFelder, aw, hasMark, isStep, setzeAktion, zeichneAktion } from './grafcet-aktion.js';
+import { grafcetNachSetzen, grafcetVorVerbinden, hinweisAnleitung } from './grafcet-kette.js';
 
 /* ---------- Schritte, Transitionen, Verzweigungen ---------- */
 export const QUADRAT = o => ({x: o.x, y: o.y, w: 40, h: 40});
@@ -62,6 +63,7 @@ export const zeichneVerweis = (o, edit) =>
 registriereVorlage("grafcet", {
   n: "GRAFCET", d: "Ablauf nach DIN EN 60848 mit Symbollegende", gruppen: ["grafcet"],
   body: (ex, page) => dots(20) + (page ? "" : GRAFCET_LEGENDE),
+  anleitung: hinweisAnleitung,
 });
 export const LEGENDE_STRICH = `stroke="${G}" stroke-width="1.3"`;
 export const GRAFCET_LEGENDE = [
@@ -81,6 +83,8 @@ registriereGruppe("grafcet", {
     + "den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts "
     + "daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken.",
   kette: true,
+  nachSetzen: grafcetNachSetzen,     // Transition zwischen zwei Schritten, keine zwei Transitionen hintereinander
+  vorVerbinden: grafcetVorVerbinden,
 });
 
 export const AKTION = {

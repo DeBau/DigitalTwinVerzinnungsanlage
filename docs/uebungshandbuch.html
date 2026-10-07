@@ -3664,6 +3664,55 @@ END_CASE;`)}
     punkt: (A, B) => isAct(A) && B.x < A.x + aw(A) - 1 ? [B.x + 8, B.y] : [B.x, B.y + 15]
   };
 
+  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-kette.js
+  var TEILUNG = 100;
+  var TEXT_TRANS_TRANS = "Auf eine Transition folgt immer ein Schritt. Setz zuerst einen Schritt dazwischen, dann verbindest du ihn mit der nächsten Transition.";
+  var objIn = (d, id) => d.o.find((o) => o.id === id);
+  var verknuepfe = (d, A, B) => {
+    d.c.push({ a: A.id, b: B.id, v: "" });
+  };
+  var loeseVerbindung = (d, A, B) => {
+    d.c = d.c.filter((c) => !(c.a === A.id && c.b === B.id));
+  };
+  function transitionDazwischen(A, B, d) {
+    const [x, y1] = kettenAus(A), y = B.y > y1 ? Math.round((y1 + B.y) / 20) * 10 : y1 + 30;
+    const zwischen = { id: uid(), k: "trans", x, y, v: "" };
+    d.o.push(zwischen);
+    loeseVerbindung(d, A, B);
+    verknuepfe(d, A, zwischen);
+    verknuepfe(d, zwischen, B);
+    return zwischen;
+  }
+  var merkeHinweis = (id, text) => {
+    ED.vorlage.hinweis = { id, text };
+  };
+  function hinweisAnleitung() {
+    const h = ED.vorlage.hinweis, o = h && istMarkiert("o", h.id) && objById(h.id);
+    return o ? `<div class="props quiet"><p>${h.text}</p></div>` + FELDER_JE_ART.o(o) : null;
+  }
+  var PAAR_REGELN = [
+    { passt: (A, B) => isStep(A) && isStep(B), tue: (A, B, d, neu) => {
+      if (neu === B) B.y = Math.max(B.y, A.y + TEILUNG);
+      transitionDazwischen(A, B, d);
+    } },
+    { passt: (A, B) => isTrans(A) && isTrans(B), tue: (A, B, d, neu) => {
+      loeseVerbindung(d, A, B);
+      merkeHinweis(neu.id, TEXT_TRANS_TRANS);
+    } }
+  ];
+  function grafcetNachSetzen(o, d, { A, dock }) {
+    const [oben, unten] = A ? [A, o] : dock ? [objIn(d, dock.a), objIn(d, dock.b)] : [];
+    const regel = oben && unten && PAAR_REGELN.find((r) => r.passt(oben, unten));
+    if (regel) regel.tue(oben, unten, d, o);
+  }
+  function grafcetVorVerbinden(A, B) {
+    if (isTrans(A) && isTrans(B)) return { ok: false, text: TEXT_TRANS_TRANS };
+    if (isStep(A) && isStep(B)) return { ersetze: (d) => {
+      transitionDazwischen(objIn(d, A.id), objIn(d, B.id), d);
+    } };
+    return null;
+  }
+
   // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet.js
   var QUADRAT = (o) => ({ x: o.x, y: o.y, w: 40, h: 40 });
   var NUMMERIERT = ["step", "init"];
@@ -3718,7 +3767,8 @@ END_CASE;`)}
     n: "GRAFCET",
     d: "Ablauf nach DIN EN 60848 mit Symbollegende",
     gruppen: ["grafcet"],
-    body: (ex, page) => dots(20) + (page ? "" : GRAFCET_LEGENDE)
+    body: (ex, page) => dots(20) + (page ? "" : GRAFCET_LEGENDE),
+    anleitung: hinweisAnleitung
   });
   var LEGENDE_STRICH = `stroke="${G}" stroke-width="1.3"`;
   var GRAFCET_LEGENDE = [
@@ -3732,7 +3782,10 @@ END_CASE;`)}
   registriereGruppe("grafcet", {
     name: "GRAFCET",
     hinweis: "Anfangsschritt setzen, dann Transition, Schritt, Transition … anklicken: Jeder neue Baustein hängt sich unter den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken.",
-    kette: true
+    kette: true,
+    nachSetzen: grafcetNachSetzen,
+    // Transition zwischen zwei Schritten, keine zwei Transitionen hintereinander
+    vorVerbinden: grafcetVorVerbinden
   });
   var AKTION = {
     g: "grafcet",
