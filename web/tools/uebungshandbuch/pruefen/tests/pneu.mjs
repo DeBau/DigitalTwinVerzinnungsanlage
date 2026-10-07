@@ -19,6 +19,11 @@ const BLAU = '#2F80ED';
 const farbe = (t, i) => t.page.$eval(`#edstage .ink [data-c="${i}"] > path`, (p) => p.getAttribute('stroke'));
 // Texte im Symbol des Bausteins id
 const texte = (t, id) => t.page.$$eval(`#edstage .ink [data-o="${id}"] text`, (ts) => ts.map((x) => x.textContent));
+// Meldet der Endlagensensor n in der Simulation 1? (Signalliste im Eigenschaftsfeld)
+const meldet = async (t, n) => (await t.text('#simstatus')).includes(`${n} 1`);
+// Linke bzw. rechte Betätigung des Ventils mit der linken oberen Ecke (x, y) und Breite w anklicken
+const links = (t, x, y) => t.klick([x + 15, y + 30]);
+const rechts = (t, x, y, w = 140) => t.klick([x + w - 15, y + 30]);
 const leitungen = (t) => t.page.$$eval('#edstage .ink [data-c] > path:first-child', (ps) => ps.map((p) => p.getAttribute('d')));
 
 export const tests = [
@@ -133,6 +138,46 @@ export const tests = [
       t.erwarte(zuA && hat(v.id, '4', zuA.id, '1'), 'Abluftdrosselung A: 4 → 1, 2 → A');
       t.erwarte(zuB && hat(v.id, '2', zuB.id, '1'), 'Abluftdrosselung B: 2 → 1, 2 → B');
       t.gleich(d.c.length, 5, 'mit Quelle an 1 fünf Leitungen');
+    },
+  },
+  {
+    name: 'P9 Drossel mit Öffnung und Richtung bestimmt die Hubzeit, Sensoren melden',
+    daten: 'pneu-drossel',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      await t.werkzeug('sim');
+      await links(t, 70, 300); await links(t, 380, 300);   // beide ausfahren
+      await t.ruhe(1500);
+      t.erwarte(await meldet(t, '−BG2x'), '−MM1 (Drosseln 100 %) nach 1,5 s vorn');
+      t.erwarte(await meldet(t, '−BG2y'), '−MM2 fährt frei aus: Zuluft durch die Drossel an A ist frei (1 → 2)');
+      await rechts(t, 70, 300); await rechts(t, 380, 300);   // beide einfahren
+      await t.ruhe(1500);
+      t.erwarte(await meldet(t, '−BG1x'), '−MM1 nach 1,5 s hinten');
+      t.erwarte(!(await meldet(t, '−BG1y')), '−MM2 noch unterwegs: Abluft an A gedrosselt auf 20 %');
+      await t.ruhe(6000);
+      t.erwarte(await meldet(t, '−BG1y'), '−MM2 kommt gedrosselt doch an');
+      t.erwarte(await t.zaehle('#simstatus svg.wegzeit polyline') === 2, 'Weg-Zeit-Diagramm mit zwei Antrieben');
+    },
+  },
+  {
+    name: 'P9 Bewegung nur bei entlüfteter Gegenkammer, 5/3 Mitte hält Druck, Taster tastend',
+    daten: 'pneu-sim',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      await t.werkzeug('sim');
+      await links(t, -10, 300); await t.ruhe(1500);
+      t.erwarte(!(await meldet(t, '−BG2')), 'B hinter geschlossenem Kugelhahn: −MM1 steht');
+      await t.klick([180, 160]); await t.ruhe(1500);   // Kugelhahn auf: B entlüftet über den Schalldämpfer
+      t.erwarte(await meldet(t, '−BG2'), 'nach dem Öffnen fährt −MM1 aus');
+      await links(t, 400, 300); await t.ruhe(500);
+      await links(t, 400, 300); await t.ruhe(1500);   // nach 0,5 s in die Mitte
+      t.gleich(await farbe(t, 4), BLAU, '5/3 Mitte gesperrt: Kammer A hält den Druck');
+      t.erwarte(!(await meldet(t, '−BG6')), 'in der Mitte bleibt −MM3 stehen');
+      const [x, y] = await t.punkt(695, 330);
+      await t.page.mouse.move(x, y); await t.page.mouse.down(); await t.ruhe(100);
+      t.gleich(await farbe(t, 7), BLAU, 'Taster gedrückt: Druck an −MM4');
+      await t.page.mouse.up(); await t.ruhe(100);
+      t.erwarte(await farbe(t, 7) !== BLAU, 'Taster losgelassen: Ventil fällt zurück');
     },
   },
 ];

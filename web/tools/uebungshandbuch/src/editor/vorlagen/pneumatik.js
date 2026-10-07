@@ -9,8 +9,9 @@ import { DIRV, portsOf } from '../bauteile.js';
 import { signalFeld } from '../signalfeld.js';
 import { listenFeld } from '../eigenschaften.js';
 import { VALVE, betaetigung, cylinder, drawValve, entlueftung, istSpule, rechteStellung, steuerNr, vPairs } from './pneumatik-symbole.js';
-import { GERAET } from './pneumatik-geraete.js';
-import { SIM_ANLEITUNG, simulationKlick, simulationWechsel } from './pneumatik-simulation.js';
+import { GERAET, oeffnung } from './pneumatik-geraete.js';
+import { simAnleitung } from './pneumatik-simstatus.js';
+import { simulationKlick, simulationWechsel } from './pneumatik-simulation.js';
 import { ANTRIEB_KNOPF, antriebKlick } from './pneumatik-antriebe.js';
 
 registriereVorlage("pneumatik", {
@@ -20,7 +21,7 @@ registriereVorlage("pneumatik", {
   werkzeugleiste: {nachVerbinden: `<button type="button" class="tool" data-tool="sim" `
     + `title="Ventile per Klick schalten, Druck und Zylinderbewegung ansehen">${IC.play}Simulation</button>` + ANTRIEB_KNOPF},
   klick: antriebKlick,
-  anleitung: () => ED.tool === "sim" ? SIM_ANLEITUNG : null,
+  anleitung: () => ED.tool === "sim" ? simAnleitung() : null,
   werkzeugWechsel: simulationWechsel,
   zeiger: {unten: simulationKlick},
 });
@@ -76,12 +77,15 @@ const MAGNETKOLBEN = ["mk", "Magnetkolben (für berührungslose Sensoren)", [[""
 const OEFFNUNG = ["of", "Öffnung der Drossel in %", "50"];
 
 /* ---------- Wegeventile ---------- */
+// Unverdrahtete Entlüftungen 3 und 5 sind offen zur Atmosphäre (Simulation)
+const freieAblaesse = (k, belegt) => VALVE[k].ports.map(p => p[0]).filter(n => (n === "3" || n === "5") && !belegt(n));
 // Bauteileintrag eines Wegeventils k; Anschlüsse aus VALVE, Schaltwege aus vPairs
 function ventil(k, n, w, def, feldliste, info){
   const anschluesse = () => VALVE[k].ports.map(([p, dx, d]) => [p, 70 + dx, d === "u" ? 0 : 60, d]);
   return {g: "pneu", n, lbl: "−MB1", hide: true, w, h: 60, def, anschluesse, info, kennbuchstaben: ["MB", "QM"],
     feldliste: [...feldliste, ...SPULEN], felder: pneuFelder, umbau: ["al", "ar", "gs"],
-    sim: (o, s) => ({pairs: vPairs(o, s || VALVE[k].grund)}), zeichne: o => drawValve(o), zusatz: entlueftung};
+    sim: (o, s, has, belegt) => ({pairs: vPairs(o, s || VALVE[k].grund), ablass: freieAblaesse(k, belegt)}),
+    zeichne: o => drawValve(o), zusatz: entlueftung};
 }
 const NC_NO = [["gs", "Grundstellung", GRUNDSTELLUNG], ["al", "Betätigung links", BETAETIGUNG_LINKS],
   ["ar", "Rückstellung rechts", RUECKSTELLUNG]];
@@ -122,17 +126,23 @@ const anzeige = (lbl, w, n, zeichne, info) => ({g: "pneu", n, lbl, w, h: 60, inf
 const logik = (n, info, sim, zeichne) => ({g: "pneu", n, lbl: "", w: 60, h: 60, info, sim, zeichne,
   anschluesse: [["1", 8, 60, "d"], ["3", 52, 60, "d"], ["2", 30, 0, "u"]]});
 const zylinder = (n, anschluesse, feldliste, einfach) => ({g: "pneu", n, lbl: "−MM1", w: 240, h: 60, def: {s1: "", s2: ""},
-  anschluesse, kennbuchstaben: ["MM"], feldliste, felder: pneuFelder, zeichne: o => cylinder(o, einfach)});
+  anschluesse, kennbuchstaben: ["MM"], feldliste, felder: pneuFelder, zeichne: o => cylinder(o, einfach), sim: offeneKammern});
+// Unverdrahtete Anschlüsse eines Antriebs blasen ins Freie (Simulation)
+const offeneKammern = (o, s, has, belegt) => ({ablass: ["A", "B"].filter(n => !belegt(n))});
+// Drosseln: Öffnung als Faktor der Geschwindigkeit; frei = Anschluss, zu dem die Luft ungedrosselt strömt
+const drosselHaken = frei => o => ({frei, f: Math.max(.05, oeffnung(o) / 100)});
 const DAEMPFUNG = ["dp", "Endlagendämpfung", [["", "ohne"], ["fest", "beidseitig fest"], ["einst", "beidseitig einstellbar"]]];
 registriereBauteile({
   zyl2: zylinder("Zylinder doppeltwirkend", [["A", 10, 60, "d"], ["B", 110, 60, "d"]], [...ENDLAGEN, DAEMPFUNG, MAGNETKOLBEN], false),
   zyl1: zylinder("Zylinder einfachwirkend mit Feder", [["A", 10, 60, "d"]], [...ENDLAGEN, MAGNETKOLBEN], true),
   rot: {g: "pneu", n: "Schwenkantrieb", lbl: "−MM5", w: 60, h: 60, anschluesse: [["A", 20, 60, "d"], ["B", 40, 60, "d"]],
-    kennbuchstaben: ["MM"], feldliste: ENDLAGEN, felder: pneuFelder, zeichne: GERAET.rot},
+    kennbuchstaben: ["MM"], feldliste: ENDLAGEN, felder: pneuFelder, zeichne: GERAET.rot, sim: offeneKammern},
   drv: durchgang("−RZ1", 50, "Drossel­rückschlag­ventil", GERAET.drv, {feldliste: [OEFFNUNG], sim: () => ({pairs: [["1", "2"]]}),
+    drossel: drosselHaken("2"),
     info: "Frei von 1 nach 2 (Kugel hebt ab), gedrosselt von 2 nach 1. Mit 1 zum Ventil und 2 zum Zylinder: "
       + "Abluftdrosselung, der Normalfall. Um 180° gedreht: Zuluftdrosselung."}),
-  dr: durchgang("−RZ2", 30, "Drosselventil einstellbar", GERAET.dr, {feldliste: [OEFFNUNG], sim: () => ({pairs: [["1", "2"]]})}),
+  dr: durchgang("−RZ2", 30, "Drosselventil einstellbar", GERAET.dr, {feldliste: [OEFFNUNG], sim: () => ({pairs: [["1", "2"]]}),
+    drossel: drosselHaken(null)}),
   rv: durchgang("−RM1", 30, "Rückschlagventil", GERAET.rv, {sim: (o, s, has) => ({dir: has("1") ? [["1", "2"]] : []})}),
   /* Weitere Symbole der Anlage und Klassiker der Ausbildung */
   kh: durchgang("−QM10", 50, "Absperrventil (Kugelhahn)", GERAET.kh, {def: {zu: "auf"},
@@ -150,11 +160,12 @@ registriereBauteile({
     (o, s, has) => ({dir: has("1") && has("3") ? [["1", "2"], ["3", "2"]] : []}), GERAET.zd),
   se: {g: "pneu", n: "Schnell­entlüftungs­ventil", lbl: "−RM2", w: 60, h: 60, anschluesse: [["1", 20, 60, "d"], ["2", 20, 0, "u"]],
     info: "Direkt am Zylinder: Beim Entlüften strömt die Luft über 3 ins Freie statt den langen Weg zurück durchs Wegeventil. "
-      + "Der Zylinder fährt schneller zurück.", sim: (o, s, has) => ({dir: has("1") ? [["1", "2"]] : []}), zeichne: GERAET.se},
+      + "Der Zylinder fährt schneller zurück.", sim: (o, s, has) => has("1") ? {dir: [["1", "2"]]} : {ablass: ["2"]}, zeichne: GERAET.se},
   insel: {g: "pneu", n: "Ventilinsel (Baugruppenrahmen)", lbl: "−QM1", w: 360, h: 120, rahmen: true, kennbuchstaben: ["QM"],
     umriss: o => ({x: o.x, y: o.y, w: +o.fw || 360, h: +o.fh || 120}), def: {fw: "360", fh: "120"},
     info: "Strichpunktierter Rahmen um die Ventile einer Ventilinsel, z. B. −QM1 Portal und −QM2 Band. Breite und Höhe links "
       + "einstellen; die Ventile darin bleiben anklickbar.",
     feldliste: [["fw", "Breite"], ["fh", "Höhe"]], zeichne: GERAET.insel},
-  sd: {g: "pneu", n: "Schalldämpfer", lbl: "", w: 24, h: 34, anschluesse: [["1", 12, 0, "u"]], zeichne: GERAET.sd},
+  sd: {g: "pneu", n: "Schalldämpfer", lbl: "", w: 24, h: 34, anschluesse: [["1", 12, 0, "u"]], zeichne: GERAET.sd,
+    sim: () => ({ablass: ["1"]})},
 });

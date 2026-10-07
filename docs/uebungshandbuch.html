@@ -4860,75 +4860,176 @@ END_CASE;`)}
     sd: (o) => PP(`M${o.x + 12} ${o.y}V${o.y + 10}`) + `<path d="M${o.x + 12} ${o.y + 10}L${o.x + 22} ${o.y + 20}L${o.x + 12} ${o.y + 30}L${o.x + 2} ${o.y + 20}Z" fill="#fff" ${KUGEL}/><path d="M${o.x + 6} ${o.y + 17}H${o.x + 18}M${o.x + 5} ${o.y + 20}H${o.x + 19}M${o.x + 6} ${o.y + 23}H${o.x + 18}" ${thin}/>`
   };
 
+  // src/editor/vorlagen/pneumatik-simstatus.js
+  var WEGZEIT = { dauer: 1e4, takt: 50, breite: 236, zeile: 30 };
+  var ANTRIEB_ARTEN = ["zyl1", "zyl2", "rot"];
+  var antriebe = () => ED.data.o.filter((o) => ANTRIEB_ARTEN.includes(o.k));
+  var SIM_HILFE = `<p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Ein Taster schaltet nur, solange du drückst. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren melden 1. Ein Zylinder fährt nur, wenn die Gegenseite entlüften kann; Drosseln bremsen ihn.</p><p class="small muted" style="margin:0 0 8px">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p>`;
+  var simAnleitung = () => `<div class="props"><div class="palh">Simulation</div>${SIM_HILFE}<div id="simstatus">${simStatusHTML()}</div></div>`;
+  function simSignale() {
+    const s = [];
+    antriebe().forEach((o) => {
+      const p = posOf(o);
+      if (o.s1) s.push([o.s1, p < 0.02]);
+      if (o.s2) s.push([o.s2, p > 0.98]);
+    });
+    ED.data.o.filter((o) => o.spl || o.spr).forEach((o) => {
+      const st = vstate(o);
+      if (o.spl) s.push([o.spl, st === "act"]);
+      if (o.spr) s.push([o.spr, st === "b" || o.k !== "v53" && st === "rest" && o.ar !== "feder"]);
+    });
+    return s;
+  }
+  function simStatusHTML() {
+    if (!simOn()) return "";
+    const signal = ([n, an]) => `<span style="display:inline-block;margin:0 10px 4px 0;font-size:12.5px"><b>${esc(n)}</b> <span style="color:${an ? "#2E7D4F" : "#8A949C"};font-weight:700">${an ? 1 : 0}</span></span>`;
+    const sig = simSignale();
+    return (sig.length ? `<div>${sig.map(signal).join("")}</div>` : "") + wegZeitSVG();
+  }
+  function simStatusZeigen() {
+    const el = $("#simstatus");
+    if (el) el.innerHTML = simStatusHTML();
+  }
+  function wegZeitMerken(t) {
+    const v = ED.sim.verlauf || (ED.sim.verlauf = []);
+    if (v.length && t - v[v.length - 1].t < WEGZEIT.takt) return;
+    v.push({ t, pos: Object.fromEntries(antriebe().map((o) => [o.id, posOf(o)])) });
+    while (v.length && t - v[0].t > WEGZEIT.dauer) v.shift();
+    simStatusZeigen();
+  }
+  function wegZeitSVG() {
+    const v = ED.sim.verlauf || [], as = antriebe(), { dauer, breite, zeile } = WEGZEIT;
+    if (!as.length || !v.length) return "";
+    const t1 = v[v.length - 1].t, x = (t) => (46 + (breite - 50) * (1 - (t1 - t) / dauer)).toFixed(1);
+    const reihe = (o, i) => {
+      const y0 = i * zeile + 24, y = (p) => (y0 - p * 18).toFixed(1);
+      const pkt = v.filter((s) => s.pos[o.id] !== void 0).map((s) => `${x(s.t)},${y(s.pos[o.id])}`).join(" ");
+      return `<text x="0" y="${y0 - 5}" font-size="10" font-weight="600">${esc(o.v || o.k)}</text><path d="M46 ${y0}H${breite - 4}M46 ${y0 - 18}H${breite - 4}" stroke="#C9D0D5" stroke-width=".6" stroke-dasharray="2 2"/><polyline points="${pkt}" fill="none" stroke="#17212B" stroke-width="2"/>`;
+    };
+    return `<div class="small muted" style="margin:6px 0 2px">Weg-Zeit-Diagramm (letzte 10 s)</div><svg class="wegzeit" viewBox="0 0 ${breite} ${as.length * zeile + 8}" width="100%" role="img" aria-label="Weg-Zeit-Diagramm der Antriebe">${as.map(reihe).join("")}</svg>`;
+  }
+
   // src/editor/vorlagen/pneumatik-simulation.js
-  function simCompute() {
-    const d = ED.data, adj = /* @__PURE__ */ new Map(), add = (a, b) => {
-      if (!adj.has(a)) adj.set(a, []);
-      if (!adj.has(b)) adj.set(b, []);
-      adj.get(a).push(b);
-      adj.get(b).push(a);
+  var HUBZEIT = 1.2;
+  var knoten = (o, p) => o.id + ":" + p;
+  function simGraph(d) {
+    const adj = /* @__PURE__ */ new Map(), add = (a, b) => {
+      for (const [x, y] of [[a, b], [b, a]]) (adj.get(x) || adj.set(x, []).get(x)).push(y);
     };
     d.c.forEach((c) => {
       if (c.pa !== void 0 && c.pb !== void 0) add(c.a + ":" + c.pa, c.b + ":" + c.pb);
     });
     const roots = [];
-    d.o.forEach((o) => {
-      const pc = art(o.k);
-      if (!pc.sim) return;
-      const r = pc.sim(o, ED.sim.st[o.id], () => false);
-      (r.pairs || []).forEach(([p, q]) => add(o.id + ":" + p, o.id + ":" + q));
-      (r.src || []).forEach((p) => roots.push(o.id + ":" + p));
+    simTeile(d).forEach(([o, r]) => {
+      (r.pairs || []).forEach(([p, q]) => add(knoten(o, p), knoten(o, q)));
+      (r.src || []).forEach((p) => roots.push(knoten(o, p)));
     });
-    let P = /* @__PURE__ */ new Set();
-    for (let pass = 0; pass < 8; pass++) {
-      const dir = /* @__PURE__ */ new Map();
-      d.o.forEach((o) => {
-        const pc = art(o.k);
-        if (!pc.sim) return;
-        const r = pc.sim(o, ED.sim.st[o.id], (q) => P.has(o.id + ":" + q));
-        (r.dir || []).forEach(([p, q]) => {
-          const a = o.id + ":" + p;
-          if (!dir.has(a)) dir.set(a, []);
-          dir.get(a).push(o.id + ":" + q);
-        });
-      });
-      const N = /* @__PURE__ */ new Set(), st = [...roots];
-      while (st.length) {
-        const n = st.pop();
-        if (N.has(n)) continue;
-        N.add(n);
-        (adj.get(n) || []).forEach((m) => st.push(m));
-        (dir.get(n) || []).forEach((m) => st.push(m));
-      }
-      const same = N.size === P.size && [...N].every((n) => P.has(n));
-      P = N;
-      if (same) break;
+    return { adj, roots };
+  }
+  function simTeile(d, hat = () => false) {
+    const belegt = new Set(d.c.flatMap((c) => [c.a + ":" + c.pa, c.b + ":" + c.pb]));
+    return d.o.filter((o) => art(o.k).sim).map((o) => [o, art(o.k).sim(o, ED.sim.st[o.id], (p) => hat(o, p), (p) => belegt.has(knoten(o, p)))]);
+  }
+  function erreichbar(start, adj, dir = /* @__PURE__ */ new Map()) {
+    const N = /* @__PURE__ */ new Set(), st = [...start];
+    while (st.length) {
+      const n = st.pop();
+      if (N.has(n)) continue;
+      N.add(n);
+      st.push(...adj.get(n) || [], ...dir.get(n) || []);
     }
-    ED.sim.P = P;
+    return N;
+  }
+  function simCompute() {
+    const d = ED.data, { adj, roots } = simGraph(d), alt = ED.sim.P || /* @__PURE__ */ new Set();
+    let P = /* @__PURE__ */ new Set(), ablass = [];
+    for (let pass = 0; pass < 8; pass++) {
+      const dir = /* @__PURE__ */ new Map(), hat = (o, p) => P.has(knoten(o, p));
+      ablass = [];
+      simTeile(d, hat).forEach(([o, r]) => {
+        (r.dir || []).forEach(([p, q]) => (dir.get(knoten(o, p)) || dir.set(knoten(o, p), []).get(knoten(o, p))).push(knoten(o, q)));
+        (r.ablass || []).forEach((p) => ablass.push(knoten(o, p)));
+      });
+      const N = erreichbar(roots, adj, dir), gleich = N.size === P.size && [...N].every((n) => P.has(n));
+      P = N;
+      if (gleich) break;
+    }
+    const E = erreichbar(ablass, adj);
+    alt.forEach((n) => {
+      if (!E.has(n)) P.add(n);
+    });
+    Object.assign(ED.sim, { P, E, netz: leitungsNetze(d) });
+  }
+  function leitungsNetze(d) {
+    const adj = /* @__PURE__ */ new Map(), add = (a, b) => (adj.get(a) || adj.set(a, []).get(a)).push(b);
+    d.c.forEach((c) => {
+      if (c.pa === void 0 || c.pb === void 0) return;
+      add(c.a + ":" + c.pa, c.b + ":" + c.pb);
+      add(c.b + ":" + c.pb, c.a + ":" + c.pa);
+    });
+    const netz = /* @__PURE__ */ new Map();
+    adj.forEach((_, n) => {
+      if (!netz.has(n)) {
+        const N = [...erreichbar([n], adj)];
+        N.forEach((m) => netz.set(m, N));
+      }
+    });
+    return netz;
+  }
+  var hatDruck = (o, p) => ED.sim.P.has(knoten(o, p));
+  var entlueftet = (o, p) => ED.sim.E.has(knoten(o, p)) && !hatDruck(o, p);
+  function drosselFaktor(o, p, fuellen) {
+    return (ED.sim.netz.get(knoten(o, p)) || []).reduce((f, n) => {
+      const [id, q] = n.split(":"), dr = objById(id), h = dr && art(dr.k).drossel;
+      if (!h) return f;
+      const { frei, f: g } = h(dr), gedrosselt = !frei || q === frei !== fuellen;
+      return gedrosselt ? Math.min(f, g) : f;
+    }, 1);
+  }
+  function bewegung(o) {
+    const feder = !bauteil(o.k).anschluesse.some((a) => a[0] === "B");
+    const A = hatDruck(o, "A"), entB = feder || entlueftet(o, "B");
+    if (A && entB) return [1, Math.min(drosselFaktor(o, "A", true), feder ? 1 : drosselFaktor(o, "B", false))];
+    if (feder ? entlueftet(o, "A") : hatDruck(o, "B") && entlueftet(o, "A")) {
+      return [-1, Math.min(drosselFaktor(o, "A", false), feder ? 1 : drosselFaktor(o, "B", true))];
+    }
+    return [0, 0];
   }
   function simStep(t) {
     if (!simOn()) return;
     const dt = Math.min(0.05, (t - (ED.sim.t || t)) / 1e3);
     ED.sim.t = t;
     let moving = false;
-    ED.data.o.forEach((o) => {
-      if (!["zyl1", "zyl2", "rot"].includes(o.k)) return;
-      const A = pressed(o, "A"), B = o.k !== "zyl1" && pressed(o, "B"), p = ED.sim.pos[o.id] || 0;
-      const dir = o.k === "zyl1" ? A ? 1 : -1 : A && !B ? 1 : B && !A ? -1 : 0, np = Math.max(0, Math.min(1, p + dir * dt / 1.2));
+    ED.data.o.filter((o) => ANTRIEB_ARTEN.includes(o.k)).forEach((o) => {
+      const [r, f] = bewegung(o), p = ED.sim.pos[o.id] || 0, np = Math.max(0, Math.min(1, p + r * f * dt / HUBZEIT));
       if (np !== p) {
         ED.sim.pos[o.id] = np;
         moving = true;
       }
     });
-    if (moving && ED.svg) ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
+    if (moving) neuZeichnen();
+    wegZeitMerken(t);
     requestAnimationFrame(simStep);
+  }
+  function neuZeichnen() {
+    if (ED.svg) ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
+    simStatusZeigen();
   }
   function simClick(o, pt) {
     if (o.k === "kh") ED.sim.st[o.id] = (ED.sim.st[o.id] || o.zu || "auf") === "auf" ? "zu" : "auf";
-    else if (VALVE[o.k]) ED.sim.st[o.id] = neueStellung(o, linkeSeite(o, pt));
-    else return;
+    else if (VALVE[o.k]) {
+      const links = linkeSeite(o, pt);
+      ED.sim.st[o.id] = neueStellung(o, links);
+      if (links && o.al === "taster") addEventListener("pointerup", () => tasterLos(o), { once: true });
+    } else return;
     simCompute();
-    ED.svg.querySelector(".ink").innerHTML = zeichnungSVG(ED.data, true, ED.key);
+    neuZeichnen();
+  }
+  function tasterLos(o) {
+    if (!simOn()) return;
+    ED.sim.st[o.id] = VALVE[o.k].grund;
+    simCompute();
+    neuZeichnen();
   }
   function linkeSeite(o, pt) {
     const X = drehung(o), [x] = X ? X.zurueck(pt[0], pt[1]) : pt, b = bauteil(o.k);
@@ -4937,14 +5038,14 @@ END_CASE;`)}
   function neueStellung(o, links) {
     const s = vstate(o), mono = (o.ar || "feder") === "feder";
     if (o.k === "v53") return links ? s === "act" ? "center" : "act" : s === "b" ? "center" : "b";
+    if (o.al === "taster") return links ? "act" : s;
     if (mono) return links ? s === "act" ? "rest" : "act" : s;
     return links ? "act" : "rest";
   }
-  var SIM_ANLEITUNG = `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">Auf die Betätigung <b>links</b> oder <b>rechts</b> eines Ventils klicken: Es schaltet um. Druckführende Leitungen werden blau, Zylinder fahren, Endlagensensoren leuchten grün.</p><p class="small muted" style="margin:0">Monostabile Ventile fallen beim zweiten Klick in die Grundstellung zurück. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;
   function simulationWechsel(t) {
     if (t === "sim" && !simOn()) {
       clearSel();
-      ED.sim = { on: true, st: {}, pos: {}, t: 0 };
+      ED.sim = { on: true, st: {}, pos: {}, t: 0, verlauf: [] };
       simCompute();
       requestAnimationFrame(simStep);
     } else if (t !== "sim" && simOn()) ED.sim = { on: false, st: {}, pos: {} };
@@ -5041,7 +5142,7 @@ END_CASE;`)}
     body: () => grid(10, "#EEF1F3", 15, 15, 985, 630) + TX(25, 33, 10, "Energiefluss von unten nach oben: Versorgung unten, Ventile in der Mitte, Antriebe oben", "start"),
     werkzeugleiste: { nachVerbinden: `<button type="button" class="tool" data-tool="sim" title="Ventile per Klick schalten, Druck und Zylinderbewegung ansehen">${IC.play}Simulation</button>` + ANTRIEB_KNOPF },
     klick: antriebKlick,
-    anleitung: () => ED.tool === "sim" ? SIM_ANLEITUNG : null,
+    anleitung: () => ED.tool === "sim" ? simAnleitung() : null,
     werkzeugWechsel: simulationWechsel,
     zeiger: { unten: simulationKlick }
   });
@@ -5085,6 +5186,7 @@ END_CASE;`)}
   var ENDLAGEN = [["s1", "Sensor hintere Endlage", "z. B. −BG3", ["BG"]], ["s2", "Sensor vordere Endlage", "z. B. −BG4", ["BG"]]];
   var MAGNETKOLBEN = ["mk", "Magnetkolben (für berührungslose Sensoren)", [["", "nein"], ["ja", "ja"]]];
   var OEFFNUNG = ["of", "Öffnung der Drossel in %", "50"];
+  var freieAblaesse = (k, belegt) => VALVE[k].ports.map((p) => p[0]).filter((n) => (n === "3" || n === "5") && !belegt(n));
   function ventil(k, n, w, def, feldliste, info) {
     const anschluesse = () => VALVE[k].ports.map(([p, dx, d]) => [p, 70 + dx, d === "u" ? 0 : 60, d]);
     return {
@@ -5101,7 +5203,7 @@ END_CASE;`)}
       feldliste: [...feldliste, ...SPULEN],
       felder: pneuFelder,
       umbau: ["al", "ar", "gs"],
-      sim: (o, s) => ({ pairs: vPairs(o, s || VALVE[k].grund) }),
+      sim: (o, s, has, belegt) => ({ pairs: vPairs(o, s || VALVE[k].grund), ablass: freieAblaesse(k, belegt) }),
       zeichne: (o) => drawValve(o),
       zusatz: entlueftung
     };
@@ -5199,8 +5301,11 @@ END_CASE;`)}
     kennbuchstaben: ["MM"],
     feldliste,
     felder: pneuFelder,
-    zeichne: (o) => cylinder(o, einfach)
+    zeichne: (o) => cylinder(o, einfach),
+    sim: offeneKammern
   });
+  var offeneKammern = (o, s, has, belegt) => ({ ablass: ["A", "B"].filter((n) => !belegt(n)) });
+  var drosselHaken = (frei) => (o) => ({ frei, f: Math.max(0.05, oeffnung(o) / 100) });
   var DAEMPFUNG = ["dp", "Endlagendämpfung", [["", "ohne"], ["fest", "beidseitig fest"], ["einst", "beidseitig einstellbar"]]];
   registriereBauteile({
     zyl2: zylinder("Zylinder doppeltwirkend", [["A", 10, 60, "d"], ["B", 110, 60, "d"]], [...ENDLAGEN, DAEMPFUNG, MAGNETKOLBEN], false),
@@ -5215,14 +5320,20 @@ END_CASE;`)}
       kennbuchstaben: ["MM"],
       feldliste: ENDLAGEN,
       felder: pneuFelder,
-      zeichne: GERAET.rot
+      zeichne: GERAET.rot,
+      sim: offeneKammern
     },
     drv: durchgang("−RZ1", 50, "Drossel­rückschlag­ventil", GERAET.drv, {
       feldliste: [OEFFNUNG],
       sim: () => ({ pairs: [["1", "2"]] }),
+      drossel: drosselHaken("2"),
       info: "Frei von 1 nach 2 (Kugel hebt ab), gedrosselt von 2 nach 1. Mit 1 zum Ventil und 2 zum Zylinder: Abluftdrosselung, der Normalfall. Um 180° gedreht: Zuluftdrosselung."
     }),
-    dr: durchgang("−RZ2", 30, "Drosselventil einstellbar", GERAET.dr, { feldliste: [OEFFNUNG], sim: () => ({ pairs: [["1", "2"]] }) }),
+    dr: durchgang("−RZ2", 30, "Drosselventil einstellbar", GERAET.dr, {
+      feldliste: [OEFFNUNG],
+      sim: () => ({ pairs: [["1", "2"]] }),
+      drossel: drosselHaken(null)
+    }),
     rv: durchgang("−RM1", 30, "Rückschlagventil", GERAET.rv, { sim: (o, s, has) => ({ dir: has("1") ? [["1", "2"]] : [] }) }),
     /* Weitere Symbole der Anlage und Klassiker der Ausbildung */
     kh: durchgang("−QM10", 50, "Absperrventil (Kugelhahn)", GERAET.kh, {
@@ -5249,7 +5360,7 @@ END_CASE;`)}
       h: 60,
       anschluesse: [["1", 20, 60, "d"], ["2", 20, 0, "u"]],
       info: "Direkt am Zylinder: Beim Entlüften strömt die Luft über 3 ins Freie statt den langen Weg zurück durchs Wegeventil. Der Zylinder fährt schneller zurück.",
-      sim: (o, s, has) => ({ dir: has("1") ? [["1", "2"]] : [] }),
+      sim: (o, s, has) => has("1") ? { dir: [["1", "2"]] } : { ablass: ["2"] },
       zeichne: GERAET.se
     },
     insel: {
@@ -5266,7 +5377,16 @@ END_CASE;`)}
       feldliste: [["fw", "Breite"], ["fh", "Höhe"]],
       zeichne: GERAET.insel
     },
-    sd: { g: "pneu", n: "Schalldämpfer", lbl: "", w: 24, h: 34, anschluesse: [["1", 12, 0, "u"]], zeichne: GERAET.sd }
+    sd: {
+      g: "pneu",
+      n: "Schalldämpfer",
+      lbl: "",
+      w: 24,
+      h: 34,
+      anschluesse: [["1", 12, 0, "u"]],
+      zeichne: GERAET.sd,
+      sim: () => ({ ablass: ["1"] })
+    }
   });
 
   // src/editor/vorlagen/regelkreis.js
