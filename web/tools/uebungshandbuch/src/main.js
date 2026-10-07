@@ -43,6 +43,7 @@ import './editor/vorlagen/elektro-kennzeichen.js';
 import './editor/vorlagen/elektro-pfade.js';
 import './editor/vorlagen/elektro-spiegel.js';
 import './editor/vorlagen/elektro-simulation.js';
+import './editor/vorlagen/elektro-pruefen.js';
 import './editor/vorlagen/elektro.js';
 import './editor/vorlagen/elektro-geraete.js';
 import './editor/vorlagen/leistung.js';

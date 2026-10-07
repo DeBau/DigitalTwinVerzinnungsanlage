@@ -15,6 +15,7 @@ export const vorKontakt = (a, b) => {
   const p = lageVon(a), q = lageVon(b);
   return p[0] - q[0] || p[1] - q[1] || p[2] - q[2];
 };
+export const spulenVon = d => (d.o || []).filter(o => o.k === "coil");
 export const kontakte = d => (d.o || []).filter(o => art(o.k).kontakt);
 export function merkeOrdnung(d){
   ORDNUNG.clear();

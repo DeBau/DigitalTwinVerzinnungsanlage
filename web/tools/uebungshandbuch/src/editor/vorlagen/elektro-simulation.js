@@ -6,10 +6,10 @@
 import { IC } from '../../app/basis.js';
 import { PH, SVGT } from '../svg.js';
 import { ED } from '../status.js';
-import { istSchiene, portsOf, simOn, wireD, wireEnds } from '../bauteile.js';
+import { istSchiene, portsOf, simOn, virtuelleSchienen, wireD, wireEnds } from '../bauteile.js';
 import { umrissVon } from '../bausteine.js';
 import { clearSel, objById } from '../auswahl.js';
-import { kettenLeitung, verbindungsWeg } from '../zeichnen.js';
+import { kettenLeitung, pageCount, verbindungsWeg } from '../zeichnen.js';
 import { renderInk } from '../anzeige.js';
 import { autoLeitungen } from './elektro-pfade.js';
 
@@ -36,6 +36,13 @@ function verbindeFest(d, cs, objs, netz){
   autoLeitungen(d, cs).forEach(({o, p, y}) => netz.u(knoten(o, p.n), y % PH === 70 ? "pot:L+" : "pot:M"));
 }
 
+// Bausteine nach ID samt den virtuellen Schienen L+ und M auf jedem Blatt
+export function objekteVon(d){
+  const objs = Object.fromEntries((d.o || []).map(o => [o.id, o]));
+  virtuelleSchienen("stromlauf", pageCount("stromlauf", d)).forEach(r => { objs[r.id] = r; });
+  return objs;
+}
+
 /* ---------- Verhalten der Bauteile ---------- */
 // Geschlossene Wege [Anschlussindex, Anschlussindex] je Bausteinart; z = {betaetigt, an (Spule des Kennzeichens)}
 const WEG = [[0, 1]], ZWEI = [[0, 1], [2, 3]];
@@ -52,10 +59,11 @@ export const BEDIENUNG = {tno: "tastend", tnc: "tastend", estop: "rastend", esto
   lsw: "rastend", sens: "rastend", msk: "rastend"};
 const kennung = o => o.v || o.id;
 const zustand = (o, aktiv) => ({betaetigt: !!ED.sim.st[kennung(o)], an: aktiv.has(o.v)});
-function netzAus(d, cs, objs, aktiv){
+// Netz bei Zustand z(o) → {betaetigt, an} der Bauteile
+export function netzAus(d, cs, objs, z){
   const netz = neuesNetz();
   verbindeFest(d, cs, objs, netz);
-  (d.o || []).forEach(o => (SCHALTET[o.k] ? SCHALTET[o.k](zustand(o, aktiv)) : [])
+  (d.o || []).forEach(o => (SCHALTET[o.k] ? SCHALTET[o.k](z(o)) : [])
     .forEach(([i, j]) => netz.u(knoten(o, name(o, i)), knoten(o, name(o, j)))));
   return netz;
 }
@@ -77,7 +85,8 @@ function eingeschaltet(d, netz){
 export function simuliere(d, cs, objs){
   let aktiv = ED.sim.aktiv || new Set(), netz = null;
   for (let i = 0; i < 12; i++) {
-    netz = netzAus(d, cs, objs, aktiv);
+    const a = aktiv;
+    netz = netzAus(d, cs, objs, o => zustand(o, a));
     const neu = eingeschaltet(d, netz), gleich = neu.size === aktiv.size && [...neu].every(v => aktiv.has(v));
     aktiv = neu;
     if (gleich) break;

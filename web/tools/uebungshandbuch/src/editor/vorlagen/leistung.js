@@ -11,6 +11,7 @@ import { LB } from '../bauteile.js';
 import { setzeBreite } from '../bausteine.js';
 import { textFeld } from '../eigenschaften.js';
 import { kennzeichen } from './elektro-kennzeichen.js';
+import { pruefeLeistung } from './elektro-pruefen.js';
 
 export const LEITER = [["L1", 50], ["L2", 70], ["L3", 90], ["N", 110], ["PE", 130]];
 export const PE_STRICH = 'stroke-dasharray="10 4"';
@@ -23,6 +24,7 @@ registriereVorlage("leistung", {
   n: "Hauptstromkreis", d: "L1, L2, L3, N, PE: Schütze, Wendeschützschaltung, Motorschutz, Motoren, Umrichter",
   gruppen: ["leistung", "geraete", "elektro"], schienen: LEITER.map(([n, y]) => [n, y, 60, 915]),
   body: leistungBlatt,
+  pruefe: pruefeLeistung,
 });
 registriereGruppe("leistung", {
   name: "Hauptstromkreis",

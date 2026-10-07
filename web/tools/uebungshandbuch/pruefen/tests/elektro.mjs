@@ -211,4 +211,31 @@ export const tests = [
       t.gleich(verweise.sort(), ['/1', '/1'], 'beide Kontakte verweisen auf Pfad 1');
     },
   },
+  {
+    name: 'E10 Prüfen: Kurzschluss, Verriegelung, Kontakt ohne Spule, offene Anschlüsse, Motor ohne PE',
+    lauf: async (t) => {
+      const befunde = async () => {
+        await t.knopf('pruefen');
+        return t.page.$$eval('#props .befunde li', (ls) => ls.map((l) => l.textContent));
+      };
+      await selbsthaltung(t);
+      t.gleich((await befunde()).filter((b) => b.includes('Fehler')), [], 'Selbsthaltung ohne Fehler');
+      for (const [k, y] of [['nc', 390], ['coil', 480]]) await t.setze(k, PFAD(4), y);   // −QA2, verriegelt durch −QA1
+      await t.taste('Escape');
+      for (const [k, y] of [['tnc', 200], ['term', 300]]) await t.setze(k, PFAD(7), y);   // Kurzschluss ohne Verbraucher
+      await t.taste('Escape');
+      await t.setze('no', PFAD(9), 200);
+      await t.page.fill('#props input[data-prop="v"]', '−QA9');   // Kontakt ohne Spule
+      await t.taste('Escape');
+      const b = (await befunde()).join(' | ');
+      for (const teil of ['Kurzschluss', 'gegenseitige Verriegelung', 'keine Spule', 'ist offen']) {
+        t.erwarte(b.includes(teil), `Befund „${teil}“ fehlt: ${b}`);
+      }
+      t.erwarte(await t.zaehle('#edstage .befund rect') > 0, 'rote Markierung auf dem Blatt');
+      await t.knopf('close');
+      await t.oeffne('leistung');
+      await setzeEinzeln(t, 'm3', 300, 300);
+      t.erwarte((await befunde()).some((x) => x.includes('Schutzleiter PE')), 'Motor ohne PE');
+    },
+  },
 ];
