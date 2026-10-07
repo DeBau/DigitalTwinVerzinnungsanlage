@@ -8,6 +8,34 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.14.1 – 2026-10-08
+
+Nur der Zwilling ändert sich (`web\index.html`). Bridge, Signalliste und TIA-Variablentabellen bleiben gleich,
+die Bridge muss nicht neu gebaut werden.
+
+**Warum**
+Auf Laptops mit zwei Grafikchips rechnete der Browser auf der Onboard-Grafik, der Zwilling ruckelte dann auch
+in niedrigen Stufen. Grafikeinstellungen lagen auf zwei Knöpfen verteilt, und die Seitenleiste verschob beim
+Ein- und Ausblenden das 3D-Bild und schnitt beim Forcen die Knöpfe ab.
+
+**Neu**
+- **Grafik-Fenster:** Ein Knopf **„Grafik“** unten im 3D-Bild ersetzt „Grafik: Auto“ und „Tiefenschatten“.
+  Er öffnet alle Einstellungen: Qualität (Auto/Hoch/Mittel/Niedrig), **Spiegelungen an/aus**, Tiefenschatten
+  und die Grafikkarte, auf der der Browser rechnet, mit Warnung bei Onboard-Grafik.
+- **Seitenleiste lösen:** Knopf **„Lösen“** oben in der Leiste verschiebt sie in ein eigenes Fenster, z. B. auf
+  einen zweiten Bildschirm. Alles bleibt bedienbar (Bedienfeld, Forcen, Diagramm). **„Andocken“** oder
+  Schließen des Fensters holt sie zurück.
+
+**Geändert**
+- **Seitenleiste** liegt über der 3D-Ansicht statt daneben: Ein- und Ausblenden verändert das 3D-Bild nicht
+  mehr. Breite 480 statt 400 px, die Force-Knöpfe im Signalmonitor passen vollständig.
+- Überschrift „Zinnbad“ mit Beschreibung oben links im 3D-Bild entfernt.
+
+**Doku**
+- Inbetriebnahme: neuer Abschnitt **„Starke Grafikkarte für den Browser einstellen“** für Windows 11 und 10,
+  Chrome und Edge, dazu eine Zeile in der Fehlersuche und ein Hinweis bei den Systemvoraussetzungen.
+- Bedienung: Grafik-Fenster und Seitenleiste beschrieben.
+
 ## 1.14.0 – 2026-10-08
 
 Bridge neu bauen (`Bridge\build.bat`). **TIA-Variablentabellen neu importieren** (jetzt 186 Signale) und in

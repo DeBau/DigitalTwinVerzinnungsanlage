@@ -8,6 +8,34 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.14.1 – 2026-10-08
+
+Only the twin changes (`web\index.html`). Bridge, signal list and TIA tag tables stay the same, the bridge does
+not need to be rebuilt.
+
+**Why**
+On laptops with two graphics chips, the browser ran on the integrated graphics, and the twin then stuttered even
+at low levels. Graphics settings were spread over two buttons, and the sidebar shifted the 3D picture when it was
+shown or hidden and cut off the buttons when forcing.
+
+**New**
+- **Graphics window:** a single **"Graphics"** button at the bottom of the 3D view replaces "Graphics: Auto" and
+  "Ambient occlusion". It opens all settings: quality (Auto/High/Medium/Low), **reflections on/off**, ambient
+  occlusion and the graphics card the browser is using, with a warning for integrated graphics.
+- **Detach the sidebar:** the **"Detach"** button at the top of the sidebar moves it into a separate window, e.g.
+  on a second screen. Everything remains usable (control panel, forcing, diagram). **"Dock"** or closing the
+  window brings it back.
+
+**Changed**
+- The **sidebar** lies over the 3D view instead of next to it: showing and hiding it no longer changes the 3D
+  picture. Width 480 instead of 400 px, the force buttons in the signal monitor fit completely.
+- Removed the "Zinnbad" heading and description at the top left of the 3D view.
+
+**Docs**
+- Commissioning: new section **"Set the browser to the powerful graphics card"** for Windows 11 and 10, Chrome
+  and Edge, plus a troubleshooting row and a note in the system requirements.
+- Operation: graphics window and sidebar described.
+
 ## 1.14.0 – 2026-10-08
 
 Rebuild the bridge (`Bridge\build.bat`). **Re-import the TIA tag tables** (now 186 signals) and add a 4th
