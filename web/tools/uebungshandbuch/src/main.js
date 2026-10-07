@@ -19,6 +19,8 @@ import './app/uebung.js';
 import './editor/editor.js';
 import './app/druck.js';
 import './app/seiten.js';
+import './app/unterlagen.js';
+import './app/projekt.js';
 import { init as init_app_tooltip } from './app/tooltip.js';
 import { init as init_app_router } from './app/router.js';
 import { init as init_app_ereignisse } from './app/ereignisse.js';

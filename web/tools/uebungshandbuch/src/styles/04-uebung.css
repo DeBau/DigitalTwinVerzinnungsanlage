@@ -137,3 +137,26 @@ ul.erg li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align-it
 .ergmx td,.ergmx th{text-align:center;padding:5px 4px}.ergmx td:first-child,.ergmx th:first-child{text-align:left;padding-left:10px}
 .ergmx td.on{background:var(--sunk)}
 
+/* Stil-Check, wächst mit */
+.neu-tag{display:inline-block;font:600 11.5px var(--cond);color:#17212B;background:var(--yellow);border-radius:999px;padding:0 8px;vertical-align:1px;white-space:nowrap}
+.tasks.stil li.neu{background:var(--yellow-soft);border-radius:6px}
+.tasks .why{display:block;font-size:13.5px;color:var(--ink2);margin-top:3px;text-decoration:none}
+/* Vorlagen zum Ausfüllen (tpls): Musterzeile, Teile fortgeschriebener Dokumente, nur lesende Werte */
+.tplt tr.muster td{color:var(--ink2);background:var(--sunk);font-style:italic}
+.tplt tr.muster td.mlab{font:600 11.5px var(--cond);font-style:normal;text-transform:uppercase;letter-spacing:.04em;padding:4px 10px 0;border-bottom:0}
+.tplt tr.teil td{background:var(--blue-soft);font:600 13px var(--cond);padding:5px 10px}
+.tplt tr.teil a{font-family:var(--sans);font-weight:400;margin-left:8px}
+.tplt td.wert{white-space:pre-wrap}
+/* bezug: frühere Dokumente nur lesend */
+.bezug{border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:0 9px 9px 0;padding:10px 14px 12px;margin:18px 0;background:var(--sunk)}
+.bezug .bzk{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.bezug h3{margin:0 0 4px!important}
+.bezug table{background:var(--panel)}
+.tplfr{border:1px solid var(--line);border-radius:9px;padding:8px 14px;margin:22px 0 0}
+.tplfr summary{cursor:pointer}
+/* Breite Vorlagentabellen passen in die Spalte: Zellen brechen um (Silbentrennung, notfalls im Wort), Eingaben schrumpfen mit.
+   .tw bleibt als Rückfall scrollbar. */
+.tplt th,.tplt td{overflow-wrap:anywhere;hyphens:auto}
+.tplt td:first-child{overflow-wrap:normal}   /* Adressen und Kennzeichen nicht im Wort trennen */
+.tplt input{min-width:0;width:100%}
+.tplt th{font-size:12.5px}

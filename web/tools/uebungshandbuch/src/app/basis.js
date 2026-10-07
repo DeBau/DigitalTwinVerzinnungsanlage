@@ -1,9 +1,18 @@
 /* ================= Grundlagen ================= */
-import { EXTRA, QUIZ, SHEETS, SIG } from './daten.js';
+import { EXTRA, QUIZ, SHEETS, SIG, STIL, bewKey, critOf } from './daten.js';
 
 export const $ = (s, r=document) => r.querySelector(s);
 export const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 export const BY = Object.fromEntries(SHEETS.map(s => [s.id, s]));
+// Position einer Übung in SHEETS. Eine vorläufige ID ohne Übung (z. B. L06B) steht hinter der letzten Übung mit gleicher
+// oder kleinerer Nummer, ihre Regel greift also erst in der nächsten vorhandenen Übung.
+export const sheetPos = id => { const i = SHEETS.findIndex(s => s.id === id); if (i >= 0) return i;
+  const n = parseInt(String(id).slice(1), 10); let p = -1; SHEETS.forEach((s, j) => { if (parseInt(s.id.slice(1), 10) <= n) p = j; }); return p + 0.5; };
+// Stil-Check: Regeln aus stil.js mit ab ≤ Übung, sortiert nach Position in SHEETS (bei gleicher Position nach Reihenfolge in stil.js).
+// i = Index in STIL (Speicherschlüssel Lxx:stil:i), neu = Regel kommt in dieser Übung dazu.
+export const stilSorted = () => STIL.map((r, i) => ({r, i, pos: sheetPos(r.ab)})).sort((a, b) => a.pos - b.pos || a.i - b.i);
+export const stilFor = s => typOf(s) === "erkunden" ? [] : stilSorted().filter(x => x.pos <= sheetPos(s.id)).map(x => ({...x, neu: Math.ceil(x.pos) === sheetPos(s.id)}));
+export const stilKey = (id, i) => `${id}:stil:${i}`;
 export const S = {
   get(k, d=null){ try { const v = localStorage.getItem("uebh2:"+k); return v === null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v){ try { if (v === null || v === undefined || v === "" || v === false) localStorage.removeItem("uebh2:"+k); else localStorage.setItem("uebh2:"+k, JSON.stringify(v)); } catch {} },
@@ -20,6 +29,9 @@ export const zielTag = e => { const z = Array.isArray(e) && Array.isArray(e[1]) 
 export const extLinks = h => String(h ?? "").replace(/<a (?![^>]*\btarget=)/g, '<a target="_blank" rel="noopener" ');
 export const quelle = w => w.q ? `<p class="quelle">Quelle: ${extLinks(w.q)}</p>` : "";
 export const typOf = s => (s && s.typ) || "programmieren";
+// Punkte der Lehrkraft im Raster der Übung (critOf), Summe null, solange nichts eingetragen ist
+export const bewPunkte = ex => critOf(ex).map((_, i) => S.get(bewKey(ex.id, i)));
+export const bewSumme = ex => { const v = bewPunkte(ex); return v.some(x => x !== null) ? v.reduce((a, x) => a + (+x || 0), 0) : null; };
 // Kurz-Checks: ein = Eingangs-Check (Phase 1, Schlüssel q{i}), aus = Abschluss-Check (Phase 6, Schlüssel qa{i})
 export const quizSet = (id, w) => { const q = QUIZ[id]; return !q ? [] : Array.isArray(q) ? (w === "ein" ? q : []) : (q[w] || []); };
 export const quizKey = (id, w, qi) => `${id}:${w === "aus" ? "qa" : "q"}${qi}`;
