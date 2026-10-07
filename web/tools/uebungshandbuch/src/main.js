@@ -46,6 +46,7 @@ import './editor/vorlagen/regelkreis-bausteine.js';
 import './editor/vorlagen/regelkreis-wege.js';
 import './editor/vorlagen/regelkreis-simulation.js';
 import './editor/vorlagen/regelkreis.js';
+import './editor/vorlagen/trend-striche.js';
 import './editor/vorlagen/trend.js';
 import './editor/vorlagen/raster.js';
 import { init as init_app_tooltip } from './app/tooltip.js';

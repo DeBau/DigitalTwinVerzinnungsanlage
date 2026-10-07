@@ -8,6 +8,7 @@ import { registriereVorlage } from '../registry.js';
 import { G, G2, TX, snap } from '../vorlagen-svg.js';
 import { FARBEN } from '../eigenschaften.js';
 import { aendere, beginne } from '../verlauf.js';
+import { TREND_WERKZEUGE, TREND_ZEIGER, trendAnleitung } from './trend-striche.js';
 
 // Diagramme: linke Kante x0, rechte Kante x1, 16 Zeitspalten; je Diagramm Oberkante y0, Höhe h, 8 Zeilen
 export const TREND = {x0: 80, x1: 965, spalten: 16, diagramme: [
@@ -107,7 +108,11 @@ registriereVorlage("trend", {
   n: "Trendaufzeichnung", d: "Istwert, Sollwert und Stellgröße über der Zeit", einblattig: true,
   body: trendBlatt,
   hilfe: "<p><b>Achsen</b> links eintragen: Größe, Einheit und Skala. Die Linien rasten auf den Teilstrichen ein.</p>"
-    + "<p><b>Farben</b> wie in der Legende: Istwert schwarz, Sollwert blau, Stellgröße rot.</p>",
+    + "<p><b>Farben</b> wie in der Legende: Istwert schwarz, Sollwert blau, Stellgröße rot.</p>"
+    + "<p><b>Kurve</b> setzt Punkte mit glatter Linie, <b>Band</b> zeichnet ein Toleranzband oder die Hysterese.</p>",
+  werkzeugleiste: {nachLinie: TREND_WERKZEUGE},
+  zeiger: TREND_ZEIGER,
+  anleitung: trendAnleitung,
   seitenleiste: achsenHTML,
   eingabe: achsEingabe,
   hintergrund: d => achsenSVG(d),

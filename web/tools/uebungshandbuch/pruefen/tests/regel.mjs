@@ -188,4 +188,27 @@ export const tests = [
       t.gleich(await t.zaehle('#props #rk-sim-bild'), 0, 'Simulation geschlossen');
     },
   },
+  {
+    name: '6d Trend: Kurve durch geklickte Punkte, Band als Hilfslinien',
+    lauf: async (t) => {
+      await t.oeffne('trend');
+      await t.werkzeug('kurve');
+      t.erwarte((await t.text('#props')).includes('Punkte nacheinander'), 'Anleitung zur Kurve');
+      for (const q of [[80, 420], [190, 230], [301, 135], [500, 90], [500, 90]]) await t.klick(q);
+      const st = (await t.daten()).s;
+      t.gleich(st.length, 1, 'eine Kurve');
+      t.gleich(st[0].k, 'kurve', 'Strichart kurve');
+      t.gleich(st[0].p.length, 4, 'vier Punkte, der doppelte Klick beendet');
+      const d = await t.page.getAttribute('#edstage .ink path[data-i="0"]', 'd');
+      t.erwarte(d.includes('C'), 'glatte Kurve (Bézier)');
+      await t.klick([700, 300]);
+      t.gleich((await t.daten()).s[0].p.length, 4, 'nach dem Beenden wächst die Kurve nicht weiter');
+      await t.werkzeug('band');
+      await t.ziehe([300, 200], [960, 250]);
+      await t.tippe('Toleranz ±2 °C');
+      const band = (await t.daten()).s[1];
+      t.gleich([band.k, band.lbl], ['band', 'Toleranz ±2 °C'], 'Band mit Beschriftung');
+      t.gleich(await texte(t, '#edstage .ink', 'Toleranz ±2 °C'), 1, 'Beschriftung am Band');
+    },
+  },
 ];
