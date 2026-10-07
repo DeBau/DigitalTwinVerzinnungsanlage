@@ -78,7 +78,9 @@ registriereVorlage("grafcet", {
   werkzeugWechsel: spielWechsel,
   zeiger: {unten: spielKlick},
   klick: kettenKlick,
-  taste: kettenTaste,                 // Taste + wie „+ Schritt“ (Haken baut KERN)
+  // Haken taste: Taste + wie „+ Schritt“. Den Aufruf baut KERN (ereignisse.js), nur ohne Fokus in einem Eingabefeld,
+  // sonst schluckt preventDefault das „+“ beim Tippen einer Bedingung. Bis dahin ist der Haken ohne Wirkung.
+  taste: kettenTaste,
   pruefe: pruefeGrafcet,              // Knopf „Prüfen“ (grafcet-pruefen.js)
 });
 export const LEGENDE_STRICH = `stroke="${G}" stroke-width="1.3"`;

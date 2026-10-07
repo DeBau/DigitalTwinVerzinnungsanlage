@@ -2,6 +2,21 @@
 // Zwangssteuerung und Taste +.
 import { nach, kurzeKette, setzeSichtbar, transition } from './hilfen.mjs';
 
+// Der Kern ruft den Vorlagen-Haken taste noch nicht auf (baut KERN). Solange hängt Taste + nichts an: Der Test meldet
+// das im Namen als „übersprungen“, statt still zu bestehen. lauf.mjs gibt den Namen erst nach dem Lauf aus.
+const TASTE_NAME = 'Taste + wie + Schritt';
+export const TASTE_PLUS = {
+  name: TASTE_NAME,
+  async lauf(t) {
+    await t.oeffne('grafcet');
+    await t.setze('init', 220, 120);
+    await t.taste('+');
+    const n = (await t.objekte()).length;
+    this.name = n === 1 ? `${TASTE_NAME}: übersprungen, der Kern ruft den Haken taste noch nicht auf` : TASTE_NAME;
+    if (n !== 1) t.gleich(n, 3, 'Transition und Schritt angehängt');
+  },
+};
+
 export const tests = [
   {
     name: 'Prüfen: typische Fehler werden rot markiert',
@@ -124,16 +139,6 @@ export const tests = [
       t.gleich(rahmen, 1, 'innerer Rahmen');
     },
   },
-  {
-    name: 'Taste + wie + Schritt (wenn KERN den Haken taste hat)',
-    lauf: async (t) => {
-      await t.oeffne('grafcet');
-      await t.setze('init', 220, 120);
-      await t.taste('+');
-      const n = (await t.objekte()).length;
-      if (n === 1) return;   // Haken taste fehlt im Kern noch: übersprungen
-      t.gleich(n, 3, 'Transition und Schritt angehängt');
-    },
-  },
+  TASTE_PLUS,
 ];
 

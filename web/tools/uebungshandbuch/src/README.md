@@ -285,6 +285,7 @@ und `fuelle(tabelle, einträge)`.
 | `hilfe` | HTML | `seitenleisteHTML`, Hilfetext ohne Palette | nur der allgemeine Hinweis |
 | `anleitung` | `() → HTML oder null` | `propsHTML` (eigenschaften.js) | Felder der Markierung |
 | `klick` | `(e) → true wenn erledigt` | Klick im Dialog (editor/ereignisse.js) | |
+| `taste` | `(e) → true wenn erledigt`, darf `preventDefault` rufen | noch kein Aufrufer: baut KERN in `editor/ereignisse.js`, nicht solange der Fokus in einem Eingabefeld liegt | Taste wirkt wie bisher |
 | `werkzeugWechsel` | `(t)` | `setTool` (werkzeuge.js), vor dem Wechsel | |
 | `fangPunkt` | `(pt) → [x, y]` | `fangen` (werkzeuge.js), wenn Raster fangen an ist | 10er-Raster |
 | `fangBaustein` | `(o)`, verschiebt o | `smartPos` (andocken.js) | |

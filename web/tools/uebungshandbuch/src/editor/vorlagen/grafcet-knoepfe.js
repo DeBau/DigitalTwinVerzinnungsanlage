@@ -105,9 +105,11 @@ export function kettenKlick(e){
   if (knopf) knopf.tue();
   return !!knopf;
 }
-// Vorlagen-Haken taste (baut KERN): Taste „+“ wirkt wie der Knopf „+ Schritt“
+// Vorlagen-Haken taste (Aufruf baut KERN, siehe README): Taste „+“ wirkt wie der Knopf „+ Schritt“.
+// In einem Eingabefeld (z. B. beim Tippen einer Bedingung) bleibt das „+“ ein Zeichen.
+export const imEingabefeld = e => !!(e.target && e.target.closest && e.target.closest("input, textarea, select, [contenteditable]"));
 export function kettenTaste(e){
-  if (e.key !== "+" || e.ctrlKey || e.metaKey || e.altKey) return false;
+  if (e.key !== "+" || e.ctrlKey || e.metaKey || e.altKey || imEingabefeld(e)) return false;
   e.preventDefault(); plusSchritt();
   return true;
 }
