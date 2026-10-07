@@ -1,10 +1,10 @@
 /* Skizzen-Editor */
 dialog.editor{max-width:none;width:calc(100vw - 24px);height:calc(100vh - 24px);max-height:none}
 .ed{display:grid;grid-template-rows:auto minmax(0,1fr);height:100%;position:relative}
-.edwarn{position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:30;max-width:min(560px,90%);padding:10px 14px;border:2px solid #C0392B;border-radius:9px;background:#FDECEA;color:#7B1E14;font-size:13.5px;line-height:1.4;box-shadow:0 6px 18px rgba(0,0,0,.15)}
+.edwarn{position:absolute;left:50%;top:120px;transform:translateX(-50%);z-index:30;max-width:min(560px,90%);padding:10px 14px;border:2px solid #C0392B;border-radius:9px;background:#FDECEA;color:#7B1E14;font-size:13.5px;line-height:1.4;box-shadow:0 6px 18px rgba(0,0,0,.15)}
 .edwarn[hidden]{display:none}
 /* Übersicht der Tastenkürzel (editor/tastatur.js, Taste „?“) */
-.kuerzel{position:absolute;right:16px;top:64px;z-index:30;width:min(380px,92%);max-height:80%;overflow:auto;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);font-size:13px;cursor:pointer}
+.kuerzel{position:absolute;right:16px;top:120px;z-index:30;width:min(380px,92%);max-height:80%;overflow:auto;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.18);font-size:13px;cursor:pointer}
 .kuerzel dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:8px 0}
 .kuerzel dt{white-space:nowrap}.kuerzel dd{margin:0;color:var(--ink2)}
 .kuerzel kbd{font:600 12px var(--sans);padding:1px 6px;border:1px solid var(--line);border-radius:4px;background:var(--sunk)}
