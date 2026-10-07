@@ -244,4 +244,16 @@ export const tests = [
       t.erwarte((await t.text('#props')).includes('Keine Auffälligkeiten'), await t.text('#props'));
     },
   },
+  {
+    name: 'W2 Bedeutung von 1 neben der Zeile eintragen',
+    lauf: async (t) => {
+      await t.oeffne('wegschritt');
+      await t.werkzeug('sel');
+      await t.klick([100, 146]);   // Zeile −MM2, oberes Drittel: Bedeutung von 1
+      await t.tippe('gesenkt'); await t.taste('Enter');
+      const d = await t.daten();
+      t.gleich(d.meta.bed[1][0], 'gesenkt', 'Bedeutung gespeichert');
+      t.erwarte((await t.page.$eval('#edstage .tpl', (g) => g.textContent)).includes('gesenkt'), 'Bedeutung im Vordruck');
+    },
+  },
 ];

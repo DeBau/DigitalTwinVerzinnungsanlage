@@ -72,13 +72,19 @@ importiert nie aus einer Vorlage.
 | **Vorlagen** (Reihenfolge = Kacheln) | |
 | `editor/vorlagen/grafcet.js` | GRAFCET: Schritte, Transitionen, Verzweigungen, Verweise, Aktionen als Seitenbausteine |
 | `editor/vorlagen/zustand.js` | Zustandsdiagramm: Zustände, Übergänge als gebogene Pfeile |
-| `editor/vorlagen/wegschritt-striche.js` | Weg-Schritt-Diagramm: Raster `WS_RASTER`, Stricharten Signallinie, Start, Zyklusende, Verknüpfung |
+| `editor/vorlagen/anlage-antriebe.js` | Antriebe −MM1 bis −MM8 der Anlage (`ANTRIEBE`: Spulen, Endlagensensoren, Bedeutung 1/0), `antriebZu` |
+| `editor/vorlagen/wegschritt-striche.js` | Weg-Schritt-Diagramm: Raster `WS_RASTER`, Zeilen (`wsZeilen`, `wsPunkt`), Stricharten Signallinie, Start, Zyklusende, Verknüpfung |
+| `editor/vorlagen/wegschritt-eingabe.js` | Weg-Schritt-Diagramm: Schnelleingabe („MM2−, MM3+ …“), Bedeutung 1/0 je Zeile, Prüfregeln `wsPruefen` |
 | `editor/vorlagen/wegschritt.js` | Weg-Schritt-Diagramm: Formular, Seitenleiste, Werkzeuge |
 | `editor/vorlagen/elektro.js` | Stromlaufplan mit den Gruppen Steuerstromkreis (`elektro`) und Geräte/SPS (`geraete`) |
 | `editor/vorlagen/leistung.js` | Hauptstromkreis mit Potenzialschiene |
-| `editor/vorlagen/pneumatik-symbole.js` | Ventile, Zylinder, Entlüftungen nach ISO 1219 |
-| `editor/vorlagen/pneumatik-simulation.js` | Druckverteilung, Zylinderbewegung, Ventile schalten |
-| `editor/vorlagen/pneumatik.js` | Pneumatikschaltplan: Vorlage, Gruppe, Bauteile, Ventil-Varianten |
+| `editor/vorlagen/pneumatik-symbole.js` | Wegeventile (Tabelle `VALVE`, `vPairs`, Steueranschluss `steuerNr` nach ISO 11727), Zylinder, Entlüftungen nach ISO 1219 |
+| `editor/vorlagen/pneumatik-geraete.js` | Symbole ohne Schaltstellung (`GERAET[k]`): Quelle, Wartungseinheit, Drosseln, Logikventile, Messgeräte |
+| `editor/vorlagen/pneumatik-simstatus.js` | Simulation im Eigenschaftsfeld: Signale 0/1, Weg-Zeit-Diagramm |
+| `editor/vorlagen/pneumatik-simulation.js` | Druck und Entlüftung, Drosseln, Zylinderbewegung, Ventile und Taster schalten |
+| `editor/vorlagen/pneumatik-antriebe.js` | „Antrieb aus der Anlage“: Antrieb fertig verdrahtet einfügen |
+| `editor/vorlagen/pneumatik-pruefen.js` | Prüfregeln des Pneumatikschaltplans (`PNEU_REGELN`) |
+| `editor/vorlagen/pneumatik.js` | Pneumatikschaltplan: Vorlage, Gruppe (Andocken über Anschlüsse), Bauteile, Ventil-Varianten |
 | `editor/vorlagen/regelkreis.js` | Regelkreis: Block, Summierstelle |
 | `editor/vorlagen/trend.js` | Trendaufzeichnung (nur Formular) |
 | `editor/vorlagen/raster.js` | Kästchenraster mit allen Gruppen |
@@ -156,7 +162,7 @@ nur `ED.data`.
 | `letzterKlick`, `drag`, `strich`, `strichPfad`, `radiert` | Doppelklick, laufendes Ziehen, aufgezogener Strich, Radierer | zeiger.js |
 | `verbindenVon` | Werkzeug Verbinden: erster Baustein `{id, anschluss}` | zeiger.js |
 | `hist`, `zukunft`, `tx` | Rückgängig, Wiederholen, offene Transaktion | verlauf.js |
-| `sim` | Pneumatik-Simulation `{on, st, pos, P}` | vorlagen/pneumatik-simulation.js |
+| `sim` | Pneumatik-Simulation `{on, st, pos, P, E, netz, verlauf}`: Stellungen, Lagen, Druck, Entlüftung, Leitungsnetze, Weg-Zeit | vorlagen/pneumatik-simulation.js |
 | `vorlage` | Zustand der Vorlage, beim Öffnen geleert. Der Kern kennt nur `vorlage.angefangen` (Esc und Werkzeugwechsel verwerfen es) | Vorlage |
 
 Die Markierung ist höchstens ein Element: `ED.markiert = {art, id}`. `art` ist `o` (Baustein, `id` = Objekt-ID),
@@ -186,8 +192,8 @@ Ziehen und Tippen fasst du mit `beginne(schluessel)` und `schliesse()` zu einem 
 `aendere` keinen eigenen Schritt an, `schliesse` legt einen an, wenn sich etwas geändert hat. `undo` und `redo`
 schließen eine offene Transaktion. `snapshot()` und danach `saveSketch()` ist der alte Weg (legt immer einen Stand
 ab). Er steht noch beim Beschriften, Ziehen, Strichzeichnen, Tippen im Eigenschaftsfeld (focusin), „Alles leeren“,
-in der Kopie aus einer früheren Übung
-und im Weg-Schritt-Diagramm. Neue Stellen nehmen nur `aendere`.
+in der Kopie aus einer früheren Übung.
+Neue Stellen nehmen nur `aendere`.
 
 Wann was neu gezeichnet wird:
 
@@ -340,7 +346,8 @@ einfachen Verbindung (ein Verlaufsschritt).
 | `drehbar` | Bauteil | `false` | `drehung`, `turnSel`, Drehknöpfe | drehbar und spiegelbar |
 | `rahmen` | Bauteil | `true` | `istRahmen` (zeichnen.js): unter allen Bausteinen, nur am Rand greifbar | |
 | `zusatz` | Bauteil | `(o, belegt) → SVG` | `punkteSVG` (zeichnen.js); `belegt(n)`: Anschluss n ist verdrahtet | |
-| `sim` | Bauteil | `(o, stellung, hatDruck) → {src, pairs, dir}` | `simCompute` (pneumatik-simulation.js) | nimmt nicht an der Simulation teil |
+| `sim` | Bauteil | `(o, stellung, hatDruck, belegt) → {src, pairs, dir, ablass}`; `ablass`: Anschlüsse offen zur Atmosphäre | `simCompute` (pneumatik-simulation.js) | nimmt nicht an der Simulation teil |
+| `drossel` | Bauteil | `(o) → {frei, f}`: Anschluss, zu dem die Luft frei strömt (null: beide Richtungen gedrosselt), Faktor 0 bis 1 | `drosselFaktor` (pneumatik-simulation.js) | keine Drossel |
 
 Warum es nur noch ein Modell gibt: Bausteine und Bauteile hatten dieselben Haken unter verschiedenen Namen (`draw`
 und `zeichne`, `ports` und `PORTS2`, `props` und `PROPS`, `LABEL_HINT`). Der einzige echte Unterschied ist, dass

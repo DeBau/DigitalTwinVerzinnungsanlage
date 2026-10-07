@@ -5,7 +5,7 @@
 import { $, $$ } from '../../app/basis.js';
 import { INK, SVGT, arrowHead } from '../svg.js';
 import { ED, markiere } from '../status.js';
-import { art, registriereVorlage } from '../registry.js';
+import { registriereVorlage } from '../registry.js';
 import { G, G2, TX, shapeD } from '../vorlagen-svg.js';
 import { anySel, clearSel } from '../auswahl.js';
 import { skMeta } from '../blaetter.js';
@@ -165,7 +165,9 @@ export function zeilennameKlick(e, pt){
   else {
     const cur = (skMeta(ED.scope, ED.key, ED.data).rows || [])[i];
     const ph = "Bauglied, z. B. −MM1 Zylinder oder −MB1 Ventil";
-    editLabel(40, WS_RASTER.y0 + i * WS_RASTER.zeile + 31, cur ?? wsZeilen(ED.scope)[i], ph, v => aendere(d => { const m = d.meta = d.meta || {}; m.rows = m.rows || []; m.rows[i] = v; }));
+    editLabel(40, WS_RASTER.y0 + i * WS_RASTER.zeile + 31, cur ?? wsZeilen(ED.scope)[i], ph, v => aendere(d => {
+      const m = d.meta = d.meta || {}; m.rows = m.rows || []; m.rows[i] = v;
+    }));
   }
   return true;
 }
@@ -179,9 +181,9 @@ export function bedeutungAendern(i, k){
 }
 // Verknüpfung: Punkt vor dem Ziel setzen, dazu die Linie mit Pfeil zum Ziel; danach weiter mit Signallinien
 export function setzeVerknuepfung(pt){
-  const q = fangen(pt), J = [q[0], q[1] - wsAus(q[1]) * 18], art = (ED.vorlage.voreinstellung && ED.vorlage.voreinstellung.t) || "und";
+  const q = fangen(pt), J = [q[0], q[1] - wsAus(q[1]) * 18], verkArt = (ED.vorlage.voreinstellung && ED.vorlage.voreinstellung.t) || "und";
   aendere(d => {
-    d.s.push({k: "vk", t: art, c: ED.color, w: 1.2, p: [J]}, {k: "sig", c: ED.color, w: 1.2, p: [J, q], lbl: ""});
+    d.s.push({k: "vk", t: verkArt, c: ED.color, w: 1.2, p: [J]}, {k: "sig", c: ED.color, w: 1.2, p: [J, q], lbl: ""});
   }, {ohneRender: true});
   setTool("sig"); ED.vorlage.voreinstellung = {}; clearSel(); renderInk(); updateProps(true);
 }

@@ -35,7 +35,7 @@ export const deDate = t => new Date(t).toLocaleDateString("de-DE", {day: "2-digi
 // Schriftfeld: eigene Angaben der Skizze, sonst Name aus „Meine Daten“ und Datum der letzten Änderung
 export const skMeta = (scope, key, d) => {
   const ex = BY[scope]; d = d || S.get(skKey(scope, key)) || {}; const m = d.meta || {};
-  return {rows: m.rows || null, title: m.title || (ex ? `${ex.id} ${ex.t}` : VORL[key].n), vorlage: VORL[key].n,
+  return {rows: m.rows || null, bed: m.bed || null, title: m.title || (ex ? `${ex.id} ${ex.t}` : VORL[key].n), vorlage: VORL[key].n,
     name: m.name || S.get("name") || "",
     datum: m.datum || (ex && S.get(ex.id+":datum")) || (d.ts ? deDate(d.ts) : "")};
 };
