@@ -338,9 +338,11 @@ export const tests = [
       t.gleich(await t.zaehle('#editor .kuerzel'), 1, 'Übersicht offen');
       await t.taste('Escape');
       t.gleich([await t.zaehle('#editor .kuerzel'), await t.zaehle('#editor[open]')], [0, 1], 'Esc schließt nur die Übersicht');
+      // + und N: im Kern frei (GRAFCET belegt + über den Haken taste), deshalb in einer Vorlage ohne Haken prüfen
+      await t.knopf('close'); await t.oeffne('stromlauf');
       await t.taste('+');
       await t.taste('n');
-      t.gleich((await t.objekte()).length, 1, '+ und N belegt der Kern nicht');
+      t.gleich([(await t.objekte()).length, await gedrueckt()], [0, 'sel'], '+ und N belegt der Kern nicht');
     },
   },
 ];

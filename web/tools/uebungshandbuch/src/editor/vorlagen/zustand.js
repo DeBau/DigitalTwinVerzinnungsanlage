@@ -19,7 +19,8 @@ export function verbindeZustand(c, A, B, objs, all){
   const ca = mitteVon(A), cb = mitteVon(B), ra = randRadius(A), rb = randRadius(B);
   if (c.a === c.b) {   // Schleife rechts am Zustand
     const [x, y] = ca;
-    return {d: `M${x+ra-3} ${y-14}C${x+ra+62} ${y-45} ${x+ra+62} ${y+45} ${x+ra-3} ${y+14}`, arrow: true, lbl: [x+ra+56, y+4, "start"]};
+    const d = `M${x+ra-3} ${y-14}C${x+ra+62} ${y-45} ${x+ra+62} ${y+45} ${x+ra-3} ${y+14}`;
+    return {d, arrow: true, lbl: [x+ra+56, y+4, "start"]};
   }
   const rev = all.some(o => o.a === c.b && o.b === c.a);
   const dx = cb[0]-ca[0], dy = cb[1]-ca[1], L = Math.hypot(dx, dy) || 1, nx = -dy/L, ny = dx/L, off = rev ? 28 : 0;
@@ -27,40 +28,85 @@ export function verbindeZustand(c, A, B, objs, all){
   const s = richtung(ca, [mx, my], ra), e = richtung(cb, [mx, my], rb + 1);
   const lx = .25*s[0] + .5*mx + .25*e[0], ly = .25*s[1] + .5*my + .25*e[1];
   const side = Math.abs(nx) > .5, an = side ? (nx < 0 ? "end" : "start") : "middle", k = side ? 10 : 16;
-  return {d: `M${f1(s[0])} ${f1(s[1])}Q${f1(mx)} ${f1(my)} ${f1(e[0])} ${f1(e[1])}`, arrow: true, lbl: [f1(lx + nx*k), f1(ly + ny*k + 4), an]};
+  const d = `M${f1(s[0])} ${f1(s[1])}Q${f1(mx)} ${f1(my)} ${f1(e[0])} ${f1(e[1])}`;
+  return {d, arrow: true, lbl: [f1(lx + nx*k), f1(ly + ny*k + 4), an]};
 }
 
 registriereVorlage("zustand", {
   n: "Zustandsdiagramm", d: "Zustände und Übergänge, z. B. für Übergaben und Antriebe", gruppen: ["zustand"],
   body: (ex, page) => dots(20) + (page ? "" : ZUSTAND_LEGENDE),
+  pruefe: d => d.o.length ? ZUSTAND_REGELN.flatMap(regel => regel(d)) : [],   // Knopf „Prüfen“
 });
-export const ZUSTAND_LEGENDE = `<g><rect x="790" y="25" width="185" height="120" fill="#fff" stroke="${G}"/>${TX(800,43,10,"Symbole","start","#666",600)}
-        <circle cx="815" cy="72" r="15" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(840,76,10,"Zustand (Name)")}
-        <path d="M802 112H840" stroke="${G}" stroke-width="1.3"/><path d="M834 107L842 112L834 117" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(850,108,10,"Übergang")}${TX(850,122,9,"Bedingung / Aktion")}</g>`;
+export const ZUSTAND_LEGENDE = [
+  `<g><rect x="790" y="25" width="185" height="120" fill="#fff" stroke="${G}"/>${TX(800,43,10,"Symbole","start","#666",600)}`,
+  `<circle cx="815" cy="72" r="15" fill="none" stroke="${G}" stroke-width="1.3"/>${TX(840,76,10,"Zustand (Name)")}`,
+  `<path d="M802 112H840" stroke="${G}" stroke-width="1.3"/>`
+    + `<path d="M834 107L842 112L834 117" fill="none" stroke="${G}" stroke-width="1.3"/>`
+    + `${TX(850,108,10,"Übergang")}${TX(850,122,9,"Bedingung / Aktion")}</g>`,
+].join("\n        ");
 
 registriereGruppe("zustand", {
   name: "Zustandsdiagramm",
-  hinweis: "Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. Die Bedingung schreiben Sie direkt an den Pfeil.",
+  hinweis: "Zustände setzen, dann mit Verbinden zwei Zustände nacheinander anklicken. "
+    + "Die Bedingung schreibst du direkt an den Pfeil, eine Aktion im Zustand ins Eigenschaftsfeld.",
   verbinde: verbindeZustand,
   schleife: true,                     // Übergang auf sich selbst erlaubt
   pfeiltext: true,                    // Übergänge sind beschriftbar
   bedingung: A => A.k !== "start",    // nach dem Verbinden gleich die Bedingung abfragen, im Editor Platzhalter zeigen
 });
 
+export const ZUSTANDSARTEN = ["state", "sinit"];
 // Name des nächsten Zustands: Z0, Z1, …
 export function zustandNeu(o, [px, py]){
   o.x = px; o.y = py;
-  o.v = "Z" + ED.data.o.filter(q => q.k === "state" || q.k === "sinit").length;
+  o.v = "Z" + ED.data.o.filter(q => ZUSTANDSARTEN.includes(q.k)).length;
 }
-export const ZUSTAND = {neu: zustandNeu, feldliste: [["v", "Name"]], beschriftung: {hinweis: "Name des Zustands"}};
+export const ZUSTAND = {
+  neu: zustandNeu,
+  feldliste: [["v", "Name"], ["a", "Aktion im Zustand (optional)", "z. B. −MB1"]],
+  beschriftung: {hinweis: "Name des Zustands"},
+};
+export const ZUSTANDSKREIS = o => `<circle cx="${o.x}" cy="${o.y}" r="36" fill="#fff" ${LINIE}/>`;
+// Name in der Mitte; mit Aktion steht der Name oben und darunter, durch einen Strich getrennt, „/ Aktion“
+export function zustandsText(o){
+  if (!o.a) return SVGT(o.x, o.y+5, o.v);
+  return SVGT(o.x, o.y-6, o.v) + `<path d="M${o.x-30} ${o.y+2}H${o.x+30}" ${LINIE}/>` + SVGT(o.x, o.y+19, `/ ${o.a}`, "middle", 11, 400);
+}
 fuelle(BAUSTEIN, {
   sinit: {g: "zustand", n: "Anfangszustand", ...rund(36), ...ZUSTAND,
-    zeichne: o => `<circle cx="${o.x}" cy="${o.y}" r="36" fill="#fff" ${LINIE}/><circle cx="${o.x}" cy="${o.y}" r="31" fill="none" ${LINIE}/>` + SVGT(o.x, o.y+5, o.v)},
+    zeichne: o => ZUSTANDSKREIS(o) + `<circle cx="${o.x}" cy="${o.y}" r="31" fill="none" ${LINIE}/>` + zustandsText(o)},
   state: {g: "zustand", n: "Zustand", ...rund(36), ...ZUSTAND,
-    zeichne: o => `<circle cx="${o.x}" cy="${o.y}" r="36" fill="#fff" ${LINIE}/>` + SVGT(o.x, o.y+5, o.v)},
+    zeichne: o => ZUSTANDSKREIS(o) + zustandsText(o)},
   start: {g: "zustand", n: "Startpunkt", ...rund(8), beschriftung: false,
     zeichne: o => `<circle cx="${o.x}" cy="${o.y}" r="8" fill="${INK}"/>`},
 });
 fuelle(SAMPLE, {
-  sinit: [{k:"sinit", x:38, y:38, v:"Z0"}, "0 0 76 76"], state: [{k:"state", x:38, y:38, v:"Z1"}, "0 0 76 76"], start: [{k:"start", x:24, y:24}, "0 0 48 48"],
+  sinit: [{k:"sinit", x:38, y:38, v:"Z0"}, "0 0 76 76"], state: [{k:"state", x:38, y:38, v:"Z1"}, "0 0 76 76"],
+  start: [{k:"start", x:24, y:24}, "0 0 48 48"],
 });
+
+/* ---------- Prüfen ---------- */
+export const istZustand = o => ZUSTANDSARTEN.includes(o.k);
+// Zustände, die vom Anfangszustand bzw. vom Startpunkt aus über Übergänge erreichbar sind
+export function erreichbareZustaende(d){
+  const offen = d.o.filter(o => o.k === "sinit" || o.k === "start").map(o => o.id), gesehen = new Set(offen);
+  while (offen.length) {
+    const id = offen.pop();
+    d.c.filter(c => c.a === id && !gesehen.has(c.b)).forEach(c => { gesehen.add(c.b); offen.push(c.b); });
+  }
+  return gesehen;
+}
+export function regelAnfangszustand(d){
+  if (d.o.some(o => o.k === "sinit" || o.k === "start")) return [];
+  return [{stufe: "fehler", text: "Es fehlt der Anfangszustand (doppelter Kreis) oder ein Startpunkt."}];
+}
+export function regelErreichbar(d){
+  const da = erreichbareZustaende(d);
+  if (!d.o.some(o => o.k === "sinit" || o.k === "start")) return [];
+  return d.o.filter(o => istZustand(o) && !da.has(o.id)).map(o => ({stufe: "fehler", o: o.id,
+    text: `Zustand ${o.v || ""} ist nicht erreichbar. Kein Übergang führt vom Anfangszustand dorthin.`}));
+}
+export const regelBedingung = d => d.c.map((c, i) => [c, i]).filter(([c]) => !String(c.v || "").trim()
+  && (d.o.find(o => o.id === c.a) || {}).k !== "start")
+  .map(([, i]) => ({stufe: "hinweis", c: i, text: "Dieser Übergang hat keine Bedingung. Schreib sie an den Pfeil."}));
+export const ZUSTAND_REGELN = [regelAnfangszustand, regelErreichbar, regelBedingung];
