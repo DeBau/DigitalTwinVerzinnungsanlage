@@ -38,7 +38,7 @@ export function viewExercise(id, p){
       <section class="work" id="work">${phaseHTML(s, p)}
         <div class="pager">${p > 1 ? `<a class="btn" href="#/${id}/${p-1}">Zurück zu ${PHASES[p-1].n}</a>` : "<span></span>"}${p < 6 ? `<a class="btn primary" href="#/${id}/${p+1}">Weiter zu ${PHASES[p+1].n}</a>` : (next ? `<a class="btn primary" href="#/${next.id}/1">Zur nächsten Übung ${next.id}</a>` : "")}</div>
       </section>
-      <aside class="ctx">${ctxHTML(s)}</aside>
+      <aside class="ctx">${ctxHTML(s, p)}</aside>
     </div>
   </div>`;
   restoreInputs(app);
@@ -46,8 +46,17 @@ export function viewExercise(id, p){
   window.scrollTo(0, 0);
   const cur = $(".stepper a[aria-current]"), ol = $(".stepper ol"); if (cur && ol.scrollWidth > ol.clientWidth) ol.scrollLeft = cur.offsetLeft - 16;
 }
-export function ctxHTML(s){
-  return `<div class="box"><h4>Bearbeitet von</h4><div style="display:grid;gap:8px"><input type="text" data-k="name" placeholder="Name" aria-label="Name"><input type="text" data-k="${s.id}:datum" placeholder="Datum" aria-label="Datum"></div></div>`
+// Ab Phase 2 Aufgabe und Fachwissen als Popup aus der Seitenleiste, damit niemand zu Phase 1 zurückblättern muss
+export const fwListHTML = (s, offen) => `<div class="fw">${s.wissen.map((w, i) => `<details${i === offen ? " open" : ""}><summary>${w.t}</summary><div class="prose">${chips(w.h)}${quelle(w)}</div></details>`).join("")}</div>`;
+export const aufgabeHTML = s => (s.beschr ? `<div class="prose beschr">${chips(s.beschr)}</div>` : `<div class="prose">${chips(s.sit)}</div>`)
+  + (s.tab ? `<h3>${s.tab.cap}</h3>` + tableHTML(s.tab.head, s.tab.rows) : "")
+  + (s.list ? `<h3>${s.list.cap}</h3><ol class="prose">${s.list.items.map(x => `<li>${chips(x)}</li>`).join("")}</ol>` : "");
+const hatWissen = s => !!(s.wissen && s.wissen.length);
+const nachschlagenHTML = s => `<div class="box nachschlagen"><h4>Nachschlagen</h4><div class="nsbtns"><button class="btn small" type="button" data-act="ns-aufgabe">Aufgabe</button>${hatWissen(s) ? `<button class="btn small" type="button" data-act="ns-fw" data-i="0">Fachwissen</button>` : ""}</div>`
+  + (hatWissen(s) ? `<ul class="fwthemen">${s.wissen.map((w, i) => `<li><a href="#" data-act="ns-fw" data-i="${i}">${w.t}</a></li>`).join("")}</ul>` : "") + `</div>`;
+export function ctxHTML(s, p){
+  return (p > 1 ? nachschlagenHTML(s) : "")
+    + `<div class="box"><h4>Bearbeitet von</h4><div style="display:grid;gap:8px"><input type="text" data-k="name" placeholder="Name" aria-label="Name"><input type="text" data-k="${s.id}:datum" placeholder="Datum" aria-label="Datum"></div></div>`
     + (s.bild ? `<div class="box"><figure><img src="bilder/${s.bild[0]}" alt="${esc(plain(s.bild[1]))}" data-act="zoom" data-src="bilder/${s.bild[0]}" data-cap="${esc(s.bild[1])}"><figcaption>${chips(s.bild[1])}</figcaption></figure></div>` : "")
     + `<div class="box"><h4>Lernziele: Du kannst …</h4><ol class="goals">${s.ziele.map(z => `<li>${z}</li>`).join("")}</ol></div>`
     + `<div class="box"><h4>Einstellung im Zwilling</h4><div class="small">${s.einst}</div></div>`
@@ -153,7 +162,7 @@ export function phaseHTML(s, p){
     if (mit.length) h += `<div class="callout" style="--c:var(--ok)"><b>Das bringst du mit</b><span class="muted small"> (Ergebnisse aus ${vorIds(s).join(", ")})</span>${ergList(mit, true)}<a class="small" href="#/projekt">Dein Projekt im Überblick</a></div>`;
     if (s.beschr) h += `<h3>Aufgabenbeschreibung</h3><div class="prose beschr">${chips(s.beschr)}</div>`;
     if (s.tab) h += `<h3>${s.tab.cap}</h3>` + tableHTML(s.tab.head, s.tab.rows);
-    if (s.wissen && s.wissen.length) h += `<h3>Fachwissen: warum, wieso, weshalb</h3><div class="fw">${s.wissen.map((w, i) => `<details${i ? "" : " open"}><summary>${w.t}</summary><div class="prose">${chips(w.h)}${quelle(w)}</div></details>`).join("")}</div>`;
+    if (s.wissen && s.wissen.length) h += `<h3>Fachwissen: warum, wieso, weshalb</h3>` + fwListHTML(s, 0);
     if (s.list) h += `<h3>${s.list.cap}</h3><ol class="prose">${s.list.items.map(x => `<li>${chips(x)}</li>`).join("")}</ol>`;
     h += `<h3>Zwilling einstellen</h3><label class="confirm"><input type="checkbox" data-k="${k}:einst"><span>${s.einst}<br><span class="muted small">${erk ? "Setze den Haken, sobald der Zwilling so eingestellt ist, wie es oben steht." : "Setze den Haken, sobald der Übungsumfang in der Seitenleiste so eingestellt ist, unter <i>Verbindung</i> die Quelle der Ausgänge auf <i>PLCSIM Advanced</i> steht und die Bridge verbunden ist."}</span></span></label>`;
     const se = sigEntries(s);
