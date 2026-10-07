@@ -98,4 +98,25 @@ export const tests = [
       t.erwarte((await t.text('#props')).includes('folgt immer ein Schritt'), 'Hinweis im Eigenschaftsfeld');
     },
   },
+  {
+    name: 'G3 Aktionen ziehen mit ihrem Schritt mit, mit Umschalt die ganze Kette',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await kurzeKette(t);
+      const d0 = await t.daten(), s2 = nach(d0, '2', 'step'), a0 = d0.o.find((o) => o.k === 'action');
+      await t.ziehe([s2.x + 20, s2.y + 20], [s2.x + 120, s2.y + 60]);
+      const d1 = await t.daten(), a1 = d1.o.find((o) => o.k === 'action'), s2n = nach(d1, '2', 'step');
+      t.erwarte(s2n.x - s2.x === 100, 'Schritt verschoben');
+      t.gleich([a1.x - a0.x, a1.y - a0.y], [s2n.x - s2.x, s2n.y - s2.y], 'Aktion mitgezogen');
+      t.gleich(nach(d1, 'BG1').y, nach(d0, 'BG1').y, 'Transition bleibt ohne Umschalt');
+      const i0 = nach(d1, '1', 'init');
+      await t.page.keyboard.down('Shift');
+      await t.ziehe([i0.x + 20, i0.y + 20], [i0.x + 60, i0.y + 50]);
+      await t.page.keyboard.up('Shift');
+      const d2 = await t.daten();
+      const weg = (o) => { const n = d2.o.find((p) => p.id === o.id); return [n.x - o.x, n.y - o.y]; };
+      t.erwarte(weg(i0)[0] === 40, 'Anfangsschritt verschoben');
+      for (const o of d1.o) t.gleich(weg(o), weg(i0), `${o.k} ${o.v} mit Umschalt mitgezogen`);
+    },
+  },
 ];

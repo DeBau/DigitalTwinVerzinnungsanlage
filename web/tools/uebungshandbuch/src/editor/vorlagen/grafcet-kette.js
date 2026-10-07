@@ -5,7 +5,7 @@ import { ED, istMarkiert } from '../status.js';
 import { kettenAus } from '../bausteine.js';
 import { objById, uid } from '../auswahl.js';
 import { FELDER_JE_ART } from '../eigenschaften.js';
-import { isStep, isTrans } from './grafcet-aktion.js';
+import { isAct, isStep, isTrans } from './grafcet-aktion.js';
 
 export const TEILUNG = 100;   // Abstand zweier Schritte in der Kette (Schritt 40, Linie 30, Transition, Linie 30)
 export const TEXT_TRANS_TRANS = "Auf eine Transition folgt immer ein Schritt. Setz zuerst einen Schritt dazwischen, "
@@ -57,3 +57,34 @@ export function grafcetVorVerbinden(A, B){
   return null;
 }
 
+/* ---------- Aktionen und Rest der Kette ---------- */
+// Aktionen, die an Baustein id hängen, auch die unter oder hinter einer anderen Aktion
+export function aktionenVon(d, id){
+  const ids = [], offen = [id];
+  while (offen.length) {
+    const a = offen.pop();
+    for (const c of d.c) {
+      if (c.a !== a || ids.includes(c.b) || !isAct(objIn(d, c.b))) continue;
+      ids.push(c.b); offen.push(c.b);
+    }
+  }
+  return ids;
+}
+// Kettenglieder unter o: über Kettenverbindungen nach unten erreichbar (Rücksprünge nach oben zählen nicht)
+export function kettenRest(d, o){
+  const ids = [], offen = [o];
+  while (offen.length) {
+    const A = offen.pop();
+    for (const c of d.c) {
+      const B = c.a === A.id && objIn(d, c.b);
+      if (!B || isAct(B) || B.id === o.id || ids.includes(B.id) || B.y <= A.y) continue;
+      ids.push(B.id); offen.push(B);
+    }
+  }
+  return ids;
+}
+// Haken mitziehen: Aktionen gehen mit ihrem Schritt, mit Umschalt auch der Rest der Kette samt Aktionen
+export function grafcetMitziehen(o, {umschalt}, d){
+  const glieder = umschalt ? kettenRest(d, o) : [];
+  return [...aktionenVon(d, o.id), ...glieder.flatMap(id => [id, ...aktionenVon(d, id)])];
+}

@@ -8,7 +8,7 @@ import { G, TX, dots } from '../vorlagen-svg.js';
 import { LINIE, platzhalter, setzeBreite } from '../bausteine.js';
 import { textFeld } from '../eigenschaften.js';
 import { AKTION_SEITE, AKTION_TEXT, aktionFelder, aw, hasMark, isStep, setzeAktion, zeichneAktion } from './grafcet-aktion.js';
-import { grafcetNachSetzen, grafcetVorVerbinden, hinweisAnleitung } from './grafcet-kette.js';
+import { grafcetMitziehen, grafcetNachSetzen, grafcetVorVerbinden, hinweisAnleitung } from './grafcet-kette.js';
 
 /* ---------- Schritte, Transitionen, Verzweigungen ---------- */
 export const QUADRAT = o => ({x: o.x, y: o.y, w: 40, h: 40});
@@ -85,6 +85,7 @@ registriereGruppe("grafcet", {
   kette: true,
   nachSetzen: grafcetNachSetzen,     // Transition zwischen zwei Schritten, keine zwei Transitionen hintereinander
   vorVerbinden: grafcetVorVerbinden,
+  mitziehen: grafcetMitziehen,       // Aktionen ziehen mit ihrem Schritt mit, mit Umschalt auch der Rest der Kette
 });
 
 export const AKTION = {

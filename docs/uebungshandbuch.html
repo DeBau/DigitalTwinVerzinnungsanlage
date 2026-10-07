@@ -3712,6 +3712,35 @@ END_CASE;`)}
     } };
     return null;
   }
+  function aktionenVon(d, id) {
+    const ids = [], offen = [id];
+    while (offen.length) {
+      const a = offen.pop();
+      for (const c of d.c) {
+        if (c.a !== a || ids.includes(c.b) || !isAct(objIn(d, c.b))) continue;
+        ids.push(c.b);
+        offen.push(c.b);
+      }
+    }
+    return ids;
+  }
+  function kettenRest(d, o) {
+    const ids = [], offen = [o];
+    while (offen.length) {
+      const A = offen.pop();
+      for (const c of d.c) {
+        const B = c.a === A.id && objIn(d, c.b);
+        if (!B || isAct(B) || B.id === o.id || ids.includes(B.id) || B.y <= A.y) continue;
+        ids.push(B.id);
+        offen.push(B);
+      }
+    }
+    return ids;
+  }
+  function grafcetMitziehen(o, { umschalt }, d) {
+    const glieder = umschalt ? kettenRest(d, o) : [];
+    return [...aktionenVon(d, o.id), ...glieder.flatMap((id) => [id, ...aktionenVon(d, id)])];
+  }
 
   // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet.js
   var QUADRAT = (o) => ({ x: o.x, y: o.y, w: 40, h: 40 });
@@ -3785,7 +3814,9 @@ END_CASE;`)}
     kette: true,
     nachSetzen: grafcetNachSetzen,
     // Transition zwischen zwei Schritten, keine zwei Transitionen hintereinander
-    vorVerbinden: grafcetVorVerbinden
+    vorVerbinden: grafcetVorVerbinden,
+    mitziehen: grafcetMitziehen
+    // Aktionen ziehen mit ihrem Schritt mit, mit Umschalt auch der Rest der Kette
   });
   var AKTION = {
     g: "grafcet",
