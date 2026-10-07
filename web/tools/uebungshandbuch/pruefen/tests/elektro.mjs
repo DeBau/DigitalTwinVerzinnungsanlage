@@ -7,6 +7,14 @@ async function autoLeitungen(t) {
   return t.page.$$eval('#edstage .ink path.autoleitung', (ps) => ps.map((p) => p.getAttribute('d'))
     .map((d) => d.match(/-?[\d.]+/g).map(Number)));
 }
+// Texte im SVG eines Bausteins
+const texte = (t, id) => t.page.$$eval(`#edstage .ink [data-o="${id}"] text`, (ts) => ts.map((x) => x.textContent));
+// Baustein setzen und die Auswahl aufheben; liefert das neue Objekt
+async function setzeEinzeln(t, k, x, y) {
+  const vorher = new Set((await t.objekte()).map((o) => o.id));
+  await t.setze(k, x, y); await t.taste('Escape');
+  return (await t.objekte()).find((o) => !vorher.has(o.id));
+}
 // Auswahl aufheben, damit der nächste Baustein keine Kette fortsetzt
 const lose = (t) => t.taste('Escape');
 
@@ -37,6 +45,79 @@ export const tests = [
       await lose(t);
       const al = (await autoLeitungen(t)).filter(([x]) => x === PFAD(3));
       t.gleich(al.map(([, y]) => y), [590], 'nur die Leitung unten zu M, oben läge die Leuchte im Weg');
+    },
+  },
+  {
+    name: '8 Schaltzeichen aus symbole/iec60617.js',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      await setzeEinzeln(t, 'tno', PFAD(2), 200);
+      const d = await t.page.$eval('#edstage .ink [data-o] path', (p) => p.getAttribute('stroke-width'));
+      t.gleich(d, '1.4', 'Strichstärke der Bibliothek');
+    },
+  },
+  {
+    name: 'E2 Ordnungsziffern je Gerät, A1/A2 an der Spule',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      const spule = await setzeEinzeln(t, 'coil', PFAD(1), 400);
+      const a = await setzeEinzeln(t, 'no', PFAD(2), 200);
+      const b = await setzeEinzeln(t, 'nc', PFAD(3), 200);
+      const c = await setzeEinzeln(t, 'no', PFAD(4), 200);
+      t.gleich([a.v, b.v, c.v], ['−QA1', '−QA1', '−QA1'], 'Kontakte übernehmen die Spule');
+      const nr = async (o) => (await texte(t, o.id)).filter((x) => /^\d\d$/.test(x));
+      t.gleich(await nr(a), ['13', '14'], '1. Kontakt Schließer');
+      t.gleich(await nr(b), ['21', '22'], '2. Kontakt Öffner');
+      t.gleich(await nr(c), ['33', '34'], '3. Kontakt Schließer');
+      t.erwarte((await texte(t, spule.id)).includes('A1'), 'A1 an der Spule');
+      const tnc = await setzeEinzeln(t, 'tnc', PFAD(6), 200);
+      t.gleich(await nr(tnc), ['11', '12'], 'Taster Öffner allein: 11/12');
+    },
+  },
+  {
+    name: 'E2 dreipolig 1 bis 6',
+    lauf: async (t) => {
+      await t.oeffne('leistung');
+      const k = await setzeEinzeln(t, 'k3', 300, 300);
+      t.gleich((await texte(t, k.id)).filter((x) => /^\d$/.test(x)).sort(), ['1', '2', '3', '4', '5', '6'], 'Polnummern');
+    },
+  },
+  {
+    name: 'E3 Kennzeichen je Art fortlaufend',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      const folge = [['coil', 1, 450], ['coil', 2, 450], ['no', 3, 200], ['tno', 4, 200], ['tno', 5, 200], ['lamp', 6, 200],
+        ['term', 7, 200], ['term', 8, 200], ['lsw', 9, 200], ['estop', 10, 200]];
+      const v = [];
+      for (const [k, n, y] of folge) v.push((await setzeEinzeln(t, k, PFAD(n), y)).v);
+      t.gleich(v, ['−QA1', '−QA2', '−QA2', '−SF1', '−SF2', '−PF1', '−X1:1', '−X1:2', '−BG1', '−SF3'], 'Kennzeichen');
+      const g = [];
+      for (const [k, x, y] of [['di8', 600, 120], ['dq8', 600, 260], ['sr', 600, 420]]) g.push((await setzeEinzeln(t, k, x, y)).v);
+      t.gleich(g, ['−KF1', '−KF1', '−KF2'], 'SPS −KF1, Sicherheitsrelais −KF2');
+    },
+  },
+  {
+    name: 'E3 Vorschläge aus der Signalliste',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      await t.setze('tno', PFAD(2), 200);
+      t.gleich(await t.page.$eval('#props input[data-prop="v"]', (e) => e.dataset.sigart), 'SF', 'Kennbuchstaben SF');
+    },
+  },
+  {
+    name: 'E4 Motor mit PE, Umrichter-PE heißt PE',
+    lauf: async (t) => {
+      await t.oeffne('leistung');
+      const m = await setzeEinzeln(t, 'm3', 200, 400);
+      const fu = await setzeEinzeln(t, 'fu', 200, 220);
+      t.erwarte((await texte(t, m.id)).includes('PE'), 'PE am Motor');
+      const tf = await texte(t, fu.id);
+      t.erwarte(tf.filter((x) => x === 'PE').length === 2 && !tf.includes('PE2'), `Umrichter: ${tf.join(' ')}`);
+      await t.werkzeug('conn');
+      await t.klick([fu.x + 100, fu.y + 90]);
+      await t.klick([m.x + 100, m.y]);
+      const c = (await t.daten()).c.at(-1);
+      t.gleich([c.pa, c.pb], ['PE2', 'PE'], 'Schutzleiter Umrichter → Motor verdrahtet');
     },
   },
 ];

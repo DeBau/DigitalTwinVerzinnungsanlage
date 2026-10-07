@@ -189,9 +189,11 @@ export function pageCount(key, d, extraY=0){
   (d && d.t || []).forEach(t => { m = Math.max(m, t.y); });
   return Math.max(1, Math.ceil((m + 160) / PH));
 }
-// Verweistext an einer Leitung über den Blattrand: Kennzeichen:Anschluss, Blatt und was die Vorlage ergänzt (Haken verweis)
+// Verweistext an einer Leitung über den Blattrand: Kennzeichen:Anschluss, Blatt und was die Vorlage ergänzt (Haken verweis).
+// Den Anschluss zeigt der Haken anschlussName(o, n) der Bausteinart, z. B. mit Ordnungsziffer.
 export function wireRef(o, port, key, y, x){
-  const b = Math.floor(y / PH) + 1, name = istSchiene(o) ? o.v : `${o.v || BAUSTEIN[o.k].n}${port && port !== "~" ? ":" + port : ""}`;
+  const zeige = art(o.k).anschlussName, pn = zeige ? zeige(o, port) : port;
+  const b = Math.floor(y / PH) + 1, name = istSchiene(o) ? o.v : `${o.v || BAUSTEIN[o.k].n}${pn && pn !== "~" ? ":" + pn : ""}`;
   const v = vorlage(key), pfad = v.verweis ? v.verweis(x, y) : "";
   return `${name}, Blatt ${b}${pfad}`;
 }

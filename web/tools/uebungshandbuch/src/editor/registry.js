@@ -18,6 +18,7 @@ export const vorlage = key => VORL[key] || {};
 
 /* ---------- Bausteine ---------- */
 // Bausteinart oder Palettenvariante → {n, g, mk, hide, zeichne, anschluesse, feldliste, beschriftung, …, Haken};
+// anschlussName(o, n) → angezeigter Name des gespeicherten Anschlusses n (wireRef in zeichnen.js), z. B. "PE2" → "PE";
 // Bauteile zusätzlich {bauteil: true, w, h, bx, def, lbl, info}
 export const BAUSTEIN = {};
 export const SAMPLE = {};     // Bausteinart → [Musterobjekt, viewBox, Zusatz-SVG] für das Palettenbild

@@ -43,6 +43,9 @@ importiert nie aus einer Vorlage.
 | `app/daten.js` | Platzhalter `__SIG__`, `__SHEETS__`, `__TEXTE__`, `__QUIZ__`, `__STIL__`, Stammdaten (EXTRA, STUFEN, EXVORL, CYL, PHASES, STYLECHECK, STIL, CRIT, critOf, TYPN, gradeOf) |
 | `app/basis.js` | `$`, `$$`, `BY`, Speicher `S`, `esc`, Chips, Hilfestufen, Icons `IC`, Signalliste |
 | `app/fortschritt.js` | Phasen erledigt, Prüfpunkte |
+| **Schaltzeichen** (gemeinsam mit dem Schaltplan) | |
+| `symbole/grund.js` | Zeichen-Grundlagen `linie`, `wirklinie`, `kreis`, `kasten`, `punkt`, `text`, `nummer` |
+| `symbole/iec60617.js` | Schaltzeichen nach IEC 60617 als Tabelle `SYM` (Kontakte, Spulen, dreipolige Geräte, Motor, Umrichter) |
 | **Editor-Kern: Zeichnen** | |
 | `editor/svg.js` | SVG-Grundlagen: `INK`, `MUTE`, `SCHRIFT`, `SVGT`, `tw`, `clamp`, `arrowHead`, Blatthöhe `PH` |
 | `editor/status.js` | Zustand `ED` (ein Feld je Zeile), Markierung `markiere`, `istMarkiert`, `markiertId` |
@@ -74,7 +77,9 @@ importiert nie aus einer Vorlage.
 | `editor/vorlagen/zustand.js` | Zustandsdiagramm: Zustände, Übergänge als gebogene Pfeile |
 | `editor/vorlagen/wegschritt-striche.js` | Weg-Schritt-Diagramm: Raster `WS_RASTER`, Stricharten Signallinie, Start, Zyklusende, Verknüpfung |
 | `editor/vorlagen/wegschritt.js` | Weg-Schritt-Diagramm: Formular, Seitenleiste, Werkzeuge |
-| `editor/vorlagen/elektro.js` | Stromlaufplan mit den Gruppen Steuerstromkreis (`elektro`) und Geräte/SPS (`geraete`) |
+| `editor/vorlagen/elektro-kennzeichen.js` | Kennzeichen-Vorschläge je Bausteinart, Ordnungsziffern der Kontakte |
+| `editor/vorlagen/elektro.js` | Stromlaufplan: Vorlage, Strompfade mit automatischen Leitungen, Gruppe Steuerstromkreis (`elektro`) |
+| `editor/vorlagen/elektro-geraete.js` | Gruppe Geräte und SPS (`geraete`): DI 8, DQ 8, Netzteil, Sicherheitsrelais |
 | `editor/vorlagen/leistung.js` | Hauptstromkreis mit Potenzialschiene |
 | `editor/vorlagen/pneumatik-symbole.js` | Ventile, Zylinder, Entlüftungen nach ISO 1219 |
 | `editor/vorlagen/pneumatik-simulation.js` | Druckverteilung, Zylinderbewegung, Ventile schalten |
@@ -91,6 +96,8 @@ Daten bleiben außerhalb von `src/`: `uebungen.js`, `quiz.js`, `stil.js`, `texte
 * `node web/tools/uebungshandbuch/module.mjs imports` trägt in allen Modulen die passenden Importe ein. Rufe es
   nach jedem Verschieben oder neuen Querbezug auf.
 * `node web/tools/uebungshandbuch/module.mjs check` meldet Schichtverletzungen.
+* Lokale Namen (Parameter, Variablen in Funktionen) bekommen keinen Import. `symbole/` pflegt seine Importe selbst
+  (gemeinsam mit dem Schaltplan); für andere Module zählen dort nur die Exporte.
 * `node web/tools/uebungshandbuch/module.mjs move <Name> <von> <nach>` verschiebt eine Deklaration samt Kommentar.
 * `waechter.mjs` läuft bei jedem Build. Er prüft, dass jeder Bezeichner deklariert, importiert oder ein
   Browser-Global ist. esbuild meldet einen vergessenen Import nicht, er fiele sonst erst im Browser auf.
@@ -325,6 +332,7 @@ einfachen Verbindung (ein Verlaufsschritt).
 | `radius` | alle | Zahl, am einfachsten über `...rund(r)` | Pfeile an den Kreisrand (zeichnen.js, zustand.js) | Rechteckrand |
 | `neu` | alle | `(o, pt, mk)`, Bauteil `(o, pt)`; setzt `x`, `y`, `v` … | `makeObj`, `neuesBauteil` (andocken.js) | Mitte bei pt |
 | `anschluesse` | alle | `[[Name, dx, dy, Richtung]]` oder `(o) → […]`, Richtung u, d, l, r | `portsOf` (bauteile.js): Verbinden, Leitungen | keine Anschlüsse |
+| `anschlussName` | alle | `(o, n) → Text`: angezeigter Name des gespeicherten Anschlusses n | `wireRef` (zeichnen.js), Verweis an Abbruchstellen | n |
 | `feldliste` | alle | `[[Feld, Beschriftung, Platzhalter oder Optionen]]`; Optionen `[[Wert, Text]]` ergeben eine Auswahl, Feld `v` das Kennzeichenfeld | `objektFelder` (eigenschaften.js), `listenFeld` | keine Felder |
 | `felder` | alle | `(o) → HTML` | `objektFelder`, statt der `feldliste` | `feldliste` |
 | `titel` | alle | Text | `objektFelder` | `n` |

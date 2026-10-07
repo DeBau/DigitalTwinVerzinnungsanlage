@@ -3,6 +3,9 @@
 import './app/daten.js';
 import './app/basis.js';
 import './app/fortschritt.js';
+// Schaltzeichen (reine Funktionen, gemeinsam mit dem Schaltplan)
+import './symbole/grund.js';
+import './symbole/iec60617.js';
 import './editor/svg.js';
 import './editor/status.js';
 import './editor/registry.js';
@@ -36,7 +39,9 @@ import './editor/vorlagen/grafcet.js';
 import './editor/vorlagen/zustand.js';
 import './editor/vorlagen/wegschritt-striche.js';
 import './editor/vorlagen/wegschritt.js';
+import './editor/vorlagen/elektro-kennzeichen.js';
 import './editor/vorlagen/elektro.js';
+import './editor/vorlagen/elektro-geraete.js';
 import './editor/vorlagen/leistung.js';
 import './editor/vorlagen/pneumatik-symbole.js';
 import './editor/vorlagen/pneumatik-simulation.js';
