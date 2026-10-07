@@ -32,6 +32,7 @@ import './editor/oeffnen.js';
 import './app/druck.js';
 import './app/seiten.js';
 // Vorlagen zuletzt: Sie melden sich nur in der Registry an und dürfen dafür alles aus dem Kern benutzen.
+import './editor/vorlagen/grafcet-aktion.js';
 import './editor/vorlagen/grafcet.js';
 import './editor/vorlagen/zustand.js';
 import './editor/vorlagen/wegschritt-striche.js';
