@@ -6,7 +6,7 @@ import { markiertesObjekt, objById } from '../auswahl.js';
 import { aendere } from '../verlauf.js';
 import { editObjLabel } from '../beschriften.js';
 import { isAct, isStep, isTrans } from './grafcet-aktion.js';
-import { aktionenVon, freieSchrittNummer, haengeEin, legeUnter, nachfolgerUnten, neuesGlied, objIn } from './grafcet-kette.js';
+import { aktionenVon, freieSchrittNummer, haengeEin, legeUnter, nachfolgerUnten, neuesGlied, objIn, vorgaengerIn } from './grafcet-kette.js';
 import { linienBreiteAnpassen } from './grafcet-schnipsel.js';
 
 /* ---------- Reihenfolge der Kette ---------- */
@@ -37,8 +37,10 @@ export function anhaengeStelle(d){
   const enden = d.o.filter(o => (isStep(o) || isTrans(o)) && !nachfolgerUnten(d, o));
   return enden.sort((a, b) => b.y - a.y)[0] || null;
 }
-// Nach einem Schritt (und nach einer ODER-Verzweigung) kommt zuerst die Transition, sonst zuerst der Schritt
-export const transitionZuerst = A => isStep(A) || A.k === "alt";
+// Nach einem Schritt kommt zuerst die Transition, nach einer Transition zuerst der Schritt. Bei einer Verzweigungs- oder
+// Zusammenführungslinie entscheidet, was über der Linie steht: ODER-Verzweigung und UND-Zusammenführung haben einen
+// Schritt darüber (weiter mit Transition), ODER-Zusammenführung und UND-Verzweigung eine Transition (weiter mit Schritt).
+export const transitionZuerst = (d, A) => isStep(A) || (!isTrans(A) && isStep(vorgaengerIn(d, A)));
 export function plusSchritt(){
   let trans = null, schritt = null;
   aendere(d => {
@@ -46,7 +48,7 @@ export function plusSchritt(){
     if (!A) A = Object.assign(neuesGlied(d, "init", "1"), {x: 180, y: 60});
     const nachher = nachfolgerUnten(d, A);
     trans = neuesGlied(d, "trans", ""); schritt = neuesGlied(d, "step", freieSchrittNummer(d));
-    haengeEin(A, transitionZuerst(A) ? [trans, schritt] : [schritt, trans], d, nachher);
+    haengeEin(A, transitionZuerst(d, A) ? [trans, schritt] : [schritt, trans], d, nachher);
   });
   markiere("o", schritt.y > trans.y ? schritt.id : trans.id);   // das untere Glied: dort geht es weiter
   editObjLabel(objById(trans.id));   // Fokus auf die Bedingung
