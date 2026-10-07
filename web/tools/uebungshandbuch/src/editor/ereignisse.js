@@ -112,6 +112,7 @@ export const schliesseFeld = () => { if (ED.tx && ED.tx.schluessel.startsWith("f
 
 /* ---------- Tastatur ---------- */
 export function tasteImFeld(e){
+  if (e.key === "Escape") { e.preventDefault(); return; }   // Esc im Feld schließt den Editor nie
   if (e.key !== "Enter" || !e.target.dataset.prop) return;
   e.preventDefault();
   if (e.target.tagName === "TEXTAREA" && (e.altKey || e.shiftKey || e.ctrlKey)) {   // neue Zeile
@@ -155,7 +156,7 @@ export function taste(e){
   if (strg && e.key.toLowerCase() === "a") { e.preventDefault(); return; }
   const dreh = {r: "rot", m: "flip"}[e.key.toLowerCase()];   // Taste R dreht, M spiegelt
   if (!strg && !e.altKey && markiertId("o") && dreh) { e.preventDefault(); turnSel(dreh); return; }
-  if (e.key === "Escape" && abbrechen(e)) return;
+  if (e.key === "Escape") { e.preventDefault(); abbrechen(e); return; }   // Esc schließt den Editor nie (nur „Fertig“)
   if ((e.key === "Delete" || e.key === "Backspace") && anySel()) { e.preventDefault(); delSel(); return; }
   if (e.key.startsWith("Arrow") && anySel() && VERSCHIEBE[ED.markiert.art]) {
     e.preventDefault(); aendere(() => verschiebeMarkiertes(e.key));
@@ -184,6 +185,6 @@ export function init(){
   dlg.addEventListener("change", feldGeaendert);
   dlg.addEventListener("pointerdown", e => { if (e.target.closest(".sym")) e.preventDefault(); signalWahl(e); });   // Fokus im Feld lassen
   dlg.addEventListener("keydown", taste);
-  dlg.addEventListener("cancel", abbrechen);   // Esc im Dialog: erst abbrechen, erst dann schließen
+  dlg.addEventListener("cancel", e => e.preventDefault());   // Esc schließt den Editor nie, nur „Fertig“
   dlg.addEventListener("close", () => { ED.svg = null; ED.sim = {on: false, st: {}, pos: {}}; route(); });
 }

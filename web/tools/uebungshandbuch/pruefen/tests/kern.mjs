@@ -129,4 +129,27 @@ export const tests = [
       t.gleich(await aus('redo'), 'true', 'neue Änderung leert Wiederholen');
     },
   },
+  /* ---------- K9 Esc ---------- */
+  {
+    name: 'K9 Esc schließt den Editor nie, nur Fertig',
+    lauf: async (t) => {
+      const offen = async () => t.zaehle('#editor[open]');
+      await t.oeffne('grafcet');
+      for (let i = 0; i < 3; i++) await t.taste('Escape');
+      t.gleich(await offen(), 1, 'nach dreimal Esc offen');
+      await anfangsschritt(t);
+      await t.werkzeug('sel');
+      await t.klick([200, 150]);
+      await t.taste('Escape');
+      await t.taste('Escape');
+      t.gleich(await offen(), 1, 'nach Esc mit Markierung offen');
+      await t.klick('#edstage [data-sf]');
+      await t.klick('#props [data-prop="mn"]');
+      await t.taste('Escape');
+      await t.taste('Escape');
+      t.gleich(await offen(), 1, 'nach Esc im Feld offen');
+      await t.knopf('close');
+      t.gleich(await offen(), 0, 'Fertig schließt');
+    },
+  },
 ];
