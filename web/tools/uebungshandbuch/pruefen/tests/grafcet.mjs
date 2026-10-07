@@ -334,6 +334,25 @@ export const tests = [
     },
   },
   {
+    name: 'Z1 Zustand mit Aktion, Prüfregel erreichbar',
+    lauf: async (t) => {
+      await t.oeffne('zustand');
+      await t.setze('sinit', 200, 200);
+      await t.setze('state', 400, 200);
+      await t.setze('state', 600, 200);
+      const [z0, z1] = await t.objekte();
+      await t.werkzeug('conn'); await t.klick([z0.x, z0.y]); await t.klick([z1.x, z1.y]);
+      await t.tippe('BG1'); await t.taste('Enter');
+      await t.werkzeug('sel'); await t.klick([z1.x, z1.y]);
+      await t.page.locator('#props [data-prop="a"]').fill('MB1'); await t.ruhe();
+      const texte = await t.page.locator(`#edstage .ink [data-o="${z1.id}"] text`).evaluateAll((ts) => ts.map((x) => x.textContent));
+      t.erwarte(texte.includes('/ MB1'), `Aktion im Zustand: ${texte}`);
+      await t.knopf('pruefen');
+      const liste = await t.text('#props');
+      t.erwarte(liste.includes('Z2 ist nicht erreichbar') && !liste.includes('Z1 ist nicht'), liste);
+    },
+  },
+  {
     name: 'Taste + wie + Schritt (wenn KERN den Haken taste hat)',
     lauf: async (t) => {
       await t.oeffne('grafcet');

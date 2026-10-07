@@ -35,6 +35,7 @@ export function verbindeZustand(c, A, B, objs, all){
 registriereVorlage("zustand", {
   n: "Zustandsdiagramm", d: "Zustände und Übergänge, z. B. für Übergaben und Antriebe", gruppen: ["zustand"],
   body: (ex, page) => dots(20) + (page ? "" : ZUSTAND_LEGENDE),
+  pruefe: d => d.o.length ? ZUSTAND_REGELN.flatMap(regel => regel(d)) : [],   // Knopf „Prüfen“
 });
 export const ZUSTAND_LEGENDE = [
   `<g><rect x="790" y="25" width="185" height="120" fill="#fff" stroke="${G}"/>${TX(800,43,10,"Symbole","start","#666",600)}`,
@@ -60,13 +61,22 @@ export function zustandNeu(o, [px, py]){
   o.x = px; o.y = py;
   o.v = "Z" + ED.data.o.filter(q => ZUSTANDSARTEN.includes(q.k)).length;
 }
-export const ZUSTAND = {neu: zustandNeu, feldliste: [["v", "Name"]], beschriftung: {hinweis: "Name des Zustands"}};
+export const ZUSTAND = {
+  neu: zustandNeu,
+  feldliste: [["v", "Name"], ["a", "Aktion im Zustand (optional)", "z. B. MB1"]],
+  beschriftung: {hinweis: "Name des Zustands"},
+};
 export const KREIS = o => `<circle cx="${o.x}" cy="${o.y}" r="36" fill="#fff" ${LINIE}/>`;
+// Name in der Mitte; mit Aktion steht der Name oben und darunter, durch einen Strich getrennt, „/ Aktion“
+export function zustandsText(o){
+  if (!o.a) return SVGT(o.x, o.y+5, o.v);
+  return SVGT(o.x, o.y-6, o.v) + `<path d="M${o.x-30} ${o.y+2}H${o.x+30}" ${LINIE}/>` + SVGT(o.x, o.y+19, `/ ${o.a}`, "middle", 11, 400);
+}
 fuelle(BAUSTEIN, {
   sinit: {g: "zustand", n: "Anfangszustand", ...rund(36), ...ZUSTAND,
-    zeichne: o => KREIS(o) + `<circle cx="${o.x}" cy="${o.y}" r="31" fill="none" ${LINIE}/>` + SVGT(o.x, o.y+5, o.v)},
+    zeichne: o => KREIS(o) + `<circle cx="${o.x}" cy="${o.y}" r="31" fill="none" ${LINIE}/>` + zustandsText(o)},
   state: {g: "zustand", n: "Zustand", ...rund(36), ...ZUSTAND,
-    zeichne: o => KREIS(o) + SVGT(o.x, o.y+5, o.v)},
+    zeichne: o => KREIS(o) + zustandsText(o)},
   start: {g: "zustand", n: "Startpunkt", ...rund(8), beschriftung: false,
     zeichne: o => `<circle cx="${o.x}" cy="${o.y}" r="8" fill="${INK}"/>`},
 });
@@ -74,3 +84,29 @@ fuelle(SAMPLE, {
   sinit: [{k:"sinit", x:38, y:38, v:"Z0"}, "0 0 76 76"], state: [{k:"state", x:38, y:38, v:"Z1"}, "0 0 76 76"],
   start: [{k:"start", x:24, y:24}, "0 0 48 48"],
 });
+
+/* ---------- Prüfen ---------- */
+export const istZustand = o => ZUSTANDSARTEN.includes(o.k);
+// Zustände, die vom Anfangszustand bzw. vom Startpunkt aus über Übergänge erreichbar sind
+export function erreichbar(d){
+  const offen = d.o.filter(o => o.k === "sinit" || o.k === "start").map(o => o.id), gesehen = new Set(offen);
+  while (offen.length) {
+    const id = offen.pop();
+    d.c.filter(c => c.a === id && !gesehen.has(c.b)).forEach(c => { gesehen.add(c.b); offen.push(c.b); });
+  }
+  return gesehen;
+}
+export function regelAnfangszustand(d){
+  if (d.o.some(o => o.k === "sinit" || o.k === "start")) return [];
+  return [{stufe: "fehler", text: "Es fehlt der Anfangszustand (doppelter Kreis) oder ein Startpunkt."}];
+}
+export function regelErreichbar(d){
+  const da = erreichbar(d);
+  if (!d.o.some(o => o.k === "sinit" || o.k === "start")) return [];
+  return d.o.filter(o => istZustand(o) && !da.has(o.id)).map(o => ({stufe: "fehler", o: o.id,
+    text: `Zustand ${o.v || ""} ist nicht erreichbar. Kein Übergang führt vom Anfangszustand dorthin.`}));
+}
+export const regelBedingung = d => d.c.map((c, i) => [c, i]).filter(([c]) => !String(c.v || "").trim()
+  && (d.o.find(o => o.id === c.a) || {}).k !== "start")
+  .map(([, i]) => ({stufe: "hinweis", c: i, text: "Dieser Übergang hat keine Bedingung. Schreib sie an den Pfeil."}));
+export const ZUSTAND_REGELN = [regelAnfangszustand, regelErreichbar, regelBedingung];
