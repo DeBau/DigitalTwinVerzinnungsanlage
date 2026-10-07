@@ -18,6 +18,7 @@ export const vorlage = key => VORL[key] || {};
 
 /* ---------- Bausteine ---------- */
 // Bausteinart oder Palettenvariante → {n, g, mk, hide, zeichne, anschluesse, feldliste, beschriftung, …, Haken};
+// teilung (Zahl): Kettenglied setzt sich so weit unter seinen Vorgänger (ausrichten in kette.js), z. B. GRAFCET 30;
 // Bauteile zusätzlich {bauteil: true, w, h, bx, def, lbl, info}
 export const BAUSTEIN = {};
 export const SAMPLE = {};     // Bausteinart → [Musterobjekt, viewBox, Zusatz-SVG] für das Palettenbild

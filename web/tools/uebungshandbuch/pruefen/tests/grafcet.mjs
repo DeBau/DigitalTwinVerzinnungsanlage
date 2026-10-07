@@ -41,6 +41,7 @@ export const tests = [
       await t.setze('init', 200, 560);
       await transition(t, 220, 640, 'BG1');
       await t.setze('step', 220, 680);
+      await t.page.evaluate(() => { document.querySelector('#edstage').scrollTop = 400; });   // Blatt 2 ins Bild
       await transition(t, 220, 720, 'BG2');
       await t.setze('step', 220, 750);
       const os = await t.objekte();
@@ -215,6 +216,34 @@ export const tests = [
       const bahnen = wege.map((w) => /^M[\d.]+ [\d.]+V[\d.]+H([\d.]+)V/.exec(w)).filter(Boolean).map((m) => +m[1]);
       t.gleich(bahnen.length, 2, `zwei Rücksprünge: ${wege}`);
       t.erwarte(bahnen[0] !== bahnen[1], `Bahnen deckungsgleich bei x ${bahnen}`);
+    },
+  },
+  {
+    name: 'G7 Teilung 100, + Schritt, Kette ausrichten, Neu nummerieren',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 220, 120);
+      await transition(t, 260, 300, 'BG1');   // Klickhöhe zählt nicht: Teilung
+      const [i0, t1] = [...await t.objekte('init'), ...await t.objekte('trans')];
+      t.gleich([t1.x, t1.y], [i0.x + 20, i0.y + 70], 'Transition 70 unter dem Anfangsschritt');
+      for (const b of ['BG2', 'BG3']) {
+        await t.klick('#editor [data-gc="plus"]');
+        await t.tippe(b); await t.taste('Enter');
+      }
+      let d = await t.daten();
+      t.gleich([...d.o].sort((a, b) => a.y - b.y).map((o) => `${o.k} ${o.v} ${o.x},${o.y}`), [
+        `init 1 ${i0.x},${i0.y}`, `trans BG1 ${t1.x},${t1.y}`, `step 2 ${i0.x},${i0.y + 100}`,
+        `trans BG2 ${t1.x},${t1.y + 100}`, `step 3 ${i0.x},${i0.y + 200}`, `trans BG3 ${t1.x},${t1.y + 200}`,
+      ], '+ Schritt hängt mit Teilung 100 an');
+      const s2 = nach(d, '2', 'step');
+      await t.ziehe([s2.x + 20, s2.y + 20], [s2.x + 60, s2.y + 50]);
+      await t.klick('#editor [data-gc="ausrichten"]');
+      const d2 = await t.daten();
+      t.gleich(d2.o.map((o) => [o.x, o.y]), d.o.map((o) => [o.x, o.y]), 'Kette ausgerichtet');
+      await t.klick([s2.x + 20, s2.y + 20]); await t.taste('Delete');
+      t.gleich((await t.objekte('step')).map((o) => o.v), ['3'], 'Schritt 2 gelöscht');
+      await t.klick('#editor [data-gc="nummern"]');
+      t.gleich((await t.objekte('step')).map((o) => o.v), ['2'], 'neu nummeriert');
     },
   },
 ];

@@ -72,6 +72,7 @@ importiert nie aus einer Vorlage.
 | **Vorlagen** (Reihenfolge = Kacheln) | |
 | `editor/vorlagen/grafcet-aktion.js` | GRAFCET: Bausteinarten (`isStep`, `isTrans`, `isAct`), Aktionen zeichnen, Eigenschaftsfeld, Haken `seite` |
 | `editor/vorlagen/grafcet-kette.js` | GRAFCET: Regeln der Ablaufkette (Haken `nachSetzen`, `vorVerbinden`, `mitziehen`, `loeschen`), Einfügen, Ausrichten, Neu nummerieren |
+| `editor/vorlagen/grafcet-knoepfe.js` | GRAFCET: Knöpfe „+ Schritt“, „Kette ausrichten“, „Neu nummerieren“ (`data-gc`, Haken `klick`), `kettenFolge` |
 | `editor/vorlagen/grafcet.js` | GRAFCET: Schritte, Transitionen, Verzweigungen, Verweise, Aktionen als Seitenbausteine |
 | `editor/vorlagen/zustand.js` | Zustandsdiagramm: Zustände, Übergänge als gebogene Pfeile |
 | `editor/vorlagen/wegschritt-striche.js` | Weg-Schritt-Diagramm: Raster `WS_RASTER`, Stricharten Signallinie, Start, Zyklusende, Verknüpfung |
@@ -223,6 +224,7 @@ Der Kern erkennt Treffer und Knöpfe an diesen Attributen. Eine Vorlage darf sie
 | `data-place` | Palettenknopf | Bausteinart zum Setzen |
 | `data-sym` | Zeichenleiste | Zeichen zum Einfügen |
 | `data-ws` | Seitenleiste des Weg-Schritt-Diagramms | gehört der Vorlage (Haken `klick`) |
+| `data-gc` | Knöpfe der GRAFCET-Kette | gehört der Vorlage (Haken `klick`, grafcet-knoepfe.js) |
 
 ## 8. Registry: der Vertrag mit den Vorlagen
 
@@ -324,6 +326,7 @@ einfachen Verbindung (ein Verlaufsschritt).
 | `mitte` | alle | `(o) → [x, y]` | `mitteVon` | Mitte des Umrisses |
 | `aus`, `ein` | alle | `(o, x) → [x, y]` | `kettenAus`, `kettenEin`: Kettenanschluss unten bzw. oben | Mitte der Unter- bzw. Oberkante |
 | `einrueck` | alle | Zahl | `ausrichten` (kette.js) | 0 |
+| `teilung` | alle | Zahl: Abstand des Kettenanschlusses unter dem Vorgänger | `ausrichten` (kette.js) beim Fortsetzen einer Kette | Höhe vom Klick |
 | `radius` | alle | Zahl, am einfachsten über `...rund(r)` | Pfeile an den Kreisrand (zeichnen.js, zustand.js) | Rechteckrand |
 | `neu` | alle | `(o, pt, mk)`, Bauteil `(o, pt)`; setzt `x`, `y`, `v` … | `makeObj`, `neuesBauteil` (andocken.js) | Mitte bei pt |
 | `anschluesse` | alle | `[[Name, dx, dy, Richtung]]` oder `(o) → […]`, Richtung u, d, l, r | `portsOf` (bauteile.js): Verbinden, Leitungen | keine Anschlüsse |

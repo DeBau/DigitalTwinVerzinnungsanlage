@@ -1504,8 +1504,9 @@ pre.code code{font-size:inherit}
   function ausrichten(o, A, pt) {
     const s = seite(o);
     if (s) return s.ausrichten(o, A, pt);
-    const ax = kettenAus(A, mitteVon(o)[0])[0];
+    const [ax, ay] = kettenAus(A, mitteVon(o)[0]), teilung = art(o.k).teilung;
     o.x = ax - (art(o.k).einrueck || 0);
+    if (teilung !== void 0) o.y += ay + teilung - kettenEin(o, ax)[1];
   }
   function andockStelle(o) {
     const g = gruppenId(o), gruppe = gruppeVon(o);
@@ -3773,7 +3774,7 @@ END_CASE;`)}
     return o;
   };
   function legeUnter(B, A) {
-    const [x, y] = kettenAus(A);
+    const [x, y] = kettenAus(A, mitteVon(A)[0]);
     B.x = x - (art(B.k).einrueck || 0);
     B.y += y + 30 - kettenEin(B, x)[1];
   }
@@ -3782,20 +3783,27 @@ END_CASE;`)}
     { passt: (A, o) => isStep(A) && isTrans(o), folge: (o, d) => [o, neuesGlied(d, "step", freieSchrittNummer(d))] },
     { passt: (A, o) => isStep(A) && isStep(o), folge: (o, d) => [neuesGlied(d, "trans", ""), o] }
   ];
-  function einfuegen(A, o, d) {
-    const S2 = d.c.filter((c) => c.a === A.id && c.b !== o.id).map((c) => objIn(d, c.b)).find((B) => B && !isAct(B) && B.y > A.y);
-    const regel = S2 && EINFUEGEN.find((r) => r.passt(A, o));
-    if (!regel) return false;
-    verschiebeRest(d, [S2.id, ...kettenRest(d, S2)], TEILUNG);
-    loeseVerbindung(d, A, S2);
-    loeseVerbindung(d, A, o);
+  function nachfolgerUnten(d, A, ohne = null) {
+    return d.c.filter((c) => c.a === A.id && c.b !== ohne).map((c) => objIn(d, c.b)).find((B) => B && !isAct(B) && B.y > A.y);
+  }
+  function haengeEin(A, glieder, d, S2) {
+    if (S2) {
+      verschiebeRest(d, [S2.id, ...kettenRest(d, S2)], TEILUNG);
+      loeseVerbindung(d, A, S2);
+    }
     let vor = A;
-    for (const B of regel.folge(o, d)) {
+    for (const B of glieder) {
       legeUnter(B, vor);
       verknuepfe(d, vor, B);
       vor = B;
     }
-    verknuepfe(d, vor, S2);
+    if (S2) verknuepfe(d, vor, S2);
+  }
+  function einfuegen(A, o, d) {
+    const S2 = nachfolgerUnten(d, A, o.id), regel = S2 && EINFUEGEN.find((r) => r.passt(A, o));
+    if (!regel) return false;
+    loeseVerbindung(d, A, o);
+    haengeEin(A, regel.folge(o, d), d, S2);
     return true;
   }
   function grafcetLoeschen(o, d) {
@@ -3822,6 +3830,108 @@ END_CASE;`)}
     // Fangweite 70 statt 140: dockt nur an den nahen Nachbarn
   };
 
+  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-knoepfe.js
+  function kettenFolge(d) {
+    const glieder = d.o.filter((o) => !isAct(o)).sort((a, b) => a.y - b.y || a.x - b.x);
+    const anfang = glieder.filter((o) => o.k === "init");
+    const folge = [], gesehen = /* @__PURE__ */ new Set();
+    const besuche = (A) => {
+      if (gesehen.has(A.id)) return;
+      gesehen.add(A.id);
+      folge.push(A);
+      d.c.filter((c) => c.a === A.id).map((c) => objIn(d, c.b)).filter((B) => B && !isAct(B)).sort((a, b) => a.x - b.x).forEach(besuche);
+    };
+    [...anfang, ...glieder].forEach(besuche);
+    return folge;
+  }
+  function stammVon(d, o) {
+    for (let n = 0; isAct(o) && n < 50; n++) {
+      const c = d.c.find((c2) => c2.b === o.id);
+      o = c && objIn(d, c.a);
+    }
+    return o || null;
+  }
+  function anhaengeStelle(d) {
+    const m = markiertesObjekt();
+    if (m) return stammVon(d, m);
+    const enden = d.o.filter((o) => (isStep(o) || isTrans(o)) && !nachfolgerUnten(d, o));
+    return enden.sort((a, b) => b.y - a.y)[0] || null;
+  }
+  var transitionZuerst = (A) => isStep(A) || A.k === "alt";
+  function plusSchritt() {
+    let trans = null, schritt = null;
+    aendere((d) => {
+      let A = anhaengeStelle(d);
+      if (!A) A = Object.assign(neuesGlied(d, "init", "1"), { x: 180, y: 60 });
+      const S2 = nachfolgerUnten(d, A);
+      trans = neuesGlied(d, "trans", "");
+      schritt = neuesGlied(d, "step", freieSchrittNummer(d));
+      haengeEin(A, transitionZuerst(A) ? [trans, schritt] : [schritt, trans], d, S2);
+    });
+    markiere("o", schritt.y > trans.y ? schritt.id : trans.id);
+    editObjLabel(objById(trans.id));
+  }
+  var legbar = (o) => isStep(o) || isTrans(o);
+  function ketteAusrichten(d) {
+    const unten = Object.fromEntries(d.o.map((o) => [o.id, o.y])), weg = {};
+    for (const A of kettenFolge(d)) {
+      weg[A.id] = weg[A.id] || [0, 0];
+      for (const c of d.c.filter((c2) => c2.a === A.id)) {
+        const B = objIn(d, c.b);
+        if (!B || isAct(B) || B.id in weg || unten[B.id] <= unten[A.id]) continue;
+        const [x0, y0] = [B.x, B.y];
+        if (legbar(A) && legbar(B)) legeUnter(B, A);
+        else {
+          B.x += weg[A.id][0];
+          B.y += weg[A.id][1];
+        }
+        weg[B.id] = [B.x - x0, B.y - y0];
+        verschiebeAktionen(d, B, weg[B.id]);
+      }
+    }
+  }
+  function verschiebeAktionen(d, B, [dx, dy]) {
+    const ids = new Set(aktionenVon(d, B.id));
+    d.o.forEach((o) => {
+      if (ids.has(o.id)) {
+        o.x += dx;
+        o.y += dy;
+      }
+    });
+  }
+  function neuNummerieren(d) {
+    const neu = {}, mitNummer = d.o.some((o) => isTrans(o) && o.nr);
+    let n = 0, t = 0;
+    for (const o of kettenFolge(d)) {
+      if (o.k === "step" || o.k === "init") {
+        neu[o.v] = String(++n);
+        o.v = String(n);
+      } else if (isTrans(o) && mitNummer) o.nr = String(++t);
+    }
+    d.o.filter((o) => o.k === "ref" && o.v).forEach((r) => {
+      r.v = r.v.replace(/\d+/, (z) => neu[z] ?? z);
+    });
+  }
+  var KETTEN_KNOEPFE = {
+    plus: { name: "+ Schritt", titel: "Transition und nächsten Schritt unter dem markierten Baustein anhängen", tue: plusSchritt },
+    ausrichten: {
+      name: "Kette ausrichten",
+      titel: "Schritte und Transitionen mit Abstand 100 untereinander legen",
+      tue: () => aendere(ketteAusrichten)
+    },
+    nummern: {
+      name: "Neu nummerieren",
+      titel: "Schritte in der Reihenfolge der Kette neu nummerieren, Verweise ziehen mit",
+      tue: () => aendere(neuNummerieren)
+    }
+  };
+  var kettenKnoepfeHTML = () => Object.entries(KETTEN_KNOEPFE).map(([k, b]) => `<button type="button" class="tool" data-gc="${k}" title="${b.titel}">${b.name}</button>`).join("");
+  function kettenKlick(e) {
+    const b = e.target.closest("[data-gc]"), knopf = b && KETTEN_KNOEPFE[b.dataset.gc];
+    if (knopf) knopf.tue();
+    return !!knopf;
+  }
+
   // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet.js
   var QUADRAT = (o) => ({ x: o.x, y: o.y, w: 40, h: 40 });
   var naechsteSchrittNummer = () => freieSchrittNummer(ED.data);
@@ -3830,6 +3940,8 @@ END_CASE;`)}
     aus: (o) => [o.x + 20, o.y + 40],
     ein: (o) => [o.x + 20, o.y],
     einrueck: 20,
+    teilung: 30,
+    // fester Abstand unter dem Vorgänger, mit der Transition dazwischen Teilung 100
     neu(o, [px, py]) {
       o.x = px - 20;
       o.y = py - 20;
@@ -3847,7 +3959,7 @@ END_CASE;`)}
     if (c) return `Schritt ${(dir === "von" ? objs[c.a] : objs[c.b]).v}`;
     return o.v ? `Transition ${o.v}` : "Transition";
   }
-  var zeichneTransition = (o, edit) => `<path d="M${o.x - 14} ${o.y}H${o.x + 14}" stroke="${INK}" stroke-width="3.2"/>` + (o.v ? SVGT(o.x + 22, o.y + 5, o.v, "start", 13, 400) : platzhalter(edit, "Bedingung", o.x + 22, o.y + 5, "start"));
+  var zeichneTransition = (o, edit) => `<path d="M${o.x - 14} ${o.y}H${o.x + 14}" stroke="${INK}" stroke-width="3.2"/>` + (o.nr ? SVGT(o.x - 20, o.y + 4, `(${o.nr})`, "end", 11, 400) : "") + (o.v ? SVGT(o.x + 22, o.y + 5, o.v, "start", 13, 400) : platzhalter(edit, "Bedingung", o.x + 22, o.y + 5, "start"));
   var verzweigungsBreite = (o) => o.w || 200;
   var VERZWEIGUNG = {
     aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y],
@@ -3873,7 +3985,10 @@ END_CASE;`)}
     d: "Ablauf nach DIN EN 60848 mit Symbollegende",
     gruppen: ["grafcet"],
     body: (ex, page) => dots(20) + (page ? "" : GRAFCET_LEGENDE),
-    anleitung: hinweisAnleitung
+    anleitung: hinweisAnleitung,
+    werkzeugleiste: { nachVerbinden: kettenKnoepfeHTML() },
+    // + Schritt, Kette ausrichten, Neu nummerieren
+    klick: kettenKlick
   });
   var LEGENDE_STRICH = `stroke="${G}" stroke-width="1.3"`;
   var GRAFCET_LEGENDE = [
@@ -3886,7 +4001,7 @@ END_CASE;`)}
   ].join("\n        ");
   registriereGruppe("grafcet", {
     name: "GRAFCET",
-    hinweis: "Anfangsschritt setzen, dann Transition, Schritt, Transition … anklicken: Jeder neue Baustein hängt sich unter den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken.",
+    hinweis: "Anfangsschritt setzen, dann mit „+ Schritt“ Transition und Schritt anhängen, oder Bausteine anklicken: Jeder neue Baustein hängt sich unter den markierten, zwischen zwei Schritte kommt von selbst eine Transition. Aktionen hängen sich rechts an den Schritt, eine weitere Aktion kommt darunter oder (Klick rechts daneben) dahinter. Für den Rücksprung markierst du die letzte Transition, wählst Verbinden und klickst den Anfangsschritt an. Umschalt beim Ziehen nimmt den Rest der Kette mit.",
     kette: true,
     ...KETTEN_HAKEN
     // nachSetzen, vorVerbinden, loeschen, mitziehen (grafcet-kette.js)
@@ -3930,8 +4045,9 @@ END_CASE;`)}
     mitte: (o) => [o.x, o.y],
     aus: (o) => [o.x, o.y],
     ein: (o) => [o.x, o.y],
+    teilung: 30,
     verweisName: transitionName,
-    feldliste: [["v", "Übergangsbedingung", "z. B. BG1 · BG15, 5s/X3, ↑BG40"]],
+    feldliste: [["v", "Übergangsbedingung", "z. B. BG1 · BG15, 5s/X3, ↑BG40"], ["nr", "Transitionsnummer (optional)", "z. B. 1"]],
     beschriftung: { sofort: true, ort: (o) => [o.x + 20, o.y], hinweis: "Bedingung, z. B. BG1 · BG40" }
   };
   var VERWEIS = {

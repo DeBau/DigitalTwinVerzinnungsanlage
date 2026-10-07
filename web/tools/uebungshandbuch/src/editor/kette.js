@@ -53,12 +53,14 @@ export function kettenQuelle(k){
   return A;
 }
 
-// Neuen Baustein o unter bzw. neben A ausrichten
+// Neuen Baustein o unter bzw. neben A ausrichten. Mit dem Haken teilung der Bausteinart liegt sein Kettenanschluss
+// fest teilung unter dem von A (GRAFCET: Teilung 100), sonst bleibt die Höhe vom Klick.
 export function ausrichten(o, A, pt){
   const s = seite(o);
   if (s) return s.ausrichten(o, A, pt);
-  const ax = kettenAus(A, mitteVon(o)[0])[0];
+  const [ax, ay] = kettenAus(A, mitteVon(o)[0]), teilung = art(o.k).teilung;
   o.x = ax - (art(o.k).einrueck || 0);
+  if (teilung !== undefined) o.y += ay + teilung - kettenEin(o, ax)[1];
 }
 
 /* Andocken: Anschluss in der Nähe eines passenden Anschlusses → ausrichten und beim Loslassen verbinden.

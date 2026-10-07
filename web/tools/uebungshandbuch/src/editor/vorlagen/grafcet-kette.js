@@ -4,7 +4,7 @@
 import { S } from '../../app/basis.js';
 import { ED, istMarkiert } from '../status.js';
 import { art } from '../registry.js';
-import { kettenAus, kettenEin } from '../bausteine.js';
+import { kettenAus, kettenEin, mitteVon } from '../bausteine.js';
 import { objById, uid } from '../auswahl.js';
 import { andockKette } from '../kette.js';
 import { FELDER_JE_ART } from '../eigenschaften.js';
@@ -110,7 +110,7 @@ export function freieSchrittNummer(d){
 export const neuesGlied = (d, k, v) => { const o = {id: uid(), k, x: 0, y: 0, v}; d.o.push(o); return o; };
 // B unter A legen: Kettenanschluss von B 30 unter dem von A (feste Teilung)
 export function legeUnter(B, A){
-  const [x, y] = kettenAus(A);
+  const [x, y] = kettenAus(A, mitteVon(A)[0]);
   B.x = x - (art(B.k).einrueck || 0);
   B.y += y + 30 - kettenEin(B, x)[1];
 }
@@ -120,17 +120,24 @@ export const EINFUEGEN = [
   {passt: (A, o) => isStep(A) && isTrans(o), folge: (o, d) => [o, neuesGlied(d, "step", freieSchrittNummer(d))]},
   {passt: (A, o) => isStep(A) && isStep(o), folge: (o, d) => [neuesGlied(d, "trans", ""), o]},
 ];
-// Echtes Einfügen: Hatte A schon einen Nachfolger S, kommt o (mit Partner) zwischen A und S, S rückt mit dem Rest der
-// Kette um eine Teilung nach unten. false, wenn A keinen Nachfolger hat oder die Arten nicht passen.
-export function einfuegen(A, o, d){
-  const S = d.c.filter(c => c.a === A.id && c.b !== o.id).map(c => objIn(d, c.b)).find(B => B && !isAct(B) && B.y > A.y);
-  const regel = S && EINFUEGEN.find(r => r.passt(A, o));
-  if (!regel) return false;
-  verschiebeRest(d, [S.id, ...kettenRest(d, S)], TEILUNG);
-  loeseVerbindung(d, A, S); loeseVerbindung(d, A, o);
+// Nachfolger von A weiter unten in der Kette (ohne den Baustein ohne)
+export function nachfolgerUnten(d, A, ohne = null){
+  return d.c.filter(c => c.a === A.id && c.b !== ohne).map(c => objIn(d, c.b)).find(B => B && !isAct(B) && B.y > A.y);
+}
+// glieder unter A einhängen: A → glieder → S (bisheriger Nachfolger); S rückt mit dem Rest der Kette um eine Teilung nach unten
+export function haengeEin(A, glieder, d, S){
+  if (S) { verschiebeRest(d, [S.id, ...kettenRest(d, S)], TEILUNG); loeseVerbindung(d, A, S); }
   let vor = A;
-  for (const B of regel.folge(o, d)) { legeUnter(B, vor); verknuepfe(d, vor, B); vor = B; }
-  verknuepfe(d, vor, S);
+  for (const B of glieder) { legeUnter(B, vor); verknuepfe(d, vor, B); vor = B; }
+  if (S) verknuepfe(d, vor, S);
+}
+// Echtes Einfügen: Hatte A schon einen Nachfolger S, kommt o (mit Partner) zwischen A und S.
+// false, wenn A keinen Nachfolger hat oder die Arten nicht passen.
+export function einfuegen(A, o, d){
+  const S = nachfolgerUnten(d, A, o.id), regel = S && EINFUEGEN.find(r => r.passt(A, o));
+  if (!regel) return false;
+  loeseVerbindung(d, A, o);
+  haengeEin(A, regel.folge(o, d), d, S);
   return true;
 }
 

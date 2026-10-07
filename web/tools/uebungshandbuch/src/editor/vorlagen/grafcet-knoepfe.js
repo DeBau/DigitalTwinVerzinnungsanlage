@@ -1,0 +1,105 @@
+// GRAFCET: Knöpfe der Werkzeugleiste (data-gc, Vorlagen-Haken klick): „+ Schritt“ hängt Transition und nächsten
+// Schritt in einem Rutsch an, „Kette ausrichten“ legt Schritte und Transitionen mit Teilung 100 untereinander,
+// „Neu nummerieren“ zählt die Schritte (und Transitionen mit Nummer) in der Reihenfolge der Kette.
+import { S } from '../../app/basis.js';
+import { markiere } from '../status.js';
+import { markiertesObjekt, objById } from '../auswahl.js';
+import { aendere } from '../verlauf.js';
+import { editObjLabel } from '../beschriften.js';
+import { isAct, isStep, isTrans } from './grafcet-aktion.js';
+import { aktionenVon, freieSchrittNummer, haengeEin, legeUnter, nachfolgerUnten, neuesGlied, objIn } from './grafcet-kette.js';
+
+/* ---------- Reihenfolge der Kette ---------- */
+// Kettenglieder in Lesereihenfolge: ab den Anfangsschritten (sonst den Gliedern ohne Vorgänger), Zweige von links
+export function kettenFolge(d){
+  const glieder = d.o.filter(o => !isAct(o)).sort((a, b) => a.y - b.y || a.x - b.x);
+  const anfang = glieder.filter(o => o.k === "init");
+  const folge = [], gesehen = new Set();
+  const besuche = A => {
+    if (gesehen.has(A.id)) return;
+    gesehen.add(A.id); folge.push(A);
+    d.c.filter(c => c.a === A.id).map(c => objIn(d, c.b)).filter(B => B && !isAct(B)).sort((a, b) => a.x - b.x).forEach(besuche);
+  };
+  [...anfang, ...glieder].forEach(besuche);
+  return folge;
+}
+// Kettenglied, an dem eine Aktion hängt (über die Aktionen darüber hinweg)
+export function stammVon(d, o){
+  for (let n = 0; isAct(o) && n < 50; n++) { const c = d.c.find(c => c.b === o.id); o = c && objIn(d, c.a); }
+  return o || null;
+}
+
+/* ---------- + Schritt ---------- */
+// Wo „+ Schritt“ anhängt: am markierten Glied, sonst am untersten Ende der Kette
+export function anhaengeStelle(d){
+  const m = markiertesObjekt();
+  if (m) return stammVon(d, m);
+  const enden = d.o.filter(o => (isStep(o) || isTrans(o)) && !nachfolgerUnten(d, o));
+  return enden.sort((a, b) => b.y - a.y)[0] || null;
+}
+// Nach einem Schritt (und nach einer ODER-Verzweigung) kommt zuerst die Transition, sonst zuerst der Schritt
+export const transitionZuerst = A => isStep(A) || A.k === "alt";
+export function plusSchritt(){
+  let trans = null, schritt = null;
+  aendere(d => {
+    let A = anhaengeStelle(d);
+    if (!A) A = Object.assign(neuesGlied(d, "init", "1"), {x: 180, y: 60});
+    const S = nachfolgerUnten(d, A);
+    trans = neuesGlied(d, "trans", ""); schritt = neuesGlied(d, "step", freieSchrittNummer(d));
+    haengeEin(A, transitionZuerst(A) ? [trans, schritt] : [schritt, trans], d, S);
+  });
+  markiere("o", schritt.y > trans.y ? schritt.id : trans.id);   // das untere Glied: dort geht es weiter
+  editObjLabel(objById(trans.id));   // Fokus auf die Bedingung
+}
+
+/* ---------- Kette ausrichten ---------- */
+export const legbar = o => isStep(o) || isTrans(o);
+// Schritte und Transitionen unter ihren Vorgänger legen (Teilung 100), Verzweigungen und Aktionen ziehen mit
+export function ketteAusrichten(d){
+  const unten = Object.fromEntries(d.o.map(o => [o.id, o.y])), weg = {};
+  for (const A of kettenFolge(d)) {
+    weg[A.id] = weg[A.id] || [0, 0];
+    for (const c of d.c.filter(c => c.a === A.id)) {
+      const B = objIn(d, c.b);
+      if (!B || isAct(B) || B.id in weg || unten[B.id] <= unten[A.id]) continue;
+      const [x0, y0] = [B.x, B.y];
+      if (legbar(A) && legbar(B)) legeUnter(B, A); else { B.x += weg[A.id][0]; B.y += weg[A.id][1]; }
+      weg[B.id] = [B.x - x0, B.y - y0];
+      verschiebeAktionen(d, B, weg[B.id]);
+    }
+  }
+}
+export function verschiebeAktionen(d, B, [dx, dy]){
+  const ids = new Set(aktionenVon(d, B.id));
+  d.o.forEach(o => { if (ids.has(o.id)) { o.x += dx; o.y += dy; } });
+}
+
+/* ---------- Neu nummerieren ---------- */
+// Schritte 1, 2, 3 … in der Reihenfolge der Kette; Transitionen nur, wenn schon eine eine Nummer trägt.
+// Verweise (Sprungziele) bekommen die neue Nummer.
+export function neuNummerieren(d){
+  const neu = {}, mitNummer = d.o.some(o => isTrans(o) && o.nr);
+  let n = 0, t = 0;
+  for (const o of kettenFolge(d)) {
+    if (o.k === "step" || o.k === "init") { neu[o.v] = String(++n); o.v = String(n); }
+    else if (isTrans(o) && mitNummer) o.nr = String(++t);
+  }
+  d.o.filter(o => o.k === "ref" && o.v).forEach(r => { r.v = r.v.replace(/\d+/, z => neu[z] ?? z); });
+}
+
+/* ---------- Werkzeugleiste ---------- */
+export const KETTEN_KNOEPFE = {
+  plus: {name: "+ Schritt", titel: "Transition und nächsten Schritt unter dem markierten Baustein anhängen", tue: plusSchritt},
+  ausrichten: {name: "Kette ausrichten", titel: "Schritte und Transitionen mit Abstand 100 untereinander legen",
+    tue: () => aendere(ketteAusrichten)},
+  nummern: {name: "Neu nummerieren", titel: "Schritte in der Reihenfolge der Kette neu nummerieren, Verweise ziehen mit",
+    tue: () => aendere(neuNummerieren)},
+};
+export const kettenKnoepfeHTML = () => Object.entries(KETTEN_KNOEPFE)
+  .map(([k, b]) => `<button type="button" class="tool" data-gc="${k}" title="${b.titel}">${b.name}</button>`).join("");
+// Vorlagen-Haken klick: true, wenn ein Knopf der Kette gedrückt wurde
+export function kettenKlick(e){
+  const b = e.target.closest("[data-gc]"), knopf = b && KETTEN_KNOEPFE[b.dataset.gc];
+  if (knopf) knopf.tue();
+  return !!knopf;
+}

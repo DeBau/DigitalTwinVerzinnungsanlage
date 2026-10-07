@@ -9,6 +9,7 @@ import { LINIE, platzhalter, setzeBreite } from '../bausteine.js';
 import { textFeld } from '../eigenschaften.js';
 import { AKTION_SEITE, AKTION_TEXT, aktionFelder, aw, hasMark, isStep, setzeAktion, zeichneAktion } from './grafcet-aktion.js';
 import { KETTEN_HAKEN, freieSchrittNummer, hinweisAnleitung } from './grafcet-kette.js';
+import { kettenKlick, kettenKnoepfeHTML } from './grafcet-knoepfe.js';
 
 /* ---------- Schritte, Transitionen, Verzweigungen ---------- */
 export const QUADRAT = o => ({x: o.x, y: o.y, w: 40, h: 40});
@@ -18,6 +19,7 @@ export const SCHRITT = {
   aus: o => [o.x+20, o.y+40],
   ein: o => [o.x+20, o.y],
   einrueck: 20,
+  teilung: 30,   // fester Abstand unter dem Vorgänger, mit der Transition dazwischen Teilung 100
   neu(o, [px, py]){ o.x = px - 20; o.y = py - 20; o.v = naechsteSchrittNummer(); },
   verweisName: o => `Schritt ${o.v}`,
   feldliste: [["v", "Schrittnummer"]],
@@ -35,6 +37,7 @@ export function transitionName(o, objs, cs, dir){
   return o.v ? `Transition ${o.v}` : "Transition";
 }
 export const zeichneTransition = (o, edit) => `<path d="M${o.x-14} ${o.y}H${o.x+14}" stroke="${INK}" stroke-width="3.2"/>`
+  + (o.nr ? SVGT(o.x-20, o.y+4, `(${o.nr})`, "end", 11, 400) : "")
   + (o.v ? SVGT(o.x+22, o.y+5, o.v, "start", 13, 400) : platzhalter(edit, "Bedingung", o.x+22, o.y+5, "start"));
 export const verzweigungsBreite = o => o.w || 200;
 export const VERZWEIGUNG = {
@@ -60,6 +63,8 @@ registriereVorlage("grafcet", {
   n: "GRAFCET", d: "Ablauf nach DIN EN 60848 mit Symbollegende", gruppen: ["grafcet"],
   body: (ex, page) => dots(20) + (page ? "" : GRAFCET_LEGENDE),
   anleitung: hinweisAnleitung,
+  werkzeugleiste: {nachVerbinden: kettenKnoepfeHTML()},   // + Schritt, Kette ausrichten, Neu nummerieren
+  klick: kettenKlick,
 });
 export const LEGENDE_STRICH = `stroke="${G}" stroke-width="1.3"`;
 export const GRAFCET_LEGENDE = [
@@ -75,9 +80,11 @@ export const GRAFCET_LEGENDE = [
 
 registriereGruppe("grafcet", {
   name: "GRAFCET",
-  hinweis: "Anfangsschritt setzen, dann Transition, Schritt, Transition … anklicken: Jeder neue Baustein hängt sich unter "
-    + "den markierten. Aktionen hängen sich rechts an den Schritt; eine weitere Aktion kommt darunter oder – Klick rechts "
-    + "daneben – dahinter. Für den Rücksprung die letzte Transition markieren, Verbinden wählen und den Anfangsschritt anklicken.",
+  hinweis: "Anfangsschritt setzen, dann mit „+ Schritt“ Transition und Schritt anhängen, oder Bausteine anklicken: Jeder "
+    + "neue Baustein hängt sich unter den markierten, zwischen zwei Schritte kommt von selbst eine Transition. Aktionen hängen "
+    + "sich rechts an den Schritt, eine weitere Aktion kommt darunter oder (Klick rechts daneben) dahinter. Für den Rücksprung "
+    + "markierst du die letzte Transition, wählst Verbinden und klickst den Anfangsschritt an. Umschalt beim Ziehen nimmt den "
+    + "Rest der Kette mit.",
   kette: true,
   ...KETTEN_HAKEN,                    // nachSetzen, vorVerbinden, loeschen, mitziehen (grafcet-kette.js)
 });
@@ -102,8 +109,9 @@ export const TRANSITION = {
   umriss: o => ({x: o.x-16, y: o.y-9, w: 32 + (o.v ? tw(o.v) + 12 : 70), h: 18}),
   mitte: o => [o.x, o.y],
   aus: o => [o.x, o.y], ein: o => [o.x, o.y],
+  teilung: 30,
   verweisName: transitionName,
-  feldliste: [["v", "Übergangsbedingung", "z. B. BG1 · BG15, 5s/X3, ↑BG40"]],
+  feldliste: [["v", "Übergangsbedingung", "z. B. BG1 · BG15, 5s/X3, ↑BG40"], ["nr", "Transitionsnummer (optional)", "z. B. 1"]],
   beschriftung: {sofort: true, ort: o => [o.x + 20, o.y], hinweis: "Bedingung, z. B. BG1 · BG40"},
 };
 export const VERWEIS = {
