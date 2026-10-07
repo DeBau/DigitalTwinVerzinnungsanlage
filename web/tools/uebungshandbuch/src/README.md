@@ -162,7 +162,7 @@ nur `ED.data`.
 | `letzterKlick`, `drag`, `strich`, `strichPfad`, `radiert` | Doppelklick, laufendes Ziehen, aufgezogener Strich, Radierer | zeiger.js |
 | `verbindenVon` | Werkzeug Verbinden: erster Baustein `{id, anschluss}` | zeiger.js |
 | `hist`, `zukunft`, `tx` | Rückgängig, Wiederholen, offene Transaktion | verlauf.js |
-| `sim` | Pneumatik-Simulation `{on, st, pos, P, E, netz, verlauf}`: Stellungen, Lagen, Druck, Entlüftung, Leitungsnetze, Weg-Zeit | vorlagen/pneumatik-simulation.js |
+| `sim` | Pneumatik-Simulation `{on, st, pos, P, E, netz, verlauf, impuls}`: Stellungen, Lagen, Druck, Entlüftung, Leitungsnetze, Weg-Zeit, Spulenimpuls | vorlagen/pneumatik-simulation.js |
 | `vorlage` | Zustand der Vorlage, beim Öffnen geleert. Der Kern kennt nur `vorlage.angefangen` (Esc und Werkzeugwechsel verwerfen es) | Vorlage |
 
 Die Markierung ist höchstens ein Element: `ED.markiert = {art, id}`. `art` ist `o` (Baustein, `id` = Objekt-ID),
@@ -452,6 +452,17 @@ als Nutzen brächte.
   Markierung ändert. Nach einem Klick auf einen Knopf in `#props` liegt der Fokus nicht mehr im Editor (K10).
 * Einige Texte der Bedienoberfläche (Palettenhilfe, Menü „Aus früherer Übung“, Rückfrage beim Kopieren) stehen
   noch in der Sie-Form und mit Gedankenstrich. Sie zu ändern ändert die Ausgabe, deshalb blieb es beim Umbau.
+
+### Offen aus Paket PNEU
+
+* P9 Last: Die Simulation kennt keine Last am Zylinder (Masse, Gegenkraft). Die Hubzeit hängt nur von den Drosseln ab.
+* X1 zur Hälfte: Das Weg-Zeit-Diagramm in der Simulation ist da. Die Kopplung GRAFCET mit Pneumatik (Schritte schalten
+  Spulen, Sensoren schalten Transitionen) fehlt.
+* P10 Normprüfung offen: Die Symbole sind nicht vollständig gegen ISO 1219-1 geprüft. Die unklaren Punkte
+  (Federraum, Richtung des Entlüftungsdreiecks, Vorsteuerung) bleiben, bis der Nutzer sie bestätigt.
+* Bedeutung 1/0 im Weg-Schritt-Diagramm hängt am Zeilenindex (`meta.bed`). Wird eine Zeile umbenannt, bleibt die
+  eigene Bedeutung stehen.
+* Ein Antrieb aus der Anlage bekommt kein Ventilkennzeichen (`v` leer).
 
 ## 12. Welle 1: wer ändert was, Namen aus Paket V
 
