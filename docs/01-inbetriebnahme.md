@@ -16,6 +16,38 @@ Für den ersten Blick ohne SPS genügt Schritt 1.
 
 Zum Anschauen ohne Bridge reicht auch ein Doppelklick auf `web\index.html`. Ohne SPS läuft der Modus **Demo ohne SPS**: Eine Schrittkette im Browser steuert die Anlage, die Automatik startet von selbst.
 
+### Starke Grafikkarte für den Browser einstellen (wichtig bei Laptops)
+
+Viele Laptops haben zwei Grafikchips: eine sparsame Onboard-Grafik (meist Intel) und eine starke Grafikkarte (NVIDIA oder AMD).
+Windows gibt dem Browser standardmäßig die Onboard-Grafik, der Zwilling ruckelt dann auch in niedrigen Grafikstufen.
+Einmal umstellen, für jeden Browser, in dem der Zwilling geöffnet wird:
+
+| Browser | Programmdatei |
+|---|---|
+| Google Chrome | `C:\Program Files\Google\Chrome\Application\chrome.exe` |
+| Microsoft Edge | `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe` |
+
+**Windows 11**
+
+1. Windows-Taste + R drücken, `ms-settings:display-advancedgraphics` eingeben, Enter.
+   (Oder: Einstellungen → System → Bildschirm → ganz unten **Grafik**.)
+2. Unter „Benutzerdefinierte Optionen für Apps“ den Browser suchen. Fehlt er: **App hinzufügen → Durchsuchen** und die Programmdatei aus der Tabelle wählen.
+3. Auf den Browser klicken, bei „GPU-Einstellung“ **Hohe Leistung** wählen (dort steht die NVIDIA- oder AMD-Karte).
+
+**Windows 10**
+
+1. Einstellungen → System → Anzeige → ganz unten **Grafikeinstellungen**.
+2. „Desktop-App“ wählen, **Durchsuchen** und die Programmdatei aus der Tabelle wählen, **Hinzufügen**.
+3. Den Browser in der Liste anklicken, **Optionen → Hohe Leistung → Speichern**.
+
+Danach den Browser **komplett beenden** (alle Fenster schließen, auch das Symbol im Infobereich unten rechts) und neu starten.
+
+**Prüfen:** Im Zwilling unten auf **Grafik** klicken. Unten im Fenster steht die Grafikkarte, auf der der Browser rechnet.
+Bei der Onboard-Grafik erscheint der Hinweis rot. Alternativ zeigt `chrome://gpu` bzw. `edge://gpu` den Eintrag „GL_RENDERER“.
+
+Wirkt die Windows-Einstellung nicht: NVIDIA-Systemsteuerung (Rechtsklick auf den Desktop) → 3D-Einstellungen verwalten →
+Programmeinstellungen → Browser wählen → **Hochleistungs-NVIDIA-Prozessor**. Bei AMD entsprechend in der AMD Software unter Grafik.
+
 
 
 ## 2. TIA-Projekt vorbereiten
@@ -58,6 +90,7 @@ Zum Anschauen ohne Bridge reicht auch ein Doppelklick auf `web\index.html`. Ohne
 |---|---|
 | `build.bat`: API-DLL nicht gefunden | Pfad setzen: `set PLCSIMADV_API_DLL=C:\Program Files\Common Files\Siemens\PLCSIMADV\API\<Version>\Siemens.Simatic.Simulation.Runtime.Api.x64.dll`, dann `build.bat` im selben Fenster starten. |
 | `build.bat`: Kompilierfehler | Meist eine abweichende PLCSIM-Advanced-API-Version. Meldung und API-Version (Ordnername unter `…\PLCSIMADV\API\`) als [Issue](https://github.com/DeBau/DigitalTwinVerzinnungsanlage/issues) melden. |
+| Bild ruckelt, auch in niedrigen Grafikstufen | Browser rechnet auf der Onboard-Grafik. Siehe [Starke Grafikkarte für den Browser einstellen](#starke-grafikkarte-für-den-browser-einstellen-wichtig-bei-laptops). Welche Grafikkarte verwendet wird, zeigt der Knopf **Grafik** im Zwilling. |
 | Seite bleibt grau, Meldung „3D-Darstellung nicht möglich“ | Browser oder Grafiktreiber stellen kein WebGL 2 bereit. Aktuellen Chrome, Edge oder Firefox verwenden, Grafiktreiber aktualisieren, in den Browsereinstellungen die Hardwarebeschleunigung einschalten. |
 | *Runtime-Manager läuft nicht* | PLCSIM Advanced Control Panel öffnen. |
 | *Instanz 'Zinnbad' nicht gefunden* | Instanzname im Control Panel prüfen oder in `start.bat` anpassen. |

@@ -204,7 +204,7 @@ docs/                       documentation and images
 |---|---|
 | **Viewing** | Windows, macOS or Linux, current browser with WebGL 2 |
 | **With PLC** | Windows 10/11, S7-PLCSIM Advanced V3.0 or later, TIA Portal V16 or later |
-| **Hardware** | Any graphics from Intel UHD upward; the graphics level adjusts automatically to the frame rate |
+| **Hardware** | Any graphics from Intel UHD upward; the graphics level adjusts automatically to the frame rate. Laptops with an NVIDIA or AMD card: set the browser to *High performance* in Windows, see [Commissioning](docs/01-inbetriebnahme.en.md#set-the-browser-to-the-powerful-graphics-card-important-on-laptops) |
 | **Not required** | Installation, internet connection, license file or runtime environment for the twin itself |
 
 ---

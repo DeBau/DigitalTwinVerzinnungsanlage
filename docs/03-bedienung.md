@@ -112,6 +112,6 @@ zum TIA-Projekt passen.
   (Bildrate etwa halbiert); *Grafik: Auto* stellt dann gegebenenfalls eine Stufe niedriger. Standard: aus, der
   Zustand wird im Browser gemerkt. Durchsichtige Scheiben (Umhausung, Lichtvorhang) verschatten nicht.
 
-- Für die beste Darstellung im Browser die starke Grafikkarte verwenden: Windows-Einstellungen → System → Anzeige → Grafik → Chrome/Edge → *Hohe Leistung*, danach den Browser komplett neu starten. Rechnet der Browser auf der Onboard-Grafik, weist das Grafik-Fenster darauf hin. Auf Laptops mit zusätzlicher NVIDIA- oder AMD-Karte ist das der wichtigste Schritt gegen Ruckeln.
+- Für die beste Darstellung im Browser die starke Grafikkarte verwenden, Anleitung für Windows 10 und 11: [Inbetriebnahme](01-inbetriebnahme.md#starke-grafikkarte-für-den-browser-einstellen-wichtig-bei-laptops). Rechnet der Browser auf der Onboard-Grafik, weist das Grafik-Fenster darauf hin. Auf Laptops mit zusätzlicher NVIDIA- oder AMD-Karte ist das der wichtigste Schritt gegen Ruckeln.
 
 [◀ Zurück zur Übersicht](../README.md)

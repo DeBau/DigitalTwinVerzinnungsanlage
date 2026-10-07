@@ -112,6 +112,6 @@ match the TIA project.
   (frame rate roughly halved); *Graphics: Auto* then drops one level if necessary. Default: off, the
   state is remembered in the browser. Transparent panels (enclosure, light curtain) cast no occlusion.
 
-- For the best rendering in the browser, use the powerful graphics card: Windows Settings → System → Display → Graphics → Chrome/Edge → *High performance*, then restart the browser completely. If the browser is running on the integrated graphics, the graphics window points this out. On laptops with an additional NVIDIA or AMD card, this is the most important step against stuttering.
+- For the best rendering in the browser, use the powerful graphics card, instructions for Windows 10 and 11: [Commissioning](01-inbetriebnahme.en.md#set-the-browser-to-the-powerful-graphics-card-important-on-laptops). If the browser is running on the integrated graphics, the graphics window points this out. On laptops with an additional NVIDIA or AMD card, this is the most important step against stuttering.
 
 [◀ Back to overview](../README.en.md)

@@ -16,6 +16,38 @@ For a first look without a PLC, step 1 is all you need.
 
 To just look around without the bridge, double-clicking `web\index.html` is enough. Without a PLC, the twin runs in **Demo without PLC** mode: a step sequence in the browser controls the line, and automatic mode starts by itself.
 
+### Set the browser to the powerful graphics card (important on laptops)
+
+Many laptops have two graphics chips: power-saving integrated graphics (usually Intel) and a powerful graphics card (NVIDIA or AMD).
+By default, Windows gives the browser the integrated graphics, and the twin then stutters even at low graphics levels.
+Change this once for every browser in which the twin is opened:
+
+| Browser | Program file |
+|---|---|
+| Google Chrome | `C:\Program Files\Google\Chrome\Application\chrome.exe` |
+| Microsoft Edge | `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe` |
+
+**Windows 11**
+
+1. Press Windows key + R, type `ms-settings:display-advancedgraphics`, press Enter.
+   (Or: Settings → System → Display → at the very bottom **Graphics**.)
+2. Under "Custom options for apps", find the browser. If it is missing: **Add an app → Browse** and select the program file from the table.
+3. Click the browser and choose **High performance** under "GPU preference" (the NVIDIA or AMD card is shown there).
+
+**Windows 10**
+
+1. Settings → System → Display → at the very bottom **Graphics settings**.
+2. Choose "Desktop app", **Browse**, select the program file from the table, **Add**.
+3. Click the browser in the list, **Options → High performance → Save**.
+
+Then **close the browser completely** (all windows, including the icon in the notification area at the bottom right) and start it again.
+
+**Check:** In the twin, click **Graphics** at the bottom. The window shows the graphics card the browser is using at the bottom.
+With integrated graphics, the note appears in red. Alternatively, `chrome://gpu` or `edge://gpu` shows the "GL_RENDERER" entry.
+
+If the Windows setting has no effect: NVIDIA Control Panel (right-click the desktop) → Manage 3D settings →
+Program settings → select the browser → **High-performance NVIDIA processor**. For AMD, do the same in AMD Software under Graphics.
+
 
 
 ## 2. Prepare the TIA project
@@ -58,6 +90,7 @@ To just look around without the bridge, double-clicking `web\index.html` is enou
 |---|---|
 | `build.bat`: API DLL not found | Set the path: `set PLCSIMADV_API_DLL=C:\Program Files\Common Files\Siemens\PLCSIMADV\API\<Version>\Siemens.Simatic.Simulation.Runtime.Api.x64.dll`, then run `build.bat` in the same window. |
 | `build.bat`: compiler error | Usually a different PLCSIM Advanced API version. Report the message and the API version (folder name under `…\PLCSIMADV\API\`) as an [issue](https://github.com/DeBau/DigitalTwinVerzinnungsanlage/issues). |
+| Picture stutters, even at low graphics levels | The browser is running on the integrated graphics. See [Set the browser to the powerful graphics card](#set-the-browser-to-the-powerful-graphics-card-important-on-laptops). The **Graphics** button in the twin shows which graphics card is in use. |
 | Page stays gray, message “3D view not available” | The browser or graphics driver does not provide WebGL 2. Use a current Chrome, Edge or Firefox, update the graphics driver, and enable hardware acceleration in the browser settings. |
 | *PLCSIM Advanced Runtime Manager is not running* | Open the PLCSIM Advanced Control Panel. |
 | *Instance 'Zinnbad' not found* | Check the instance name in the Control Panel or adapt it in `start.bat`. |

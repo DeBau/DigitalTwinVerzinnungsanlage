@@ -201,7 +201,7 @@ docs/                       Dokumentation und Bilder
 |---|---|
 | **Anschauen** | Windows, macOS oder Linux, aktueller Browser mit WebGL 2 |
 | **Mit SPS** | Windows 10/11, S7-PLCSIM Advanced V3.0 oder neuer, TIA Portal V16 oder neuer |
-| **Hardware** | Jede Grafik ab Intel UHD; die Grafikstufe regelt sich automatisch nach der Bildrate |
+| **Hardware** | Jede Grafik ab Intel UHD; die Grafikstufe regelt sich automatisch nach der Bildrate. Laptops mit NVIDIA- oder AMD-Karte: Browser in Windows auf *Hohe Leistung* stellen, siehe [Inbetriebnahme](docs/01-inbetriebnahme.md#starke-grafikkarte-für-den-browser-einstellen-wichtig-bei-laptops) |
 | **Keine** | Installation, Internetverbindung, Lizenzdatei oder Laufzeitumgebung für den Zwilling selbst |
 
 ---
