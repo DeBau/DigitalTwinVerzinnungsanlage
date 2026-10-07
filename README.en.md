@@ -68,8 +68,8 @@ and light curtain, and an operator who removes the finished baskets.
 
 ## Features
 
-**162 signals at freely assignable addresses.** 109 inputs (6 of them analog) and 53 outputs (1 of them analog) at
-`%I0.0…%I11.7`, `%Q0.0…%Q5.4`, `%IW64…74` and `%QW80`, plus the PROFINET telegrams of the four inverters
+**186 signals at freely assignable addresses.** 121 inputs (6 of them analog) and 65 outputs (1 of them analog) at
+`%I0.0…%I13.7`, `%Q0.0…%Q7.7`, `%IW64…74` and `%QW80`, plus the PROFINET telegrams of the four inverters
 −TA2…−TA5 (Conveyor 1, Conveyor 2, roller curve, inspection conveyor) at `%IW256…270/%QW256…270`, for
 `TO_SpeedAxis` technology objects just like on a real SINAMICS G120. Your program sees the same interface as on
 the real plant: no proprietary protocol, no block library, no license file.
@@ -186,7 +186,7 @@ Bridge/
   start.bat                 instance name, port, CPU cycle time
   ZwillingBridge.cs         bridge source code
 TIA/
-  PLC_Variablen_Zinnbad.xlsx  all 162 signals for import (German names)
+  PLC_Variablen_Zinnbad.xlsx  all 186 signals for import (German names)
   PLC_Tags_Tinning_EN.xlsx    the same signals with English names
 web/
   index.html                the finished twin: a single file, runs on double-click

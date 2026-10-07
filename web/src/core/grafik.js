@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { $, fuell, himmel, renderer, scene, sun } from './szene.js';
+import { $, camera, fuell, himmel, renderer, scene, sun } from './szene.js';
 import { PERSON } from '../anlage/werker.js';
 import { bodenMesh } from '../anlage/halle.js';
 import { BAND, BAND2, KURVE } from '../anlage/baender.js';
@@ -24,14 +24,14 @@ export const STUFEN = [
   { name: 'Minimal', pr: 0.55, schattenAlle: 0, sm: 1024, lambert: true, schatten: false, nurBoden: true },
 ];
 const DYN_WURZELN = () => [schlitten, deckel, BAND.anschlag, BAND.vereinzeler, ...(BAND.stopperNocken || []), ...KURVE.rollen, ST.kipper, ST.zylBody, ST.zylStange, ST.rinneGruppe, ...BAND.trommeln, ...BAND2.trommeln, ...SCHRANK.tueren, ...koerbe.map(k => k.g), PERSON?.g].filter(Boolean);
-export const Q = { modus: 'auto', stufe: 0, gesperrt: new Set(), t: 0, n: 0, zuletzt: performance.now(), ruhe: 0, gutSeit: 0 };
+export const Q = { modus: 'auto', stufe: 0, gesperrt: new Set(), t: 0, n: 0, zaeh: 0, zuletzt: performance.now(), ruhe: 0, gutSeit: 0 };
 try { const m = localStorage.getItem('zinnbad-grafik'); if (m) Q.modus = m; } catch { /* kein Speicher */ }
 // Standard ↔ Lambert: Lambert-Kopien, Laufzeitwerte (Farbe, Leuchten, Deckkraft) werden jedes Bild übernommen
 const LAMBERT = new Map();
 const lambertVon = (m) => {
   if (m.type !== 'MeshStandardMaterial') return m;
   if (!LAMBERT.has(m)) {
-    const l = new THREE.MeshLambertMaterial({ color: m.color, map: m.map, emissive: m.emissive, emissiveIntensity: m.emissiveIntensity, transparent: m.transparent, opacity: m.opacity, side: m.side, alphaMap: m.alphaMap, alphaTest: m.alphaTest, depthWrite: m.depthWrite, polygonOffset: m.polygonOffset, polygonOffsetFactor: m.polygonOffsetFactor, polygonOffsetUnits: m.polygonOffsetUnits });
+    const l = new THREE.MeshLambertMaterial({ color: m.color, vertexColors: m.vertexColors, map: m.map, emissive: m.emissive, emissiveIntensity: m.emissiveIntensity, transparent: m.transparent, opacity: m.opacity, side: m.side, alphaMap: m.alphaMap, alphaTest: m.alphaTest, depthWrite: m.depthWrite, polygonOffset: m.polygonOffset, polygonOffsetFactor: m.polygonOffsetFactor, polygonOffsetUnits: m.polygonOffsetUnits });
     l.userData.std = m; LAMBERT.set(m, l);
   }
   return LAMBERT.get(m);
@@ -72,19 +72,41 @@ export function stufeSetzen(i) {
   renderer.shadowMap.needsUpdate = true;
   $('btn-grafik').textContent = Q.modus === 'auto' ? t`Grafik: Auto (${t(s2.name)})` : t`Grafik: ${t(s2.name)}`;
 }
+// Alle Stufenvarianten (Standard/Lambert, mit/ohne Schatten) beim Start einmal zeichnen: Sonst hängt das Bild beim
+// ersten Umschalten bis zu einer halben Sekunde. Nur übersetzen reicht nicht – der Grafiktreiber (ANGLE/Direct3D)
+// baut die Shader endgültig erst beim ersten Zeichnen. Dabei alles sichtbar und ohne Sichtfeldprüfung, damit auch
+// Ausgeblendetes und Verdecktes dabei ist. Lichter bleiben, wie sie sind: Ihre Anzahl steckt in jedem Shader.
+// Das Schranklicht wird zur Laufzeit geschaltet (Türen auf/zu), deshalb beide Zustände.
+function allesZeichnen() {
+  const zustand = [];
+  scene.traverse((o) => { if (o.isLight) return; zustand.push([o, o.visible, o.frustumCulled]); o.visible = true; o.frustumCulled = false; });
+  const lichtVorher = SCHRANK.licht.visible;
+  for (const an of [false, true]) {
+    SCHRANK.licht.visible = an;
+    renderer.shadowMap.needsUpdate = true;
+    renderer.render(scene, camera);
+  }
+  SCHRANK.licht.visible = lichtVorher;
+  for (const [o, sichtbar, pruefen] of zustand) { o.visible = sichtbar; o.frustumCulled = pruefen; }
+}
+export function stufenVorbereiten() {
+  for (const i of [2, 4, 0]) { stufeSetzen(i); allesZeichnen(); }
+}
+// Ruckeln entsteht schon, wenn einzelne Bilder den Bildtakt verpassen (16 ms, 33 ms, 16 ms …), auch wenn der
+// Mittelwert gut aussieht. Gezählt werden deshalb Bilder über 20 ms; ab 8 % davon geht es eine Stufe runter.
 export function qualitaetPruefen() {
   const jetzt = performance.now(), dt = jetzt - Q.zuletzt; Q.zuletzt = jetzt;
   if (Q.modus !== 'auto' || dt > 250 || document.hidden) return;   // Tab im Hintergrund/Hänger nicht werten
-  Q.t += dt; Q.n++;
-  if (Q.ruhe > 0) { Q.ruhe -= dt; Q.t = 0; Q.n = 0; return; }    // nach einer Umschaltung kurz abwarten
+  Q.t += dt; Q.n++; if (dt > 20) Q.zaeh++;
+  if (Q.ruhe > 0) { Q.ruhe -= dt; Q.t = 0; Q.n = 0; Q.zaeh = 0; return; }    // nach einer Umschaltung kurz abwarten
   if (Q.t < 1500) return;
-  const ms = Q.t / Q.n; Q.t = 0; Q.n = 0;
-  if (ms > 1000 / 48 && Q.stufe < STUFEN.length - 1) {            // unter 48 fps: runter, bei großem Abstand gleich mehrere Stufen
+  const ms = Q.t / Q.n, anteilZaeh = Q.zaeh / Q.n; Q.t = 0; Q.n = 0; Q.zaeh = 0;
+  if (anteilZaeh > 0.08 && Q.stufe < STUFEN.length - 1) {         // Takt verpasst: runter, bei großem Abstand gleich mehrere Stufen
     const fps = 1000 / ms, sprung = fps < 22 ? 3 : fps < 32 ? 2 : 1;
     for (let i = Q.stufe; i < Q.stufe + sprung; i++) Q.gesperrt.add(i);
     stufeSetzen(Math.min(STUFEN.length - 1, Q.stufe + sprung)); Q.ruhe = 1200; Q.gutSeit = 0;
     try { localStorage.setItem('zinnbad-auto-stufe', Q.stufe); } catch { /* kein Speicher */ }
-  } else if (ms < 1000 / 57) {                                      // läuft an der Bildwiederholrate: nach 10 s eine Stufe hoch probieren
+  } else if (anteilZaeh < 0.02) {                                    // läuft im Takt: nach 10 s eine Stufe hoch probieren
     Q.gutSeit += 1500;
     if (Q.gutSeit > 10000 && Q.stufe > 0 && !Q.gesperrt.has(Q.stufe - 1)) { stufeSetzen(Q.stufe - 1); Q.ruhe = 1200; Q.gutSeit = 0; try { localStorage.setItem('zinnbad-auto-stufe', Q.stufe); } catch { /* */ } }
   } else Q.gutSeit = 0;

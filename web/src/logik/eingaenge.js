@@ -14,6 +14,10 @@ export const vomPortal = (name) => st.modus === 'sps' && st.betriebPortal === 'a
 export function ausgang(name) {
   return st.modus === 'sps' && !vomPortal(name) ? !!st.spsAusgaenge[name] : !!st.demoAusgaenge[name];
 }
+// BCD-Anzeige −PG1: Ziffer je Dekade aus den Ausgängen 8-4-2-1 (über 9 bleibt die Stelle dunkel, wie beim BCD-Decoder)
+export function bcdAnzeige() {
+  return ['H', 'Z', 'E'].map(d => [1, 2, 4, 8].reduce((z, w) => z + (ausgang(`PG1_BCD_${d}${w}`) ? w : 0), 0)).map(z => z > 9 ? null : z);
+}
 // Ausgang, wie ihn die CPU schreibt (Signalmonitor, LEDs der DQ-Baugruppe)
 export function ausgangSps(name) {
   return st.modus === 'sps' ? !!st.spsAusgaenge[name] : !!st.demoAusgaenge[name];
@@ -47,7 +51,10 @@ function geber2Phase(versatz) { const n = BAND2.weg / (GEBER.mmProUmdrehung / GE
 // Inkrementalgeber −BG18 an der Umlenktrommel: 10 Impulse je Umdrehung, Spur B um 1/4 Impuls versetzt
 const GEBER = { impulse: 10, mmProUmdrehung: 2 * Math.PI * (TROMMEL_R + 3) };
 function geberPhase(versatz) { const n = BAND.weg / (GEBER.mmProUmdrehung / GEBER.impulse) + versatz; return n - Math.floor(n); }
-const analog = (v, max) => Math.round(Math.max(0, Math.min(1, v / max)) * 27648);
+// Analogwert wie die AI-Baugruppe (Siemens Analogwertverarbeitung): Nennbereich 0…27648, Übersteuerung bis 32511,
+// darüber Überlauf 7FFF (32767); auch ein Drahtbruch meldet 7FFF
+const UEBERLAUF = 0x7FFF;
+const analog = (v, max) => { const w = Math.round(Math.max(0, v / max) * 27648); return w > 32511 ? UEBERLAUF : w; };
 function rohEingang(name) {
   const tg = /^(TA\d)_(ZSW1|NIST_A)$/.exec(name);                  // Telegramm 1 der Umrichter
   if (tg && UMRICHTER[tg[1]]) return tg[2] === 'ZSW1' ? alsInt(zsw1(UMRICHTER[tg[1]])) : nistA(UMRICHTER[tg[1]]);
@@ -57,6 +64,9 @@ function rohEingang(name) {
     if (name === c.s0) return c.an0;
     if (name === c.s1) return c.an1;
   }
+  if (st.drahtbruch[name]) return UEBERLAUF;
+  const bcd = /^SF48_BCD_([HZE])([1248])$/.exec(name);              // Daumenradschalter: Kontakt 8-4-2-1 der Dekade
+  if (bcd) return (st.daumenrad[bcd[1]] & +bcd[2]) !== 0;
   switch (name) {
     case 'BG9_Temperatur': return st.temp >= TEMP_SOLL;
     case 'BG10_Fuellhoehe': return st.fuell >= FUELL_MIN;

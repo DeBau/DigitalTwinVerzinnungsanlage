@@ -8,6 +8,7 @@ import { sensorLed } from '../core/leds.js';
 import { LOCALE, t } from '../core/sprache.js';
 import { KLICK, PULT_TASTER } from './register.js';
 import { FU, FU_BEZUG, ZUSTAND_TEXT, zsw1 } from '../logik/umrichter.js';
+import { feldbusAktiv } from '../logik/antriebe.js';
 import { ereignis } from '../ui/ereignisse.js';
 
 // ----------------------------------------------------------------------------
@@ -30,14 +31,14 @@ export const anzeigeWerte = (fu) => ({
 });
 
 // LEDs der CU240E-2 PN: RDY grün = bereit / rot = Störung, BF aus = zyklischer Datenaustausch / rot blinkend =
-// keine PROFINET-Verbindung, SAFE gelb = STO projektiert / gelb blinkend = STO angewählt
+// kein Datenaustausch (keine Verbindung oder CPU in STOP), SAFE gelb = STO projektiert / gelb blinkend = STO angewählt
 export function g120Leds(fu) {
-  const pnOk = st.modus === 'demo' || st.plcVerbunden || st.betriebBand === 'auto';
+  const pnOk = st.betriebBand === 'auto' || feldbusAktiv();
   return {
     rdy: fu.stoerung ? 'rot' : 'gruen',
     bf: pnOk ? '' : 'rot blinkt',
     safe: fu.sto ? 'gelb blinkt' : 'gelb',
-    lnk: pnOk ? 'gruen' : '',
+    lnk: st.modus === 'demo' || st.plcVerbunden || st.betriebBand === 'auto' ? 'gruen' : '',
   };
 }
 
@@ -85,7 +86,7 @@ export function iopZeichnen(c, fu) {
   c.fillStyle = fu.hand ? '#ffb000' : PETROL; c.fillText(fu.hand ? 'HAND' : 'AUTO', 10, 15);
   c.fillStyle = '#c9d3da'; c.font = '600 13px Arial'; c.fillText(fu.hand ? 'IOP-2' : 'PROFINET', 64, 15);
   if (fu.stoerung) { c.fillStyle = '#ff4d4d'; c.beginPath(); c.arc(W - 20, 15, 9, 0, 7); c.fill(); c.fillStyle = '#fff'; c.font = '700 13px Arial'; c.textAlign = 'center'; c.fillText('!', W - 20, 16); }
-  else if (fu.sto) { c.fillStyle = '#ffd000'; c.beginPath(); c.moveTo(W - 20, 6); c.lineTo(W - 10, 24); c.lineTo(W - 30, 24); c.fill(); }
+  else if (fu.sto || fu.warnung) { c.fillStyle = '#ffd000'; c.beginPath(); c.moveTo(W - 20, 6); c.lineTo(W - 10, 24); c.lineTo(W - 30, 24); c.fill(); }
   c.textAlign = 'left';
   const zeile = (text, y, farbe = '#e8eef2', font = '500 15px Arial', x = 12, ausr = 'left') => { c.fillStyle = farbe; c.font = font; c.textAlign = ausr; c.fillText(text, x, y); };
   if (fu.iop.seite === 'diag') {
@@ -95,6 +96,10 @@ export function iopZeichnen(c, fu) {
       zeile(fu.stoerung.nr, 104, '#fff', '700 22px Arial');
       zeile(t(fu.stoerung.text), 130, '#e8eef2', '500 15px Arial');
       zeile(t('OK = Quittieren'), 214, '#9fb0bb', '500 13px Arial');
+    } else if (fu.warnung) {
+      zeile(t('Warnung'), 78, '#ffd000', '700 15px Arial');
+      zeile(fu.warnung.nr, 104, '#fff', '700 22px Arial');
+      zeile(t(fu.warnung.text), 130, '#e8eef2', '500 15px Arial');
     } else if (fu.sto) {
       zeile(t('Warnung'), 78, '#ffd000', '700 15px Arial');
       zeile('STO', 104, '#fff', '700 22px Arial');

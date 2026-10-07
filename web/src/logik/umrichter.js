@@ -33,7 +33,7 @@ export const ZUSTAND_TEXT = {
 };
 
 function umrichterNeu() {
-  return { zustand: 'S1', n: 0, nRfg: 0, stoerung: null, stwAlt: 0, sto: false, stw: 0, nsoll: 0, ziel: 0, motorHeiss: false, aus2: false,
+  return { zustand: 'S1', n: 0, nRfg: 0, stoerung: null, warnung: null, stwAlt: 0, stwGueltig: 0, nsollGueltig: 0, sto: false, stw: 0, nsoll: 0, ziel: 0, motorHeiss: false, aus2: false,
     hand: false, handEin: false, handSoll: 0, panelQuitt: false,         // HAND = Führung über das Bedienpanel IOP-2
     iop: { seite: 0, meldung: '', meldungT: 0 } };                       // Anzeige des Bedienpanels
 }
@@ -47,9 +47,11 @@ const bit = (w, b) => ((w >> b) & 1) === 1;
 export function ueberlastAusloesen(fu) { if (!fu.stoerung) fu.stoerung = { nr: 'F30005', text: 'Leistungsteil Überlast I2t' }; }
 
 // Ein Rechenschritt. stw = STW1 (0…65535), nsoll = NSOLL_A (−32768…32767), sto = Safe Torque Off
-// über −KF2 angewählt. Der Kaltleiter im Motor (fu.motorHeiss) löst F07011 aus.
-export function umrichterSchritt(fu, stw, nsoll, dt, { sto }) {
+// über −KF2 angewählt, feldbusAus = kein zyklischer Datenaustausch mit der SPS (Verbindung weg oder CPU in STOP).
+// Der Kaltleiter im Motor (fu.motorHeiss) meldet die Warnung A07910 und löst F07011 aus.
+export function umrichterSchritt(fu, stw, nsoll, dt, { sto, feldbusAus = false }) {
   const uebertemp = fu.motorHeiss;
+  fu.warnung = uebertemp ? { nr: 'A07910', text: 'Motorübertemperatur' } : null;
   // HAND (Taste HAND/AUTO am Bedienpanel): das Panel führt, das Telegramm der SPS wird nicht beachtet.
   // Aus der Einschaltsperre geht es auch hier nur über AUS1 = 0, das erledigt das Panel selbst.
   if (fu.hand) {
@@ -60,8 +62,14 @@ export function umrichterSchritt(fu, stw, nsoll, dt, { sto }) {
   if (fu.panelQuitt) { fu.panelQuitt = false; fu.stwAlt &= ~0x0080; stw |= 0x0080 | (fu.hand ? 0 : 0x0400); }
   stw &= 0xFFFF;
   fu.stw = stw; fu.nsoll = nsoll;
-  // Ohne Führung durch die SPS (STW1.10 = 0) übernimmt der Umrichter keine Prozessdaten
-  if (!bit(stw, 10) && !fu.hand) stw = 0;
+  // Ohne Führung durch die SPS (STW1.10 = 0) ignoriert der Umrichter die Prozessdaten vom Feldbus
+  // und arbeitet mit den zuletzt übernommenen weiter (Betriebsanleitung CU240E-2, Steuerwort 1)
+  if (!fu.hand) {
+    if (bit(stw, 10)) { fu.stwGueltig = stw; fu.nsollGueltig = nsoll; } else { stw = fu.stwGueltig; nsoll = fu.nsollGueltig; }
+  }
+  // Feldbusüberwachung (p2040): ohne Datenaustausch Störung F01910 mit Reaktion AUS3 (Schnellhalt);
+  // quittieren lässt sie sich erst, wenn die SPS wieder Daten schickt
+  if (feldbusAus && !fu.hand && !fu.stoerung) fu.stoerung = { nr: 'F01910', text: 'Feldbus: Sollwert-Timeout', aus3: true };
   const ein = bit(stw, 0), aus2 = !bit(stw, 1), aus3 = !bit(stw, 2), freigabe = bit(stw, 3);
   const quittFlanke = bit(stw, 7) && !bit(fu.stwAlt, 7);
   fu.stwAlt = stw;
@@ -69,11 +77,14 @@ export function umrichterSchritt(fu, stw, nsoll, dt, { sto }) {
 
   if (uebertemp && !fu.stoerung) fu.stoerung = { nr: 'F07011', text: 'Motorübertemperatur' };
   // Quittieren (Flanke STW1.7): nur wenn die Ursache weg ist; danach Einschaltsperre
-  if (fu.stoerung && quittFlanke && !(fu.stoerung.nr === 'F07011' && uebertemp)) { fu.stoerung = null; fu.zustand = 'S1'; }
+  const ursacheDa = (fu.stoerung?.nr === 'F07011' && uebertemp) || (fu.stoerung?.nr === 'F01910' && feldbusAus);
+  if (fu.stoerung && quittFlanke && !ursacheDa) { fu.stoerung = null; fu.zustand = 'S1'; }
 
   // STO hat Vorrang: Impulse sofort gesperrt, danach Einschaltsperre (AUS1 muss erst wieder 0 sein)
   fu.sto = sto;
-  if (fu.stoerung || sto || aus2) fu.zustand = 'S1';
+  const puls = ['S4', 'AUS1', 'AUS3'].includes(fu.zustand);
+  if (sto || aus2 || (fu.stoerung && !(fu.stoerung.aus3 && puls))) fu.zustand = 'S1';
+  else if (fu.stoerung) fu.zustand = 'AUS3';                              // Störreaktion AUS3: Schnellhalt, danach Impulssperre
   else switch (fu.zustand) {
     case 'S1': if (!ein && !aus3) fu.zustand = 'S2'; break;
     case 'S2': if (aus3) fu.zustand = 'S1'; else if (ein) fu.zustand = 'S3'; break;
@@ -133,13 +144,13 @@ export function zsw1(fu) {
   setze(4, !fu.aus2);                                                 // kein AUS2 aktiv (STO zählt nicht dazu)
   setze(5, z !== 'AUS3');                                             // kein AUS3 aktiv
   setze(6, z === 'S1');                                               // Einschaltsperre aktiv
-  setze(7, false);                                                    // Warnung wirksam
+  setze(7, !!fu.warnung);                                             // Warnung wirksam
   setze(8, Math.abs(fu.ziel - n) <= FU.toleranz);                      // Drehzahl-Soll-Ist-Abweichung im Toleranzbereich
   setze(9, !fu.hand);                                                 // Führung gefordert (nicht in HAND am Panel)
   setze(10, Math.abs(n) >= 1 - 1e-3);                                 // Vergleichswert (p2141 = Bezugsdrehzahl) erreicht
   setze(11, true);                                                    // I-, M- oder P-Grenze nicht erreicht
   setze(12, z === 'S4' || z === 'AUS1' || z === 'AUS3');            // Haltebremse offen
-  setze(13, !(fu.stoerung && fu.stoerung.nr === 'F07011'));          // keine Warnung Motorübertemperatur
+  setze(13, fu.warnung?.nr !== 'A07910');                             // keine Warnung Motorübertemperatur
   setze(14, n > 1e-3);                                                // Motor dreht rechts
   setze(15, true);                                                    // keine Warnung Überlast Umrichter
   return w;

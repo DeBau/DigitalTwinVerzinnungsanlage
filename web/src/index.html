@@ -152,6 +152,11 @@ a.chip-btn { text-decoration: none; }
 .op { display: grid; justify-items: center; gap: 5px; text-align: center; }
 .op small { font: 500 10.5px/1.15 var(--font-label); letter-spacing: .03em; }
 .op code { font: 400 10px var(--font-data); opacity: .7; }
+.bcd-anzeige { font: 700 22px/1 "Courier New", monospace; letter-spacing: .12em; color: #ff3b26; background: #160807; padding: 6px 8px; border-radius: 3px; min-width: 64px; }
+.daumenrad { display: flex; gap: 2px; background: #101214; padding: 3px; border-radius: 3px; }
+.daumenrad span { display: grid; justify-items: center; }
+.daumenrad b { font: 700 18px/1.2 "Courier New", monospace; color: #f2f4f6; background: #2a2e33; padding: 0 4px; }
+.daumenrad button { font: 600 11px/1 var(--font-label); width: 22px; height: 16px; padding: 0; cursor: pointer; background: #3a3f45; color: #f2f4f6; border: 0; }
 .pb { width: 46px; height: 46px; border-radius: 50%; cursor: pointer; border: 3px solid #1d2126; background: radial-gradient(circle at 40% 35%, #ffffff, #dfe3e7 60%, #b9c0c7); box-shadow: 0 3px 0 #1d2126; position: relative; }
 .pb::after { content: ""; position: absolute; left: 50%; top: 18%; bottom: 18%; width: 5px; transform: translateX(-50%); background: #1d2126; border-radius: 3px; }
 .pb.aus { border-color: #e9b800; background: radial-gradient(circle at 40% 35%, #ff7a6e, #d42a1f 60%, #9b170f); box-shadow: 0 3px 0 #8a6d00; }
@@ -359,6 +364,7 @@ td { padding: 5px 4px; border-bottom: 1px solid color-mix(in srgb, var(--line) 6
 td.adr { font-family: var(--font-data); color: var(--muted); white-space: nowrap; }
 td.name { font-family: var(--font-label); font-weight: 500; }
 td.name small { display: block; font-family: var(--font-ui); font-weight: 400; color: var(--muted); font-size: 11px; }
+tr.byte-row td.name { font-weight: 600; }
 tr.dir-row td { font: 600 10.5px var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); padding-top: 10px; border-bottom: 0; }
 tr.forced td { background: color-mix(in srgb, var(--led) 12%, transparent); }
 .led { width: 11px; height: 11px; border-radius: 50%; background: var(--line); border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent); }
@@ -548,6 +554,11 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
             <div class="op"><span class="lamp red" id="pf3"></span><small>Füllhöhe unter­schritten</small><code>−PF3</code></div>
             <div class="op"><span class="lamp green" id="pf4"></span><small>Materialkorb vorhanden</small><code>−PF4</code></div>
           </div>
+          <h3>BCD-Geräte</h3>
+          <div class="row">
+            <div class="op"><output class="bcd-anzeige" id="pg1">000</output><small>Körbe</small><code>−PG1</code></div>
+            <div class="op"><span class="daumenrad" id="sf48" role="group" aria-label="Daumenradschalter Tauchzeit −SF48"></span><small>Tauchzeit s</small><code>−SF48</code></div>
+          </div>
         </div>
         <button type="button" class="btn" id="btn-lv">Person durch den Lichtvorhang −BG20 gehen lassen</button>
         <label class="opt" for="sf2-nc"><input type="checkbox" id="sf2-nc" checked> STOP −SF2 als Öffner verdrahtet (unbetätigt = 1)</label>
@@ -708,6 +719,8 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
           <button type="button" class="btn" id="btn-zufuhr" aria-pressed="true">Körbe automatisch zuführen</button>
           <button type="button" class="btn" id="btn-ablass" aria-pressed="false" title="Störgröße: Handventil am Kühlwassertank öffnen (ca. 1 %/s)">Ablasshahn Kühlwasser</button>
         </div>
+        <div class="btnrow" id="motorschutz" title="Störgröße: Motorschutzschalter löst aus, sein Hilfskontakt meldet 0 und der Motor steht, bis du ihn zurücksetzt"></div>
+        <div class="btnrow" id="drahtbruch" title="Störgröße: Leitung zum Analogsensor unterbrochen, die Analogbaugruppe meldet 7FFF (32767) statt des Messwerts"></div>
         <p class="hint" id="bad-info"></p>
         <p class="hint" id="kw-info"></p>
         <div class="param">
@@ -748,6 +761,10 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
       <div class="inhalt">
         <div class="mon-head">
           <input type="search" id="mon-filter" placeholder="Filtern …" aria-label="Signale filtern">
+          <select id="mon-format" aria-label="Anzeigeformat für Byte und Wort" title="Anzeigeformat für Byte und Wort">
+            <option value="dez">Dez</option><option value="hex">Hex</option><option value="bin">Bin</option>
+          </select>
+          <label class="opt" for="mon-bytes"><input type="checkbox" id="mon-bytes"> Bytes zeigen</label>
         </div>
         <div class="tablewrap">
           <table>

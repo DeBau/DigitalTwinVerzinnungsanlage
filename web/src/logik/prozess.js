@@ -1,4 +1,4 @@
-import { NOT_HALT, QUITT, ZYL, notHaltText, st } from './zustand.js';
+import { NOT_HALT, QUITT, ZYL, autoFrei, notHaltText, st } from './zustand.js';
 import { anlage } from '../core/szene.js';
 import { fmt1 } from '../core/format.js';
 import { BAND, BAND_ENDE, BAND_Y, KORB_TEILUNG, KURVE, STOPPER } from '../anlage/baender.js';
@@ -27,16 +27,20 @@ function ueberBad() { return ZYL.MM3.pos > 0.97; }
 export function prozess(dt) {
   const p2 = ZYL.MM2.pos, p3 = ZYL.MM3.pos, p4 = ZYL.MM4.pos;
   // Sicherheitsrelais −KF2: Not-Halt −SF0/−SF8/−SF9/−SF10/−SF33 (Öffner in Reihe), Start über einen der parallelen
-  // Quittiertaster −SF4/−SF41…−SF44 (Flanke am Reset-Eingang)
-  const quitt = QUITT.find(q => st.bedien[q.key]), quittFlanke = !!quitt && !st.sf4Alt;
+  // Quittiertaster −SF4/−SF41…−SF44 am Reset-Eingang. Überwachter Start (DIN EN ISO 13849-1, 5.2.2): −KF2 gibt erst beim
+  // Loslassen des Tasters frei, ein klemmender Taster gibt also nie frei
+  const quitt = QUITT.find(q => st.bedien[q.key]), quittFlanke = !!quitt && !st.quittAlt;
+  const losgelassen = !quitt && st.quittAlt;
   const gedrueckt = NOT_HALT.filter(n => st.notHalt[n.key]);
   const nh = gedrueckt.length > 0 || st.eingriff;
-  if (nh && st.kf2) { st.kf2 = false; ereignis(st.eingriff && !gedrueckt.length ? 'Lichtvorhang −BG20 unterbrochen: −KF2 hat Ventile, Schütze und Heizung abgeschaltet' : t`NOT-HALT ${notHaltText(gedrueckt)}: Sicherheitsrelais −KF2 hat Ventile, Schütze und Heizung abgeschaltet`, 'err'); }
+  if (nh && st.kf2) { st.kf2 = false; st.anlauf = false; ereignis(st.eingriff && !gedrueckt.length ? 'Lichtvorhang −BG20 unterbrochen: −KF2 hat Ventile, Schütze und Heizung abgeschaltet' : t`NOT-HALT ${notHaltText(gedrueckt)}: Sicherheitsrelais −KF2 hat Ventile, Schütze und Heizung abgeschaltet`, 'err'); }
   else for (const n of gedrueckt) if (!nhAlt.has(n.key)) ereignis(t`NOT-HALT ${notHaltText([n])} betätigt (−KF2 hat bereits abgeschaltet)`, 'err');
   nhAlt = new Set(gedrueckt.map(n => n.key));
-  if (!nh && !st.kf2 && quittFlanke) { st.kf2 = true; ereignis(t`Not-Halt quittiert ${t(quitt.ort)} (${quitt.bmk}): −KF2 gibt wieder frei`); }
+  if (!nh && !st.kf2 && losgelassen) { st.kf2 = true; ereignis(t`Not-Halt quittiert ${t(losgelassen.ort)} (${losgelassen.bmk}): −KF2 gibt wieder frei, START −SF1 setzt die Anlage wieder in Gang`); }
   if (nh && quittFlanke) ereignis(gedrueckt.length ? t`Quittieren nicht möglich: Not-Halt ${notHaltText(gedrueckt)} ist noch verriegelt` : 'Quittieren nicht möglich: Schutzfeld des Lichtvorhangs ist nicht frei', '', 'nhq');
-  st.sf4Alt = !!quitt;
+  st.quittAlt = quitt || null;
+  // Wiederanlaufsperre: Bandmodul und Portalsteuerung laufen nach dem Quittieren erst mit einem neuen Startbefehl
+  if (st.kf2 && !st.anlauf && st.bedien.sf1) { st.anlauf = true; ereignis('START −SF1: automatische Bereiche laufen wieder an'); }
 
   zylinderBewegen(ZYL.MM1, dt);
   const badFrei = p3 > 0.97 && p4 < 0.03;
@@ -47,7 +51,7 @@ export function prozess(dt) {
       : p3 > 0.97 ? 'Kollision: −MM2 senkt auf die geschlossene Badabdeckung (−BG7 fehlt)' : 'Kollision: −MM2 senkt auf den Badrand (−MM3 nicht in Endlage)',
     last: ZYL.MM2.ventil > 0 ? 1.12 : (angehaengt ? 0.82 : 0.95),
   });
-  zylinderBewegen(ZYL.MM3, dt, { gesperrt: p2 > 0.05, sperrText: 'Verriegelung: −MM3 fährt nicht, Tauchzylinder −MM2 ist nicht oben (−BG3)' });
+  zylinderBewegen(ZYL.MM3, dt, { gesperrt: p2 > 0.05, sperrText: 'Kollision: −MM3 fährt nicht, Tauchzylinder −MM2 ist nicht oben (−BG3)' });
   zylinderBewegen(ZYL.MM4, dt, { gesperrt: ZYL.MM4.ventil > 0 && p3 > 0.6 && p2 > 0.45, sperrText: 'Kollision: Abdeckung −MM4 stößt an den abgesenkten Korb' });
 
   // Regelstrecke Zinnbad: Heizelement (PT1, 6 s) → Bad (PT1, 150 s, Verluste an die Umgebung)
@@ -104,7 +108,7 @@ export function prozess(dt) {
     BAND.vorOrt.r = BAND.vorOrt.l = false; BAND.wende = 0;
     // Bedarf: ein Korb kann weiter, oder ein Korb liegt noch im Übergabebereich am Kurvenanfang (Band 1 muss mitlaufen)
     const bedarf = bandKoerbe.some(k => k.z < grenzen.get(k).max - 0.5) || koerbe.some(k => k.zustand === 'kurve' && k.s < UEBERGABE && KURVE.wende > 0);
-    vZiel = bedarf && st.kf2 && !korbUnterMM5 ? BAND.vSoll : 0;          // Band steht, solange ein Korb am Haken über dem Übergabeplatz hängt
+    vZiel = bedarf && autoFrei() && st.fa1Ok && !korbUnterMM5 ? BAND.vSoll : 0;          // Band steht, solange ein Korb am Haken über dem Übergabeplatz hängt
   } else if (amUmrichter('TA2')) {
     // Umrichter −TA2: das Telegramm kommt von der SPS
   } else {

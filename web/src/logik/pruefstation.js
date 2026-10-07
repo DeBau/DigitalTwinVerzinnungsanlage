@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { st } from './zustand.js';
+import { autoFrei, st } from './zustand.js';
 import { BAND2, BAND_Y } from '../anlage/baender.js';
 import { kipperKinematik, kippWinkel, MM8, MULDE, ST } from '../anlage/pruefstation.js';
 import { E2 } from '../anlage/band2.js';
@@ -20,7 +20,7 @@ export function pruefstation(dt) {
   const amEndanschlag = !!korb && korb.kx >= ST.korbX - 2;
   // --- Kipper ---
   if (auto && !vo) {
-    if (!ST.kipBefehl && korb && korb.kx >= ST.korbX - 1 && MM8.an0 && !korb.entleert && ST.trichter.length < 8 && st.kf2) ST.kipBefehl = true;
+    if (!ST.kipBefehl && korb && korb.kx >= ST.korbX - 1 && MM8.an0 && !korb.entleert && ST.trichter.length < 8 && autoFrei()) ST.kipBefehl = true;
     if (ST.kipBefehl && MM8.an1 && korb && korb.entleert) ST.kipBefehl = false;
     if (!korb) ST.kipBefehl = false;
   } else ST.kipBefehl = false;
@@ -29,7 +29,7 @@ export function pruefstation(dt) {
     if (st.bedien.sf38 && (!korb || amEndanschlag)) ST.vorOrt.kip = true;
     if (st.bedien.sf39 || !st.kf2) ST.vorOrt.kip = false;
   } else ST.vorOrt.kip = false;
-  MM8.befehl = () => (vo ? ST.vorOrt.kip && st.kf2 : auto ? ST.kipBefehl && st.kf2 : wirksam('MB15_Kippen'));
+  MM8.befehl = () => (vo ? ST.vorOrt.kip && st.kf2 : auto ? ST.kipBefehl && autoFrei() : wirksam('MB15_Kippen'));
   zylinderBewegen(MM8, dt, { gesperrt: !!korb && !amEndanschlag, sperrText: 'Kippen gesperrt: Korb steht nicht am Endanschlag der Mulde (−BG33)' });
   // --- Muldenrollen −MA7: Wendeschützkombination −QA12 vor / −QA13 zurück, Motorschutz −FA8 ---
   if (vo) {
@@ -38,7 +38,7 @@ export function pruefstation(dt) {
   } else if (auto) {
     // Bandmodul automatisch: Rollen laufen zur Übernahme (Korb am Ende von Band 2, Mulde unten und leer) und bis der Korb am Endanschlag liegt
     const uebernahme = !korb && MM8.an0 && BAND2.wende > 0 && koerbe.some(k => k.zustand === 'band2' && k.x >= E2 - 1);
-    MULDE.wende = (uebernahme || (korb && !amEndanschlag && MM8.pos < 0.02)) && st.kf2 && st.fa8Ok ? 1 : 0;
+    MULDE.wende = (uebernahme || (korb && !amEndanschlag && MM8.pos < 0.02)) && autoFrei() && st.fa8Ok ? 1 : 0;
   } else {
     let r = wirksam('QA12_Mulde_Vor'), l = wirksam('QA13_Mulde_Zurueck');
     if (r && l) { ereignis('Wendeschütz Muldenrollen: Vor- und Rücklauf gleichzeitig angesteuert (mechanisch verriegelt)', 'err', 'wende4'); r = MULDE.wende > 0; l = MULDE.wende < 0; }
@@ -76,8 +76,8 @@ export function pruefstation(dt) {
       ST.vRinne = ST.vBand = ST.vorOrt.pruef ? 1 : 0;
     } else {
       ST.vorOrt.pruef = false;
-      ST.vRinne = imFluss && !kltVoll && st.kf2 ? 1 : 0;
-      ST.vBand = imFluss && !kltVoll && st.kf2 ? 1 : 0;
+      ST.vRinne = imFluss && !kltVoll && autoFrei() ? 1 : 0;
+      ST.vBand = imFluss && !kltVoll && autoFrei() ? 1 : 0;
     }
     const amKam = ST.teile.find(t => t.zustand === 'band' && !t.geprueft && Math.abs(t.x - ST.kamX) < 6);
     if (amKam && ST.pruefT <= 0) ST.pruefT = 0.12;

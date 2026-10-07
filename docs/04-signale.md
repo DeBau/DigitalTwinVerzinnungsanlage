@@ -2,8 +2,8 @@
 
 # Signale und TIA-Anbindung
 
-Der Zwilling kennt **162 Signale**: 109 Eingänge (davon 6 Analogwerte und 8 Telegrammwörter) und
-53 Ausgänge (davon 1 Analogwert und 8 Telegrammwörter). Sie sind die
+Der Zwilling kennt **186 Signale**: 121 Eingänge (davon 6 Analogwerte und 8 Telegrammwörter) und
+65 Ausgänge (davon 1 Analogwert und 8 Telegrammwörter). Sie sind die
 einzige Schnittstelle zwischen deinem Programm und dem Modell – kein proprietäres Protokoll, keine
 Bausteinbibliothek, keine Lizenzdatei.
 
@@ -37,7 +37,9 @@ BT1_Temperatur;%IW64;Zinntemperatur analog 0...27648 = 0...400 Grad C
 | Bereich | Adressen | Inhalt |
 |---|---|---|
 | Digitale Eingänge | `%I0.0 … %I11.7` | Endlagen, Lichtschranken, Taster, Wahl- und Schlüsselschalter, Motorschutz-Hilfskontakte, Not-Halt-Meldekontakte, Rückmeldung Sicherheitsrelais |
+| Daumenradschalter −SF48 | `%I12.0 … %I13.7` (Wort `%IW12`) | Tauchzeit 000…999 s in BCD, je Dekade die Kontakte 8-4-2-1; 4. Baugruppe DI 32x24VDC HF ab `%I12.0`, in TIA mit Anfangsadresse 12 projektieren |
 | Digitale Ausgänge | `%Q0.0 … %Q5.4` | Ventilspulen, Wendeschütze, Heizung, Pumpe, Vibrorinne, Prüfband, Ausblasdüse, Nachspeiseventil, Melde- und Leuchttaster |
+| BCD-Anzeige −PG1 | `%Q6.0 … %Q7.7` (Wort `%QW6`) | dreistellige Ziffernanzeige am Bedienpult, je Stelle 8-4-2-1; eine Tetrade über 9 bleibt dunkel. Die Demo-SPS zeigt die Zahl der verzinnten Körbe |
 | Analoge Eingänge | `%IW64 … %IW74` | Zinntemperatur −BT1 (0…400 °C), Füllstand −BL1 (0…100 %), Korbtemperatur −BT2 (0…400 °C), Drehzahlpotentiometer −SF47 an −S50 (0…100 %), Füllstand Kühlwassertank −BL2 (0…100 %), Stellungsrückmeldung Regelventil −MB18 (0…100 %) – jeweils 0…27648 |
 | Analoge Ausgänge | `%QW80` | Stellwert Regelventil −MB18 (0…27648 = 0…100 %) |
 | Umrichter −TA2…−TA5 (Telegramm 1) | `%QW256…270` / `%IW256…270` | je Umrichter STW1 und NSOLL_A hin, ZSW1 und NIST_A zurück – nur bei Antrieb „Umrichter“ |
@@ -109,8 +111,13 @@ Wer einen Umrichter führt, hängt vom Übungsumfang ab:
 - **Not-Halt** wählt über −KF2 **STO** an: Impulse sofort gesperrt, LED SAFE blinkt, danach
   Einschaltsperre. Die Wendeschütze −QA1/−QA2 bleiben in dieser Betriebsart abgefallen.
 - **Störungen** im Fenster des Umrichters: *Störung Überlast* (F30005, sofort quittierbar) und
-  *Motor überhitzt* (F07011, quittierbar erst nach dem Abkühlen). Quittiert wird mit einer Flanke an
-  STW1.7 – beim Technologieobjekt mit `MC_Reset`.
+  *Motor überhitzt* (Warnung A07910 mit ZSW1.7 = 1 und ZSW1.13 = 0, dazu Störung F07011, quittierbar
+  erst nach dem Abkühlen). Quittiert wird mit einer Flanke an STW1.7, beim Technologieobjekt mit `MC_Reset`.
+- **Feldbusüberwachung:** Geht PLCSIM in STOP oder bricht die Verbindung der Bridge ab, meldet jeder
+  Umrichter, der sein Telegramm von der SPS bekommt, **F01910** (Feldbus-Sollwert-Timeout) und hält mit
+  AUS3 an. Quittieren geht erst, wenn wieder Daten kommen. Die LED BF blinkt rot, solange kein Datenaustausch läuft.
+- **STW1.10 = 0:** Der Umrichter ignoriert das Telegramm und arbeitet mit dem zuletzt übernommenen
+  Steuerwort und Sollwert weiter. Ein Steuerwort `16#0000` hält einen laufenden Antrieb also nicht an.
 
 **Fenster „Umrichter“** (Klick auf einen Umrichter im Schaltschrank oder Übungsumfang →
 *Umrichter und Telegramme öffnen*, oben −TA2…−TA5 wählen): links die Gerätefront mit dem
@@ -129,24 +136,25 @@ Bedienen lässt sich das Panel so:
 | ESC | zurück zur Statusanzeige |
 
 LEDs der CU240E-2 PN: **RDY** grün = bereit, rot = Störung; **BF** aus = Datenaustausch über
-PROFINET, rot blinkend = keine Verbindung zur SPS; **SAFE** gelb = STO projektiert, gelb blinkend =
+PROFINET, rot blinkend = kein Datenaustausch (keine Verbindung oder CPU in STOP); **SAFE** gelb = STO projektiert, gelb blinkend =
 STO angewählt. Das Bedienpanel ist dem IOP-2 nachempfunden, die Menüs sind vereinfacht.
 
 ### Projektierung in TIA
 
 1. **Umrichter einfügen:** In der Netzsicht je benutztem Antrieb einen SINAMICS G120 mit
-   PROFINET-Control-Unit (z. B. CU240E-2 PN) an die CPU hängen, Gerätenamen vergeben (−TA2…−TA5).
+   PROFINET-Control-Unit (z. B. CU240E-2 PN) an die CPU hängen, Gerätenamen vergeben (`ta2`…`ta5`;
+   PROFINET-Gerätenamen erlauben nur Kleinbuchstaben, Ziffern, Bindestrich und Punkt, also kein „−TA2“).
 2. **Telegramm:** In der Gerätesicht jedes Umrichters unter *Telegrammkonfiguration*
    **Standardtelegramm 1, PZD-2/2** wählen, E-/A-Adressen wie in der Tabelle oben (−TA2 256…259,
    −TA3 260…263, −TA4 264…267, −TA5 268…271). Andere Adressen gehen auch, dann in `signale.csv`
    die Zeilen `TA…_` anpassen und die Bridge neu starten.
 3. **Technologieobjekt anlegen:** *Technologieobjekte → Neues Objekt hinzufügen → Motion Control →
-   TO_SpeedAxis*. Unter *Hardwareschnittstelle → Antrieb* den G120 bzw. sein Telegramm 1 auswählen.
+   TO_SpeedAxis*. Unter *Konfiguration → Hardware-Schnittstelle → Antrieb* den G120 bzw. sein Telegramm 1 auswählen.
    **Simulation / virtuelle Achse nicht aktivieren** – sonst schreibt das Technologieobjekt kein
    Telegramm, und der Zwilling bekommt nichts zu sehen.
 4. **Antriebsdaten von Hand eintragen:** Bezugsdrehzahl 1500 1/min, Maximaldrehzahl 2250 1/min
    (am Prüfband −TA5 nur positive Richtung).
-   Eine automatische Übernahme der Antriebswerte online ausschalten, denn es gibt keinen echten
+   Unter *Hardware-Schnittstelle → Datenaustausch Antrieb* die automatische Übernahme der Antriebswerte online ausschalten, denn es gibt keinen echten
    Antrieb, aus dem sie kommen könnten.
 5. **Programm:** `MC_Power` (Enable, StartMode = 1), `MC_MoveVelocity` (Velocity in 1/min,
    1500 1/min = 100 mm/s Bandgeschwindigkeit), `MC_Halt` zum Anhalten, `MC_Reset` zum Quittieren.
@@ -190,9 +198,17 @@ eine Lösung: PI-Regler auf 70 % über −MB18, −MB17 offen, solange der Regle
 
 ## Signalmonitor im Browser
 
-Die Seitenleiste zeigt jedes Signal mit Name, Adresse und Live-Zustand. Jeder Eingang lässt sich
-auf **0** oder **1 forcen** – damit prüfst du Verriegelungen und Fehlerwege, ohne die Anlage in
-die passende Lage zu fahren. **A** gibt das Signal wieder ans Modell zurück.
+Die Seitenleiste zeigt jedes Signal mit Name, Adresse und Live-Zustand. Jeder digitale Eingang lässt
+sich auf **0** oder **1 forcen**. Damit prüfst du Verriegelungen und Fehlerwege, ohne die Anlage in
+die passende Lage zu fahren. **A** gibt das Signal wieder ans Modell zurück. Analogwerte lassen sich
+nicht forcen. Einen Drahtbruch an −BT1, −BL1, −BT2 oder −BL2 stellst du unter *Prozess* her, dann
+meldet die Baugruppe 7FFF (32767). Im Betrieb liefern die Analogeingänge 0…27648, darüber bis 32511
+die Übersteuerung.
+
+Das Feld neben dem Filter stellt Wörter und Bytes als **Dez**, **Hex** (`16#…`) oder **Bin** (`2#…`)
+dar. Mit **Bytes zeigen** steht über den Bits jedes Bytes eine Zeile `%IBn` bzw. `%QBn` mit dem
+Bytewert, geforcte Bits eingeschlossen. So siehst du z. B. den Daumenradschalter in `%IB12`/`%IB13`
+direkt als BCD.
 
 ## Schließer und Öffner
 
@@ -224,7 +240,7 @@ fahren zum Band und schließen das Bad, senken und lösen. Ein dabei abgelegter 
 
 ## Variablentabelle
 
-Zwei Variablentabellen mit denselben 162 Signalen und denselben Adressen, zum Import in TIA
+Zwei Variablentabellen mit denselben 186 Signalen und denselben Adressen, zum Import in TIA
 (PLC-Variablen → Rechtsklick → *Importieren*):
 
 | Datei | Namen und Kommentare | Beispiel |

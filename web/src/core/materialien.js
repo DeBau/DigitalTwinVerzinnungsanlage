@@ -21,7 +21,7 @@ export const M = {
   rot: new THREE.MeshStandardMaterial({ color: 0xc8281f, metalness: 0.05, roughness: 0.42 }),
   kette: new THREE.MeshStandardMaterial({ color: 0x24272b, metalness: 0.0, roughness: 0.68 }),
   pc: new THREE.MeshLambertMaterial({ color: 0xe4eef3, transparent: true, opacity: 0.1, side: THREE.DoubleSide, depthWrite: false }),   // günstig: große Fläche
-  boden: new THREE.MeshStandardMaterial({ map: TEX.boden, color: 0x365c42, roughness: 0.42, metalness: 0, envMapIntensity: 0.12 }),   // Epoxid Industrie-Grün (≈ RAL 6011), seidenmatt – hebt sich von Alu und Anthrazit ab
+  boden: new THREE.MeshStandardMaterial({ map: TEX.boden, color: 0x808080, roughness: 0.95, metalness: 0, envMapIntensity: 0.35 }),   // Industriebeton, matt (keine Spiegelung)
   warn: new THREE.MeshStandardMaterial({ map: TEX.warnband, roughness: 0.7 }),
   band: new THREE.MeshStandardMaterial({ map: TEX.band, roughness: 0.85 }),
   zinn: new THREE.MeshStandardMaterial({ map: TEX.zinn, color: 0xffffff, metalness: 1.0, roughness: 0.16, emissive: 0xff6a1a, emissiveIntensity: 0 }),

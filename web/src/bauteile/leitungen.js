@@ -17,7 +17,7 @@ export const BIEGUNG_ZU_ENG = [];
 globalThis.__biegung = BIEGUNG_ZU_ENG;
 const BOGEN_SCHRITT = Math.PI / 14;              // höchstens ~13° je Ring im Bogen
 const v3 = (p) => p.isVector3 ? p.clone() : new THREE.Vector3(...p);
-const seiten = (r) => r < 1.2 ? 6 : r < 3.5 ? 10 : 12;
+const seiten = (r) => r < 1.2 ? 6 : r < 3.5 ? 8 : 10;          // Umfang: dünne Leitungen brauchen wenig Ecken
 
 // Kurzer Versatz (Hin- und Rückrichtung gleich, Zwischenstück kürzer als zwei Bögen): eine echte Leitung
 // knickt dort nicht zweimal rechtwinklig, sondern zieht in einem flachen S hinüber. Die beiden Ecken
@@ -126,7 +126,7 @@ export function kurvenRohr(kurve, r, n) {
   return rohrGeometrie(kurve.getSpacedPoints(n), r);
 }
 const glatt = (pts) => new THREE.CatmullRomCurve3(pts.map(v3), false, 'centripetal');
-const ringe = (kurve) => THREE.MathUtils.clamp(Math.round(kurve.getLength() / 6), 24, 160);
+const ringe = (kurve) => THREE.MathUtils.clamp(Math.round(kurve.getLength() / 12), 16, 100);   // etwa alle 12 mm ein Ring
 
 // Schlauch / Kabel frei durch Stützpunkte (seg: feste Ringzahl für bewegte Schläuche, sonst nach Länge)
 export function schlauch(pts, mat, r = 3, parent = anlage, seg) {

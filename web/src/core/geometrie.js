@@ -14,9 +14,9 @@ export function mesh(geo, mat, parent = anlage, schatten = true) {
 }
 // Quader mit gebrochenen Kanten (Fase/Radius wie gefertigt, fängt Glanzlichter)
 export function box(w, h, d, mat, x, y, z, parent = anlage) {
-  // Fase nur bei Teilen ab 12 mm (kleine Teile: normaler Quader, spart Dreiecke)
+  // Fase nur bei Teilen ab 20 mm (kleine Teile: normaler Quader mit 12 statt 108 Dreiecken)
   const r = Math.min(1.2, Math.min(w, h, d) * 0.18);
-  const m = mesh(cached(`b${w}|${h}|${d}`, () => Math.min(w, h, d) < 12 ? new THREE.BoxGeometry(w, h, d) : new RoundedBoxGeometry(w, h, d, 1, r)), mat, parent);
+  const m = mesh(cached(`b${w}|${h}|${d}`, () => Math.min(w, h, d) < 20 ? new THREE.BoxGeometry(w, h, d) : new RoundedBoxGeometry(w, h, d, 1, r)), mat, parent);
   m.position.set(x, y, z);
   return m;
 }

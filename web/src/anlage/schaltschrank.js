@@ -359,6 +359,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   ioModul(-87, SCHRANK.diLeds, 'DI 32x24VDC HF', '6ES7521-1BL00-0AB0', 'DI 32 (%I4.0–%I7.7)', 60);
   ioModul(-17, SCHRANK.dqLeds, 'DQ 32x24VDC/0.5A ST', '6ES7522-1BL01-0AB0', 'DQ 32 (%Q4.0–%Q7.7)', 30);
   ioModul(18, SCHRANK.diLeds, 'DI 32x24VDC HF', '6ES7521-1BL00-0AB0', 'DI 32 (%I8.0–%I11.7)', 90);
+  ioModul(88, SCHRANK.diLeds, 'DI 32x24VDC HF', '6ES7521-1BL00-0AB0', 'DI 32 (%I12.0–%I15.7)', 0);   // 4. DI hinter der AQ: Daumenradschalter −SF48
   // AI 8xU/I/RTD/TC ST: Temperatur −BT1 (%IW64), Füllstand −BL1 (%IW66), Pyrometer −BT2, Poti −SF47,
   // Kühlwasser −BL2 (%IW72) und Stellungsrückmeldung −MB18 (%IW74)
   {
@@ -386,7 +387,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
     for (let i = 0; i < 2; i++) ab.add([[xm - 4 + i * 4, YB - MH / 2 + 4, MZ + MT - 20], [xm - 4 + i * 4, YB - MH / 2 - 24, MZ + MT - 20], [xm - 4 + i * 4, YB - MH / 2 - 24, PF + 76 + i * 6], [xm - 4 + i * 4, 1250, PF + 76 + i * 6]], i ? aderMat(FARBE.dc) : M.kabelGrau, 0.9, 6);
     lbl('AQ 4 (%QW80 MB18)', xm, YB + 135, MZ + MT + 10);
   }
-  lbl('Reserve 20 %', 128, YB, MZ + 20);
+  lbl('Reserve 20 %', 163, YB, MZ + 20);
 
   // ===== Reihe C (Schiene y = 1085): Schütze, Halbleiterrelais, Sicherheitsrelais, Koppelrelais =====
   const YC = 1085;
@@ -842,10 +843,10 @@ function adrIndex(a) {
 let cpuTakt = 0;
 export function spsLedsAktualisieren(dt) {
   if (SCHRANK.auf < 0.05) return;
-  const di = new Array(96).fill(false), dq = new Array(64).fill(false);
+  const di = new Array(SCHRANK.diLeds.length).fill(false), dq = new Array(SCHRANK.dqLeds.length).fill(false);
   for (const s of SIGNALE) {
     const i = adrIndex(s.adresse);
-    if (i < 0 || i > 95 || (s.richtung !== 'eingang' && i > 63)) continue;
+    if (i < 0 || i >= (s.richtung === 'eingang' ? di : dq).length) continue;
     if (s.richtung === 'eingang') di[i] = !!eingang(s.name); else dq[i] = ausgangSps(s.name);
   }
   SCHRANK.diLeds.forEach((m, i) => { m.emissiveIntensity = di[i] ? 2 : 0; });

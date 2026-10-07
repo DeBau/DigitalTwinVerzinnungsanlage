@@ -119,7 +119,8 @@ as a disturbance so that the control loop has something to do.
 22. **Analog value and hysteresis.** Convert −BL2 to percent with `NORM_X`/`SCALE_X`, on/off controller
     with 60/80 % hysteresis on the analog value. The point level switches remain on top as an independent
     safety layer. Plausibility: −BL2 above 95 % but −BG39 still clear (or −BL2 below
-    20 % and −BG38 covered) → measurement faulty, output a message (test by forcing −BL2).
+    20 % and −BG38 covered) → measurement faulty, output a message (test: drain the tank below 20 % with
+    the drain valve and force −BG38 to 1; the twin cannot force the analog value −BL2 itself).
 23. **Continuous control with PID_Compact.** Setpoint 70 %, actual value −BL2, manipulated variable `Output_PER` to
     −MB18 (%QW80); −MB17 as enable (closed at −BG39 = 0 or E-stop). First run with the P component only
     and observe the steady-state error with the drain valve open, then add the I component. The
@@ -132,7 +133,8 @@ as a disturbance so that the control loop has something to do.
 
 The event log in the sidebar is a corrective, not a logbook: it names faulty behavior in
 plain language: basket stuck at a transfer (>4 s), good part blown off, NOK part in the KLT,
-KLT overfull, basket not blown dry, tin not at temperature, pump running dry, cooling water tank
+KLT overfull, basket not sufficiently quenched, basket defective (dipped or drained too
+briefly), tin bath overfilled, pump running dry, cooling water tank
 overflowing, −MB17 open with the control valve closed. The displacement-time diagram records all
 seven cylinders with step numbers and measures the travel time between the end-position sensors
 for each cylinder and direction.

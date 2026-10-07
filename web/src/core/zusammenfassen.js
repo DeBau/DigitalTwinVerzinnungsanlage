@@ -9,8 +9,9 @@ import { ST } from '../anlage/pruefstation.js';
 import { deckel } from '../anlage/abdeckung.js';
 import { haken, hakenKoerper, mm1Piv, mm1Stange, schlitten } from '../anlage/portal.js';
 import { SCHRANK } from '../anlage/schaltschrank.js';
-import { Q, STUFEN, stufeSetzen } from './grafik.js';
+import { Q, STUFEN, stufeSetzen, stufenVorbereiten } from './grafik.js';
 import { t } from './sprache.js';
+import { eckenMaterial, eckenwerteAnhaengen, eckenwerteMoeglich, oberflaeche } from './eckenwerte.js';
 
 // ----------------------------------------------------------------------------
 // Leistung: unbewegte Teile je Material und Raumbereich (1,8 m) zu einem Mesh zusammenfassen.
@@ -82,8 +83,9 @@ function szeneZusammenfassen() {
         if (!g.boundingSphere) g.computeBoundingSphere();
         c.copy(g.boundingSphere.center).applyMatrix4(mat);
         const zelle = wurzel === anlage ? `${Math.floor(c.x / 4000)}|${Math.floor(c.z / 4000)}` : '';
-        const key = `${wurzel.uuid}|${m.uuid}|${zelle}|${uv}|${!!g.index}`;
-        if (!gruppen.has(key)) gruppen.set(key, { wurzel, m, teile: [], schatten: false });
+        const material = eckenwerteMoeglich(m) ? 'e' + oberflaeche(m) : m.uuid;
+        const key = `${wurzel.uuid}|${material}|${zelle}|${uv}|${!!g.index}`;
+        if (!gruppen.has(key)) gruppen.set(key, { wurzel, m, ecken: eckenwerteMoeglich(m), teile: [], schatten: false });
         const e = gruppen.get(key);
         e.teile.push({ k, mat: mat.clone(), uv });
         e.schatten ||= k.castShadow;
@@ -124,13 +126,14 @@ function szeneZusammenfassen() {
         else for (const n of Object.keys(g.attributes)) { const a = g.attributes[n], sz = a.itemSize, A = a.array; for (let i = 0; i < a.count; i += 3) for (let j = 0; j < sz; j++) { const t = A[(i + 1) * sz + j]; A[(i + 1) * sz + j] = A[(i + 2) * sz + j]; A[(i + 2) * sz + j] = t; } }
       }
       g.clearGroups();
+      if (e.ecken) eckenwerteAnhaengen(g, k.material);
       return g;
     });
     const merged = mergeGeometries(geos, false);
     geos.forEach(g => g.dispose());
     if (!merged) { nachher += e.teile.length; continue; }
     for (const { k } of e.teile) k.parent.remove(k);
-    const m = new THREE.Mesh(merged, e.m);
+    const m = new THREE.Mesh(merged, e.ecken ? eckenMaterial(e.m) : e.m);
     m.castShadow = e.schatten; m.receiveShadow = true;
     e.wurzel.add(m);
     if (e.wurzel === anlage) merged.computeBoundsTree();
@@ -139,6 +142,7 @@ function szeneZusammenfassen() {
   console.info(`Szene zusammengefasst: ${vorher} Teile → ${nachher} Meshes`);
 }
 szeneZusammenfassen();
+stufenVorbereiten();
 if (Q.modus !== 'auto') stufeSetzen({ hoch: 0, mittel: 2, niedrig: 3 }[Q.modus]);
 else {
   // zuletzt im Auto-Modus gefundene Stufe gleich verwenden (kein Umschalten beim Start)

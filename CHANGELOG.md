@@ -8,6 +8,52 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.14.0 – 2026-10-08
+
+Bridge neu bauen (`Bridge\build.bat`). **TIA-Variablentabellen neu importieren** (jetzt 186 Signale) und in
+der Gerätekonfiguration eine 4. Baugruppe DI 32x24VDC HF mit Anfangsadresse 12 ergänzen.
+
+**Warum**
+Beim Review des Übungshandbuchs fielen Stellen auf, an denen der Zwilling anders arbeitete, als das Handbuch
+lehrt: Wiederanlauf nach Not-Halt, Quittieren, Verriegelung −MM4, Verhalten des G120. Dazu fehlten Geräte,
+die das Handbuch braucht (BCD-Anzeige und Daumenradschalter, auslösbarer Motorschutz, Drahtbruch an Analogwerten).
+
+**Geändert (Sicherheit)**
+- **Wiederanlaufsperre:** Nach Not-Halt oder Eingriff in den Lichtvorhang laufen Bandmodul, Rollenkurve,
+  Band 2, Prüfstation und Portalsteuerung erst nach dem Quittieren **und START −SF1** wieder an. Das gilt
+  auch für die Demo-SPS.
+- **Überwachter Start:** −KF2 gibt erst beim **Loslassen** des Quittiertasters frei (DIN EN ISO 13849-1).
+  Die Demo-SPS merkt sich den Quittierort deshalb vorher.
+- **Verriegelung −MM4** in der Demo-SPS positiv formuliert: Schließen nur mit −MM2 oben oder −MM3 über dem
+  Band. Ein Drahtbruch an −BG6 gibt nicht mehr frei.
+
+**Neu**
+- **BCD-Geräte am Bedienpult:** dreistellige Anzeige −PG1 (`%QW6`, Demo-SPS zeigt die verzinnten Körbe) und
+  Daumenradschalter −SF48 für die Tauchzeit (`%IW12`, 4. DI-Baugruppe), je Dekade 8-4-2-1. Im 3D-Pult und in
+  der Seitenleiste bedienbar, im Schaltplan auf eigenen Kanälen.
+- **Störgrößen unter Prozess:** *Motorschutz −FA1/−FA5/−FA7/−FA8 auslösen* (der Motor steht wirklich) und
+  *Drahtbruch −BT1/−BL1/−BT2/−BL2* (die Analogbaugruppe meldet 7FFF = 32767). Analogwerte gehen bis 32511
+  in die Übersteuerung.
+- **Signalmonitor:** Anzeige von Wörtern und Bytes als Dez, Hex oder Bin, Schalter *Bytes zeigen* mit einer
+  Zeile je `%IBn`/`%QBn`.
+- **G120:** STW1.10 = 0 lässt den Umrichter mit den zuletzt übernommenen Prozessdaten weiterarbeiten, statt
+  abzuschalten. Feldbusüberwachung F01910 mit Schnellhalt AUS3 bei SPS-STOP oder Verbindungsabbruch (LED BF
+  blinkt). Warnung A07910 bei heißem Motor setzt ZSW1.7.
+- **Grafik:** Hallenkulisse mit umgebender Produktion und HDR-Umgebung (Poly Haven, CC0), weniger Dreiecke
+  bei Kabeln und Fasen, Shader werden beim Start vorgezeichnet, damit Umschalten und Türen nicht ruckeln,
+  feinere automatische Grafikstufe.
+
+**Geändert**
+- Meldetexte: „Kollision: −MM3 fährt nicht …“ statt „Verriegelung: …“, Kühlwasser-Meldung ohne Gedankenstrich.
+- Bandmodul und Band 2 im Automatikbetrieb beachten den Motorschutz.
+
+**Doku**
+- Übungshandbuch: Hinweise auf Vereinfachungen des Zwillings in L03, L19, L21, L29 entfernt, L09 nutzt die
+  BCD-Geräte, L11 den Drahtbruch, L20 den Motorschutz, L33 beschreibt Bit 10 und F01910 wie im Zwilling.
+  Schaltplan mit 4. DI-Baugruppe (66 Seiten).
+- `docs/02` bis `docs/05`, README: Signalzahl, Adressbelegung, Störgrößen, Signalmonitor, G120,
+  PROFINET-Gerätenamen `ta2`…`ta5`, korrigierte Meldungsnamen.
+
 ## 1.13.0 – 2026-10-08
 
 Bridge neu bauen (`Bridge\build.bat`): Die Bridge liefert jetzt auch den Ordner `docs/` aus.

@@ -120,7 +120,8 @@ als Störgröße nutzen, damit die Regelung etwas zu tun hat.
 22. **Analogwert und Hysterese.** −BL2 mit `NORM_X`/`SCALE_X` in Prozent umrechnen, Zweipunktregler
     mit Hysterese 60/80 % auf den Analogwert. Die Grenzschalter bleiben als unabhängige
     Sicherheitsebene darüber. Plausibilität: −BL2 über 95 %, aber −BG39 noch frei (oder −BL2 unter
-    20 % und −BG38 bedeckt) → Messung gestört, Meldung ausgeben (mit Forcen von −BL2 testen).
+    20 % und −BG38 bedeckt) → Messung gestört, Meldung ausgeben (testen: Tank mit dem Ablasshahn
+    unter 20 % leeren und −BG38 auf 1 forcen; den Analogwert −BL2 selbst kann der Zwilling nicht forcen).
 23. **Stetige Regelung mit PID_Compact.** Sollwert 70 %, Istwert −BL2, Stellwert `Output_PER` auf
     −MB18 (%QW80); −MB17 als Freigabe (zu bei −BG39 = 0 oder Not-Halt). Erst nur mit P-Anteil fahren
     und die bleibende Regelabweichung bei offenem Ablasshahn beobachten, dann mit I-Anteil. Die
@@ -133,7 +134,8 @@ als Störgröße nutzen, damit die Regelung etwas zu tun hat.
 
 Die Ereignisliste in der Seitenleiste ist ein Korrektiv, kein Logbuch: Sie nennt Fehlverhalten im
 Klartext – hängender Korb an einer Übergabe (>4 s), Gutteil ausgeblasen, n.i.O.-Teil im KLT,
-KLT übervoll, Korb nicht abgeblasen, Zinn nicht auf Temperatur, Pumpe läuft trocken, Kühlwassertank
+KLT übervoll, Korb nicht ausreichend abgeschreckt, Korb mangelhaft (zu kurz getaucht oder
+abgetropft), Zinnbad überfüllt, Pumpe läuft trocken, Kühlwassertank
 läuft über, −MB17 offen bei geschlossenem Regelventil. Das Weg-Zeit-Diagramm zeichnet alle
 sieben Zylinder mit Schrittnummern mit und misst je Zylinder und Richtung die Fahrzeit zwischen den
 Endlagensensoren.

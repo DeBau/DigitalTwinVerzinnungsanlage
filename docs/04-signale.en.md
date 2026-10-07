@@ -2,8 +2,8 @@
 
 # Signals and TIA Connection
 
-The twin knows **162 signals**: 109 inputs (including 6 analog values and 8 telegram words) and
-53 outputs (including 1 analog value and 8 telegram words). They are the
+The twin knows **186 signals**: 121 inputs (including 6 analog values and 8 telegram words) and
+65 outputs (including 1 analog value and 8 telegram words). They are the
 only interface between your program and the model: no proprietary protocol, no
 block library, no license file.
 
@@ -37,7 +37,9 @@ BT1_Temperatur;%IW64;Zinntemperatur analog 0...27648 = 0...400 Grad C
 | Area | Addresses | Content |
 |---|---|---|
 | Digital inputs | `%I0.0 … %I11.7` | End positions, light barriers, pushbuttons, selector and key switches, motor protection auxiliary contacts, E-stop signaling contacts, safety relay feedback |
+| Thumbwheel switch −SF48 | `%I12.0 … %I13.7` (word `%IW12`) | Dip time 000…999 s in BCD, contacts 8-4-2-1 per decade; 4th module DI 32x24VDC HF from `%I12.0`, configure it in TIA with start address 12 |
 | Digital outputs | `%Q0.0 … %Q5.4` | Solenoid coils, reversing contactors, heating, pump, vibratory chute, inspection conveyor, blow-off nozzle, refill valve, indicator lamps and illuminated pushbuttons |
+| BCD display −PG1 | `%Q6.0 … %Q7.7` (word `%QW6`) | Three-digit display on the operator panel, 8-4-2-1 per digit; a nibble above 9 stays dark. The demo PLC shows the number of tinned baskets |
 | Analog inputs | `%IW64 … %IW74` | Tin temperature −BT1 (0…400 °C), fill level −BL1 (0…100 %), basket temperature −BT2 (0…400 °C), speed potentiometer −SF47 on −S50 (0…100 %), cooling water tank fill level −BL2 (0…100 %), position feedback of control valve −MB18 (0…100 %), each 0…27648 |
 | Analog outputs | `%QW80` | Manipulated variable of control valve −MB18 (0…27648 = 0…100 %) |
 | Inverters −TA2…−TA5 (telegram 1) | `%QW256…270` / `%IW256…270` | Per inverter, STW1 and NSOLL_A out, ZSW1 and NIST_A back; only when the drive is set to "Drive" (frequency inverter) |
@@ -109,8 +111,13 @@ Who controls an inverter depends on the exercise scope:
 - **Emergency stop** selects **STO** via −KF2: pulses inhibited immediately, LED SAFE flashes, then
   Switching on inhibited. The reversing contactors −QA1/−QA2 remain de-energized in this operating mode.
 - **Faults** in the "Drive" window: *Overload fault* (F30005, can be acknowledged immediately) and
-  *Motor overheated* (F07011, can only be acknowledged after cooling down). You acknowledge with an edge on
-  STW1.7; with the technology object, use `MC_Reset`.
+  *Motor overheated* (alarm A07910 with ZSW1.7 = 1 and ZSW1.13 = 0, plus fault F07011, which can only be
+  acknowledged after cooling down). You acknowledge with an edge on STW1.7; with the technology object, use `MC_Reset`.
+- **Fieldbus monitoring:** If PLCSIM goes to STOP or the bridge loses its connection, every inverter that
+  receives its telegram from the PLC reports **F01910** (fieldbus setpoint timeout) and stops with OFF3.
+  It can only be acknowledged once data arrives again. LED BF flashes red as long as there is no data exchange.
+- **STW1.10 = 0:** The inverter ignores the telegram and keeps working with the last accepted control word
+  and setpoint. A control word `16#0000` therefore does not stop a running drive.
 
 **"Drive" window** (click an inverter in the control cabinet, or Exercise scope →
 *Open drives and telegrams*, then select −TA2…−TA5 at the top): on the left, the device front with the
@@ -129,24 +136,25 @@ You operate the panel as follows:
 | ESC | Back to the status display |
 
 LEDs of the CU240E-2 PN: **RDY** green = ready, red = fault; **BF** off = data exchange via
-PROFINET, red flashing = no connection to the PLC; **SAFE** yellow = STO configured, yellow flashing =
+PROFINET, red flashing = no data exchange (no connection or CPU in STOP); **SAFE** yellow = STO configured, yellow flashing =
 STO selected. The operator panel is modeled on the IOP-2; the menus are simplified.
 
 ### Configuration in TIA
 
 1. **Insert inverters:** In the network view, attach one SINAMICS G120 with a
-   PROFINET Control Unit (e.g. CU240E-2 PN) to the CPU for each drive you use, and assign device names (−TA2…−TA5).
+   PROFINET Control Unit (e.g. CU240E-2 PN) to the CPU for each drive you use, and assign device names (`ta2`…`ta5`;
+   PROFINET device names only allow lowercase letters, digits, hyphen and dot, so no "−TA2").
 2. **Telegram:** In the device view of each inverter, under *Telegram configuration*, select
    **Standard telegram 1, PZD-2/2**, with I/O addresses as in the table above (−TA2 256…259,
    −TA3 260…263, −TA4 264…267, −TA5 268…271). Other addresses work too; in that case adjust the
    `TA…_` lines in `signale.csv` and restart the bridge.
 3. **Create the technology object:** *Technology objects → Add new object → Motion Control →
-   TO_SpeedAxis*. Under *Hardware interface → Drive*, select the G120 or its telegram 1.
+   TO_SpeedAxis*. Under *Configuration → Hardware interface → Drive*, select the G120 or its telegram 1.
    **Do not activate simulation / virtual axis**; otherwise the technology object writes no
    telegram and the twin has nothing to see.
 4. **Enter drive data manually:** reference speed 1500 rpm, maximum speed 2250 rpm
    (on inspection conveyor −TA5 positive direction only).
-   Switch off any automatic online transfer of the drive values, because there is no real
+   Under *Hardware interface → Data exchange with drive*, switch off the automatic online transfer of the drive values, because there is no real
    drive they could come from.
 5. **Program:** `MC_Power` (Enable, StartMode = 1), `MC_MoveVelocity` (Velocity in rpm,
    1500 rpm = 100 mm/s conveyor speed), `MC_Halt` to stop, `MC_Reset` to acknowledge.
@@ -190,9 +198,15 @@ one solution: PI controller to 70 % via −MB18, −MB17 open as long as the con
 
 ## Signal monitor in the browser
 
-The sidebar shows every signal with name, address and live state. You can **force** any input
+The sidebar shows every signal with name, address and live state. You can **force** any digital input
 to **0** or **1**: this lets you test interlocks and fault paths without moving the line into
-the matching position. **A** returns the signal to the model.
+the matching position. **A** returns the signal to the model. Analog values cannot be forced. You create
+a wire break on −BT1, −BL1, −BT2 or −BL2 under *Process*, and the module then reports 7FFF (32767). In
+operation the analog inputs deliver 0…27648, with overrange up to 32511 above that.
+
+The field next to the filter shows words and bytes as **Dec**, **Hex** (`16#…`) or **Bin** (`2#…`).
+With **Show bytes**, a line `%IBn` or `%QBn` with the byte value appears above the bits of each byte,
+forced bits included. This lets you see the thumbwheel switch in `%IB12`/`%IB13` directly as BCD.
 
 ## NO and NC contacts
 
@@ -224,7 +238,7 @@ travel to the conveyor and close the bath, lower and release. A basket set down 
 
 ## Tag table
 
-Two tag tables with the same 162 signals and the same addresses, for import into TIA
+Two tag tables with the same 186 signals and the same addresses, for import into TIA
 (PLC tags → right-click → *Import*):
 
 | File | Names and comments | Example |

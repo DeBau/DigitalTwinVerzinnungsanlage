@@ -8,6 +8,52 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.14.0 – 2026-10-08
+
+Rebuild the bridge (`Bridge\build.bat`). **Re-import the TIA tag tables** (now 186 signals) and add a 4th
+module DI 32x24VDC HF with start address 12 in the device configuration.
+
+**Why**
+The review of the exercise handbook found places where the twin behaved differently from what the handbook
+teaches: restart after E-stop, acknowledging, interlock −MM4, behavior of the G120. Devices the handbook needs
+were also missing (BCD display and thumbwheel switch, trippable motor protection, wire break on analog values).
+
+**Changed (safety)**
+- **Restart interlock:** After an E-stop or an intrusion into the light curtain, the conveyor module, roller
+  curve, conveyor 2, inspection station and gantry control only restart after acknowledging **and START −SF1**.
+  This also applies to the demo PLC.
+- **Monitored start:** −KF2 only enables when the acknowledge button is **let go** (EN ISO 13849-1).
+  The demo PLC therefore remembers the acknowledge location beforehand.
+- **Interlock −MM4** in the demo PLC worded positively: closing only with −MM2 up or −MM3 above the conveyor.
+  A wire break on −BG6 no longer enables.
+
+**New**
+- **BCD devices on the operator panel:** three-digit display −PG1 (`%QW6`, the demo PLC shows the tinned
+  baskets) and thumbwheel switch −SF48 for the dip time (`%IW12`, 4th DI module), 8-4-2-1 per decade.
+  Operable in the 3D panel and in the sidebar, on their own channels in the circuit diagram.
+- **Disturbances under Process:** *Trip motor protection −FA1/−FA5/−FA7/−FA8* (the motor really stops) and
+  *Wire break −BT1/−BL1/−BT2/−BL2* (the analog module reports 7FFF = 32767). Analog values go into overrange
+  up to 32511.
+- **Signal monitor:** words and bytes shown as Dec, Hex or Bin, switch *Show bytes* with one line per
+  `%IBn`/`%QBn`.
+- **G120:** STW1.10 = 0 makes the inverter keep working with the last accepted process data instead of
+  switching off. Fieldbus monitoring F01910 with fast stop OFF3 on PLC STOP or loss of connection (LED BF
+  flashes). Alarm A07910 for a hot motor sets ZSW1.7.
+- **Graphics:** hall backdrop with surrounding production and HDR environment (Poly Haven, CC0), fewer
+  triangles for cables and chamfers, shaders are drawn once at startup so switching and doors do not stutter,
+  finer automatic graphics level.
+
+**Changed**
+- Messages: "Collision: −MM3 does not move …" instead of "Interlock: …", cooling water message without dash.
+- Conveyor module and conveyor 2 in automatic mode respect the motor protection.
+
+**Docs**
+- Exercise handbook: notes about simplifications of the twin removed in L03, L19, L21, L29, L09 uses the BCD
+  devices, L11 the wire break, L20 the motor protection, L33 describes bit 10 and F01910 as in the twin.
+  Circuit diagram with 4th DI module (66 pages).
+- `docs/02` to `docs/05`, README: signal count, address assignment, disturbances, signal monitor, G120,
+  PROFINET device names `ta2`…`ta5`, corrected message names.
+
 ## 1.13.0 – 2026-10-08
 
 Rebuild the bridge (`Bridge\build.bat`): the bridge now also serves the `docs/` folder.

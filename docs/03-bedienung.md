@@ -12,7 +12,7 @@ Seitenleiste. Beide zeigen denselben Zustand und schreiben dieselben Eingänge.
 
 ## Befehlsgeräte und Steuerstellen
 
-- **Bedienpult** (3D-Pult in der Szene und Seitenleiste): NOT-HALT −SF0, Quittieren −SF4 (blau, Leuchte −PF5 blinkt bei Quittierbedarf), Wahlschalter −SA1 **AUTO / EINZEL**, START −SF1, STOP −SF2 (Öffner), Meldeleuchten.
+- **Bedienpult** (3D-Pult in der Szene und Seitenleiste): NOT-HALT −SF0, Quittieren −SF4 (blau, Leuchte −PF5 blinkt bei Quittierbedarf), Wahlschalter −SA1 **AUTO / EINZEL**, START −SF1, STOP −SF2 (Öffner), Meldeleuchten, BCD-Anzeige −PG1 (%QW6) und Daumenradschalter −SF48 für die Tauchzeit (%IW12, je Dekade + und −).
   - **AUTO:** START → die Anlage fährt Zyklus um Zyklus, bis STOP gedrückt wird. Der laufende Korb wird fertig.
   - **EINZEL:** jedes START fährt genau einen Zyklus.
 - **Schaltschrank −A1 (Doppeltür):** links das Tableau Handbetrieb, rechts ein **SIMATIC HMI TP1200 Comfort** (−PF10, PROFINET an CPU X1 P2) mit Prozessbild (Betriebsart, Schritt, Zinnbad, Endlagen MM1…MM6, Band, Meldezeile). Innen: Kontaktelemente, Türkanal und Wellschlauch-Türübergang je Tür.
@@ -24,7 +24,7 @@ Seitenleiste. Beide zeigen denselben Zustand und schreiben dieselben Eingänge.
 
   ![Vor-Ort-Steuerstelle −S50 Prüfband](bilder/13-vorort-pruefband.jpg)
 
-- **Not-Halt:** −SF0 (Bedienpult), −SF8 (−S10), −SF9 (−S20), −SF10 (−S30) und −SF33 (−S40) wirken über das Sicherheitsrelais −KF2. Es schaltet die Ventile, die Schütze und die Heizung spannungsfrei, auch wenn die SPS noch Ausgänge setzt. Wieder frei erst nach Entriegeln **und** Quittieren. −KF2_NotHalt_OK meldet den Zustand an die SPS.
+- **Not-Halt:** −SF0 (Bedienpult), −SF8 (−S10), −SF9 (−S20), −SF10 (−S30) und −SF33 (−S40) wirken über das Sicherheitsrelais −KF2. Es schaltet die Ventile, die Schütze und die Heizung spannungsfrei, auch wenn die SPS noch Ausgänge setzt. Wieder frei erst nach Entriegeln **und** Quittieren: −KF2 gibt beim **Loslassen** des Quittiertasters frei (überwachter Start). Bandmodul und Portalsteuerung laufen danach erst mit **START −SF1** wieder an. −KF2_NotHalt_OK meldet den Zustand an die SPS.
   - **Meldekontakte:** Jeder Not-Halt-Taster hat zusätzlich einen Hilfskontakt (Öffner, drahtbruchsicher) auf einen normalen SPS-Eingang: `SF0_NotHalt_frei`, `SF8_NotHalt_frei`, `SF9_NotHalt_frei`, `SF10_NotHalt_frei`, `SF33_NotHalt_frei` (%I9.1…%I9.5, **1 = entriegelt**, 0 = betätigt). Die Abschaltung bleibt hart über −KF2. Ereignisliste und HMI-Meldezeile nennen den Taster, z. B. „NOT-HALT −SF9 (Band 2) – entriegeln und quittieren (−SF42)“.
   - **Quittiertaster:** −SF4 (Bedienpult), −SF41 (−S10), −SF42 (−S20), −SF43 (−S30), −SF44 (−S40) liegen parallel am Reset-Eingang von −KF2 – jeder quittiert. Jeder hat einen eigenen Eingang (`SF4_Quittieren`, `SF41_Quittieren_S10` … `SF44_Quittieren_S40`), die SPS sieht also, wo quittiert wurde („Not-Halt quittiert an −S20 (−SF42)“), und einen eigenen Leuchtmelder (−PF5, −PF12…−PF15), der bei Quittierbedarf blinkt.
 - **Lichtvorhang −BG20:** Klick auf eine Lichtvorhangsäule (oder Knopf „Eingriff in den Lichtvorhang“) lässt einen Arm in das Schutzfeld greifen. −KF2 schaltet ab, Wiederanlauf erst bei freiem Schutzfeld und Quittieren −SF4. Eingang BG20_Lichtvorhang_frei %I4.7.
@@ -64,7 +64,7 @@ Seitenleiste. Beide zeigen denselben Zustand und schreiben dieselben Eingänge.
 
 | Umschalter | „automatisch“ | „SPS“ |
 |---|---|---|
-| **Verzinnen: Portal −MM1…−MM4** (Standard: SPS) | Die Portalsteuerung fährt die Schrittkette der Demo-SPS: einhängen, anheben, zum Bad, Abdeckung auf, tauchen, abtropfen, zurück, absetzen, lösen. Ohne START und unabhängig von −SA1 – sie fährt, sobald −KF2 frei ist und ein Korb an −BG40 anliegt; −SA3 HAND schaltet auf die Tipptaster am Türtableau. Die Ausgänge −MB1…−MB8 deiner SPS sind ohne Wirkung (Signalmonitor: Quelle „Portal“). | Dein Programm schaltet −MB1…−MB8, Endlagen −BG1…−BG8. |
+| **Verzinnen: Portal −MM1…−MM4** (Standard: SPS) | Die Portalsteuerung fährt die Schrittkette der Demo-SPS: einhängen, anheben, zum Bad, Abdeckung auf, tauchen, abtropfen, zurück, absetzen, lösen. Unabhängig von −SA1 fährt sie, sobald −KF2 frei ist und ein Korb an −BG40 anliegt, nach einem Not-Halt erst wieder nach START −SF1; −SA3 HAND schaltet auf die Tipptaster am Türtableau. Die Ausgänge −MB1…−MB8 deiner SPS sind ohne Wirkung (Signalmonitor: Quelle „Portal“). | Dein Programm schaltet −MB1…−MB8, Endlagen −BG1…−BG8. |
 | **Band, Anschlag, Vereinzeler** (mit Rollenkurve und Band 2) | Das Bandmodul fördert, stoppt am Anschlag, vereinzelt und übergibt über die Rollenkurve auf Band 2 selbstständig. | Dein Programm steuert −QA1/−QA2 (Rechts-/Linkslauf), −MB9 Anschlag, −MB10 Vereinzeler, die Rollenkurve −QA10/−QA11, Band 2 (−QA5/−QA6, Kühlung), die Muldenrollen −QA12/−QA13 und die Prüfstation. Eingänge: −BG11…−BG13, −BG35/−BG36, −BG21…−BG24, −BG37/−BG33 (Kippmulde), Vor-Ort-Steuerstellen, −FA1/−FA5/−FA7/−FA8. |
 | **Zinnbad Temperatur/Füllstand** | Der Regler am Bad hält 280 °C, Nachfüllen per Knopf. | Dein Programm schaltet −TB1 Heizung und −MB11 Nachfüllen. Istwerte −BT1/−BL1 analog. Ob 2-Punkt, Impuls/PWM oder PID_Compact – das entscheidet dein Programm. |
 | **Kühlwassertank: Nachspeisung** | Der Niveauregler am Tank speist zwischen 55 und 75 % nach und sperrt die Pumpe −MA3 unter −BG38. | Dein Programm schaltet −MB17 und stellt −MB18 (%QW80). Istwerte −BL2 (%IW72) und −MB18 (%IW74) analog, Grenzschalter −BG38/−BG39. Zweipunkt oder PID_Compact – und den Trockenlaufschutz der Pumpe übernimmst du auch. |
@@ -81,7 +81,7 @@ denen der Zwilling jeden Korb misst: kürzer getaucht oder abgetropft (0,5 s Tol
 
 Regelstrecke Zinnbad: Heizelement PT1 (6 s) → Bad PT1 (150 s), 100 % Heizleistung ergibt 360 °C im Beharrungszustand, für 280 °C sind ca. 76 % nötig. Jedes Tauchen kühlt um 5 K und verbraucht 4 % Zinn. Analogwerte: 0…27648 = 0…400 °C bzw. 0…100 %.
 
-Regelstrecke Kühlwassertank: integrierend (ohne Ausgleich). Zulauf bis 1,5 %/s bei −MB17 offen und −MB18 100 %, Regelventil mit 8 s Stellzeit. Verbrauch beim Sprühen ca. 0,3 %/s plus Verdampfung an heißen Körben, Ablasshahn ca. 1 %/s (nimmt mit sinkendem Pegel ab). Unter *Prozess* stehen Füllstand, Ventilstellungen, Zulauf und Verbrauch live; der Knopf *Ablasshahn öffnen* schaltet die Störgröße.
+Regelstrecke Kühlwassertank: integrierend (ohne Ausgleich). Zulauf bis 1,5 %/s bei −MB17 offen und −MB18 100 %, Regelventil mit 8 s Stellzeit. Verbrauch beim Sprühen ca. 0,3 %/s plus Verdampfung an heißen Körben, Ablasshahn ca. 1 %/s (nimmt mit sinkendem Pegel ab). Unter *Prozess* stehen Füllstand, Ventilstellungen, Zulauf und Verbrauch live; der Knopf *Ablasshahn öffnen* schaltet die Störgröße. Weitere Störgrößen darunter: *Motorschutz −FA1/−FA5/−FA7/−FA8 auslösen* (der Motor steht wirklich, der Hilfskontakt meldet 0) und *Drahtbruch −BT1/−BL1/−BT2/−BL2* (die Analogbaugruppe meldet 7FFF = 32767).
 
 
 

@@ -31,7 +31,7 @@ export function kuehlwasser(dt) {
   KW.zulauf = KW.mb17 ? ZULAUF * KW.y : 0;
   if (!auto && KW.mb17 && KW.y < 0.02) {
     KW.ohneFluss += dt;
-    if (KW.ohneFluss > 10) { ereignis('Nachspeisen: −MB17 ist offen, aber das Regelventil −MB18 steht auf 0 % – es fließt kein Wasser', '', 'kwOhneFluss'); KW.ohneFluss = 0; }
+    if (KW.ohneFluss > 10) { ereignis('Nachspeisen: −MB17 ist offen, aber das Regelventil −MB18 steht auf 0 %, es fließt kein Wasser', '', 'kwOhneFluss'); KW.ohneFluss = 0; }
   } else KW.ohneFluss = 0;
 
   // Trockenlaufschutz im Niveauregler: Pumpe unter −BG38 gesperrt, frei ab 5 % darüber

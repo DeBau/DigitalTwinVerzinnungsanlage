@@ -1,10 +1,10 @@
-import { NOT_HALT, QUITT, st } from './zustand.js';
+import { NOT_HALT, QUITT, autoFrei, st } from './zustand.js';
 import { eingang } from './eingaenge.js';
 
 // ----------------------------------------------------------------------------
 // Demo-SPS – Schrittkette im Browser, wenn keine SPS gekoppelt ist
 // ----------------------------------------------------------------------------
-export const demo = { hand8: false, kurve: { rechts: false, links: false, nachlauf: 0 }, ps: { kip: false, kt: 0, gekippt: false, nachlauf: 0, bg32Alt: false, niOAlt: false, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false, voPb: false }, nh: { aktiv: [], erst: null, quittiertAn: null, freiAlt: true }, b2: { mulde: false, rechts: false, links: false, nachlauf: 0, trig: false, tt: 0, geprueft: false }, hand5: false, hand6: false, schritt: 1, auto: false, t: 0, korbFertig: false, mitKorb: false, sf1Alt: false, warten: false,
+export const demo = { hand8: false, kurve: { rechts: false, links: false, nachlauf: 0 }, ps: { kip: false, kt: 0, gekippt: false, nachlauf: 0, bg32Alt: false, niOAlt: false, ausblasZeiten: [], mulde: 0, voPruef: false, voKip: false, voPb: false }, nh: { aktiv: [], erst: null, quittiertAn: null, letzteQuitt: null, freiAlt: true }, anlauf: true, b2: { mulde: false, rechts: false, links: false, nachlauf: 0, trig: false, tt: 0, geprueft: false }, hand5: false, hand6: false, schritt: 1, auto: false, t: 0, koerbe: 0, korbFertig: false, mitKorb: false, sf1Alt: false, warten: false,
   band: { rechts: false, links: false, nachlauf: 0, abgabe: 0, anschlagAuf: false, bg11Aus: 0, uebNach: 0, steht: 0 }, bad: { heiz: false, fuell: false }, kw: { i: 0 } };
 // Telegramm 1: 16#047F = Betrieb, 16#047E = AUS1, aus der Einschaltsperre (ZSW1.6) erst mit AUS1 = 0;
 // Störungen quittiert ein Quittiertaster über STW1.7
@@ -20,19 +20,24 @@ export function demoSps(dt) {
   demo.nh.aktiv = NOT_HALT.filter(n => !E(n.signal));
   if (!demo.nh.aktiv.length && frei) demo.nh.erst = null;
   else if (!demo.nh.erst && demo.nh.aktiv.length) demo.nh.erst = demo.nh.aktiv[0];
-  // Ort der Quittierung: welcher Quittiertaster (−SF4, −SF41…−SF44) beim Wiederanlauf von −KF2 gedrückt war
-  if (frei && !demo.nh.freiAlt) demo.nh.quittiertAn = QUITT.find(q => E(q.signal)) || null;
+  // Ort der Quittierung: −KF2 gibt erst beim Loslassen frei (überwachter Start), also den zuletzt gedrückten Quittiertaster merken
+  demo.nh.letzteQuitt = QUITT.find(q => E(q.signal)) || demo.nh.letzteQuitt;
+  if (frei && !demo.nh.freiAlt) demo.nh.quittiertAn = demo.nh.letzteQuitt;
   demo.nh.freiAlt = frei;
   const stop = st.sf2Oeffner ? !E('SF2_Stop') : E('SF2_Stop');
   const sf1 = E('SF1_Start'), startFlanke = sf1 && !demo.sf1Alt && frei && !hand; demo.sf1Alt = sf1;
+  // Wiederanlaufsperre: nach dem Abfallen von −KF2 laufen Bänder und Prüfstation erst mit START wieder an
+  if (!frei) demo.anlauf = false;
+  if (sf1 && frei) demo.anlauf = true;
+  const lauf = frei && demo.anlauf;
   // Automatik: START → Zyklen wiederholen, bis STOP (laufender Korb wird fertig).
   // Einzel: jedes START fährt genau einen Zyklus. Hand (Schaltschranktür): Kette ruht in Schritt 1.
   if (!frei) { demo.auto = false; demo.warten = true; }
   if (startFlanke && dauer) { demo.auto = true; demo.warten = false; }
   if (stop || !dauer || hand) demo.auto = false;
   // Im Betrieb mit PLCSIM rechnet die Kette nur für den Übungsumfang „Verzinnen: Portal automatisch“. Das Portal
-  // braucht dann weder START noch −SA1 (die gehören deinem Programm): es fährt, sobald −KF2 frei ist und nicht Hand.
-  if (st.modus === 'sps') { demo.auto = frei && !hand; demo.warten = !frei; }
+  // braucht dann −SA1 nicht (gehört deinem Programm): es fährt, solange −KF2 frei ist, nicht Hand, und nach dem Quittieren erst wieder nach START.
+  if (st.modus === 'sps') { demo.auto = autoFrei() && !hand; demo.warten = !autoFrei(); }
   const handStart = startFlanke && !dauer;
   if (handStart) demo.warten = false;
   if (hand) demo.schritt = 1;
@@ -67,7 +72,7 @@ export function demoSps(dt) {
     case 7: if (E('BG3_MM2_oben') && demo.t >= st.tropfSoll) demo.schritt = 8; break;
     case 8: if (E('BG5_MM3_Band') && E('BG8_MM4_zu') && E('BG15_MM5_offen')) demo.schritt = 9; break;
     case 9: if (E('BG4_MM2_unten')) demo.schritt = 10; break;
-    case 10: if (E('BG2_MM1_geloest')) { demo.schritt = 1; demo.korbFertig = true; } break;
+    case 10: if (E('BG2_MM1_geloest')) { demo.schritt = 1; demo.korbFertig = true; demo.koerbe = (demo.koerbe + 1) % 1000; } break;
   }
   if (demo.schritt !== alt) demo.t = 0;
   if (weiter && ((demo.schritt === 6 && E('BG4_MM2_unten')) || (demo.schritt === 7 && E('BG3_MM2_oben')))) demo.t += dt;
@@ -91,7 +96,7 @@ export function demoSps(dt) {
     A.MB4_Anheben = H('SF14_MM2_Anheben');
     A.MB5_Zinnbad = H('SF15_MM3_Zinnbad') && mm2Oben;
     A.MB6_Foerderband = H('SF16_MM3_Band') && mm2Oben;
-    A.MB7_Schliessen = H('SF17_MM4_Schliessen') && !(E('BG6_MM3_Bad') && !mm2Oben);
+    A.MB7_Schliessen = H('SF17_MM4_Schliessen') && (mm2Oben || E('BG5_MM3_Band'));   // Freigabe positiv: Drahtbruch −BG6 gibt nicht frei
     A.MB8_Oeffnen = H('SF18_MM4_Oeffnen');
   }
   A.PF7_Handbetrieb = hand;
@@ -102,6 +107,9 @@ export function demoSps(dt) {
   A.PF5_Quittieren = !frei && (performance.now() % 1000 < 500);
   for (const q of QUITT) A[q.pf] = A.PF5_Quittieren;                  // Leuchttaster −SF41…−SF44: eigene Ausgänge, gleiche Blinklogik
   A.PF6_VorOrt = E('SA2_VorOrt');
+  // BCD-Anzeige −PG1: Zahl der verzinnten Körbe, je Dekade die Ausgänge 8-4-2-1
+  const ziffer = { H: Math.floor(demo.koerbe / 100), Z: Math.floor(demo.koerbe / 10) % 10, E: demo.koerbe % 10 };
+  for (const d of ['H', 'Z', 'E']) for (const w of [1, 2, 4, 8]) A[`PG1_BCD_${d}${w}`] = (ziffer[d] & w) !== 0;
 
   // Band (wirkt nur bei Übungsumfang „SPS steuert“)
   const b = demo.band, bg11 = E('BG11_Korb'), bg12 = E('BG12_Bandanfang'), bg40 = E('BG40_Korb_am_Anschlag');
@@ -134,7 +142,7 @@ export function demoSps(dt) {
     const uebergabe1 = demo.kurve.rechts && b.uebNach > 0;
     const einlauf = bg11 && !bg40 && !demo.korbFertig;                       // Korb unter −BG11, liegt noch nicht an: weiterfördern
     const hakenImKorb = E('BG5_MM3_Band') && !E('BG3_MM2_oben') && !E('BG2_MM1_geloest');   // Band steht, solange der Haken im Korb ist
-    b.rechts = motorOk && !hakenImKorb && !korbAmPlatz && (b.abgabe > 0 || (b.nachlauf > 0 && !korbWartet) || einlauf || uebergabe1);   // Stauband: wartender Korb rutscht am Anschlag
+    b.rechts = motorOk && demo.anlauf && !hakenImKorb && !korbAmPlatz && (b.abgabe > 0 || (b.nachlauf > 0 && !korbWartet) || einlauf || uebergabe1);   // Stauband: wartender Korb rutscht am Anschlag
   }
   b.steht = b.rechts || b.links ? 0 : b.steht + dt;
   A.QA1_Band_Rechts = b.rechts;
@@ -160,7 +168,7 @@ export function demoSps(dt) {
       k.nachlauf = Math.max(0, k.nachlauf - dt);
       // Korb am Kurvenende hält vor der Übergabe, bis Band 2 läuft und am Anfang frei ist
       const amEndeWarten = E('BG36_Kurve_Ende') && (E('BG21_B2_Anfang') || !demo.b2.rechts);
-      k.rechts = okK && k.nachlauf > 0 && !amEndeWarten;
+      k.rechts = okK && demo.anlauf && k.nachlauf > 0 && !amEndeWarten;
     }
     A.QA10_Kurve_Rechts = k.rechts && !k.links;
     A.QA11_Kurve_Links = k.links && !k.rechts;
@@ -184,7 +192,7 @@ export function demoSps(dt) {
       if (E('BG21_B2_Anfang') || E('BG22_B2_Kuehlung') || E('BG36_Kurve_Ende') || uebergabe) q.nachlauf = 25;
       q.nachlauf = Math.max(0, q.nachlauf - dt);
       const amEndeWarten = E('BG24_B2_Ende') && !uebergabe && !E('BG21_B2_Anfang') && !E('BG22_B2_Kuehlung');
-      q.rechts = okB2 && q.nachlauf > 0 && !kuehlHalt && !amEndeWarten;
+      q.rechts = okB2 && demo.anlauf && q.nachlauf > 0 && !kuehlHalt && !amEndeWarten;
     }
     A.QA5_B2_Rechts = q.rechts; A.QA6_B2_Links = q.links;
     A.QA7_Pumpe = E('BG22_B2_Kuehlung') && T2 > 40 && E('BG38_Wasser_Min');   // Abschrecken, solange der Korb heiß ist; Trockenlaufschutz −BG38
@@ -196,15 +204,15 @@ export function demoSps(dt) {
     // Muldenrollen −MA7: Übernahme von Band 2 (Handshake: Band 2 und Mulde laufen gemeinsam), dann bis −BG33 (Nachlauf höchstens 6 s)
     if (uebergabe) p.mulde = 6;
     p.mulde = E('BG33_Kipper_Korb') ? 0 : Math.max(0, p.mulde - dt);
-    A.QA12_Mulde_Vor = okM && E('BG30_MM8_unten') && (uebergabe || p.mulde > 0);
+    A.QA12_Mulde_Vor = okM && demo.anlauf && E('BG30_MM8_unten') && (uebergabe || p.mulde > 0);
     A.QA13_Mulde_Zurueck = false;
-    if (!p.kip && E('BG33_Kipper_Korb') && E('BG37_Kipper_Einlauf') && E('BG30_MM8_unten') && !p.gekippt && frei) { p.kip = true; p.kt = 0; }
+    if (!p.kip && E('BG33_Kipper_Korb') && E('BG37_Kipper_Einlauf') && E('BG30_MM8_unten') && !p.gekippt && lauf) { p.kip = true; p.kt = 0; }
     // Ausschüttzeit 3,5 s ab −BG31, damit der Korb ganz leer wird
     if (p.kip) { p.kt = E('BG31_MM8_gekippt') ? p.kt + dt : 0; if (p.kt > 3.5) { p.kip = false; p.gekippt = true; p.nachlauf = 40; } }
     if (!E('BG33_Kipper_Korb')) p.gekippt = false;
     A.MB15_Kippen = p.kip;
     p.nachlauf = Math.max(0, p.nachlauf - dt);
-    A.QA8_Vibro = p.nachlauf > 0 && !E('BG34_KLT_voll') && frei;
+    A.QA8_Vibro = p.nachlauf > 0 && !E('BG34_KLT_voll') && lauf;
     A.QA9_Pruefband = A.QA8_Vibro;
     const bg32 = E('BG32_Teil_Pruefplatz');
     A.KF10_Kamera_Trigger = bg32 && !p.bg32Alt; p.bg32Alt = bg32;

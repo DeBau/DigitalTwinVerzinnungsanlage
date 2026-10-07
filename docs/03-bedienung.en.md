@@ -12,7 +12,7 @@ sidebar. Both show the same state and write the same inputs.
 
 ## Command devices and control stations
 
-- **Operator panel** (3D panel in the scene and in the sidebar): E-STOP −SF0, Acknowledge −SF4 (blue, lamp −PF5 flashes when acknowledgment is required), selector switch −SA1 **AUTO / SINGLE** (AUTO / EINZEL), START −SF1, STOP −SF2 (NC contact), indicator lamps.
+- **Operator panel** (3D panel in the scene and in the sidebar): E-STOP −SF0, Acknowledge −SF4 (blue, lamp −PF5 flashes when acknowledgment is required), selector switch −SA1 **AUTO / SINGLE** (AUTO / EINZEL), START −SF1, STOP −SF2 (NC contact), indicator lamps, BCD display −PG1 (%QW6) and thumbwheel switch −SF48 for the dip time (%IW12, + and − per decade).
   - **AUTO:** START → the line runs cycle after cycle until STOP is pressed. The basket in progress is completed.
   - **SINGLE:** every START runs exactly one cycle.
 - **Control cabinet −A1 (double door):** on the left the manual mode panel, on the right a **SIMATIC HMI TP1200 Comfort** (−PF10, PROFINET to CPU X1 P2) with a process screen (operating mode, step, tin bath, end positions MM1…MM6, conveyor, message line). Inside: contact blocks, door duct and corrugated-conduit door transition for each door.
@@ -24,7 +24,7 @@ sidebar. Both show the same state and write the same inputs.
 
   ![Local control station −S50 inspection conveyor](bilder/13-vorort-pruefband.jpg)
 
-- **E-stop:** −SF0 (operator panel), −SF8 (−S10), −SF9 (−S20), −SF10 (−S30) and −SF33 (−S40) act via safety relay −KF2. It de-energizes the valves, the contactors and the heater, even if the PLC still sets outputs. The line is enabled again only after releasing **and** acknowledging. −KF2_NotHalt_OK reports the state to the PLC.
+- **E-stop:** −SF0 (operator panel), −SF8 (−S10), −SF9 (−S20), −SF10 (−S30) and −SF33 (−S40) act via safety relay −KF2. It de-energizes the valves, the contactors and the heater, even if the PLC still sets outputs. The line is enabled again only after releasing **and** acknowledging: −KF2 enables when the acknowledge button is **let go** (monitored start). The conveyor module and gantry control then only restart with **START −SF1**. −KF2_NotHalt_OK reports the state to the PLC.
   - **Signaling contacts:** Each E-stop pushbutton also has an auxiliary contact (NC, wire-break proof) on a standard PLC input: `SF0_NotHalt_frei`, `SF8_NotHalt_frei`, `SF9_NotHalt_frei`, `SF10_NotHalt_frei`, `SF33_NotHalt_frei` (%I9.1…%I9.5, **1 = released**, 0 = actuated). Shutdown remains hard-wired via −KF2. The event log and the HMI message line name the pushbutton, e.g. "E-STOP −SF9 (conveyor 2) – release and acknowledge (−SF42)".
   - **Acknowledge pushbuttons:** −SF4 (operator panel), −SF41 (−S10), −SF42 (−S20), −SF43 (−S30), −SF44 (−S40) are wired in parallel to the reset input of −KF2, so any of them acknowledges. Each has its own input (`SF4_Quittieren`, `SF41_Quittieren_S10` … `SF44_Quittieren_S40`), so the PLC sees where the acknowledgment came from ("E-stop acknowledged at −S20 (−SF42)"), and its own indicator lamp (−PF5, −PF12…−PF15) that flashes when acknowledgment is required.
 - **Light curtain −BG20:** Clicking a light curtain column (or the "Reach into the light curtain" button) makes an arm reach into the protective field. −KF2 shuts down; restart only once the protective field is clear and you acknowledge with −SF4. Input BG20_Lichtvorhang_frei %I4.7.
@@ -64,7 +64,7 @@ sidebar. Both show the same state and write the same inputs.
 
 | Switch | "automatic" | "PLC" |
 |---|---|---|
-| **Tinning: gantry −MM1…−MM4** (default: PLC) | The gantry control runs the step sequence of the demo PLC: hook in, lift, to the bath, cover open, dip, drain, back, set down, release. Without START and independent of −SA1: it runs as soon as −KF2 is enabled and a basket rests against −BG40; −SA3 MANUAL switches to the jog pushbuttons on the door panel. The outputs −MB1…−MB8 of your PLC have no effect (signal monitor: source "Gantry"). | Your program switches −MB1…−MB8, end positions −BG1…−BG8. |
+| **Tinning: gantry −MM1…−MM4** (default: PLC) | The gantry control runs the step sequence of the demo PLC: hook in, lift, to the bath, cover open, dip, drain, back, set down, release. Independent of −SA1, it runs as soon as −KF2 is enabled and a basket rests against −BG40, after an E-stop only again after START −SF1; −SA3 MANUAL switches to the jog pushbuttons on the door panel. The outputs −MB1…−MB8 of your PLC have no effect (signal monitor: source "Gantry"). | Your program switches −MB1…−MB8, end positions −BG1…−BG8. |
 | **Conveyor, stop, separator** (with roller curve and Conveyor 2) | The conveyor module conveys, stops at the stop, separates and transfers via the roller curve to Conveyor 2 on its own. | Your program controls −QA1/−QA2 (forward/reverse), −MB9 stop, −MB10 separator, the roller curve −QA10/−QA11, Conveyor 2 (−QA5/−QA6, cooling), the trough rollers −QA12/−QA13 and the inspection station. Inputs: −BG11…−BG13, −BG35/−BG36, −BG21…−BG24, −BG37/−BG33 (tipping trough), local control stations, −FA1/−FA5/−FA7/−FA8. |
 | **Tin bath: temperature and fill level** | The controller on the bath holds 280 °C, refill by button. | Your program switches −TB1 heater and −MB11 refill. Actual values −BT1/−BL1 analog. On/off, pulse/PWM or PID_Compact: your program decides. |
 | **Cooling water tank: refill** | The level controller on the tank refills between 55 and 75 % and locks pump −MA3 below −BG38. | Your program switches −MB17 and sets −MB18 (%QW80). Actual values −BL2 (%IW72) and −MB18 (%IW74) analog, point level switches −BG38/−BG39. On/off or PID_Compact, and you also take care of the pump's dry-run protection. |
@@ -81,7 +81,7 @@ more rejects at the inspection station.
 
 Tin bath controlled system: heating element PT1 (6 s) → bath PT1 (150 s), 100 % heating power gives 360 °C in steady state, 280 °C needs approx. 76 %. Each dip cools the bath by 5 K and consumes 4 % tin. Analog values: 0…27648 = 0…400 °C or 0…100 %.
 
-Cooling water tank controlled system: integrating (no self-regulation). Inflow up to 1.5 %/s with −MB17 open and −MB18 at 100 %, control valve with 8 s actuating time. Consumption during spraying approx. 0.3 %/s plus evaporation on hot baskets, drain valve approx. 1 %/s (decreasing as the level falls). Under *Process* you see fill level, valve positions, inflow and consumption live; the *Open drain valve* button switches the disturbance.
+Cooling water tank controlled system: integrating (no self-regulation). Inflow up to 1.5 %/s with −MB17 open and −MB18 at 100 %, control valve with 8 s actuating time. Consumption during spraying approx. 0.3 %/s plus evaporation on hot baskets, drain valve approx. 1 %/s (decreasing as the level falls). Under *Process* you see fill level, valve positions, inflow and consumption live; the *Open drain valve* button switches the disturbance. More disturbances below it: *Trip motor protection −FA1/−FA5/−FA7/−FA8* (the motor really stops, the auxiliary contact reports 0) and *Wire break −BT1/−BL1/−BT2/−BL2* (the analog module reports 7FFF = 32767).
 
 
 

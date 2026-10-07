@@ -93,7 +93,8 @@
   [5, "AI 8xU/I/RTD/TC ST", "6ES7531-7KF00-0AB0", "IW64"],
   [6, "DQ 32x24VDC/0.5A ST", "6ES7522-1BL01-0AB0", "Q4"],
   [7, "DI 32x24VDC HF", "6ES7521-1BL00-0AB0", "I8"],
-  [8, "AQ 4xU/I ST", "6ES7532-5HD00-0AB0", "QW80"]
+  [8, "AQ 4xU/I ST", "6ES7532-5HD00-0AB0", "QW80"],
+  [9, "DI 32x24VDC HF", "6ES7521-1BL00-0AB0", "I12"]
  ],
  "spalten": "adr, signal, kennzeichen, symbol, ort, anschluss, weg, angenommen",
  "kanaele": {
@@ -192,7 +193,19 @@
    ["I11.4", "SF46_Pruefband_Aus", "−SF46", "tnc", "+S50", "21/22", ""],
    ["I11.5", "BG38_Wasser_Min", "−BG38", "sens:niv", "+F5", "", ""],
    ["I11.6", "BG39_Wasser_Max_frei", "−BG39", "sens:niv", "+F5", "", ""],
-   ["I11.7", "BG37_Kipper_Einlauf", "−BG37", "sens:opt", "+F6", "", "−XD5:X6:4"]
+   ["I11.7", "BG37_Kipper_Einlauf", "−BG37", "sens:opt", "+F6", "", "−XD5:X6:4"],
+   ["I12.0", "SF48_BCD_H1", "−SF48", "no", "+P1", "H1", ""],
+   ["I12.1", "SF48_BCD_H2", "−SF48", "no", "+P1", "H2", ""],
+   ["I12.2", "SF48_BCD_H4", "−SF48", "no", "+P1", "H4", ""],
+   ["I12.3", "SF48_BCD_H8", "−SF48", "no", "+P1", "H8", ""],
+   ["I13.0", "SF48_BCD_E1", "−SF48", "no", "+P1", "E1", ""],
+   ["I13.1", "SF48_BCD_E2", "−SF48", "no", "+P1", "E2", ""],
+   ["I13.2", "SF48_BCD_E4", "−SF48", "no", "+P1", "E4", ""],
+   ["I13.3", "SF48_BCD_E8", "−SF48", "no", "+P1", "E8", ""],
+   ["I13.4", "SF48_BCD_Z1", "−SF48", "no", "+P1", "Z1", ""],
+   ["I13.5", "SF48_BCD_Z2", "−SF48", "no", "+P1", "Z2", ""],
+   ["I13.6", "SF48_BCD_Z4", "−SF48", "no", "+P1", "Z4", ""],
+   ["I13.7", "SF48_BCD_Z8", "−SF48", "no", "+P1", "Z8", ""]
   ],
   "DQ": [
    ["Q0.0", "MB1_Einhaengen", "−MB1", "mbv", "+F1", "", "−QM1:0:14"],
@@ -238,7 +251,19 @@
    ["Q5.1", "PF14_Quitt_S30", "−PF14", "lamp", "+S30", "", ""],
    ["Q5.2", "PF15_Quitt_S40", "−PF15", "lamp", "+S40", "", ""],
    ["Q5.3", "PF16_VorOrt5", "−PF16", "lamp", "+S50", "", ""],
-   ["Q5.4", "MB17_Nachspeisen", "−MB17", "mbv", "+F5", "", ""]
+   ["Q5.4", "MB17_Nachspeisen", "−MB17", "mbv", "+F5", "", ""],
+   ["Q6.0", "PG1_BCD_H1", "−PG1", "geraet", "+P1", "H1", ""],
+   ["Q6.1", "PG1_BCD_H2", "−PG1", "geraet", "+P1", "H2", ""],
+   ["Q6.2", "PG1_BCD_H4", "−PG1", "geraet", "+P1", "H4", ""],
+   ["Q6.3", "PG1_BCD_H8", "−PG1", "geraet", "+P1", "H8", ""],
+   ["Q7.0", "PG1_BCD_E1", "−PG1", "geraet", "+P1", "E1", ""],
+   ["Q7.1", "PG1_BCD_E2", "−PG1", "geraet", "+P1", "E2", ""],
+   ["Q7.2", "PG1_BCD_E4", "−PG1", "geraet", "+P1", "E4", ""],
+   ["Q7.3", "PG1_BCD_E8", "−PG1", "geraet", "+P1", "E8", ""],
+   ["Q7.4", "PG1_BCD_Z1", "−PG1", "geraet", "+P1", "Z1", ""],
+   ["Q7.5", "PG1_BCD_Z2", "−PG1", "geraet", "+P1", "Z2", ""],
+   ["Q7.6", "PG1_BCD_Z4", "−PG1", "geraet", "+P1", "Z4", ""],
+   ["Q7.7", "PG1_BCD_Z8", "−PG1", "geraet", "+P1", "Z8", ""]
   ],
   "AI": [
    ["IW64", "BT1_Temperatur", "−BT1", "mu:ϑ", "+F2", "4 bis 20 mA", "", 1],
@@ -259,7 +284,7 @@
   ],
   "reserve": ["I8.1", "Q1.7", "IW76", "IW78", "QW82", "QW84", "QW86"]
  },
- "versorgung": {"DI": "L+2", "AI": "L+2", "AQ": "L+2", "Q0": "L+S", "Q1": "L+3", "Q2": "L+S", "Q3": "L+3", "Q4": "L+3", "Q5": "L+3"},
+ "versorgung": {"DI": "L+2", "AI": "L+2", "AQ": "L+2", "Q0": "L+S", "Q1": "L+3", "Q2": "L+S", "Q3": "L+3", "Q4": "L+3", "Q5": "L+3", "Q6": "L+3", "Q7": "L+3"},
  "speisung": {"−MB18": "L+3"},
  "abschalten": {
   "Q3.0": "M3S", "Q3.1": "M3S", "Q3.4": "M3S", "Q3.5": "M3S", "Q3.6": "M3S", "Q3.7": "M3S",

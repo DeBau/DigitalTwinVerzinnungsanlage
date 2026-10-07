@@ -15,18 +15,18 @@ export const UMH = { x0: -980, x1: 1520, z0: -600, z1: 600, h: 1950 };
 {
   const { b, t, h, z } = HALLE, x0 = -b / 2, x1 = b / 2, z0 = z - t / 2, z1 = z + t / 2;
   const paneel = canvasTextur(256, 256, (g, w, hh) => {
-    g.fillStyle = '#4a5157'; g.fillRect(0, 0, w, hh);
+    g.fillStyle = '#c4c7c5'; g.fillRect(0, 0, w, hh);                     // Sandwichpaneel grauweiß (≈ RAL 9002)
     for (let x = 0; x < w; x += 32) { g.fillStyle = 'rgba(255,255,255,0.07)'; g.fillRect(x, 0, 14, hh); g.fillStyle = 'rgba(0,0,0,0.18)'; g.fillRect(x + 30, 0, 2, hh); }
   }, true);
   const sockel = canvasTextur(256, 128, (g, w, hh) => {
-    g.fillStyle = '#2f3337'; g.fillRect(0, 0, w, hh);
+    g.fillStyle = '#8a8c89'; g.fillRect(0, 0, w, hh);                     // Betonsockel
     for (let i = 0; i < 3000; i++) { const v = 50 + Math.random() * 40 | 0; g.fillStyle = `rgba(${v},${v},${v},0.25)`; g.fillRect(Math.random() * w, Math.random() * hh, 2, 2); }
     g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, 0, 2, hh);
   }, true);
   // Halle: Lambert-Materialien (große Bildflächen, keine Spiegelungen nötig)
   const wand = new THREE.MeshLambertMaterial({ map: paneel });
   const beton = new THREE.MeshLambertMaterial({ map: sockel });
-  const dach = new THREE.MeshLambertMaterial({ color: 0x1f2326, side: THREE.DoubleSide });
+  const dach = new THREE.MeshLambertMaterial({ color: 0x9aa0a3, side: THREE.DoubleSide });   // Trapezblech hellgrau
   const stahl = new THREE.MeshLambertMaterial({ color: 0x34475c });   // RAL 5014-ähnlich, gedeckt
   const wandFl = (w, hh, x, y, zz, ry, mat, rx, ry2) => {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, hh), mat.clone());
@@ -40,7 +40,7 @@ export const UMH = { x0: -980, x1: 1520, z0: -600, z1: 600, h: 1950 };
   }
   const decke = new THREE.Mesh(new THREE.PlaneGeometry(b, t), dach); decke.rotation.x = Math.PI / 2; decke.position.set(0, h, z); anlage.add(decke);
   // Lichtband in der Rückwand
-  const lichtband = new THREE.MeshBasicMaterial({ color: 0x8e9aa4 });
+  const lichtband = new THREE.MeshBasicMaterial({ color: 0xdfe8ee });
   const lb = new THREE.Mesh(new THREE.PlaneGeometry(b * 0.8, 900), lichtband); lb.position.set(0, 5600, z0 + 5); anlage.add(lb);
   // Stützen HEB 300 und Fachwerkbinder
   const heb = (x, zz) => {

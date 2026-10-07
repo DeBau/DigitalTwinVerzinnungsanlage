@@ -15,18 +15,26 @@ export function canvasTextur(w, h, zeichnen, wiederholen) {
   return t;
 }
 export const TEX = {
-  // Hallenboden: Epoxid-Beschichtung (RAL 7032-ähnlich) mit leichter Wolkigkeit, Gebrauchsspuren und Dehnfuge
-  // Hallenboden: Epoxid grün, seidenmatt, ruhig (nur leichte Wolkigkeit und Fugen) – Kontrast zur hellen Anlage
+  // Hallenboden: versiegelter Industriebeton, matt; eine Kachel = 6 × 6 m mit Schnittfugen am Rand,
+  // Körnung, wolkige Tönung und einzelne Flecken (Öl, Abrieb). Dunkel genug als Kontrast zur hellen Anlage.
   boden: canvasTextur(1024, 1024, (g, w, h) => {
-    g.fillStyle = '#7c8186'; g.fillRect(0, 0, w, h);
-    for (let i = 0; i < 260; i++) {
-      const x = Math.random() * w, y = Math.random() * h, r = 60 + Math.random() * 160;
-      const gr = g.createRadialGradient(x, y, 0, x, y, r);
-      const v = Math.random() < 0.5 ? '255,255,255' : '0,0,0';
-      gr.addColorStop(0, `rgba(${v},0.035)`); gr.addColorStop(1, `rgba(${v},0)`);
-      g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r);
+    g.fillStyle = '#5b5d5c'; g.fillRect(0, 0, w, h);
+    const wolke = (anzahl, rMin, rMax, staerke) => {
+      for (let i = 0; i < anzahl; i++) {
+        const x = Math.random() * w, y = Math.random() * h, r = rMin + Math.random() * (rMax - rMin);
+        const gr = g.createRadialGradient(x, y, 0, x, y, r), v = Math.random() < 0.5 ? '255,255,255' : '0,0,0';
+        gr.addColorStop(0, `rgba(${v},${staerke})`); gr.addColorStop(1, `rgba(${v},0)`);
+        g.fillStyle = gr; g.fillRect(x - r, y - r, 2 * r, 2 * r);
+      }
+    };
+    wolke(120, 80, 260, 0.06);                                   // Tönung der Betonfläche
+    wolke(14, 20, 70, 0.12);                                     // Flecken
+    for (let i = 0; i < 40000; i++) {                            // Körnung (Zuschlag)
+      const v = Math.random() < 0.5 ? 255 : 0;
+      g.fillStyle = `rgba(${v},${v},${v},${0.04 + Math.random() * 0.08})`;
+      g.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 1 + Math.random() * 2);
     }
-    g.fillStyle = 'rgba(0,0,0,0.35)'; g.fillRect(0, 0, w, 2); g.fillRect(0, 0, 2, h);   // Dehnfugen
+    g.fillStyle = 'rgba(0,0,0,0.45)'; g.fillRect(0, 0, w, 2); g.fillRect(0, 0, 2, h);   // Schnittfugen
   }, true),
   // Rauheit: gebürstetes Aluminium (Riefen in Längsrichtung = v)
   gebuerstet: canvasTextur(256, 256, (g, w, h) => {
@@ -85,7 +93,7 @@ export const TEX = {
   }),
 };
 export const HALLE = { b: 22000, t: 18000, h: 8500, z: 1500 };
-TEX.boden.repeat.set(HALLE.b / 2100, HALLE.t / 2100);
+TEX.boden.repeat.set(HALLE.b / 6000, HALLE.t / 6000);
 TEX.gebuerstet.repeat.set(0.004, 0.004);
 TEX.pulver.repeat.set(2, 2);
 TEX.zinn.repeat.set(1.2, 1.2);

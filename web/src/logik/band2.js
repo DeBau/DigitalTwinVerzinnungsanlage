@@ -1,4 +1,4 @@
-import { st } from './zustand.js';
+import { autoFrei, st } from './zustand.js';
 import { fmt0 } from '../core/format.js';
 import { BAND2, KORB_TEILUNG } from '../anlage/baender.js';
 import { E2 } from '../anlage/band2.js';
@@ -36,7 +36,7 @@ export function uebergabeUndBand2(dt) {
     const g = band2Grenzen(b2);
     const kipFrei = !kipperKorb() && MM8.an0;
     const bedarf = b2.some(k => k.x < g.get(k).max - 0.5) || wartetAufBand2() || (kipFrei && !st.sa6 && b2.some(k => k.x >= E2 - 1)) || (kipperKorb() && kipperKorb().kx < E2 + UEBERGABE);
-    BAND2.wende = bedarf && !kuehl && st.kf2 ? 1 : 0;
+    BAND2.wende = bedarf && !kuehl && autoFrei() && st.fa5Ok ? 1 : 0;
     const imTunnel = b2.some(k => k.x > KUEHL.x0 && k.x < KUEHL.x1 && temp(k) > 45);
     BAND2.pumpe = imTunnel ? 1 : 0; BAND2.spruehen = imTunnel ? 1 : 0;
     BAND2.blasen = BAND2.v > 1 && b2.some(k => k.x > 1550 && k.x < 1850) ? 1 : 0;
@@ -82,7 +82,7 @@ export function uebergabeUndBand2(dt) {
     blockMulde = haengt ? blockMulde + dt : 0;
     if (blockMulde > 4) { ereignis(t`Korb ${haengt.nr} hängt an der Übergabe Band 2 → Kippmulde: Band 2 (−QA5) und Muldenrollen (−QA12) müssen laufen`, 'err', 'uebergabeMulde'); blockMulde = 0; }
   } else blockMulde = 0;
-  // Abkühlen: an Luft langsam (Korb voller Teile, ca. 3 min), im Sprühwasser schnell (Abschrecken, ca. 4 s);
+  // Abkühlen: an Luft langsam (Korb voller Teile, Zeitkonstante 180 s: rund 5 min bis unter 60 °C), im Sprühwasser schnell (Abschrecken, 4 s);
   // gesprühte Körbe sind nass, das Luftmesser bläst sie trocken, an Luft trocknen sie nur langsam
   for (const k of koerbe) {
     const imSpray = k.zustand === 'band2' && k.x > KUEHL.x0 + 40 && k.x < KUEHL.x1 - 40 && BAND2.spruehen > 0.5;

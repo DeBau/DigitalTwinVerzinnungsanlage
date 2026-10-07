@@ -112,7 +112,7 @@ ihre Betriebsmittelkennzeichen nach EN 81346, so wie sie auch in `signale.csv` u
 | Reihe | Betriebsmittel |
 |---|---|
 | Einspeisung | −X0 Einspeiseklemmen, −FA1 Motorschutz 3RV2, −FA2 LS C16 3-polig, −FA3/−FA4 LS B6, −TA1 SITOP PSU8200 24 V/10 A, −XD9 Servicesteckdose, −FA5/−FA6 Motorschutz Band 2/Pumpe, −FA8 Motorschutz Muldenantrieb, −QB1 Hauptschalter (Welle zum Seitengriff) |
-| SIMATIC S7-1500 | PM 1507, −KF1 CPU 1516-3 PN/DP mit Display, DI 32 (%I0.0–%I3.7), DI 32 (%I4.0–%I7.7), DI 32 (%I8.0–%I11.7), DQ 32 (%Q0.0–%Q3.7), DQ 32 (%Q4.0–%Q7.7), AI 8 (%IW64…%IW74: BT1, BL1, BT2, SF47, BL2, MB18), AQ 4 (%QW80 MB18), Reserve; rechts neben der Profilschiene −KF10 Keyence CV-X |
+| SIMATIC S7-1500 | PM 1507, −KF1 CPU 1516-3 PN/DP mit Display, DI 32 (%I0.0–%I3.7), DI 32 (%I4.0–%I7.7), DI 32 (%I8.0–%I11.7), DI 32 (%I12.0–%I15.7, Daumenradschalter −SF48), DQ 32 (%Q0.0–%Q3.7), DQ 32 (%Q4.0–%Q7.7), AI 8 (%IW64…%IW74: BT1, BL1, BT2, SF47, BL2, MB18), AQ 4 (%QW80 MB18), Reserve; rechts neben der Profilschiene −KF10 Keyence CV-X |
 | Leistung | −QA1/−QA2 Wendeschützkombination Band (mechanisch verriegelt), −QA3 Heizungsschütz, −TB1 Halbleiterrelais 3RF2, −KF2 Sicherheitsrelais 3SK1, −KF3…−KF6 Koppelrelais, −QA5/−QA6 Wendekombination Band 2, −QA7 Pumpe, −QA12/−QA13 Wendekombination Muldenrollen |
 | Klemmen | −X1 400 V, −X2 24 V DC, −X3 Eingänge, −X4 Ausgänge, −X5 Feld (8WH, Federzug); rechts daneben −QA10/−QA11 Wendekombination Rollenkurve und −FA7 Motorschutz Rollenkurve |
 | Unten | −XPE Schutzleiterschiene, rechts daneben die Umrichter −TA2 Band 1, −TA3 Band 2, −TA4 Rollenkurve, −TA5 Prüfband (je SINAMICS G120: PM240-2, CU240E-2 PN, IOP-2), Schirmauflage mit Zugentlastung |

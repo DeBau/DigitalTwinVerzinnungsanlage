@@ -1,4 +1,4 @@
-import { st } from './zustand.js';
+import { autoFrei, st } from './zustand.js';
 import { BAND, BAND2, KORB_TEILUNG, KURVE } from '../anlage/baender.js';
 import { koerbe } from '../anlage/koerbe.js';
 import { ereignis } from '../ui/ereignisse.js';
@@ -60,7 +60,7 @@ export function rollenkurve(dt) {
     const vonBand1 = koerbe.some(k => k.zustand === 'band' && k.z > KURVE.zA - UEBERGABE - 1 && k.z < einlauf - 0.5);
     const inKurve = kk.some(k => k.s < m.get(k).max - 0.5 && !(k.s > KURVE.L - UEBERGABE - 1 && BAND2.wende <= 0));
     const anBand2 = koerbe.some(k => k.zustand === 'band2' && k.x < KURVE.R + UEBERGABE && BAND2.wende > 0);   // Korb noch im Übergabebereich
-    KURVE.wende = (vonBand1 || inKurve || anBand2) && st.kf2 && st.fa7Ok ? 1 : 0;
+    KURVE.wende = (vonBand1 || inKurve || anBand2) && autoFrei() && st.fa7Ok ? 1 : 0;
   } else if (!auto) {
     let r = wirksam('QA10_Kurve_Rechts'), l = wirksam('QA11_Kurve_Links');
     if (r && l) { ereignis('Wendeschütz Rollenkurve: Rechts- und Linkslauf gleichzeitig angesteuert (mechanisch verriegelt)', 'err', 'wende3'); r = KURVE.wende > 0; l = KURVE.wende < 0; }

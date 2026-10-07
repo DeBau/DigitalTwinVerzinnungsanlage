@@ -48,10 +48,12 @@ function hinweise(ctx){
 }
 
 /* ---------- SPS-Übersicht ---------- */
-function baugruppe(ctx, [platz, name, bestell, start], i){
-  const x = 80 + i * 118, y = 130, seiten = kanalSeiten(ctx, platz);
-  let s = kasten(x, y, 104, 300, platz === 1 ? "#EEF3F9" : "#fff") + text(x + 52, y - 10, `Steckplatz ${platz}`, {a: "middle", g: 9, f: GRAU});
-  s += absatz(x + 8, y + 24, umbrechen(name, 90, 10), {g: 10, w: 600, schrift: SCHMAL}) + text(x + 8, y + 270, bestell, {g: 7, f: GRAU});
+// Raster der Steckplätze: bis 9 Baugruppen 118 breit, danach enger, damit der Träger auf die Seite passt
+function baugruppe(ctx, [platz, name, bestell, start], i, n){
+  const schritt = Math.min(118, Math.floor(990 / (n - 1))), w = schritt - 14;
+  const x = 80 + i * schritt, y = 130, seiten = kanalSeiten(ctx, platz);
+  let s = kasten(x, y, w, 300, platz === 1 ? "#EEF3F9" : "#fff") + text(x + w / 2, y - 10, `Steckplatz ${platz}`, {a: "middle", g: 9, f: GRAU});
+  s += absatz(x + 8, y + 24, umbrechen(name, w - 14, 10), {g: 10, w: 600, schrift: SCHMAL}) + text(x + 8, y + 270, bestell, {g: 7, f: GRAU});
   if (start && start !== "PROFINET") s += text(x + 8, y + 90, `ab %${start}`, {g: 9, f: TINTE});
   seiten.forEach((nr, j) => { s += verweis(x + 8, y + 120 + j * 14, `/${nr}.0`, "start"); });
   return s;
@@ -70,7 +72,7 @@ function sps(ctx){
   merkeHier(ctx, "−KF1", 200, "haupt");
   merkeHier(ctx, "−KF1.0", 120, "haupt");
   let s = ueberschrift("SPS-Übersicht −KF1", "S7-1500, Baugruppenträger mit Systemstromversorgung, CPU und E/A-Baugruppen");
-  s += ctx.modell.plan.sps.map((b, i) => baugruppe(ctx, b, i)).join("");
+  s += ctx.modell.plan.sps.map((b, i, alle) => baugruppe(ctx, b, i, alle.length)).join("");
   s += kennzeichen("−KF1", 80, 470) + text(130, 470, "CPU 1516-3 PN/DP, PROFINET an X1", {g: 10});
   const reserve = "Freie Kanäle (Reserve): " + ctx.modell.plan.kanaele.reserve.join(", ");
   s += verweis(390, 470, seiteVon(ctx, "profinet"), "start") + text(80, 492, reserve, {g: 9, f: GRAU});

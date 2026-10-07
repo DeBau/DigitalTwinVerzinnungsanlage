@@ -18,7 +18,8 @@ import { FELD_LEDS, ketteAktualisieren } from '../anlage/verdrahtung.js';
 import { SAEULE } from '../anlage/umhausung.js';
 import { KUPFER, ZINN_FARBE, daempfe, koerbe, rauchMat } from '../anlage/koerbe.js';
 import { toastBis } from './ereignisse.js';
-import { ausgang, eingang, ketteLaeuft, wirksam } from '../logik/eingaenge.js';
+import { ausgang, bcdAnzeige, eingang, ketteLaeuft, wirksam } from '../logik/eingaenge.js';
+import { DEKADEN, bcdZeichnen } from '../anlage/bcd-geraete.js';
 import { demo } from '../logik/demo-sps.js';
 import { korbUnterkante } from '../logik/prozess.js';
 import { pruefstationZeichnen } from '../logik/pruefstation.js';
@@ -129,9 +130,11 @@ export function visual(dt) {
   }
   for (const k of KNEBEL) k.knebel.rotation.z = st[k.key] ? -Math.PI / 4 : Math.PI / 4;
   for (const p of POTIS) p.knopf.rotation.z = Math.PI * (0.75 - 1.5 * st[p.key]);   // 0 % links unten, 100 % rechts unten
+  bcdZeichnen(bcdAnzeige(), DEKADEN.map(d => st.daumenrad[d]));
 
   if (TAKT.bild % 6 !== 0) return;                                       // Seitenleiste (DOM) nur ~10× pro Sekunde
   $('pf1').classList.toggle('on', ausgang('PF1_Automatik'));
+  $('pg1').textContent = bcdAnzeige().map(z => z ?? ' ').join('');
   $('pf2').classList.toggle('on', ausgang('PF2_Temperatur'));
   $('pf3').classList.toggle('on', ausgang('PF3_Fuellhoehe'));
   $('pf4').classList.toggle('on', ausgang('PF4_Korb'));

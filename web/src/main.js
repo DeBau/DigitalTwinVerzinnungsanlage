@@ -27,6 +27,7 @@ import './bauteile/leitungen.js';
 import './bauteile/stecker.js';
 import './bauteile/zylinder.js';
 import './anlage/halle.js';
+import './anlage/produktion.js';
 import './anlage/baender.js';
 import './bauteile/foerderer.js';
 import './anlage/band1.js';

@@ -47,7 +47,7 @@ $('fu-ueberlast').onclick = () => { ueberlastAusloesen(aktiv); ereignis(t`Umrich
 $('fu-heiss').onclick = () => {
   const fu = aktiv;
   fu.motorHeiss = !fu.motorHeiss;
-  ereignis(fu.motorHeiss ? t`Umrichter −${fu.name}: Kaltleiter im Motor ${fu.motor} hat angesprochen (F07011)` : t`Motor ${fu.motor} abgekühlt: F07011 lässt sich quittieren`, fu.motorHeiss ? 'err' : '');
+  ereignis(fu.motorHeiss ? t`Umrichter −${fu.name}: Kaltleiter im Motor ${fu.motor} hat angesprochen (Warnung A07910, Störung F07011)` : t`Motor ${fu.motor} abgekühlt: F07011 lässt sich quittieren`, fu.motorHeiss ? 'err' : '');
 };
 
 // Bedienpanel IOP-2: Tasten und Drehrad

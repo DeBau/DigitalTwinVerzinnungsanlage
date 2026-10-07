@@ -43,6 +43,9 @@ export const QUITT = [
 ];
 export const notHaltText = (liste) => liste.map(n => `${n.bmk} (${t(n.ort)})`).join(', ');   // Ort in der Sprache der Oberfläche
 
+// Automatische Bereiche des Zwillings (Bandmodul, Portalsteuerung) dürfen fahren: −KF2 frei und nach dem Quittieren neu gestartet
+export const autoFrei = () => st.kf2 && st.anlauf;
+
 export const st = {
   modus: 'demo', modusManuell: false,
   bridgeOffen: false, plcVerbunden: false, plcZustand: 'getrennt', plcText: '',
@@ -57,8 +60,11 @@ export const st = {
   tauchSoll: 10, tropfSoll: 10,                            // Rezept: Tauch- und Abtropfzeit in s
   wasser: 70, ablass: false,                               // Kühlwassertank: Füllstand in %, Ablasshahn offen
   antrieb: { TA2: 'schuetz', TA3: 'schuetz', TA4: 'schuetz', TA5: 'schuetz' },   // je Förderer 'schuetz' oder 'fu' = Umrichter (Telegramm 1)
-  notHalt: { sf0: false, sf8: false, sf9: false, sf10: false, sf33: false }, kf2: true, sf4Alt: false, eingriff: false,
+  notHalt: { sf0: false, sf8: false, sf9: false, sf10: false, sf33: false }, kf2: true, quittAlt: null, eingriff: false,
+  anlauf: true,                                            // Wiederanlaufsperre: nach dem Abfallen von −KF2 laufen die automatischen Bereiche erst nach START wieder
   sa1: true, sa2: false, sa3: false, sa4: false, sa5: false, sa6: false, sa7: false, fa1Ok: true, fa5Ok: true, fa7Ok: true, fa8Ok: true,
+  daumenrad: { H: 0, Z: 1, E: 0 },                         // Daumenradschalter −SF48 Tauchzeit (BCD), Ziffer je Dekade
+  drahtbruch: {},                                          // Störgröße je Analogsignal: true = Leitung unterbrochen, die Baugruppe meldet 7FFF
   heizElement: 0.76, heizU: 0, regelEin: false,
   pbPoti: 1,                                               // Drehzahlpotentiometer −SF47 an −S50 (0…1 = 0…100 %)
   zufuhr: true, speed: 1, verzinnt: 0,

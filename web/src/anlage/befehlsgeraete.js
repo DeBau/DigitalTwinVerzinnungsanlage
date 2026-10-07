@@ -6,6 +6,7 @@ import { label, platte, tafel } from '../core/beschriftung.js';
 import { profil } from '../bauteile/aluprofil.js';
 import { KLICK, KNEBEL, POTIS, PULT_LAMPEN, PULT_TASTER } from './register.js';
 import { kabel } from './verdrahtung.js';
+import { daumenradschalter, ziffernanzeige } from './bcd-geraete.js';
 import { t as tr } from '../core/sprache.js';
 
 // 3D-Bedienpult und Vor-Ort-Steuerstelle (alle Taster/Schalter anklickbar)
@@ -97,13 +98,15 @@ export function meldeleuchte(parent, x, y, signal, farbe) {
   for (const sy of [-1, 1]) box(448, 12, 116, M.rittalAlu, 0, sy * 180, -55, kopf);     // Alu-Rahmenprofile oben/unten
   for (const sx of [-1, 1]) box(10, 376, 120, M.anthrazit, sx * 224, 0, -55, kopf);    // Eckstücke/Seitenteile anthrazit (stehen 2 mm über die Rahmenprofile)
   const W = 440, H = 360, k = 1.6, R1 = 115, R2 = 0, R3 = -112;
-  platte(tafel('pultFront2', W, H, (c) => {
+  platte(tafel('pultFront3', W, H, (c) => {
     c.fillStyle = '#c9cdd2'; c.fillRect(0, 0, W, H);
     const T = (t, x, y, s = 10, gw = 600) => tafelText(c, t, x + W / 2, H / 2 - y, s, gw);
     const linie = (y) => { c.strokeStyle = '#2a3038'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(14, H / 2 - y); c.lineTo(W - 14, H / 2 - y); c.stroke(); };
     linie(50); linie(-55);
     T(tr('EINZEL        AUTO'), -30, R1 + 30, 9.5);
     T(tr('NOT-HALT') + '  −SF0', -150, R1 - 53); T(tr('BETRIEBSART') + '  −SA1', -30, R1 - 53); T(tr('QUITTIEREN') + '  −SF4', 90, R1 - 53);
+    T(tr('KÖRBE'), 172, R1 - 50, 9.5); T('−PG1', 172, R1 - 62, 8.5, 500);
+    T(tr('TAUCHZEIT s'), -180, R2 - 37, 9.5); T('−SF48', -180, R2 - 49, 8.5, 500);
     T(tr('BETRIEB'), 0, 32, 12, 700);
     T('START  −SF1', -110, R2 - 40); T('STOP  −SF2', 20, R2 - 40); T(tr('Anlage läuft'), 150, R2 - 37, 9.5); T('−PF1', 150, R2 - 49, 8.5, 500);
     T(tr('MELDUNGEN'), 0, -76, 12, 700);
@@ -116,6 +119,8 @@ export function meldeleuchte(parent, x, y, signal, farbe) {
   drucktaster(kopf, -110, R2, 'sf1', 0x23a35a, '|');
   drucktaster(kopf, 20, R2, 'sf2', 0xd42a1f, '-');
   meldeleuchte(kopf, 150, R2, 'PF1_Automatik', 0xf4f7fb);
+  ziffernanzeige(kopf, 172, R1);
+  daumenradschalter(kopf, -180, R2 + 4);
   [['PF2_Temperatur', 0xffae1a], ['PF3_Fuellhoehe', 0xff3b2f], ['PF4_Korb', 0x3be27a], ['PF7_Handbetrieb', 0xffae1a]].forEach(([sig, f], i) => meldeleuchte(kopf, -150 + i * 100, R3, sig, f));
   label('Bedienpult Rittal CP (Taster anklickbar)', kopf, 0, 215, 0, 'klein');
 }

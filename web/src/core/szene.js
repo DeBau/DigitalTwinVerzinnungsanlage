@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import { CSS2DRenderer } from 'three/addons/CSS2DRenderer.js';
-import { RoomEnvironment } from 'three/addons/RoomEnvironment.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { computeBoundsTree, acceleratedRaycast } from '../lib/three-mesh-bvh.module.js';
 import { t } from './sprache.js';
+import HALLE_HDR from '../lib/halle_hdr.js';
 
 // BVH-beschleunigtes Raycasting (Beschriftung, Klick auf Befehlsgeräte)
 THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
@@ -33,10 +34,18 @@ Object.assign(labelRenderer.domElement.style, { position: 'absolute', inset: '0'
 host.appendChild(labelRenderer.domElement);
 
 export const scene = new THREE.Scene();
+// Umgebung für Spiegelungen und Umgebungslicht: Foto einer echten Werkhalle (HDRI, eingebettet)
 const pmrem = new THREE.PMREMGenerator(renderer);
-const umgebungBerechnen = () => { scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; };
+function hallenfoto() {
+  const bytes = Uint8Array.from(atob(HALLE_HDR), (c) => c.charCodeAt(0));
+  const bild = new RGBELoader().setDataType(THREE.HalfFloatType).parse(bytes.buffer);
+  const tex = new THREE.DataTexture(bild.data, bild.width, bild.height, THREE.RGBAFormat, bild.type);
+  Object.assign(tex, { mapping: THREE.EquirectangularReflectionMapping, colorSpace: THREE.LinearSRGBColorSpace, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: false, flipY: true, needsUpdate: true });
+  return tex;
+}
+const umgebungBerechnen = () => { const foto = hallenfoto(); scene.environment = pmrem.fromEquirectangular(foto).texture; foto.dispose(); };
 umgebungBerechnen();
-scene.environmentIntensity = 0.75;
+scene.environmentIntensity = 0.95;
 
 // Grafiktreiber-Reset (Treiberupdate, Standby, GPU überlastet): three.js baut den Kontext selbst neu auf,
 // was nur auf der Grafikkarte entstanden ist (Umgebungslicht, Schattenkarte), wird hier neu berechnet.
@@ -57,11 +66,11 @@ renderer.domElement.addEventListener('webglcontextrestored', () => {
 {
   const c = document.createElement('canvas'); c.width = 4; c.height = 256;
   const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256);
-  gr.addColorStop(0, '#16191c'); gr.addColorStop(0.55, '#262b30'); gr.addColorStop(1, '#1d2125');
+  gr.addColorStop(0, '#9aa0a3'); gr.addColorStop(0.55, '#b4b8ba'); gr.addColorStop(1, '#a3a7a9');
   g.fillStyle = gr; g.fillRect(0, 0, 4, 256);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
   scene.background = t;
-  scene.fog = new THREE.Fog(0x23272b, 8, 22);
+  scene.fog = new THREE.Fog(0xaeb2b4, 10, 30);
 }
 
 // Near 5 cm statt 3 cm: feinere Tiefenauflösung in der Ferne (bei 9 m ≈ 0,1 mm), damit knapp
