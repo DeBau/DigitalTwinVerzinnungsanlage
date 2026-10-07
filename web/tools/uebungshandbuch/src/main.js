@@ -34,12 +34,18 @@ import './app/seiten.js';
 // Vorlagen zuletzt: Sie melden sich nur in der Registry an und dürfen dafür alles aus dem Kern benutzen.
 import './editor/vorlagen/grafcet.js';
 import './editor/vorlagen/zustand.js';
+import './editor/vorlagen/anlage-antriebe.js';
 import './editor/vorlagen/wegschritt-striche.js';
+import './editor/vorlagen/wegschritt-eingabe.js';
 import './editor/vorlagen/wegschritt.js';
 import './editor/vorlagen/elektro.js';
 import './editor/vorlagen/leistung.js';
 import './editor/vorlagen/pneumatik-symbole.js';
+import './editor/vorlagen/pneumatik-geraete.js';
+import './editor/vorlagen/pneumatik-simstatus.js';
 import './editor/vorlagen/pneumatik-simulation.js';
+import './editor/vorlagen/pneumatik-antriebe.js';
+import './editor/vorlagen/pneumatik-pruefen.js';
 import './editor/vorlagen/pneumatik.js';
 import './editor/vorlagen/regelkreis-glieder.js';
 import './editor/vorlagen/regelkreis-bausteine.js';
