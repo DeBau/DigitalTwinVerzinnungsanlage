@@ -141,10 +141,9 @@ export function vorOrtStation(pos, bmk, k) {
   profil(45, 45, 990, 'y', 0, 505, 0, g);
   box(160, 10, 160, M.anthrazit, 0, 5, 0, g);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) zyl(6, 4, M.stahl, sx * 60, 12, sz * 60, null, g, 6);
-  box(W, H, 95, M.rittal, 0, YM, 50, g);
-  box(60, 40, 10, M.anthrazit, 0, 1000, 20, g);
-  zyl(9, 14, M.kunststoff, 0, 993, 75, null, g, 16);
-  const f = new THREE.Group(); f.position.set(0, YM, 98); g.add(f);                   // Frontplatte 0,5 mm vor dem Gehäuse
+  box(W, H, 95, M.rittal, 0, YM, 0, g);                                          // Gehäuse mittig auf der Säule
+  box(70, 12, 70, M.anthrazit, 0, 994, 0, g);                                     // Anschlussadapter Säule/Gehäuse (Leitung innen)
+  const f = new THREE.Group(); f.position.set(0, YM, 48); g.add(f);                   // Frontplatte 0,5 mm vor dem Gehäuse
   const zy = (i) => H / 2 - 143 - i * 64;                                         // Tastermitte der Zeile i
   platte(tafel('vorOrt_' + bmk, W, H, (c) => {
     c.fillStyle = '#d2d4cf'; c.fillRect(0, 0, W, H);
@@ -175,11 +174,11 @@ export function vorOrtStation(pos, bmk, k) {
     PULT_LAMPEN.push({ signal: k.pfQ, mat: q });
   }
   if (k.poti) potentiometer(f, 0, -H / 2 + 77, k.poti);
-  label('Vor-Ort-Steuerstelle −' + bmk, g, 0, 1000 + H + 40, 50, 'klein');
-  // Leitung: unter dem Gehäuse in die Säule, am Fuß heraus und am Boden zum Schaltschrank
-  const fuss = W0(0, 14, -26), zBoden = fuss.z;
-  if (k.leitung !== false) kabel([W0(0, 986, 75), W0(0, 945, 75), W0(0, 945, -26), fuss, V(-1220 + k.dx, 14, zBoden), V(-1220 + k.dx, 14, -60)], anlage, M.kabelGrau, 3.5);
-  else kabel([W0(0, 986, 75), W0(0, 945, 75), W0(0, 945, -26), fuss], anlage, M.kabelGrau, 3.5);
+  label('Vor-Ort-Steuerstelle −' + bmk, g, 0, 1000 + H + 40, 0, 'klein');
+  // Leitung: innen durch die Säule, am Fuß hinten heraus und am Boden zum Schaltschrank
+  const fuss = W0(0, 14, -26), zBoden = fuss.z, saeule = [W0(0, 90, 0), W0(0, 40, 0), fuss];
+  if (k.leitung !== false) kabel([...saeule, V(-1220 + k.dx, 14, zBoden), V(-1220 + k.dx, 14, -60)], anlage, M.kabelGrau, 3.5);
+  else kabel(saeule, anlage, M.kabelGrau, 3.5);
   return fuss;
 }
 // −S10 hinten am Bandanfang beim Antrieb −MA1 (außerhalb der Umhausung), Front nach hinten zum Werker

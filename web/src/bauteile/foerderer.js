@@ -152,8 +152,10 @@ export function getriebemotor(parent, z, seite, text) {
   for (let i = 0; i < 18; i++) {                                           // axiale Kühlrippen
     const a = i / 18 * Math.PI * 2;
     if (Math.abs(a - Math.PI / 2) < 0.4) continue;                         // oben: Klemmenkasten
+    if (a < 0.4 || a > Math.PI * 2 - 0.4) continue;                         // außen: Typenschildsockel
     const f = box(3, 7, 136, sew, 40 + Math.cos(a) * 48, 30 + Math.sin(a) * 48, -190, inn); f.rotation.z = a - Math.PI / 2;
   }
+  box(9, 36, 60, sew, 86.5, 30, -190, inn);                                // angegossener Sockel, glatte Fläche für das Typenschild
   zyl(50, 10, sew, 40, 30, -112, 'z', inn, 32);                            // A-Lagerschild
   zyl(50, 44, sew, 40, 30, -287, 'z', inn, 32);                            // Lüfterhaube
   zyl(45, 1, M.schwarz, 40, 30, -309.2, 'z', inn, 32);                    // dunkler Lüfterraum hinter dem Gitter
@@ -166,11 +168,12 @@ export function getriebemotor(parent, z, seite, text) {
   zyl(7, 14, M.kunststoff, 40, 92, -218, 'z', inn, 12);
   box(12, 80, 20, M.stahl, 20, -90, 45, inn);                            // Drehmomentstütze (Gummipuffer)
   box(25, 12, 30, M.anthrazit, -12, -126, 45, inn);
-  if (lesbar) platte(tafel('motorSEW', 46, 28, (c) => {
+  const schild = platte(tafel('motorSEW', 46, 28, (c) => {
     c.fillStyle = '#d8dbde'; c.fillRect(0, 0, 46, 28); c.fillStyle = '#c8102e'; c.font = '700 4px Arial'; c.fillText('SEW', 2, 5);
     c.fillStyle = '#222'; c.font = '600 2.6px Arial'; c.fillText('EURODRIVE', 11, 5);
     c.font = '600 3px Arial'; c.fillText('FA27 DRN71MS4', 2, 10); c.fillText('0,25 kW  S1  IE3', 2, 14.5); c.fillText('400 V Y  0,70 A  50 Hz', 2, 19); c.fillText('i = 40,5   na = 34 1/min', 2, 23.5);
-  }, 8), 46, 28, inn, 89, 30, -190, Math.PI / 2);
+  }, 8), 46, 28, inn, 91.4, 30, -190, Math.PI / 2);
+  if (!lesbar) schild.scale.x = -1;                                        // gespiegelter Motor: Schrift trotzdem lesbar
   label(text, inn, 45, 140, -100, 'klein');
   parent.updateMatrixWorld(true);
   // Leitungsabgang: aus der Kabelverschraubung über der Lüfterhaube nach hinten, hinter dem Motor zum Boden

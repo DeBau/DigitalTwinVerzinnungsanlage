@@ -84,12 +84,13 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   for (const sx of [-1, 1]) kanalV(sx * 320, 1105, 1770);
   const KANAL_Y = [1960, 1600, 1250, 920, 600, 330];
   for (const y of KANAL_Y) kanalH(0, y, 580);
-  {
-    const im = new THREE.InstancedMesh(new THREE.BoxGeometry(7, 2.5, 76), kanalGrau, finger.length);
-    finger.forEach(([x, y, z, r], i) => { dummy.position.set(x, y, z); dummy.rotation.set(0, 0, r ? Math.PI / 2 : 0); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); });
+  const fingerInstanzen = (liste, tiefe, parent) => {
+    const im = new THREE.InstancedMesh(new THREE.BoxGeometry(7, 2.5, tiefe), kanalGrau, liste.length);
+    liste.forEach(([x, y, z, r], i) => { dummy.position.set(x, y, z); dummy.rotation.set(0, 0, r ? Math.PI / 2 : 0); dummy.updateMatrix(); im.setMatrixAt(i, dummy.matrix); });
     dummy.rotation.set(0, 0, 0);
-    im.castShadow = true; im.receiveShadow = true; g.add(im);
-  }
+    im.castShadow = true; im.receiveShadow = true; parent.add(im);
+  };
+  fingerInstanzen(finger, 76, g);
 
   // --- Hutschienen TH35-7,5 (gelocht) ---
   const thForm = new THREE.Shape();
@@ -327,6 +328,10 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
     ab.add([[cpuX + 14, YB - MH / 2 - 10, MZ + 100], [cpuX + 14, YB - 120, MZ + 100], [cpuX + 14, YB - 120, PF + 55], [cpuX + 14, 1250, PF + 55]], M.kabelGruen, 3, 14);
     lbl('−KF1 CPU 1516-3 PN/DP', cpuX, YB + 125, MZ + MT + 10);
   }
+  // Ader vom Frontstecker [x, z vorne] zum Kanal unter der S7 (Oberkante y = 1280): schräg nach hinten unten, senkrecht durch den Schlitz
+  const s7Ader = ([x, zf], zk, i, mat, r) => {
+    ab.add([[x, YB - MH / 2 + 4, zf], [x, 1334 - (i % 4) * 3, zf], [x, 1290, zk], [x, 1250, zk]], mat, r, 10);
+  };
   // DI 32x24VDC HF und DQ 32x24VDC/0.5A ST, Kanal-LEDs zeigen die echten Signale
   const ioModul = (x0, liste, titel, bestell, name, dy) => {
     const w = 35;
@@ -347,10 +352,10 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
       const m = led(xm - w / 2 + 4.9 + sp * 5, YB + MH / 2 - 26.9 - z * 6.2, MZ + MT + 0.5, 0x22dd55, 3, 2.4);
       liste.push(m);
     }
-    // Frontstecker 40-polig: Adern unten heraus, nach hinten in den Kanal
+    // Frontstecker 40-polig: Adern unten heraus, dicht über dem Kanal nach hinten und durch die Schlitze hinein
     for (let i = 0; i < 16; i++) {
       const x = xm - 12 + i * 1.6, zf = MZ + MT - 18 - (i % 3) * 4;
-      ab.add([[x, YB - MH / 2 + 4, zf], [x, YB - MH / 2 - 22 - (i % 4) * 3, zf], [x, YB - MH / 2 - 22 - (i % 4) * 3, PF + 30 + (i % 5) * 9], [x, 1250, PF + 30 + (i % 5) * 9]], new THREE.MeshStandardMaterial({ color: FARBE.dc, roughness: 0.5 }), 0.8, 6);
+      s7Ader([x, zf], PF + 30 + (i % 5) * 9, i, aderMat(FARBE.dc), 0.8);
     }
     lbl(name, xm, YB + 105 + dy, MZ + MT + 10);
   };
@@ -371,7 +376,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
       text(c, '6ES7531-7KF00-0AB0', 14.5, 128.8, 1.6, '#555', 500);
     });
     statusLeds(xm, w).run.emissiveIntensity = 1.6;
-    for (let i = 0; i < 6; i++) ab.add([[xm - 8 + i * 3, YB - MH / 2 + 4, MZ + MT - 20], [xm - 8 + i * 3, YB - MH / 2 - 24, MZ + MT - 20], [xm - 8 + i * 3, YB - MH / 2 - 24, PF + 40 + i * 6], [xm - 8 + i * 3, 1250, PF + 40 + i * 6]], i < 4 ? M.kabelGrau : aderMat(FARBE.dc), 0.9, 6);
+    for (let i = 0; i < 6; i++) s7Ader([xm - 8 + i * 3, MZ + MT - 20], PF + 40 + i * 6, i, i < 4 ? M.kabelGrau : aderMat(FARBE.dc), 0.9);
     lbl('AI 8 (%IW64…%IW74)', xm, YB + 120, MZ + MT + 10);
   }
   // AQ 4xU/I ST: Stellsignal Regelventil −MB18 (%QW80, 0…10 V)
@@ -384,7 +389,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
       text(c, '6ES7532-5HD00-0AB0', 14.5, 128.8, 1.6, '#555', 500);
     });
     statusLeds(xm, w).run.emissiveIntensity = 1.6;
-    for (let i = 0; i < 2; i++) ab.add([[xm - 4 + i * 4, YB - MH / 2 + 4, MZ + MT - 20], [xm - 4 + i * 4, YB - MH / 2 - 24, MZ + MT - 20], [xm - 4 + i * 4, YB - MH / 2 - 24, PF + 76 + i * 6], [xm - 4 + i * 4, 1250, PF + 76 + i * 6]], i ? aderMat(FARBE.dc) : M.kabelGrau, 0.9, 6);
+    for (let i = 0; i < 2; i++) s7Ader([xm - 4 + i * 4, MZ + MT - 20], PF + 58 + i * 6, i, i ? aderMat(FARBE.dc) : M.kabelGrau, 0.9);
     lbl('AQ 4 (%QW80 MB18)', xm, YB + 135, MZ + MT + 10);
   }
   lbl('Reserve 20 %', 163, YB, MZ + 20);
@@ -414,33 +419,26 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   // Wendeschützkombination −QA1/−QA2 (mechanische Verriegelung 3RA2924 dazwischen), −QA3 Heizungsschütz
   // Wendekombination 3RA2315 (Baugröße S00): −QA1 Rechtslauf, −QA2 Linkslauf, seitliche mechanische Verriegelung,
   // Verdrahtungsbausatz: oben Einspeisebrücke (parallel), unten Abgangsbrücke mit Phasentausch L1↔L3
-  SCHRANK.qa = [schuetz(-262, 'QA1', null, YC + 39, false), schuetz(-214, 'QA2', null, false, YC - 39), schuetz(-160, 'QA3', '−QA3 Heizung')];
-  box(3, 44, 66, M.kunststoff, -238, YC, PF + 7.5 + 33, g);                         // mechanische Verriegelung 3RA2924
-  const bruecke = (y, key, tausch, xc = -238) => {
-    box(93, 10, 16, M.kunststoff, xc, y, PF + 55, g);
-    platte(tafel('wende' + key, 93, 10, (c) => {
-      c.fillStyle = '#2a2e33'; c.fillRect(0, 0, 93, 10);
-      c.strokeStyle = '#d0a020'; c.lineWidth = 0.9;
-      for (let i = 0; i < 3; i++) {
-        const a = 10 + i * 14, b = 58 + (tausch ? (2 - i) : i) * 14;
-        c.beginPath(); c.moveTo(a, tausch ? 7 : 3); c.lineTo(b, tausch ? 3 : 7); c.stroke();
-      }
-      c.fillStyle = '#e6e9ec'; c.font = '600 2.6px Arial'; c.fillText(tausch ? '3RA2923 L1↔L3' : '3RA2923', 34, 9.3);
-    }), 93, 10, g, xc, y, PF + 63.1);
+  // Mechanische Verriegelung 3RA2924 seitlich zwischen den Schützen, Brückenadern des Verdrahtungsbausatzes 3RA2923
+  // von Klemme zu Klemme: oben parallel (Einspeisung), unten L1↔L3 getauscht (Drehrichtungsumkehr)
+  const wendeBruecken = (xc, y0) => {
+    box(3, 44, 66, grau, xc, y0, PF + 7.5 + 33, g);
+    const ader = (xa, xb, y, h, z) => ab.add([[xa, y, z], [xa, y + h, z], [xb, y + h, z], [xb, y, z]], aderMat(FARBE.ac), 1.1, 4);
+    for (let i = 0; i < 3; i++) {
+      const dx = (i - 1) * 14, z = PF + 60 + i * 2.6;
+      ader(xc - 24 + dx, xc + 24 + dx, y0 + 26, 7 + i * 5, z);                    // oben: L1–L1, L2–L2, L3–L3
+      ader(xc - 24 + dx, xc + 24 - dx, y0 - 26, -(7 + i * 5), z);                 // unten: L1–L3, L2–L2, L3–L1
+    }
   };
-  bruecke(YC + 34, 'oben', false);
-  bruecke(YC - 34, 'unten', true);
+  SCHRANK.qa = [schuetz(-262, 'QA1', null, true, false), schuetz(-214, 'QA2', null, false, true), schuetz(-160, 'QA3', '−QA3 Heizung')];
+  wendeBruecken(-238, YC);
   // Band 2: Wendekombination −QA5/−QA6, Lüfterschütz −QA7
-  SCHRANK.qa.push(schuetz(30, 'QA5', null, YC + 39, false), schuetz(78, 'QA6', null, false, YC - 39), schuetz(132, 'QA7', '−QA7 Pumpe Sprühkühlung'));
-  box(3, 44, 66, M.kunststoff, 54, YC, PF + 7.5 + 33, g);
-  bruecke(YC + 34, 'oben', false, 54);
-  bruecke(YC - 34, 'unten', true, 54);
+  SCHRANK.qa.push(schuetz(30, 'QA5', null, true, false), schuetz(78, 'QA6', null, false, true), schuetz(132, 'QA7', '−QA7 Pumpe Sprühkühlung'));
+  wendeBruecken(54, YC);
   lbl('−QA5/−QA6 Wendekombination Band 2', 54, YC - 62, PF + 90);
   // Muldenantrieb −MA7: Wendekombination −QA12 (vor) / −QA13 (zurück), mechanisch verriegelt
-  SCHRANK.qa.push(schuetz(180, 'QA12', null, YC + 39, false), schuetz(228, 'QA13', null, false, YC - 39));
-  box(3, 44, 66, M.kunststoff, 204, YC, PF + 7.5 + 33, g);
-  bruecke(YC + 34, 'oben', false, 204);
-  bruecke(YC - 34, 'unten', true, 204);
+  SCHRANK.qa.push(schuetz(180, 'QA12', null, true, false), schuetz(228, 'QA13', null, false, true));
+  wendeBruecken(204, YC);
   lbl('−QA12/−QA13 Wendekombination Mulde', 204, YC - 62 - 22, PF + 90);
   // Keyence CV-X Bildverarbeitungs-Controller (auf der Montageplatte rechts neben der S7-Profilschiene), Kamerakabel und E/A zur SPS
   {
@@ -562,7 +560,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
       return anzeige;
     };
     SCHRANK.qa.push(sch(150, 'QA10'), sch(198, 'QA11'));
-    box(3, 44, 66, M.kunststoff, 174, YD, PF + 7.5 + 33, g);                     // mechanische Verriegelung 3RA2924
+    box(3, 44, 66, grau, 174, YD, PF + 7.5 + 33, g);                             // mechanische Verriegelung 3RA2924
     lbl('−QA10/−QA11 Wendekombination Rollenkurve', 174, YD - 62, PF + 90);
     const x = 258;                                                               // −FA7 Motorschutz 3RV2 (vereinfacht)
     box(45, 97, 70, grau, x, YD, PF + 7.5 + 35, g);
@@ -585,7 +583,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
     const x = 6 + i * 80, y = 466;
     g120Bauen(g, x, y, PF, fu);
     ab.add([[x + 15, y - 98, PF + 190], [x + 15, y - 112, PF + 190], [x + 15, y - 112, PF + 50], [x + 15, 330, PF + 50]], M.kabelOrange, 4, 12);   // Motorleitung (geschirmt)
-    ab.add([[x - 18, y - 57, PF + 195], [x - 18, y - 80, PF + 195], [x - 22, y - 110, PF + 60], [x - 22, 330, PF + 55]], M.kabelGruen, 3, 12);       // PROFINET X150 P1
+    ab.add([[x - 18, y - 57, PF + 195], [x - 18, y - 64, PF + 195], [x - 18, y - 70, PF + 214], [x - 18, y - 104, PF + 214], [x - 22, y - 118, PF + 60], [x - 22, 330, PF + 55]], M.kabelGruen, 3, 8);   // PROFINET X150 P1: vor dem Klemmendeckel des Leistungsteils nach unten
     ab.add([[x - 4, y - 98, PF + 150], [x - 4, y - 106, PF + 150], [x - 4, y - 116, PF + 70], [x - 4, 330, PF + 70]], M.kabel, 4, 12);              // Netzleitung
     lbl(`−${fu.name} ${t(fu.foerderer)}`, x, y + 112 + (i % 2) * 20, PF + 240);
   });
@@ -622,12 +620,21 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   // Doppeltür (2 × 400): links Tableau Handbetrieb, rechts SIMATIC HMI TP1200 Comfort
   // Innen: Kontaktelemente, Türkanal, Wellschlauch-Türübergang am Scharnier (folgt der Türbewegung)
   const adernBlau = new THREE.MeshStandardMaterial({ color: FARBE.dc, roughness: 0.5 });
+  const TK = 55;                                                          // Türkanal: Mitte 55 mm neben dem Scharnier (geschlossen innerhalb des Rahmenprofils)
+  // Geschlitzter Verdrahtungskanal 40 × 40 innen auf der Tür, senkrecht y = 790 … 1550
+  const tuerKanal = (t, s) => {
+    const xc = -s * TK, L = 760, yc = 1170, liste = [];
+    box(40, L, 2, kanalGrau, xc, yc, -1, t);
+    for (let y = yc - L / 2 + 4; y <= yc + L / 2 - 4; y += 12) for (const sx of [-1, 1]) liste.push([xc + sx * 18.75, y, -20, 1]);
+    fingerInstanzen(liste, 36, t);
+    box(44, L, 2.5, M.pvcHell, xc, yc, -39.5, t);                         // Deckel
+  };
   const tuerSeite = (s) => {                                              // s = −1 links (Scharnier links), +1 rechts
     const t = new THREE.Group(); t.position.set(s * W / 2, 0, D / 2); g.add(t);
     const xm = -s * 200;                                                  // Türmitte in Türkoordinaten
     box(396, 1990, 22, M.blech, -s * 200, 1100, 11, t);
     for (const y of [300, 1100, 1900]) zyl(8, 60, M.anthrazit, -s * 2, y, 11, null, t, 16);   // Scharniere
-    box(30, 760, 24, M.pvc, -s * 40, 1170, -12, t);                       // Türkanal am Scharnier (endet vor dem Rahmenprofil)
+    tuerKanal(t, s);
     const dichtung = new THREE.MeshStandardMaterial({ color: 0x5d6266, roughness: 0.9 });
     for (const sy of [-1, 1]) box(372, 10, 6, dichtung, -s * 200, 1100 + sy * 970, -3, t);   // PU-Dichtung
     for (const dx of [12, 388]) box(10, 1930, 6, dichtung, -s * dx, 1100, -3, t);
@@ -689,7 +696,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
       box(10, 40, 30, grau, x - 6, y, -23, L.t);                          // Kontaktelement 1S
       box(10, 40, 30, grau, x + 6, y, -23, L.t);
       const vy = dx > 0 ? 2.5 : 0;                                       // rechte Gerätespalte: Adern 2,5 mm höher, sonst liegen sie in denen der linken
-      for (const dz of [-3, 3]) leitung([[x - 12, y + 14, -23 + dz], [x - 12, y + 26 + vy, -23 + dz], [-L.xm * 0 + 52, y + 26 + vy + dz, -23 + dz]], adernBlau, 0.9, 6, L.t);
+      for (const dz of [-3, 3]) leitung([[x - 12, y + 14, -23 + dz], [x - 12, y + 26 + vy, -23 + dz], [TK, y + 26 + vy + dz, -23 + dz]], adernBlau, 0.9, 6, L.t);   // durch die Schlitze in den Türkanal
     }
   }
   box(320, 420, 24, M.anthrazit, L.xm, 600, -12, L.t);                    // Schaltplantasche
@@ -714,14 +721,14 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
     box(16, 10, 14, M.gelb, -70, -114, -36, f);                            // 24-V-Stecker
     label('HMI TP1200 Comfort −PF10 (PROFINET)', f, 0, 160, 10, 'klein');
     // Leitungen hinten: PROFINET grün, 24 V blau/rot, zum Türkanal am Scharnier (x = +40 in Türkoordinaten)
-    const X = HMI.x, Y = HMI.y;
-    leitung([[X - 100, Y - 120, -36], [X - 100, Y - 150, -36], [-40, Y - 150, -36], [-40, 1300, -20]], M.kabelGruen, 3, 12, R.t);
-    for (const [dx, mat, dy] of [[-73, adernBlau, 0], [-67, new THREE.MeshStandardMaterial({ color: FARBE.rot, roughness: 0.5 }), 2.5]]) leitung([[X + dx, Y - 119, -36], [X + dx, Y - 160 - dy, -36], [-44 + (dx + 70), Y - 160 - dy, -36], [-44 + (dx + 70), 1300, -20]], mat, 1, 8, R.t);   // zwei Höhen, sonst liegen die Adern ineinander
+    const X = HMI.x, Y = HMI.y, ZS = HMI.z - 36;                               // Steckerebene in Türkoordinaten
+    leitung([[X - 100, Y - 119, ZS], [X - 100, Y - 150, ZS], [-TK, Y - 150, ZS], [-TK, 1300, -20]], M.kabelGruen, 3, 12, R.t);
+    for (const [dx, mat, dy] of [[-73, adernBlau, 0], [-67, new THREE.MeshStandardMaterial({ color: FARBE.rot, roughness: 0.5 }), 2.5]]) leitung([[X + dx, Y - 118, ZS], [X + dx, Y - 160 - dy, ZS], [-TK - 4 + (dx + 70), Y - 160 - dy, ZS], [-TK - 4 + (dx + 70), 1300, -20]], mat, 1, 8, R.t);   // zwei Höhen, sonst liegen die Adern ineinander
   }
   // Türübergänge: Wellschlauch vom Türkanal (unten) zur Schrankseite, dann in die Senkrechtkanäle
   const welle = new THREE.MeshStandardMaterial({ color: 0x1b1d20, roughness: 0.75 });
   SCHRANK.uebergang = [[L.t, -1], [R.t, 1]].map(([tt, s]) => {
-    const A = V(-s * 40, 890, -13), B = V(s * 368, 860, 150);
+    const A = V(-s * TK, 800, -20), B = V(s * 352, 860, 150);                // A: unteres Ende des Türkanals, B: hinter dem Rahmenprofil
     rohr([B, V(B.x, B.y, PF + 50), V(s * 335, B.y, PF + 50)], welle, 9, 30, g);                   // fest: in den Kanal
     const m = mesh(new THREE.BufferGeometry(), welle, g); m.userData.dyn = true;
     return { tt, A, B, m };
@@ -745,7 +752,7 @@ export function schrankAktualisieren(dt) {
       const a = SCHRANK.g.worldToLocal(u.tt.localToWorld(u.A.clone()));
       const innen = V(0, 0, -1).applyQuaternion(u.tt.quaternion);
       // Schlauch läuft dicht am Scharnier vorbei (dort bewegt sich die Tür am wenigsten)
-      const sx = Math.sign(u.B.x), scharnier = V(sx * (400 - 30), 835, 200 - 12);
+      const sx = Math.sign(u.B.x), scharnier = V(sx * (372 - 14), 835, 200 - 6);   // innen am Rahmenprofil (x ±372) vorbei
       const k = new THREE.CatmullRomCurve3([a, a.clone().addScaledVector(innen, 22).add(V(0, -20, 0)), scharnier, u.B.clone().add(V(0, -15, 22)), u.B], false, 'centripetal');
       rohrNeu(u.m, k, 40, 9);
     }

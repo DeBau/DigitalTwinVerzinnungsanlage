@@ -272,37 +272,41 @@ function trichterGeo(o, u) {
     stecker(anlage, V(x, yB - 2, z - 70), '-y');
     A.bg32 = V(x, yB - 2 - 32, z - 70);
   }
-  // Keyence CV-X −KF10: Kamera CA-H500C mit Objektiv und Ringlicht CA-DRW an einem verschraubten Stativ (Profil 45x90)
+  // Keyence CV-X −KF10: Kamera CA-H500C (Objektiv nach unten) mit Ringlicht CA-DRW direkt darunter.
+  // Stativ: Säule 45 × 90 mit Fußplatte hinter dem Band, Kreuzklemmstück oben, Ausleger 45 × 45 über das Band,
+  // am Auslegerende ein senkrechter Halterwinkel, an dem Kamera und Ringlicht seitlich verschraubt sind.
   {
-    const cx = ST.kamX + 60, cz = z - 190;
+    const cx = ST.kamX + 60, cz = z - 190;                                        // Säule versetzt (Platz für −BG32 und Leitung)
+    const yR = yB + 90, yO = yR + 14, yK = yO + 44 + 35, yA = yK + 52;            // Ringlicht, Objektivunterkante, Kameramitte, Ausleger
+    const xH = cx - 22.5 - 7.5;                                                   // Halterwinkel an der Seitenfläche des Auslegers
     box(180, 12, 180, M.anthrazit, cx, 6, cz);
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) zyl(7, 6, M.stahl, cx + sx * 70, 15, cz + sz * 70, null, anlage, 6);   // Schwerlastanker
-    profil(90, 45, 790, 'y', cx, 12 + 395, cz);
-    for (const s of [-1, 1]) { const w = box(8, 120, 70, M.anthrazit, cx + s * 49, 70, cz); void w; }   // Fußwinkel
-    box(60, 60, 60, M.alu, cx, 780, cz);                                          // Kreuzklemmstück
-    profil(45, 45, 230, 'z', cx, 780, z - 95);                                     // Ausleger
-    box(70, 30, 40, M.alu, ST.kamX + 30, 780, z + 2);                             // Kamerahalter (steht 2 mm vor dem Auslegerende)
-    zyl(10, 120, M.stahl, ST.kamX, 710, z, null, anlage, 12);
-    const k2 = new THREE.Group(); k2.position.set(ST.kamX, 615, z); anlage.add(k2);
+    profil(90, 45, yA - 30 - 12, 'y', cx, 12 + (yA - 30 - 12) / 2, cz);
+    for (const s of [-1, 1]) box(8, 100, 60, M.anthrazit, cx + s * 49, 62, cz);    // Fußwinkel
+    box(100, 60, 60, M.alu, cx, yA, cz);                                           // Kreuzklemmstück auf der Säule
+    const aL = z + 30 - (cz + 30);
+    profil(45, 45, aL, 'z', cx, yA, cz + 30 + aL / 2);                             // Ausleger bis über die Bandmitte
+    box(15, yA + 22 - (yR + 8), 50, M.alu, xH, (yA + 22 + yR + 8) / 2, z);        // Halterwinkel: oben am Ausleger, unten auf dem Ringlicht verschraubt
+    for (const y of [yA - 10, yA + 10]) zyl(4, 4, M.stahl, xH - 9.5, y, z, 'x', anlage, 8);   // Schrauben in die Profilnut
+    const k2 = new THREE.Group(); k2.position.set(ST.kamX, yK, z); anlage.add(k2);
     box(44, 70, 44, new THREE.MeshStandardMaterial({ color: 0x3a3e43, roughness: 0.5, metalness: 0.3 }), 0, 0, 0, k2);
     box(46, 10, 46, M.schwarz, 0, -36, 0, k2);
-    for (const sx of [-1, 1]) zyl(5, 10, M.stahl, sx * 10, 40, 0, null, k2, 10);
+    for (const sx of [-1, 1]) zyl(5, 10, M.stahl, sx * 10, 40, 0, null, k2, 10);              // M12-Buchsen oben
     platte(tafel('keyenceCA', 40, 10, (c) => { c.fillStyle = '#3a3e43'; c.fillRect(0, 0, 40, 10); c.fillStyle = '#e8eaec'; c.font = '700 5px Arial'; c.textAlign = 'center'; c.fillText('KEYENCE', 20, 6); c.font = '500 2.6px Arial'; c.fillText('CA-H500C', 20, 9.2); }, 8), 40, 10, k2, 0, 15, -22.2, Math.PI);
-    zyl(15, 44, M.alu, 0, -63, 0, null, k2, 24);
-    zyl(16.5, 10, M.schwarz, 0, -56, 0, null, k2, 24);
-    zyl(16.5, 6, M.schwarz, 0, -78, 0, null, k2, 24);
-    const rl = new THREE.Group(); rl.position.y = -260; k2.add(rl);                                 // Ringlicht 120 mm über dem Gurt
+    zyl(15, 44, M.alu, 0, -35 - 22 - 4, 0, null, k2, 24);                                      // Objektiv
+    zyl(16.5, 8, M.schwarz, 0, -45, 0, null, k2, 24);
+    zyl(16.5, 6, M.schwarz, 0, -35 - 44 - 4 + 3, 0, null, k2, 24);
+    const rl = new THREE.Group(); rl.position.set(ST.kamX, yR, z); anlage.add(rl);           // Ringlicht 90 mm über dem Gurt
     const gehM = new THREE.MeshStandardMaterial({ color: 0x2b2d30, roughness: 0.5, side: THREE.DoubleSide });
     rl.add(new THREE.Mesh(new THREE.CylinderGeometry(55, 55, 16, 40, 1, true), gehM));
     rl.add(new THREE.Mesh(new THREE.CylinderGeometry(24, 24, 16, 24, 1, true), gehM));
     const dk = new THREE.Mesh(new THREE.RingGeometry(24, 55, 40), gehM); dk.rotation.x = -Math.PI / 2; dk.position.y = 8; rl.add(dk);
     ST.kamLicht = new THREE.MeshStandardMaterial({ color: 0xc8ccd0, emissive: 0xf4f8ff, emissiveIntensity: 0, roughness: 0.6, side: THREE.DoubleSide });
     const df = new THREE.Mesh(new THREE.RingGeometry(26, 53, 40), ST.kamLicht); df.rotation.x = Math.PI / 2; df.position.y = -8; rl.add(df);
-    for (const sx of [-1, 1]) box(6, 230, 6, M.anthrazit, sx * 40, 120, 0, rl);                      // Halter Ringlicht
     label('Keyence CV-X Kamera −KF10', k2, 0, 90, 0, 'klein');
-    // Kamera- und Ringlichtleitung über den Ausleger zur Säule
-    leitung([V(ST.kamX + 10, 660, z), V(ST.kamX + 10, 780, z), V(cx - 10, 800, z - 60), V(cx - 10, 800, cz + 25)], M.kabel, 3, 20);
-    A.kf10 = V(cx - 10, 800, cz + 25);
+    // Kamera- und Ringlichtleitung: oben aus der Kamera über den Ausleger zur Säule, an der Säulenrückseite nach unten
+    A.kf10 = V(cx, yA - 50, cz - 34);
+    leitung([V(ST.kamX + 10, yK + 45, z), V(ST.kamX + 10, yA + 32, z), V(cx, yA + 32, z - 20), V(cx, yA + 32, cz - 34), A.kf10], M.kabelGruen, 3.5, 20);
   }
   // Ausblasdüse −MB16: Flachstrahldüse vorn am Seitenprofil, bläst n.i.O.-Teile durch die Lücke hinten auf die Rutsche
   {

@@ -221,7 +221,7 @@ zuXD([MULTIPOL, V(MULTIPOL.x, KY + 50, MULTIPOL.z), V(MULTIPOL.x, KY + 50, KI), 
 }
 zumSchrank([FM, V(2962, 75, FM.z), ...imKanal(2962)], M.kabel, 3.5);                         // Muldenantrieb −MA7 (−QA12/−QA13, −FA8)
 zumSchrank([A.ma5, V(A.ma5.x, A.ma5.y + 50, A.ma5.z), V(A.ma5.x, A.ma5.y + 50, KZ - 12), V(A.ma5.x, KY, KZ - 12)], M.kabel, 4.5);
-zumSchrank([A.kf10, V(3850, A.kf10.y, A.kf10.z), V(3850, KY, A.kf10.z), V(3850, KY, KI)], M.kabelGruen, 3.5);   // Keyence-Kabel zum Controller im Schrank
-for (const y of [300, 500, 700]) halter(3850, y, A.kf10.z, 'y');
+zumSchrank([A.kf10, V(A.kf10.x, KY, A.kf10.z), V(A.kf10.x, KY, KI)], M.kabelGruen, 3.5);   // Keyence-Kabel an der Stativsäule nach unten zum Controller im Schrank
+for (const y of [200, 320]) halter(A.kf10.x, y, A.kf10.z + 4, 'y');
 // Vor-Ort-Steuerstelle −S40: aus dem Säulenfuß am Boden unter dem Prüfband (zwischen den Beinen) zum Kanal, dort hoch in den Kanal
 { const f = S40_FUSS, x = 3720; zumSchrank([f, V(x, 14, f.z), V(x, 14, KI), V(x, KY, KI)], M.kabelGrau, 3.5); for (const zz of [1500, 1800]) box(24, 6, 30, M.kunststoff, x, 4, zz); }
