@@ -58,22 +58,22 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(-
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
-.app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 400px; }
-.app.seite-zu { grid-template-columns: minmax(0, 1fr); }
-.stage { position: relative; min-width: 0; background: linear-gradient(var(--viewport-top), var(--viewport-bottom)); overflow: hidden; }
+/* Die Seitenleiste liegt über der 3D-Ansicht: Die 3D-Fläche behält beim Ein- und Ausblenden ihre Größe, das Bild springt nicht.
+   Anzeigen und Knöpfe der Ansicht halten mit --seite Abstand zur Leiste. */
+.app { height: 100%; position: relative; --seite: 480px; }
+.app.seite-zu { --seite: 0px; }
+.stage { position: absolute; inset: 0; min-width: 0; background: linear-gradient(var(--viewport-top), var(--viewport-bottom)); overflow: hidden; }
 #viewport { position: absolute; inset: 0; isolation: isolate; }   /* z-index der 3D-Beschriftungen bleibt in der Ansicht */
 #viewport canvas { display: block; }
 
-.stage-head { position: absolute; top: 14px; left: 16px; right: 16px; display: flex; gap: 12px; align-items: flex-start; justify-content: space-between; pointer-events: none; flex-wrap: wrap; }
-.stage-head h1 { margin: 0; font: 600 18px/1.2 var(--font-label); letter-spacing: .01em; text-wrap: balance; }
-.stage-head p { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; max-width: 46ch; }
+.stage-head { position: absolute; top: 14px; left: 16px; right: calc(var(--seite) + 16px); display: flex; gap: 12px; align-items: flex-start; justify-content: flex-end; pointer-events: none; flex-wrap: wrap; }
 .readout { display: flex; gap: 6px; pointer-events: auto; flex-wrap: wrap; }
 .readout div { background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; min-width: 78px; }
 .readout span { display: block; font: 500 10px/1.2 var(--font-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .readout b { font: 500 15px/1.3 var(--font-data); font-variant-numeric: tabular-nums; }
 .readout b.warn, .gauge b.warn { color: var(--fault); }
 
-.stage-foot { position: absolute; left: 16px; bottom: 14px; right: 16px; display: flex; gap: 6px; flex-wrap: wrap; }
+.stage-foot { position: absolute; left: 16px; bottom: 14px; right: calc(var(--seite) + 16px); display: flex; gap: 6px; flex-wrap: wrap; }
 .chip-btn { font: 500 12px var(--font-label); letter-spacing: .03em; color: var(--fg); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; cursor: pointer; }
 a.chip-btn { text-decoration: none; }
 .chip-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
@@ -111,8 +111,11 @@ a.chip-btn { text-decoration: none; }
 .tag3d.weg { visibility: hidden; }
 
 /* Seitenspalte */
-.side { background: var(--panel); border-left: 1px solid var(--line); overflow-y: auto; min-width: 0; display: flex; flex-direction: column; }
+.side { position: absolute; top: 0; right: 0; bottom: 0; z-index: 20; width: min(var(--seite), 100vw); background: var(--panel); border-left: 1px solid var(--line);
+  box-shadow: -10px 0 30px rgba(0,0,0,.12); overflow-y: auto; min-width: 0; display: flex; flex-direction: column; }
 .side[hidden] { display: none; }
+.side.abgeloest { position: static; width: auto; height: 100vh; box-shadow: none; border-left: 0; }   /* im eigenen Fenster */
+.side.abgeloest #side-zu { display: none; }
 .side-top { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 8px; padding: 9px 10px 9px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
 .side-top b { flex: 1; font: 600 11px/1.2 var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .side-top .version { font: 400 11px var(--font-data); color: var(--muted); white-space: nowrap; }
@@ -396,9 +399,9 @@ tr.forced td { background: color-mix(in srgb, var(--led) 12%, transparent); }
 .wert { font: 500 11px var(--font-data); font-variant-numeric: tabular-nums; }
 
 @media (max-width: 900px) {
-  .app { grid-template-columns: 1fr; grid-template-rows: 60vh auto; height: auto; }
-  .side { border-left: 0; border-top: 1px solid var(--line); overflow: visible; }
-  .stage-head p { display: none; }
+  .app { display: grid; grid-template-rows: 60vh auto; height: auto; --seite: 0px; }
+  .stage { position: relative; }
+  .side { position: static; width: auto; box-shadow: none; border-left: 0; border-top: 1px solid var(--line); overflow: visible; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -434,10 +437,6 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
   <section class="stage" aria-label="3D-Ansicht">
     <div id="viewport"></div>
     <div class="stage-head">
-      <div>
-        <h1>Zinnbad</h1>
-        <p>Verzinnen von Kleinteilen im Materialkorb · Einhängen −MM1, Tauchen −MM2, Verschieben −MM3, Abstreifen −MM4</p>
-      </div>
       <div class="readout" aria-live="polite">
         <div><span>Schritt</span><b id="ro-step">–</b></div>
         <div><span>Zinn</span><b id="ro-temp">– °C</b></div>
@@ -481,6 +480,7 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
       <small class="version" id="version" title="Version des Zwillings"></small>
       <button type="button" class="side-mini" id="sprache" lang="en" title="Switch to English (reloads the page)">EN</button>
       <button type="button" class="side-mini" id="side-alle" title="Alle Bereiche auf- oder zuklappen">Alle zuklappen</button>
+      <button type="button" class="side-mini" id="side-loesen" title="In eigenem Fenster öffnen, z. B. auf einem zweiten Bildschirm">Lösen</button>
       <button type="button" class="side-mini side-x" id="side-zu" aria-label="Seitenleiste ausblenden" title="Seitenleiste ausblenden">×</button>
     </div>
 

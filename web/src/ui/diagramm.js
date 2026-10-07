@@ -76,7 +76,7 @@ function farben() {
   return { fg: v('--fg'), muted: v('--muted'), line: v('--line'), accent: v('--accent'), ok: v('--ok'), led: v('--led'), panel: v('--panel') };
 }
 function vorbereiten(cv) {
-  const dpr = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth, h = cv.clientHeight;
+  const dpr = Math.min((cv.ownerDocument.defaultView ?? window).devicePixelRatio || 1, 2), w = cv.clientWidth, h = cv.clientHeight;   // auch im abgelösten Fenster
   if (!w || !h) return null;
   if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
   const c = cv.getContext('2d');

@@ -85,6 +85,14 @@ Regelstrecke Kühlwassertank: integrierend (ohne Ausgleich). Zulauf bis 1,5 %/s 
 
 
 
+## Seitenleiste
+
+Die Seitenleiste liegt über dem rechten Rand der 3D-Ansicht. Ein- und Ausblenden (Knopf **Seitenleiste** unten
+oder × oben) verändert das 3D-Bild nicht. Mit **Lösen** oben in der Leiste wandert sie in ein eigenes Fenster,
+das sich z. B. auf einen zweiten Bildschirm ziehen lässt; die 3D-Ansicht nutzt dann die volle Breite. Alles in
+der Leiste bleibt bedienbar (Bedienfeld, Forcen, Diagramm). **Andocken** oder Schließen des Fensters holt sie
+zurück. Blockiert der Browser das Fenster, Pop-ups für die Seite erlauben.
+
 ## Sprache
 
 Oben in der Seitenleiste schaltet **EN / DE** zwischen englischer und deutscher Oberfläche um; die

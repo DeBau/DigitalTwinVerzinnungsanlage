@@ -85,6 +85,14 @@ Cooling water tank controlled system: integrating (no self-regulation). Inflow u
 
 
 
+## Sidebar
+
+The sidebar lies over the right edge of the 3D view. Showing and hiding it (**Sidebar** button at the bottom
+or × at the top) does not change the 3D picture. **Detach** at the top of the sidebar moves it into a separate
+window, which can be dragged to a second screen, for example; the 3D view then uses the full width. Everything
+in the sidebar remains usable (control panel, forcing, diagram). **Dock** or closing the window brings it
+back. If the browser blocks the window, allow pop-ups for the page.
+
 ## Language
 
 At the top of the sidebar, **EN / DE** switches between the English and German user interface; the

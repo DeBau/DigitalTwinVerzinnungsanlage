@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { $, ANSICHT, KAMERA, anlage, ansichtPos, ansichtSetzen, camera, controls, host, labelRenderer, renderer } from '../core/szene.js';
 import { SCHRANK } from '../anlage/schaltschrank.js';
 import { SPRACHE, t } from '../core/sprache.js';
+import { SEITENFENSTER, andocken } from './seitenfenster.js';
 
 
 // ----------------------------------------------------------------------------
@@ -96,10 +97,9 @@ function seiteZeigen(an) {
   seite.hidden = !an;
   document.querySelector('.app').classList.toggle('seite-zu', !an);
   seiteBtn.setAttribute('aria-pressed', an);
-  merke('zinnbad-seite', an ? '1' : '0');
-  groesse();                                   // 3D-Bild auf die neue Breite bringen
+  merke('zinnbad-seite', an ? '1' : '0');      // Die Leiste liegt über der 3D-Ansicht, deren Größe bleibt gleich
 }
-seiteBtn.onclick = () => seiteZeigen(seite.hidden);
+seiteBtn.onclick = () => (SEITENFENSTER.fenster ? andocken() : seiteZeigen(seite.hidden));   // abgelöst: zurückholen
 $('side-zu').onclick = () => seiteZeigen(false);
 if (gemerkt('zinnbad-seite') === '0') seiteZeigen(false);
 

@@ -13,7 +13,9 @@ THREE.Mesh.prototype.raycast = acceleratedRaycast;
 // ----------------------------------------------------------------------------
 // Renderer, Kamera, Licht
 // ----------------------------------------------------------------------------
-export const $ = (id) => document.getElementById(id);
+// Elemente nach id suchen – auch in der abgelösten Seitenleiste, die dann in einem eigenen Fenster liegt (ui/seitenfenster.js)
+export const NEBENFENSTER = { doc: null };
+export const $ = (id) => document.getElementById(id) ?? NEBENFENSTER.doc?.getElementById(id) ?? null;
 export const host = $('viewport');
 // Ohne WebGL 2 (alter Treiber, Hardwarebeschleunigung aus, Remote-Desktop) gibt es keine 3D-Darstellung
 if (!document.createElement('canvas').getContext('webgl2')) {

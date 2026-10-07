@@ -495,4 +495,11 @@ export default {
   'unbekannt': 'unknown',
   'Das ist die Onboard-Grafik. Hat der Rechner zusätzlich eine NVIDIA- oder AMD-Karte: Windows-Einstellungen → System → Anzeige → Grafik → Browser auf „Hohe Leistung“ stellen und den Browser neu starten.': 'This is the integrated graphics. If the computer also has an NVIDIA or AMD card: Windows Settings → System → Display → Graphics → set the browser to “High performance” and restart the browser.',
   'Schließen': 'Close',
+  // Seitenleiste lösen
+  'Lösen': 'Detach',
+  'Andocken': 'Dock',
+  'Zurück in das Hauptfenster': 'Back into the main window',
+  'In eigenem Fenster öffnen, z. B. auf einem zweiten Bildschirm': 'Open in a separate window, e.g. on a second screen',
+  'Fenster blockiert': 'Window blocked',
+  'Der Browser hat das neue Fenster blockiert. Bitte Pop-ups für diese Seite erlauben.': 'The browser blocked the new window. Please allow pop-ups for this page.',
 };
