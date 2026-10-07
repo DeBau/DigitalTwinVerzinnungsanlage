@@ -19,6 +19,11 @@ export const vorlage = key => VORL[key] || {};
 /* ---------- Bausteine ---------- */
 // Bausteinart oder Palettenvariante → {n, g, mk, hide, zeichne, anschluesse, feldliste, beschriftung, …, Haken};
 // Bauteile zusätzlich {bauteil: true, w, h, bx, def, lbl, info}
+// Haken der Pneumatik-Simulation (Aufrufer in vorlagen/pneumatik-simulation.js):
+//   sim(o, stellung, hatDruck, belegt) → {src, pairs, dir, ablass}: Druckquellen, offene Wege, Richtung, Anschlüsse offen
+//     zur Atmosphäre; hatDruck(p) sagt, ob Anschluss p Druck hat, belegt(p), ob p verdrahtet ist (simTeile, simCompute)
+//   drossel(o) → {frei, f}: Anschluss, zu dem die Luft ungedrosselt strömt (null: beide Richtungen gedrosselt), Faktor 0 bis 1
+//     (drosselFaktor); ohne Haken keine Drossel
 export const BAUSTEIN = {};
 export const SAMPLE = {};     // Bausteinart → [Musterobjekt, viewBox, Zusatz-SVG] für das Palettenbild
 
