@@ -22,17 +22,20 @@ export function gegenueber(d, o, n){
   autoLeitungen(d, cs).forEach(a => { if (a.o.id === o.id && a.p.n === n) r.push(a.y % PH === 70 ? "L+" : "M"); });
   return r.join(", ") || "frei";
 }
+const ZELLE = ' style="padding:3px 4px;text-align:left"';
+const KOPF = ["Klemme", "oben", "unten", "Pfad"].map(t => `<th${ZELLE}>${t}</th>`).join("");
 export function klemmenplanHTML(d){
   const klemmen = (d.o || []).filter(o => o.k === "term")
     .sort((a, b) => (a.v || "").localeCompare(b.v || "", "de", {numeric: true}));
   if (!klemmen.length) return null;
   const zeile = o => {
     const [oben, unten] = portsOf(o);
-    return `<tr><td><b>${esc(o.v || "")}</b></td><td>${esc(gegenueber(d, o, oben.n))}</td>`
-      + `<td>${esc(gegenueber(d, o, unten.n))}</td><td>${pfadNummer(o.x)}</td></tr>`;
+    return `<tr><td${ZELLE}><b>${esc(o.v || "")}</b></td><td${ZELLE}>${esc(gegenueber(d, o, oben.n))}</td>`
+      + `<td${ZELLE}>${esc(gegenueber(d, o, unten.n))}</td><td${ZELLE}>${pfadNummer(o.x)}</td></tr>`;
   };
   return `<div class="props"><div class="palh">Klemmenplan</div><table class="klemmenplan small" style="width:100%;`
-    + `border-collapse:collapse"><thead><tr><th>Klemme</th><th>oben</th><th>unten</th><th>Pfad</th></tr></thead>`
+    + `border-collapse:collapse;table-layout:fixed;font-size:11.5px"><colgroup><col style="width:30%">`
+    + `<col><col><col style="width:17%"></colgroup><thead><tr>${KOPF}</tr></thead>`
     + `<tbody>${klemmen.map(zeile).join("")}</tbody></table>`
     + `<p class="small muted" style="margin:6px 0 0">Element anklicken zum Ändern, Doppelklick beschriftet.</p></div>`;
 }
