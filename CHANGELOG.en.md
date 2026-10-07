@@ -8,6 +8,51 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.12.0 – 2026-10-08
+
+Rebuild the bridge (`Bridge\build.bat`): the bridge code has not changed, but it carries the
+new minor version. The signal list and TIA tag tables stay the same. The 3D model is unchanged.
+
+**Why**
+The exercise handbook (`docs/uebungshandbuch.html`) was a single 2,500-line file and hard to maintain.
+The sketch editors had bugs (undo, page break, wire routing, printing) and deviations from the standards.
+The content grew from 32 to 37 exercises.
+
+**New**
+- **Exercise handbook in modules:** source in `web/tools/uebungshandbuch/src/` (app, editor core, one file per
+  template), bundled with esbuild. Described in `src/README.md`.
+- **Content:** 37 exercises, new L06 to L11 (number systems, data types, bit patterns, BCD, compare and calculate,
+  analog value). The former L07 to L32 are now L12 to L37; saved progress moves automatically on first open.
+- **"Meine Unterlagen" folder, "Dein Projekt wächst mit" page**, fill-in templates per exercise, references to
+  earlier documents, staged style check, assessment grid per exercise type.
+- **Sketch editors:**
+  - GRAFCET: "+ Schritt", align chain, renumber, branch snippets, forcing order, event action as flag,
+    step through the chain.
+  - Circuit diagram and main circuit: IEC 60617 symbols with terminal numbers, designations per type,
+    contact mirrors and cross-references, three-pole wiring, simulation with latching, emergency stop and
+    motor protection, terminal plan.
+  - Pneumatics: "Antrieb aus der Anlage" fully wired, simulation with flow controls, exhaust and
+    displacement-time diagram, pilot ports 14/12/10 per ISO 11727.
+  - Displacement-step diagram: quick entry ("MM2−, MM3+ …"), meaning of 1/0 per row.
+  - Control loop: transfer elements with step response, mapping to PID_Compact, "Ausprobieren" simulation;
+    trend with curve and tolerance band; squared grid printed at a true 5 mm.
+  - For all: "Prüfen" button, redo (Ctrl+Y), keyboard shortcuts ("?"), signal suggestions from `signale.csv`.
+- **Circuit diagram of the line** (`#/schaltplan`): 59 pages with all 162 signals, cross-references, contact
+  mirrors, terminal plan and equipment list; search, zoom, A3 and A4 printing.
+- **Test tools:** `pruefen/tests/lauf.mjs` (112 behaviour tests) and `pruefen/pruefen.mjs` (before/after comparison).
+
+**Changed**
+- Wires in the editors never overlap and do not run over designations or other components' terminals.
+- Undo without empty steps, Esc no longer closes the editor, printing without an empty extra sheet, arrowheads
+  in print.
+- All handbook texts use the informal "du".
+
+**Security**
+- Saved and imported sketches are checked on load (numbers, colours, keys); input is escaped when displayed.
+
+**Docs**
+- Documentation in two languages (`*.en.md`), new chapter `docs/07-uebungshandbuch.md`.
+
 ## 1.11.0 – 2026-10-06
 
 Rebuild the bridge (`Bridge\build.bat`): the bridge code has not changed, but it carries the

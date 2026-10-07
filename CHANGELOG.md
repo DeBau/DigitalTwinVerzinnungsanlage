@@ -8,9 +8,56 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.12.0 – 2026-10-08
+
+Bridge neu bauen (`Bridge\build.bat`): Der Code der Bridge hat sich nicht geändert, aber sie trägt die
+neue Nebenversion. Signalliste und TIA-Variablentabellen bleiben gleich. Am 3D-Modell ändert sich nichts.
+
+**Warum**
+Das Übungshandbuch (`docs/uebungshandbuch.html`) war eine einzige Datei mit 2500 Zeilen und schwer zu pflegen.
+Die Skizzen-Editoren hatten Fehler (Rückgängig, Seitenumbruch, Leitungsführung, Druck) und Normabweichungen.
+Die Inhalte wuchsen von 32 auf 37 Übungen.
+
+**Neu**
+- **Übungshandbuch in Modulen:** Quelltext in `web/tools/uebungshandbuch/src/` (App, Editor-Kern, eine Datei je
+  Vorlage), gebündelt mit esbuild. Beschreibung in `src/README.md`.
+- **Inhalte:** 37 Übungen, neu L06 bis L11 (Zahlensysteme, Datentypen, Bitmuster, BCD, Vergleichen und Rechnen,
+  Analogwert). Die bisherigen L07 bis L32 heißen jetzt L12 bis L37; gespeicherter Fortschritt zieht beim ersten
+  Öffnen automatisch um.
+- **Mappe „Meine Unterlagen“, Seite „Dein Projekt wächst mit“**, Vorlagen zum Ausfüllen je Übung, Bezüge auf
+  frühere Dokumente, gestaffelter Stil-Check, Bewertungsraster je Übungstyp.
+- **Skizzen-Editoren:**
+  - GRAFCET: „+ Schritt“, Kette ausrichten, Neu nummerieren, Verzweigungen als Schnipsel, Zwangssteuerung,
+    Ereignis-Aktion als Fähnchen, Kette durchspielen.
+  - Stromlaufplan und Hauptstromkreis: Schaltzeichen nach IEC 60617 mit Anschlussnummern, Kennzeichen je
+    Art, Kontaktspiegel und Querverweise, dreipolig verdrahten, Simulation mit Selbsthaltung, Not-Halt und
+    Motorschutz, Klemmenplan.
+  - Pneumatik: „Antrieb aus der Anlage“ fertig verdrahtet, Simulation mit Drosseln, Entlüftung und
+    Weg-Zeit-Diagramm, Steueranschlüsse 14/12/10 nach ISO 11727.
+  - Weg-Schritt-Diagramm: Schnelleingabe („MM2−, MM3+ …“), Bedeutung 1/0 je Zeile.
+  - Regelkreis: Übertragungsglieder mit Sprungantwort, Bezug zu PID_Compact, Simulation „Ausprobieren“;
+    Trend mit Kurve und Toleranzband; Kästchenraster mit echten 5 mm im Druck.
+  - Für alle: Knopf „Prüfen“, Wiederholen (Strg+Y), Tastenkürzel („?“), Signalvorschläge aus `signale.csv`.
+- **Schaltplan der Anlage** (`#/schaltplan`): 59 Seiten mit allen 162 Signalen, Querverweisen, Kontaktspiegeln,
+  Klemmenplan und Betriebsmittelliste; Suche, Zoom, Druck A3 und A4.
+- **Prüfwerkzeuge:** `pruefen/tests/lauf.mjs` (112 Verhaltenstests) und `pruefen/pruefen.mjs` (Vorher-nachher-Vergleich).
+
+**Geändert**
+- Leitungen in den Editoren laufen nie deckungsgleich und nicht über Kennzeichen oder fremde Klemmen.
+- Rückgängig ohne leere Schritte, Esc schließt den Editor nicht mehr, Druck ohne leeres Zusatzblatt, Pfeilspitzen
+  im Druck.
+- Alle Texte des Handbuchs in Du-Form.
+
+**Sicherheit**
+- Gespeicherte und importierte Skizzen werden beim Laden geprüft (Zahlen, Farben, Schlüssel); Eingaben werden
+  beim Anzeigen maskiert.
+
+**Doku**
+- Doku zweisprachig (`*.en.md`), neues Kapitel `docs/07-uebungshandbuch.md`.
+
 ## 1.11.0 – 2026-10-06
 
-Bridge neu bauen (`Bridgeuild.bat`): Der Code der Bridge hat sich nicht geändert, aber sie trägt die
+Bridge neu bauen (`Bridge\build.bat`): Der Code der Bridge hat sich nicht geändert, aber sie trägt die
 neue Nebenversion. Signalliste und TIA-Variablentabellen bleiben gleich (Port-Belegung von −XD3 unverändert).
 
 **Warum**
@@ -57,7 +104,7 @@ Zinnbad gefahren.
 
 ## 1.10.0 – 2026-10-06
 
-Bridge neu bauen (`Bridgeuild.bat`): Der Code der Bridge hat sich nicht geändert, aber sie trägt die
+Bridge neu bauen (`Bridge\build.bat`): Der Code der Bridge hat sich nicht geändert, aber sie trägt die
 neue Nebenversion. Signalliste und TIA-Variablentabellen bleiben gleich.
 
 **Warum**
