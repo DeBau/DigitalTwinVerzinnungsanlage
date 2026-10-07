@@ -22,7 +22,7 @@ export function openEditor(scope, key){
   const data = S.get(skKey(scope, key)) || {}; data.s ||= []; data.t ||= []; data.o ||= []; data.c ||= [];
   const v = vorlage(key), pal = v.gruppen || [], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
   const keepTool = ["pen","line","rect","text","erase"].includes(ED.tool) ? ED.tool : "pen";
-  Object.assign(ED, {scope, key, data, hist:[], zukunft:[], tx:null, strich:null, sel:null, selC:null, selS:null, selT:null, verbindenVon:null, place:null, drag:null, vorlage: {}, tool: pal.length ? "sel" : v.startWerkzeug || keepTool});
+  Object.assign(ED, {scope, key, data, hist:[], zukunft:[], tx:null, strich:null, markiert:null, verbindenVon:null, place:null, drag:null, vorlage: {}, tool: pal.length ? "sel" : v.startWerkzeug || keepTool});
   const ex = BY[scope], dlg = $("#editor");
   const colors = [["#17212B","Schwarz"],["#0E4C92","Blau"],["#C0392B","Rot"]];
   dlg.innerHTML = `<div class="ed"><div class="edbar">

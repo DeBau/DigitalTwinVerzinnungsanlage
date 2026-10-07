@@ -5,7 +5,7 @@
 import { ED } from './status.js';
 import { BAUSTEIN, art } from './registry.js';
 import { ctr, fam, gruppeVon, inPt, outPt } from './bausteine.js';
-import { objById } from './auswahl.js';
+import { markiertesObjekt } from './auswahl.js';
 
 // Seitenbaustein-Haken eines Objekts bzw. eines Paletteneintrags (Palettenvarianten zeigen über mk.k auf die Grundart)
 export const seite = o => o && art(o.k).seite;
@@ -38,7 +38,7 @@ export function verbindeKette(A, B, spuren){
 
 // An welchen Baustein hängt sich ein neuer Baustein der Palettenart k? Der markierte, wenn er zur selben Kette gehört.
 export function kettenQuelle(k){
-  const A = !ED.ausPalette && ED.sel && objById(ED.sel);   // beim Ziehen entscheidet die Ablagestelle (Andocken), nicht die Markierung
+  const A = !ED.ausPalette && markiertesObjekt();   // beim Ziehen entscheidet die Ablagestelle (Andocken), nicht die Markierung
   if (!A || !gruppeVon(A).kette || fam(A) !== BAUSTEIN[k].g) return null;
   const neuSeite = seitenArt(k);
   if (seite(A)) return neuSeite ? A : null;

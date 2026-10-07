@@ -2,12 +2,12 @@
 // Vorlagen mit eigenen Werkzeugen hängen sich über den Haken zeiger {unten, bewegen, angeklickt, gezogen} ein.
 // Angemeldet in oeffnen.js (paintEditor), edMove auch beim Ziehen aus der Palette (ereignisse.js).
 import { $ } from '../app/basis.js';
-import { ED } from './status.js';
+import { ED, markiere } from './status.js';
 import { STRICH, vorlage } from './registry.js';
 import { shapeD, snap } from './vorlagen-svg.js';
 import { nearestPort, portCap, vrails } from './bauteile.js';
 import { gruppeVon } from './bausteine.js';
-import { clearSel, objById } from './auswahl.js';
+import { clearSel, objById, trefferBei } from './auswahl.js';
 import { ausrichten, kettenQuelle } from './kette.js';
 import { connGeom, drawObj } from './zeichnen.js';
 import { updateProps } from './eigenschaften.js';
@@ -40,39 +40,37 @@ export function edDown(e){
   else beginneStrich(e, {k: {line: "l", rect: "r"}[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q]});
 }
 
+// Was Auswählen mit einem Treffer (auswahl.js) macht: beschriften beim Doppelklick, greifen gibt das Ziehen ED.drag
+export const AUSWAHL = {
+  o: {
+    beschriften: id => editObjLabel(objById(id)),
+    greifen(id, [sx, sy], e){ const o = objById(id); return {id, sx, sy, ox: o.x, oy: o.y, moved: false, mit: mitnehmen(o, e)}; },
+  },
+  c: {beschriften: i => editConnLabel(i)},
+  t: {
+    beschriften: i => editTextItem(i),
+    greifen(i, [sx, sy]){ const t = ED.data.t[i]; return {kind: "t", i, sx, sy, ox: t.x, oy: t.y, moved: false}; },
+  },
+  s: {greifen: (i, [sx, sy]) => ({kind: "s", i, sx, sy, orig: JSON.parse(JSON.stringify(ED.data.s[i].p)), moved: false})},
+};
 // Auswählen: Schriftfeld, Griff, Doppelklick (beschriften) oder Markieren und Ziehen beginnen
 export function auswahlUnten(e, pt){
-  const hitO = e.target.closest("[data-o]"), hitC = e.target.closest("[data-c]");
-  const hitH = e.target.closest("[data-hi]"), hitS = e.target.closest("[data-i]"), hitT = e.target.closest("[data-ti]");
-  if (e.target.closest("[data-sf]") && !hitO && !hitS && !hitT) { schriftfeldWaehlen(); return; }
-  if (hitH) {
-    ED.drag = {kind: "h", i: +hitH.dataset.hi, h: +hitH.dataset.h, sx: pt[0], sy: pt[1], moved: false};
-    festhalten(e); return;
-  }
-  const dbl = doppelklick(hitO ? hitO.dataset.o : hitC ? "c" + hitC.dataset.c : hitT ? "t" + hitT.dataset.ti : hitS ? "s" + hitS.dataset.i : null);
+  const griff = e.target.closest("[data-hi]"), t = trefferBei(e.target);
+  if (!t && e.target.closest("[data-sf]")) { schriftfeldWaehlen(); return; }
+  if (griff) { griffZiehen(e, griff, pt); return; }
+  const dbl = doppelklick(t && t.art + t.id);
   clearSel();
-  if (dbl && hitO) { ED.sel = hitO.dataset.o; renderInk(); editObjLabel(objById(ED.sel)); return; }
-  if (dbl && hitC) { ED.selC = +hitC.dataset.c; renderInk(); editConnLabel(ED.selC); return; }
-  if (dbl && hitT) { ED.selT = +hitT.dataset.ti; renderInk(); editTextItem(ED.selT); return; }
-  if (hitO) {
-    const o = objById(hitO.dataset.o);
-    ED.sel = o.id;
-    ED.drag = {id: o.id, sx: pt[0], sy: pt[1], ox: o.x, oy: o.y, moved: false, mit: mitnehmen(o, e)};
-    festhalten(e);
-  } else if (hitC) {
-    ED.selC = +hitC.dataset.c;
-  } else if (hitT) {
-    const i = +hitT.dataset.ti, t = ED.data.t[i];
-    ED.selT = i;
-    ED.drag = {kind: "t", i, sx: pt[0], sy: pt[1], ox: t.x, oy: t.y, moved: false};
-    festhalten(e);
-  } else if (hitS) {
-    const i = +hitS.dataset.i;
-    ED.selS = i;
-    ED.drag = {kind: "s", i, sx: pt[0], sy: pt[1], orig: JSON.parse(JSON.stringify(ED.data.s[i].p)), moved: false};
-    festhalten(e);
-  }
+  if (!t) { renderInk(); return; }
+  const was = AUSWAHL[t.art];
+  markiere(t.art, t.id);
+  if (dbl && was.beschriften) { renderInk(); was.beschriften(t.id); return; }
+  if (was.greifen) { ED.drag = was.greifen(t.id, pt, e); festhalten(e); }
   renderInk();
+}
+// Runden Griff am Ende einer Linie oder eines Kastens ziehen
+export function griffZiehen(e, griff, [sx, sy]){
+  ED.drag = {kind: "h", i: +griff.dataset.hi, h: +griff.dataset.h, sx, sy, moved: false};
+  festhalten(e);
 }
 // Bausteine, die beim Ziehen von o mitgehen: Haken mitziehen(o, {umschalt}, d) der Gruppe, z. B. Aktionen eines Schritts
 export function mitnehmen(o, e){
@@ -88,7 +86,7 @@ export function doppelklick(id){
   return dbl;
 }
 export function schriftfeldWaehlen(){
-  clearSel(); ED.selF = true; renderInk(); updateProps("neu");
+  markiere("f"); renderInk(); updateProps("neu");
   const f = $('#props [data-prop="mn"]'); if (f) f.focus();
 }
 

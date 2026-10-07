@@ -1,7 +1,7 @@
 // Editor-Kern: Bausteine, Verbindungen und Leitungen als SVG zeichnen (drawObj, connGeom, inkSVG), Blattzahl.
 // Benutzt vom Editor (anzeige.js, zeiger.js), von den Skizzen-Kacheln und vom Druck (über blaetter.js).
 import { INK, MUTE, PH, SVGT } from './svg.js';
-import { ED } from './status.js';
+import { ED, istMarkiert } from './status.js';
 import { BAUSTEIN, art, bauteil, vorlage } from './registry.js';
 import { neueSpuren } from './spuren.js';
 import { strokesSVG } from './vorlagen-svg.js';
@@ -74,7 +74,7 @@ export const blattwechsel = (y1, y2, key) => !vorlage(key).einblattig && Math.fl
 
 // Leitung zwischen Anschlüssen; während der Simulation blau, wenn sie Druck führt
 export function leitungSVG(c, i, gm, objs, key, edit){
-  const [a, b] = gm.ends, sel = edit && ED.selC === i;
+  const [a, b] = gm.ends, sel = edit && istMarkiert("c", i);
   const P = simOn() && ED.sim.P && (ED.sim.P.has(c.a + ":" + c.pa) || ED.sim.P.has(c.b + ":" + c.pb));
   const wc = sel ? "#0E4C92" : P ? BLUE : INK, ww = sel || P ? 2.4 : 1.6, dash = c.st ? 'stroke-dasharray="6 4"' : "";
   if (!blattwechsel(a.y, b.y, key)) {
@@ -90,7 +90,7 @@ export function leitungSVG(c, i, gm, objs, key, edit){
 }
 // Verbindung zwischen Bausteinen (Kette, Übergang, Signalfluss) mit Beschriftung oder Platzhalter
 export function verbindungSVG(c, i, gm, objs, cs, key, edit){
-  const sel = edit && ED.selC === i, col = sel ? "#0E4C92" : INK, staerke = sel ? 2.2 : 1.6;
+  const sel = edit && istMarkiert("c", i), col = sel ? "#0E4C92" : INK, staerke = sel ? 2.2 : 1.6;
   if (gm.p1 && blattwechsel(gm.p1[1], gm.p2[1] - 1, key)) {   // Abbruchstelle mit Verweis
     const [x1, y1] = gm.p1, [x2, y2] = gm.p2, b1 = Math.floor(y1 / PH) + 1, b2 = Math.floor((y2 - 1) / PH) + 1;
     const zu = `→ ${refName(objs[c.b], objs, cs, "zu")}, Blatt ${b2}`, von = `von ${refName(objs[c.a], objs, cs, "von")}, Blatt ${b1}`;
@@ -111,7 +111,7 @@ export function verbindungSVG(c, i, gm, objs, cs, key, edit){
 export const istRahmen = o => !!art(o.k).rahmen;
 // Baustein mit Markierungsrahmen (im Editor) bzw. greifbarem Rand (Rahmen-Bauteile)
 export function bausteinSVG(o, edit){
-  const b = bbox(o), von = edit && ED.verbindenVon && ED.verbindenVon.id === o.id, hi = edit && (ED.sel === o.id || von), fr = istRahmen(o);
+  const b = bbox(o), von = edit && ED.verbindenVon && ED.verbindenVon.id === o.id, hi = edit && (istMarkiert("o", o.id) || von), fr = istRahmen(o);
   let h = "";
   if (edit && fr) h = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? .25 : 0}" stroke-width="12"/>`;
   if (edit && !fr) h = `<rect x="${b.x-5}" y="${b.y-5}" width="${b.w+10}" height="${b.h+10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${von ? "2 3" : "5 3"}"` : ""}/>`;

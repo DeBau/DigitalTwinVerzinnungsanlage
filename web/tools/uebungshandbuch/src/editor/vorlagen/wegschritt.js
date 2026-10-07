@@ -4,7 +4,7 @@
 import { CYL } from '../../app/daten.js';
 import { $, $$ } from '../../app/basis.js';
 import { INK, SVGT, arrowHead } from '../svg.js';
-import { ED } from '../status.js';
+import { ED, markiere } from '../status.js';
 import { registriereVorlage } from '../registry.js';
 import { G, G2, TX, shapeD } from '../vorlagen-svg.js';
 import { anySel, clearSel } from '../auswahl.js';
@@ -96,7 +96,7 @@ export function wsFang(pt){
 }
 // Neue Signallinie markieren und das Feld für den Signalgeber fokussieren
 export function signalMarkieren(){
-  clearSel(); ED.selS = ED.data.s.length - 1; renderInk(); updateProps("neu");
+  markiere("s", ED.data.s.length - 1); renderInk(); updateProps("neu");
   const f = $('#props [data-prop="sl"]'); if (f) f.focus();
 }
 export const punktMarke = p => `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="#2F80ED" fill-opacity=".35" stroke="#2F80ED"/>`;
@@ -134,7 +134,7 @@ export function setzeZyklusende(pt){
 export function setzeStart(pt){
   aendere(d => {
     d.s.push({k: "st", c: ED.color, w: 1.2, p: [snapW(pt)], lbl: "−SF1"});
-    clearSel(); ED.selS = d.s.length - 1;
+    markiere("s", d.s.length - 1);
   }, {ohneRender: true});
   setTool("sel");
 }

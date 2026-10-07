@@ -17,11 +17,7 @@ export const ED = {
   place: null,         // Palettenart, die das Werkzeug place beim Klick setzt
   ausPalette: false,   // true, solange ein Baustein aus der Palette aufs Blatt gezogen wird
   klickAuslassen: false,   // true direkt nach dem Ziehen aus der Palette: der folgende Klick zählt nicht
-  sel: null,           // markierter Baustein (ID)
-  selC: null,          // markierte Verbindung (Index in data.c)
-  selS: null,          // markierter Strich (Index in data.s)
-  selT: null,          // markierter Text (Index in data.t)
-  selF: false,         // Schriftfeld markiert
+  markiert: null,      // Markierung {art, id} oder null, siehe unten
   letzterKlick: null,  // {id, t} des letzten Klicks, für den Doppelklick (zeiger.js)
   drag: null,          // laufendes Ziehen {kind, i, id, sx, sy, ox, oy, moved, …} (zeiger.js)
   strich: null,        // Strich, der gerade aufgezogen wird {k, c, w, p}
@@ -35,3 +31,11 @@ export const ED = {
   vorlage: {},         // Zustand der Vorlage, beim Öffnen geleert. Der Kern kennt nur vorlage.angefangen:
                        //   eine angefangene Eingabe, die Esc und jeder Werkzeugwechsel verwerfen
 };
+
+// Markierung: höchstens ein Element. art o = Baustein (id = Objekt-ID), c = Verbindung, s = Strich, t = Text
+// (id = Index in data.c, data.s, data.t), f = Schriftfeld (id = null). Was je Art geschieht, steht in Tabellen:
+// MARKIERUNG und TREFFER (auswahl.js), FELDER_JE_ART (eigenschaften.js), FELDNAME und ENTFERNE (bearbeiten.js),
+// AUSWAHL (zeiger.js), VERSCHIEBE (ereignisse.js).
+export const markiere = (welche, id = null) => { ED.markiert = {art: welche, id}; };
+export const istMarkiert = (welche, id) => !!ED.markiert && ED.markiert.art === welche && ED.markiert.id === id;
+export const markiertId = welche => ED.markiert && ED.markiert.art === welche ? ED.markiert.id : null;

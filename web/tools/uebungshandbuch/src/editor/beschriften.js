@@ -3,6 +3,7 @@ import { $ } from '../app/basis.js';
 import { ED } from './status.js';
 import { art } from './registry.js';
 import { bbox } from './bausteine.js';
+import { clearSel } from './auswahl.js';
 import { updateProps } from './eigenschaften.js';
 import { renderInk } from './anzeige.js';
 import { saveSketch, snapshot } from './verlauf.js';
@@ -45,5 +46,5 @@ export function editConnLabel(i){
 }
 export function editTextItem(i){
   const t = ED.data.t[i]; if (!t) return;
-  editLabel(t.x, t.y - 5, t.v, "Text", v => { snapshot(); if (v) t.v = v; else { ED.data.t.splice(i, 1); ED.selT = null; } saveSketch(); renderInk(); updateProps(true); });
+  editLabel(t.x, t.y - 5, t.v, "Text", v => { snapshot(); if (v) t.v = v; else { ED.data.t.splice(i, 1); clearSel(); } saveSketch(); renderInk(); updateProps(true); });
 }

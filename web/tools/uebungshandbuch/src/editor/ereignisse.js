@@ -1,19 +1,19 @@
 // Editor-Kern: Listener des Editor-Dialogs (Palette ziehen, Klicks, Eigenschaftsfeld, Tastatur, Schließen).
 import { $, $$ } from '../app/basis.js';
-import { ED } from './status.js';
+import { ED, markiertId } from './status.js';
 import { art, vorlage } from './registry.js';
-import { anySel, clearSel, objById } from './auswahl.js';
+import { anySel, clearSel, markiertesElement, markiertesObjekt } from './auswahl.js';
 import { deDate } from './blaetter.js';
 import { istSignalFeld, schliesseListe, signalEingabe, signalTaste, signalWahl } from './signalfeld.js';
 import { lastProp, setLastProp, updateProps } from './eigenschaften.js';
 import { renderInk, sizeSVG } from './anzeige.js';
 import { pruefeSkizze, waehleBefund, zeigeBefunde } from './pruefung.js';
 import { aendere, redo, saveSketch, snapshot, takeMenu, takeSketch, undo } from './verlauf.js';
-import { editConnLabel, editObjLabel, editTextItem, newline } from './beschriften.js';
+import { newline } from './beschriften.js';
 import { setTool, svgPt } from './werkzeuge.js';
 import { applyProp, delSel, turnSel } from './bearbeiten.js';
 import { placeObj } from './andocken.js';
-import { edMove } from './zeiger.js';
+import { AUSWAHL, edMove } from './zeiger.js';
 import { doPrint, sketchPage } from '../app/druck.js';
 import { route } from '../app/router.js';
 
@@ -58,7 +58,7 @@ export const AKTIONEN = {
   takeit: t => takeSketch(t.dataset.from),
   rot: () => turnSel("rot"),
   flip: () => turnSel("flip"),
-  sfzu: () => { ED.selF = false; updateProps("neu"); },
+  sfzu: () => { clearSel(); updateProps("neu"); },
   heute: () => { const f = $('#props [data-prop="md"]'); if (f) { snapshot(); f.value = deDate(Date.now()); applyProp("md", f.value); } },
   del: () => delSel(),
   grid: t => { ED.grid = !ED.grid; t.setAttribute("aria-pressed", ED.grid); },
@@ -97,7 +97,7 @@ export function zeichenEinfuegen(zeichen){
 
 /* ---------- Eigenschaftsfeld ---------- */
 export function feldGeaendert(e){
-  const f = e.target.dataset && e.target.dataset.prop, o = ED.sel && objById(ED.sel);
+  const f = e.target.dataset && e.target.dataset.prop, o = markiertesObjekt();
   if (!f || !o || !(art(o.k).umbau || []).includes(f)) return;   // Haken umbau: diese Felder ändern das Eigenschaftsfeld
   applyProp(f, e.target.value); updateProps("neu");
   const again = $(`#props [data-prop="${f}"]`); if (again) again.focus();
@@ -113,10 +113,8 @@ export function tasteImFeld(e){
   else $("#edstage").focus({preventScroll: true});
 }
 export function beschrifteMarkiertes(){
-  const o = ED.sel && objById(ED.sel);
-  if (o) editObjLabel(o);
-  else if (ED.selT !== null) editTextItem(ED.selT);
-  else if (ED.selC !== null) editConnLabel(ED.selC);
+  const m = ED.markiert, beschrifte = m && AUSWAHL[m.art] && AUSWAHL[m.art].beschriften;
+  if (beschrifte) beschrifte(m.id);
 }
 // Esc: angefangene Eingabe der Vorlage (ED.vorlage.angefangen) verwerfen, sonst Markierung und Werkzeug aufheben; true, wenn etwas zu tun war
 export function abbrechen(e){
@@ -125,22 +123,23 @@ export function abbrechen(e){
   if (ED.place || ED.verbindenVon || anySel()) { e.preventDefault(); clearSel(); ED.verbindenVon = null; werkzeugNachAbbruch(); return true; }
   return false;
 }
+// Pfeiltasten verschieben Bausteine, Texte und Striche um 10
+export const verschiebeXY = (el, dx, dy) => { el.x += dx; el.y += dy; };
+export const VERSCHIEBE = {o: verschiebeXY, t: verschiebeXY, s: (st, dx, dy) => { st.p = st.p.map(([x, y]) => [x + dx, y + dy]); }};
 export function verschiebeMarkiertes(key){
   const dx = {ArrowLeft: -10, ArrowRight: 10}[key] || 0, dy = {ArrowUp: -10, ArrowDown: 10}[key] || 0;
-  if (ED.sel) { const o = objById(ED.sel); o.x += dx; o.y += dy; }
-  else if (ED.selS !== null) ED.data.s[ED.selS].p = ED.data.s[ED.selS].p.map(([x, y]) => [x + dx, y + dy]);
-  else { const t = ED.data.t[ED.selT]; t.x += dx; t.y += dy; }
+  VERSCHIEBE[ED.markiert.art](markiertesElement(), dx, dy);
 }
 export function taste(e){
   if (e.target.matches("input,select,textarea")) { if (!signalTaste(e)) tasteImFeld(e); return; }
   const strg = e.ctrlKey || e.metaKey;
-  if ((e.key === "Enter" || e.key === "F2") && anySel() && !ED.selF) { e.preventDefault(); beschrifteMarkiertes(); return; }
+  if ((e.key === "Enter" || e.key === "F2") && anySel() && ED.markiert.art !== "f") { e.preventDefault(); beschrifteMarkiertes(); return; }
   if (strg && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
   if (strg && e.key.toLowerCase() === "a") { e.preventDefault(); return; }
-  if (!strg && !e.altKey && ED.sel && ["r", "m"].includes(e.key.toLowerCase())) { e.preventDefault(); turnSel(e.key.toLowerCase() === "r" ? "rot" : "flip"); return; }
+  if (!strg && !e.altKey && markiertId("o") && ["r", "m"].includes(e.key.toLowerCase())) { e.preventDefault(); turnSel(e.key.toLowerCase() === "r" ? "rot" : "flip"); return; }
   if (e.key === "Escape" && abbrechen(e)) return;
   if ((e.key === "Delete" || e.key === "Backspace") && anySel()) { e.preventDefault(); delSel(); return; }
-  if (e.key.startsWith("Arrow") && (ED.sel || ED.selS !== null || ED.selT !== null)) {
+  if (e.key.startsWith("Arrow") && anySel() && VERSCHIEBE[ED.markiert.art]) {
     e.preventDefault(); aendere(() => verschiebeMarkiertes(e.key));
   }
 }

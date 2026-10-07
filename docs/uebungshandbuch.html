@@ -1146,16 +1146,8 @@ pre.code code{font-size:inherit}
     // true, solange ein Baustein aus der Palette aufs Blatt gezogen wird
     klickAuslassen: false,
     // true direkt nach dem Ziehen aus der Palette: der folgende Klick zählt nicht
-    sel: null,
-    // markierter Baustein (ID)
-    selC: null,
-    // markierte Verbindung (Index in data.c)
-    selS: null,
-    // markierter Strich (Index in data.s)
-    selT: null,
-    // markierter Text (Index in data.t)
-    selF: false,
-    // Schriftfeld markiert
+    markiert: null,
+    // Markierung {art, id} oder null, siehe unten
     letzterKlick: null,
     // {id, t} des letzten Klicks, für den Doppelklick (zeiger.js)
     drag: null,
@@ -1180,6 +1172,11 @@ pre.code code{font-size:inherit}
     // Zustand der Vorlage, beim Öffnen geleert. Der Kern kennt nur vorlage.angefangen:
     //   eine angefangene Eingabe, die Esc und jeder Werkzeugwechsel verwerfen
   };
+  var markiere = (welche, id = null) => {
+    ED.markiert = { art: welche, id };
+  };
+  var istMarkiert = (welche, id) => !!ED.markiert && ED.markiert.art === welche && ED.markiert.id === id;
+  var markiertId = (welche) => ED.markiert && ED.markiert.art === welche ? ED.markiert.id : null;
 
   // web/tools/uebungshandbuch/src/editor/registry.js
   var VORL = {};
@@ -1285,7 +1282,7 @@ pre.code code{font-size:inherit}
     return s + `L${l[0]} ${l[1]}`;
   }
   function strichSVG(d, st, i, edit) {
-    const a = STRICH[st.k], dd = st.k ? shapeD(st) : glatterPfad(st.p), sel = edit && ED.selS === i;
+    const a = STRICH[st.k], dd = st.k ? shapeD(st) : glatterPfad(st.p), sel = edit && istMarkiert("s", i);
     let s = sel ? `<path d="${dd}" stroke="#2F80ED" stroke-width="${+st.w + 7}" stroke-opacity=".28" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` : "";
     s += a && a.zeichne ? a.zeichne(st, i, d) : `<path data-i="${i}" d="${dd}" stroke="${st.c}" stroke-width="${st.w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
     if (edit) s += `<path data-i="${i}" d="${dd}" stroke="transparent" stroke-width="14" fill="none"/>`;
@@ -1293,7 +1290,7 @@ pre.code code{font-size:inherit}
     return s;
   }
   function textSVG(t, i, edit) {
-    const sz = t.s || 16, sel = edit && ED.selT === i, zeilen = String(t.v).split("\n");
+    const sz = t.s || 16, sel = edit && istMarkiert("t", i), zeilen = String(t.v).split("\n");
     const rahmen = edit ? `<rect data-ti="${i}" x="${t.x - 4}" y="${t.y - sz - 1}" width="${tw(t.v, sz) + 10}" height="${sz * 1.2 * zeilen.length + 6}" rx="3" fill="transparent" ${sel ? 'stroke="#2F80ED" stroke-width="1.3" stroke-dasharray="4 3"' : ""}/>` : "";
     const inhalt = zeilen.map((l, j) => j ? `<tspan x="${t.x}" dy="${(1.2 * sz).toFixed(1)}">${esc(l)}</tspan>` : esc(l)).join("");
     return rahmen + `<text data-ti="${i}" x="${t.x}" y="${t.y}" font-size="${sz}" fill="${t.c}" font-family="Plex Sans,Segoe UI,sans-serif" font-weight="500">${inhalt}</text>`;
@@ -1422,13 +1419,34 @@ pre.code code{font-size:inherit}
   // web/tools/uebungshandbuch/src/editor/auswahl.js
   var objById = (id) => ED.data.o.find((o) => o.id === id) || (String(id).startsWith("_") ? vrails(ED.key, ED.blattzahl || 1).find((r) => r.id === id) : void 0);
   var uid = () => "o" + Math.random().toString(36).slice(2, 9);
-  var anySel = () => !!ED.sel || ED.selC !== null || ED.selS !== null || ED.selT !== null || !!ED.selF;
+  var anySel = () => !!ED.markiert;
   function clearSel() {
-    ED.sel = null;
-    ED.selC = null;
-    ED.selS = null;
-    ED.selT = null;
-    ED.selF = false;
+    ED.markiert = null;
+  }
+  var MARKIERUNG = {
+    o: { element: (id) => objById(id) },
+    c: { element: (i) => ED.data.c[i] },
+    s: { element: (i) => ED.data.s[i] },
+    t: { element: (i) => ED.data.t[i] },
+    f: { element: () => ED.data }
+  };
+  var markiertesElement = () => ED.markiert && MARKIERUNG[ED.markiert.art].element(ED.markiert.id);
+  var markiertesObjekt = () => {
+    const id = markiertId("o");
+    return id ? objById(id) : null;
+  };
+  var TREFFER = [
+    { art: "o", wo: "[data-o]", id: (el) => el.dataset.o },
+    { art: "c", wo: "[data-c]", id: (el) => +el.dataset.c },
+    { art: "t", wo: "[data-ti]", id: (el) => +el.dataset.ti },
+    { art: "s", wo: "[data-i]", id: (el) => +el.dataset.i }
+  ];
+  function trefferBei(ziel) {
+    for (const t of TREFFER) {
+      const el = ziel.closest(t.wo);
+      if (el) return { art: t.art, id: t.id(el) };
+    }
+    return null;
   }
 
   // web/tools/uebungshandbuch/src/editor/kette.js
@@ -1455,7 +1473,7 @@ pre.code code{font-size:inherit}
     return routeV(von, inPt(B, von[0]), spuren);
   }
   function kettenQuelle(k) {
-    const A = !ED.ausPalette && ED.sel && objById(ED.sel);
+    const A = !ED.ausPalette && markiertesObjekt();
     if (!A || !gruppeVon(A).kette || fam(A) !== BAUSTEIN[k].g) return null;
     const neuSeite = seitenArt(k);
     if (seite(A)) return neuSeite ? A : null;
@@ -1554,7 +1572,7 @@ pre.code code{font-size:inherit}
   var treffer = (d, edit) => edit ? `<path d="${d}" fill="none" stroke="transparent" stroke-width="12"/>` : "";
   var blattwechsel = (y1, y2, key) => !vorlage(key).einblattig && Math.floor(y1 / PH) !== Math.floor(y2 / PH);
   function leitungSVG(c, i, gm, objs, key, edit) {
-    const [a, b] = gm.ends, sel = edit && ED.selC === i;
+    const [a, b] = gm.ends, sel = edit && istMarkiert("c", i);
     const P = simOn() && ED.sim.P && (ED.sim.P.has(c.a + ":" + c.pa) || ED.sim.P.has(c.b + ":" + c.pb));
     const wc = sel ? "#0E4C92" : P ? BLUE : INK, ww = sel || P ? 2.4 : 1.6, dash = c.st ? 'stroke-dasharray="6 4"' : "";
     if (!blattwechsel(a.y, b.y, key)) {
@@ -1572,7 +1590,7 @@ pre.code code{font-size:inherit}
     return `<g data-c="${i}">${pfeil(d1)}${pfeil(d2)}${lab(a, e1, t1)}${lab(b, e2, t2)}` + treffer(d1 + d2, edit) + `</g>`;
   }
   function verbindungSVG(c, i, gm, objs, cs, key, edit) {
-    const sel = edit && ED.selC === i, col = sel ? "#0E4C92" : INK, staerke = sel ? 2.2 : 1.6;
+    const sel = edit && istMarkiert("c", i), col = sel ? "#0E4C92" : INK, staerke = sel ? 2.2 : 1.6;
     if (gm.p1 && blattwechsel(gm.p1[1], gm.p2[1] - 1, key)) {
       const [x1, y1] = gm.p1, [x2, y2] = gm.p2, b1 = Math.floor(y1 / PH) + 1, b2 = Math.floor((y2 - 1) / PH) + 1;
       const zu = `→ ${refName(objs[c.b], objs, cs, "zu")}, Blatt ${b2}`, von = `von ${refName(objs[c.a], objs, cs, "von")}, Blatt ${b1}`;
@@ -1587,7 +1605,7 @@ pre.code code{font-size:inherit}
   }
   var istRahmen = (o) => !!art(o.k).rahmen;
   function bausteinSVG(o, edit) {
-    const b = bbox(o), von = edit && ED.verbindenVon && ED.verbindenVon.id === o.id, hi = edit && (ED.sel === o.id || von), fr = istRahmen(o);
+    const b = bbox(o), von = edit && ED.verbindenVon && ED.verbindenVon.id === o.id, hi = edit && (istMarkiert("o", o.id) || von), fr = istRahmen(o);
     let h = "";
     if (edit && fr) h = `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" fill="none" pointer-events="stroke" stroke="${hi ? "#0E4C92" : "#000"}" stroke-opacity="${hi ? 0.25 : 0}" stroke-width="12"/>`;
     if (edit && !fr) h = `<rect x="${b.x - 5}" y="${b.y - 5}" width="${b.w + 10}" height="${b.h + 10}" rx="4" fill="transparent" ${hi ? `stroke="#0E4C92" stroke-width="1.3" stroke-dasharray="${von ? "2 3" : "5 3"}"` : ""}/>`;
@@ -2091,15 +2109,17 @@ pre.code code{font-size:inherit}
   function propsHTML() {
     const v = vorlage(ED.key), anleitung = v.anleitung && v.anleitung();
     if (anleitung) return anleitung;
-    if (ED.selT !== null && ED.data.t[ED.selT]) return textFelder(ED.data.t[ED.selT]);
-    if (ED.selS !== null && ED.data.s[ED.selS]) return strichFelder(ED.data.s[ED.selS]);
-    const o = ED.sel && objById(ED.sel);
-    if (o) return objektFelder(o);
-    const c = ED.selC !== null && ED.data.c[ED.selC];
-    if (c) return verbindungFelder(c);
-    if (!ED.selF) return `<div class="props quiet"><p>Element anklicken zum Ändern, Doppelklick beschriftet. Name und Datum: aufs Schriftfeld klicken.</p></div>`;
-    return schriftfeldFelder();
+    const el = markiertesElement();
+    if (el) return FELDER_JE_ART[ED.markiert.art](el);
+    return `<div class="props quiet"><p>Element anklicken zum Ändern, Doppelklick beschriftet. Name und Datum: aufs Schriftfeld klicken.</p></div>`;
   }
+  var FELDER_JE_ART = {
+    o: (o) => objektFelder(o),
+    c: (c) => verbindungFelder(c),
+    s: (st) => strichFelder(st),
+    t: (t) => textFelder(t),
+    f: () => schriftfeldFelder()
+  };
   var GROESSEN = [[12, "klein"], [16, "normal"], [20, "groß"], [26, "sehr groß"]];
   var STAERKEN = [[1.4, "dünn"], [2.2, "mittel"], [4, "dick"]];
   function textFelder(t) {
@@ -2134,7 +2154,7 @@ pre.code code{font-size:inherit}
   function updateProps(force) {
     const el = $("#props");
     if (!el) return;
-    const k = [ED.sel, ED.selC, ED.selS, ED.selT, ED.selF].join("|");
+    const k = ED.markiert ? ED.markiert.art + "|" + ED.markiert.id : "";
     if (!force && k === propsKey) return;
     if (force !== "neu" && k === propsKey && el.contains(document.activeElement)) {
       const fresh = document.createElement("div");
@@ -2247,8 +2267,8 @@ pre.code code{font-size:inherit}
     const b = befunde[i];
     if (!b) return;
     clearSel();
-    if (b.o) ED.sel = b.o;
-    else if (b.c !== void 0) ED.selC = b.c;
+    if (b.o) markiere("o", b.o);
+    else if (b.c !== void 0) markiere("c", b.c);
     renderInk();
     updateProps(true);
   }
@@ -2446,7 +2466,7 @@ pre.code code{font-size:inherit}
       if (v) t.v = v;
       else {
         ED.data.t.splice(i, 1);
-        ED.selT = null;
+        clearSel();
       }
       saveSketch();
       renderInk();
@@ -2487,10 +2507,6 @@ pre.code code{font-size:inherit}
 
   // web/tools/uebungshandbuch/src/editor/bearbeiten.js
   function applyProp(f, v) {
-    if (f === "cst") {
-      leitungsart(v);
-      return;
-    }
     if (SCHRIFTFELD[f]) {
       setzeSchriftfeld(f, v);
       return;
@@ -2500,15 +2516,8 @@ pre.code code{font-size:inherit}
     ED.svg.querySelector(".ink").innerHTML = inkSVG(ED.data, true, ED.key);
   }
   var SCHRIFTFELD = { mt: "title", mn: "name", md: "datum" };
-  var TEXTFELD = { tv: "v", ts: "s", sc: "c" };
-  function leitungsart(v) {
-    const c = ED.data.c[ED.selC];
-    if (c) {
-      c.st = v;
-      saveSketch();
-      renderInk();
-    }
-  }
+  var FELDNAME = { t: { tv: "v", ts: "s", sc: "c" }, s: STRICHFELD, c: { cv: "v", cst: "st" } };
+  var ZAHLFELD = ["ts", "sw"];
   function setzeSchriftfeld(f, v) {
     const m = ED.data.meta = ED.data.meta || {};
     m[SCHRIFTFELD[f]] = v;
@@ -2520,26 +2529,16 @@ pre.code code{font-size:inherit}
     refreshTpl();
   }
   function setzeFeld(f, v) {
-    const t = ED.selT !== null && ED.data.t[ED.selT], st = ED.selS !== null && ED.data.s[ED.selS];
-    if (f === "cv") {
-      const c = ED.data.c[ED.selC];
-      if (c) c.v = v;
+    const m = ED.markiert, el = markiertesElement();
+    if (!el) return false;
+    const name = (FELDNAME[m.art] || {})[f];
+    if (name) {
+      el[name] = ZAHLFELD.includes(f) ? +v : v;
       return true;
     }
-    if (t && TEXTFELD[f]) {
-      t[TEXTFELD[f]] = f === "ts" ? +v : v;
-      return true;
-    }
-    if (st && STRICHFELD[f]) {
-      st[STRICHFELD[f]] = f === "sw" ? +v : v;
-      return true;
-    }
-    const o = objById(ED.sel);
-    if (!o) return false;
-    if (f === "w") {
-      const w = parseInt(v, 10);
-      if (w >= 40) o.w = Math.round(w / 10) * 10;
-    } else if (!(art(o.k).setze && art(o.k).setze(o, f, v))) o[f] = v;
+    if (m.art !== "o") return false;
+    const setze = art(el.k).setze;
+    if (!(setze && setze(el, f, v))) el[f] = v;
     return true;
   }
   function removeObj(id) {
@@ -2547,25 +2546,29 @@ pre.code code{font-size:inherit}
     const weg = /* @__PURE__ */ new Set([id, ...loeschen ? loeschen(o, ED.data) : []]);
     ED.data.o = ED.data.o.filter((p) => !weg.has(p.id));
     ED.data.c = ED.data.c.filter((c) => !weg.has(c.a) && !weg.has(c.b));
-    if (weg.has(ED.sel)) ED.sel = null;
+    if (weg.has(markiertId("o"))) clearSel();
   }
+  var ENTFERNE = {
+    o: (id) => removeObj(id),
+    c: (i) => {
+      ED.data.c.splice(i, 1);
+    },
+    s: (i) => {
+      ED.data.s.splice(i, 1);
+    },
+    t: (i) => {
+      ED.data.t.splice(i, 1);
+    }
+  };
   function delSel() {
-    if (ED.sel) aendere(() => removeObj(ED.sel));
-    else if (ED.selC !== null && ED.data.c[ED.selC]) aendere((d) => {
-      d.c.splice(ED.selC, 1);
-      ED.selC = null;
-    });
-    else if (ED.selS !== null && ED.data.s[ED.selS]) aendere((d) => {
-      d.s.splice(ED.selS, 1);
-      ED.selS = null;
-    });
-    else if (ED.selT !== null && ED.data.t[ED.selT]) aendere((d) => {
-      d.t.splice(ED.selT, 1);
-      ED.selT = null;
+    const m = ED.markiert, weg = m && markiertesElement() && ENTFERNE[m.art];
+    if (weg) aendere(() => {
+      weg(m.id);
+      clearSel();
     });
   }
   function turnSel(a) {
-    const o = objById(ED.sel);
+    const o = markiertesObjekt();
     if (!o || !bauteil(o.k) || art(o.k).drehbar === false) return;
     aendere(() => {
       if (a === "rot") o.rot = ((o.rot || 0) + 90) % 360;
@@ -2575,16 +2578,9 @@ pre.code code{font-size:inherit}
   function eraseAt(e) {
     const el = document.elementFromPoint(e.clientX, e.clientY);
     if (!el) return;
-    const go = el.closest("[data-o]"), gc = el.closest("[data-c]");
-    if (go) aendere(() => removeObj(go.dataset.o));
-    else if (gc) aendere((d) => {
-      d.c.splice(+gc.dataset.c, 1);
-    });
-    else if (el.dataset.i !== void 0) aendere((d) => {
-      d.s.splice(+el.dataset.i, 1);
-    });
-    else if (el.dataset.ti !== void 0) aendere((d) => {
-      d.t.splice(+el.dataset.ti, 1);
+    const t = trefferBei(el);
+    if (t) aendere(() => {
+      ENTFERNE[t.art](t.id);
     });
   }
 
@@ -2705,8 +2701,7 @@ pre.code code{font-size:inherit}
       const nachSetzen = gruppeVon(o).nachSetzen;
       if (nachSetzen) nachSetzen(o, d, { A, dock });
     }, { ohneRender: true });
-    ED.sel = o.id;
-    ED.selC = null;
+    markiere("o", o.id);
     setTool("sel");
     const b = art(o.k).beschriftung;
     if (b && b.sofort) editObjLabel(o);
@@ -2717,8 +2712,7 @@ pre.code code{font-size:inherit}
     if (ED.data.c.some((c) => c.a === a && c.pa === pa && c.b === b && c.pb === pb || c.a === b && c.pa === pb && c.b === a && c.pb === pa)) return;
     aendere((d) => {
       d.c.push({ a, pa, b, pb, v: "" });
-      clearSel();
-      ED.selC = d.c.length - 1;
+      markiere("c", d.c.length - 1);
     });
   }
   function connect(a, b) {
@@ -2738,8 +2732,7 @@ pre.code code{font-size:inherit}
     }
     aendere((d) => {
       d.c.push({ a, b, v: "" });
-      ED.selC = d.c.length - 1;
-      ED.sel = null;
+      markiere("c", d.c.length - 1);
     });
     if (fragtBedingung(A)) editConnLabel(ED.data.c.length - 1);
   }
@@ -2786,57 +2779,56 @@ pre.code code{font-size:inherit}
     if (ED.tool === "pen") beginneStrich(e, { c: ED.color, w: ED.w, p: [q] });
     else beginneStrich(e, { k: { line: "l", rect: "r" }[ED.tool] || "l", c: ED.color, w: ED.w, p: [q, q] });
   }
+  var AUSWAHL = {
+    o: {
+      beschriften: (id) => editObjLabel(objById(id)),
+      greifen(id, [sx, sy], e) {
+        const o = objById(id);
+        return { id, sx, sy, ox: o.x, oy: o.y, moved: false, mit: mitnehmen(o, e) };
+      }
+    },
+    c: { beschriften: (i) => editConnLabel(i) },
+    t: {
+      beschriften: (i) => editTextItem(i),
+      greifen(i, [sx, sy]) {
+        const t = ED.data.t[i];
+        return { kind: "t", i, sx, sy, ox: t.x, oy: t.y, moved: false };
+      }
+    },
+    s: { greifen: (i, [sx, sy]) => ({ kind: "s", i, sx, sy, orig: JSON.parse(JSON.stringify(ED.data.s[i].p)), moved: false }) }
+  };
   function auswahlUnten(e, pt) {
-    const hitO = e.target.closest("[data-o]"), hitC = e.target.closest("[data-c]");
-    const hitH = e.target.closest("[data-hi]"), hitS = e.target.closest("[data-i]"), hitT = e.target.closest("[data-ti]");
-    if (e.target.closest("[data-sf]") && !hitO && !hitS && !hitT) {
+    const griff = e.target.closest("[data-hi]"), t = trefferBei(e.target);
+    if (!t && e.target.closest("[data-sf]")) {
       schriftfeldWaehlen();
       return;
     }
-    if (hitH) {
-      ED.drag = { kind: "h", i: +hitH.dataset.hi, h: +hitH.dataset.h, sx: pt[0], sy: pt[1], moved: false };
-      festhalten(e);
+    if (griff) {
+      griffZiehen(e, griff, pt);
       return;
     }
-    const dbl = doppelklick(hitO ? hitO.dataset.o : hitC ? "c" + hitC.dataset.c : hitT ? "t" + hitT.dataset.ti : hitS ? "s" + hitS.dataset.i : null);
+    const dbl = doppelklick(t && t.art + t.id);
     clearSel();
-    if (dbl && hitO) {
-      ED.sel = hitO.dataset.o;
+    if (!t) {
       renderInk();
-      editObjLabel(objById(ED.sel));
       return;
     }
-    if (dbl && hitC) {
-      ED.selC = +hitC.dataset.c;
+    const was = AUSWAHL[t.art];
+    markiere(t.art, t.id);
+    if (dbl && was.beschriften) {
       renderInk();
-      editConnLabel(ED.selC);
+      was.beschriften(t.id);
       return;
     }
-    if (dbl && hitT) {
-      ED.selT = +hitT.dataset.ti;
-      renderInk();
-      editTextItem(ED.selT);
-      return;
-    }
-    if (hitO) {
-      const o = objById(hitO.dataset.o);
-      ED.sel = o.id;
-      ED.drag = { id: o.id, sx: pt[0], sy: pt[1], ox: o.x, oy: o.y, moved: false, mit: mitnehmen(o, e) };
-      festhalten(e);
-    } else if (hitC) {
-      ED.selC = +hitC.dataset.c;
-    } else if (hitT) {
-      const i = +hitT.dataset.ti, t = ED.data.t[i];
-      ED.selT = i;
-      ED.drag = { kind: "t", i, sx: pt[0], sy: pt[1], ox: t.x, oy: t.y, moved: false };
-      festhalten(e);
-    } else if (hitS) {
-      const i = +hitS.dataset.i;
-      ED.selS = i;
-      ED.drag = { kind: "s", i, sx: pt[0], sy: pt[1], orig: JSON.parse(JSON.stringify(ED.data.s[i].p)), moved: false };
+    if (was.greifen) {
+      ED.drag = was.greifen(t.id, pt, e);
       festhalten(e);
     }
     renderInk();
+  }
+  function griffZiehen(e, griff, [sx, sy]) {
+    ED.drag = { kind: "h", i: +griff.dataset.hi, h: +griff.dataset.h, sx, sy, moved: false };
+    festhalten(e);
   }
   function mitnehmen(o, e) {
     const mitziehen = gruppeVon(o).mitziehen;
@@ -2850,8 +2842,7 @@ pre.code code{font-size:inherit}
     return dbl;
   }
   function schriftfeldWaehlen() {
-    clearSel();
-    ED.selF = true;
+    markiere("f");
     renderInk();
     updateProps("neu");
     const f = $('#props [data-prop="mn"]');
@@ -3048,7 +3039,7 @@ pre.code code{font-size:inherit}
     data.c ||= [];
     const v = vorlage(key), pal = v.gruppen || [], leiste = v.werkzeugleiste || {}, linie = leiste.linie || LINIE_STANDARD;
     const keepTool = ["pen", "line", "rect", "text", "erase"].includes(ED.tool) ? ED.tool : "pen";
-    Object.assign(ED, { scope, key, data, hist: [], zukunft: [], tx: null, strich: null, sel: null, selC: null, selS: null, selT: null, verbindenVon: null, place: null, drag: null, vorlage: {}, tool: pal.length ? "sel" : v.startWerkzeug || keepTool });
+    Object.assign(ED, { scope, key, data, hist: [], zukunft: [], tx: null, strich: null, markiert: null, verbindenVon: null, place: null, drag: null, vorlage: {}, tool: pal.length ? "sel" : v.startWerkzeug || keepTool });
     const ex = BY[scope], dlg = $("#editor");
     const colors = [["#17212B", "Schwarz"], ["#0E4C92", "Blau"], ["#C0392B", "Rot"]];
     dlg.innerHTML = `<div class="ed"><div class="edbar">
@@ -3994,8 +3985,7 @@ END_CASE;`)}
     return [+(WS_X0 + c * WS_SPALTE).toFixed(2), ny];
   }
   function signalMarkieren() {
-    clearSel();
-    ED.selS = ED.data.s.length - 1;
+    markiere("s", ED.data.s.length - 1);
     renderInk();
     updateProps("neu");
     const f = $('#props [data-prop="sl"]');
@@ -4041,8 +4031,7 @@ END_CASE;`)}
   function setzeStart(pt) {
     aendere((d) => {
       d.s.push({ k: "st", c: ED.color, w: 1.2, p: [snapW(pt)], lbl: "−SF1" });
-      clearSel();
-      ED.selS = d.s.length - 1;
+      markiere("s", d.s.length - 1);
     }, { ohneRender: true });
     setTool("sel");
   }
@@ -5339,7 +5328,7 @@ END_CASE;`)}
     rot: () => turnSel("rot"),
     flip: () => turnSel("flip"),
     sfzu: () => {
-      ED.selF = false;
+      clearSel();
       updateProps("neu");
     },
     heute: () => {
@@ -5411,7 +5400,7 @@ END_CASE;`)}
     applyProp(el.dataset.prop, el.value);
   }
   function feldGeaendert(e) {
-    const f = e.target.dataset && e.target.dataset.prop, o = ED.sel && objById(ED.sel);
+    const f = e.target.dataset && e.target.dataset.prop, o = markiertesObjekt();
     if (!f || !o || !(art(o.k).umbau || []).includes(f)) return;
     applyProp(f, e.target.value);
     updateProps("neu");
@@ -5428,10 +5417,8 @@ END_CASE;`)}
     } else $("#edstage").focus({ preventScroll: true });
   }
   function beschrifteMarkiertes() {
-    const o = ED.sel && objById(ED.sel);
-    if (o) editObjLabel(o);
-    else if (ED.selT !== null) editTextItem(ED.selT);
-    else if (ED.selC !== null) editConnLabel(ED.selC);
+    const m = ED.markiert, beschrifte = m && AUSWAHL[m.art] && AUSWAHL[m.art].beschriften;
+    if (beschrifte) beschrifte(m.id);
   }
   function abbrechen(e) {
     if (!ED.svg) return false;
@@ -5451,18 +5438,16 @@ END_CASE;`)}
     }
     return false;
   }
+  var verschiebeXY = (el, dx, dy) => {
+    el.x += dx;
+    el.y += dy;
+  };
+  var VERSCHIEBE = { o: verschiebeXY, t: verschiebeXY, s: (st, dx, dy) => {
+    st.p = st.p.map(([x, y]) => [x + dx, y + dy]);
+  } };
   function verschiebeMarkiertes(key) {
     const dx = { ArrowLeft: -10, ArrowRight: 10 }[key] || 0, dy = { ArrowUp: -10, ArrowDown: 10 }[key] || 0;
-    if (ED.sel) {
-      const o = objById(ED.sel);
-      o.x += dx;
-      o.y += dy;
-    } else if (ED.selS !== null) ED.data.s[ED.selS].p = ED.data.s[ED.selS].p.map(([x, y]) => [x + dx, y + dy]);
-    else {
-      const t = ED.data.t[ED.selT];
-      t.x += dx;
-      t.y += dy;
-    }
+    VERSCHIEBE[ED.markiert.art](markiertesElement(), dx, dy);
   }
   function taste(e) {
     if (e.target.matches("input,select,textarea")) {
@@ -5470,7 +5455,7 @@ END_CASE;`)}
       return;
     }
     const strg = e.ctrlKey || e.metaKey;
-    if ((e.key === "Enter" || e.key === "F2") && anySel() && !ED.selF) {
+    if ((e.key === "Enter" || e.key === "F2") && anySel() && ED.markiert.art !== "f") {
       e.preventDefault();
       beschrifteMarkiertes();
       return;
@@ -5484,7 +5469,7 @@ END_CASE;`)}
       e.preventDefault();
       return;
     }
-    if (!strg && !e.altKey && ED.sel && ["r", "m"].includes(e.key.toLowerCase())) {
+    if (!strg && !e.altKey && markiertId("o") && ["r", "m"].includes(e.key.toLowerCase())) {
       e.preventDefault();
       turnSel(e.key.toLowerCase() === "r" ? "rot" : "flip");
       return;
@@ -5495,7 +5480,7 @@ END_CASE;`)}
       delSel();
       return;
     }
-    if (e.key.startsWith("Arrow") && (ED.sel || ED.selS !== null || ED.selT !== null)) {
+    if (e.key.startsWith("Arrow") && anySel() && VERSCHIEBE[ED.markiert.art]) {
       e.preventDefault();
       aendere(() => verschiebeMarkiertes(e.key));
     }

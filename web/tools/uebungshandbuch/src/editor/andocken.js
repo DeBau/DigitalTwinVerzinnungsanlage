@@ -1,10 +1,10 @@
 // Editor-Kern: Bausteine erzeugen und setzen, Ketten fortsetzen, Andocken, Hilfslinien, Verbinden.
 import { PH } from './svg.js';
-import { ED } from './status.js';
+import { ED, markiere } from './status.js';
 import { BAUSTEIN, art, bauteil, vorlage } from './registry.js';
 import { snap } from './vorlagen-svg.js';
 import { bbox, ctr, gruppeVon } from './bausteine.js';
-import { clearSel, objById, uid } from './auswahl.js';
+import { objById, uid } from './auswahl.js';
 import { andockPunkt, andockStelle, ausrichten, kettenQuelle } from './kette.js';
 import { connGeom, fragtBedingung } from './zeichnen.js';
 import { zeigeHinweis } from './eigenschaften.js';
@@ -108,7 +108,7 @@ export function placeObj(k, pt){
     const nachSetzen = gruppeVon(o).nachSetzen;   // Haken nachSetzen(o, d, {A, dock}), z. B. Transition ergänzen
     if (nachSetzen) nachSetzen(o, d, {A, dock});
   }, {ohneRender: true});
-  ED.sel = o.id; ED.selC = null; setTool("sel");
+  markiere("o", o.id); setTool("sel");
   const b = art(o.k).beschriftung;
   if (b && b.sofort) editObjLabel(o);   // z. B. Transition: Bedingung gleich eintragen
 }
@@ -116,7 +116,7 @@ export function connectPorts(a, pa, b, pb){
   if (a === b && pa === pb) return;
   if (a.startsWith("_") && b.startsWith("_")) return;
   if (ED.data.c.some(c => (c.a === a && c.pa === pa && c.b === b && c.pb === pb) || (c.a === b && c.pa === pb && c.b === a && c.pb === pa))) return;
-  aendere(d => { d.c.push({a, pa, b, pb, v: ""}); clearSel(); ED.selC = d.c.length - 1; });
+  aendere(d => { d.c.push({a, pa, b, pb, v: ""}); markiere("c", d.c.length - 1); });
 }
 export function connect(a, b){
   const A = objById(a); if (!A || (a === b && !gruppeVon(A).schleife)) return;
@@ -124,6 +124,6 @@ export function connect(a, b){
   const vor = gruppeVon(A).vorVerbinden, r = vor ? vor(A, objById(b), ED.data) : null;   // Haken vorVerbinden
   if (r && r.ok === false) { zeigeHinweis(r.text); return; }
   if (r && r.ersetze) { aendere(d => { r.ersetze(d); }); return; }
-  aendere(d => { d.c.push({a, b, v: ""}); ED.selC = d.c.length - 1; ED.sel = null; });
+  aendere(d => { d.c.push({a, b, v: ""}); markiere("c", d.c.length - 1); });
   if (fragtBedingung(A)) editConnLabel(ED.data.c.length - 1);
 }

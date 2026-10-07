@@ -3,7 +3,7 @@ import { $, $$, IC, esc } from '../app/basis.js';
 import { ED } from './status.js';
 import { BAUSTEIN, STRICH, art, vorlage } from './registry.js';
 import { gruppeVon } from './bausteine.js';
-import { objById } from './auswahl.js';
+import { markiertesElement, objById } from './auswahl.js';
 import { deDate, skMeta } from './blaetter.js';
 import { signalFeld } from './signalfeld.js';
 
@@ -29,15 +29,14 @@ export const loeschKnopf = () => `<div class="propact"><button type="button" cla
 export function propsHTML(){
   const v = vorlage(ED.key), anleitung = v.anleitung && v.anleitung();   // Haken anleitung: Hilfe zum gewählten Werkzeug
   if (anleitung) return anleitung;
-  if (ED.selT !== null && ED.data.t[ED.selT]) return textFelder(ED.data.t[ED.selT]);
-  if (ED.selS !== null && ED.data.s[ED.selS]) return strichFelder(ED.data.s[ED.selS]);
-  const o = ED.sel && objById(ED.sel);
-  if (o) return objektFelder(o);
-  const c = ED.selC !== null && ED.data.c[ED.selC];
-  if (c) return verbindungFelder(c);
-  if (!ED.selF) return `<div class="props quiet"><p>Element anklicken zum Ändern, Doppelklick beschriftet. Name und Datum: aufs Schriftfeld klicken.</p></div>`;
-  return schriftfeldFelder();
+  const el = markiertesElement();
+  if (el) return FELDER_JE_ART[ED.markiert.art](el);
+  return `<div class="props quiet"><p>Element anklicken zum Ändern, Doppelklick beschriftet. Name und Datum: aufs Schriftfeld klicken.</p></div>`;
 }
+// Eigenschaftsfeld je Art der Markierung (Arten in status.js)
+export const FELDER_JE_ART = {
+  o: o => objektFelder(o), c: c => verbindungFelder(c), s: st => strichFelder(st), t: t => textFelder(t), f: () => schriftfeldFelder(),
+};
 export const GROESSEN = [[12,"klein"],[16,"normal"],[20,"groß"],[26,"sehr groß"]];
 export const STAERKEN = [[1.4,"dünn"],[2.2,"mittel"],[4,"dick"]];
 export function textFelder(t){
@@ -78,7 +77,7 @@ export function zeigeHinweis(text){
 }
 export function updateProps(force){
   const el = $("#props"); if (!el) return;
-  const k = [ED.sel, ED.selC, ED.selS, ED.selT, ED.selF].join("|");
+  const k = ED.markiert ? ED.markiert.art + "|" + ED.markiert.id : "";
   if (!force && k === propsKey) return;
   if (force !== "neu" && k === propsKey && el.contains(document.activeElement)) {   // wird gerade bedient: nur Werte nachziehen
     const fresh = document.createElement("div"); fresh.innerHTML = propsHTML();

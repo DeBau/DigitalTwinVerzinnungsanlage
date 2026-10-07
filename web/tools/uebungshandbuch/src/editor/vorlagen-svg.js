@@ -1,7 +1,7 @@
 // Editor-Kern: Vorgedrucktes der Blätter (Raster, Punkte, Rahmen, Schriftfeld) und Striche und Texte als SVG.
 import { esc } from '../app/basis.js';
 import { tw } from './svg.js';
-import { ED } from './status.js';
+import { ED, istMarkiert } from './status.js';
 import { STRICH } from './registry.js';
 
 export const G = "#9AA4AD", G2 = "#C9D0D5";
@@ -47,7 +47,7 @@ export function glatterPfad(pts){
 }
 // Ein Strich mit Markierung, Treffer-Fläche und Griffen. Stricharten aus STRICH zeichnen sich selbst.
 export function strichSVG(d, st, i, edit){
-  const a = STRICH[st.k], dd = st.k ? shapeD(st) : glatterPfad(st.p), sel = edit && ED.selS === i;
+  const a = STRICH[st.k], dd = st.k ? shapeD(st) : glatterPfad(st.p), sel = edit && istMarkiert("s", i);
   let s = sel ? `<path d="${dd}" stroke="#2F80ED" stroke-width="${+st.w + 7}" stroke-opacity=".28" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` : "";
   s += a && a.zeichne ? a.zeichne(st, i, d) : `<path data-i="${i}" d="${dd}" stroke="${st.c}" stroke-width="${st.w}" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
   if (edit) s += `<path data-i="${i}" d="${dd}" stroke="transparent" stroke-width="14" fill="none"/>`;
@@ -55,7 +55,7 @@ export function strichSVG(d, st, i, edit){
   return s;
 }
 export function textSVG(t, i, edit){
-  const sz = t.s || 16, sel = edit && ED.selT === i, zeilen = String(t.v).split("\n");
+  const sz = t.s || 16, sel = edit && istMarkiert("t", i), zeilen = String(t.v).split("\n");
   const rahmen = edit ? `<rect data-ti="${i}" x="${t.x - 4}" y="${t.y - sz - 1}" width="${tw(t.v, sz) + 10}" height="${sz * 1.2 * zeilen.length + 6}" rx="3" fill="transparent" ${sel ? 'stroke="#2F80ED" stroke-width="1.3" stroke-dasharray="4 3"' : ""}/>` : "";
   const inhalt = zeilen.map((l, j) => j ? `<tspan x="${t.x}" dy="${(1.2 * sz).toFixed(1)}">${esc(l)}</tspan>` : esc(l)).join("");
   return rahmen + `<text data-ti="${i}" x="${t.x}" y="${t.y}" font-size="${sz}" fill="${t.c}" font-family="Plex Sans,Segoe UI,sans-serif" font-weight="500">${inhalt}</text>`;

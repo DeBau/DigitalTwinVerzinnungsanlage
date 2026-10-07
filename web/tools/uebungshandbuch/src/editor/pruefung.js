@@ -4,7 +4,7 @@
 // ein Klick auf einen Eintrag markiert das Element. Jede Änderung (aendere in verlauf.js) löscht die Markierungen.
 import { $, esc } from '../app/basis.js';
 import { SVGT } from './svg.js';
-import { ED } from './status.js';
+import { ED, markiere } from './status.js';
 import { vorlage } from './registry.js';
 import { bbox } from './bausteine.js';
 import { clearSel, objById } from './auswahl.js';
@@ -70,6 +70,6 @@ export function waehleBefund(i){
   const b = befunde[i];
   if (!b) return;
   clearSel();
-  if (b.o) ED.sel = b.o; else if (b.c !== undefined) ED.selC = b.c;
+  if (b.o) markiere("o", b.o); else if (b.c !== undefined) markiere("c", b.c);
   renderInk(); updateProps(true);
 }
