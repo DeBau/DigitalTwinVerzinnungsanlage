@@ -8,7 +8,7 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
-## 1.14.1 – 2026-10-08
+## 1.14.1 – 2026-10-07
 
 Nur der Zwilling ändert sich (`web\index.html`). Bridge, Signalliste und TIA-Variablentabellen bleiben gleich,
 die Bridge muss nicht neu gebaut werden.
@@ -36,7 +36,7 @@ Ein- und Ausblenden das 3D-Bild und schnitt beim Forcen die Knöpfe ab.
   Chrome und Edge, dazu eine Zeile in der Fehlersuche und ein Hinweis bei den Systemvoraussetzungen.
 - Bedienung: Grafik-Fenster und Seitenleiste beschrieben.
 
-## 1.14.0 – 2026-10-08
+## 1.14.0 – 2026-10-07
 
 Bridge neu bauen (`Bridge\build.bat`). **TIA-Variablentabellen neu importieren** (jetzt 186 Signale) und in
 der Gerätekonfiguration eine 4. Baugruppe DI 32x24VDC HF mit Anfangsadresse 12 ergänzen.
@@ -82,7 +82,7 @@ die das Handbuch braucht (BCD-Anzeige und Daumenradschalter, auslösbarer Motors
 - `docs/02` bis `docs/05`, README: Signalzahl, Adressbelegung, Störgrößen, Signalmonitor, G120,
   PROFINET-Gerätenamen `ta2`…`ta5`, korrigierte Meldungsnamen.
 
-## 1.13.0 – 2026-10-08
+## 1.13.0 – 2026-10-07
 
 Bridge neu bauen (`Bridge\build.bat`): Die Bridge liefert jetzt auch den Ordner `docs/` aus.
 Signalliste und TIA-Variablentabellen bleiben gleich. Am 3D-Modell ändert sich nichts.
@@ -100,7 +100,7 @@ Das Übungshandbuch lag neben dem Zwilling, war aus ihm heraus aber nicht erreic
 **Doku**
 - README und Kapitel 07 nennen den neuen Knopf.
 
-## 1.12.0 – 2026-10-08
+## 1.12.0 – 2026-10-07
 
 Bridge neu bauen (`Bridge\build.bat`): Der Code der Bridge hat sich nicht geändert, aber sie trägt die
 neue Nebenversion. Signalliste und TIA-Variablentabellen bleiben gleich. Am 3D-Modell ändert sich nichts.

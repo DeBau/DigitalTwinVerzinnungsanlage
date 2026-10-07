@@ -8,7 +8,7 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
-## 1.14.1 – 2026-10-08
+## 1.14.1 – 2026-10-07
 
 Only the twin changes (`web\index.html`). Bridge, signal list and TIA tag tables stay the same, the bridge does
 not need to be rebuilt.
@@ -36,7 +36,7 @@ shown or hidden and cut off the buttons when forcing.
   and Edge, plus a troubleshooting row and a note in the system requirements.
 - Operation: graphics window and sidebar described.
 
-## 1.14.0 – 2026-10-08
+## 1.14.0 – 2026-10-07
 
 Rebuild the bridge (`Bridge\build.bat`). **Re-import the TIA tag tables** (now 186 signals) and add a 4th
 module DI 32x24VDC HF with start address 12 in the device configuration.
@@ -82,7 +82,7 @@ were also missing (BCD display and thumbwheel switch, trippable motor protection
 - `docs/02` to `docs/05`, README: signal count, address assignment, disturbances, signal monitor, G120,
   PROFINET device names `ta2`…`ta5`, corrected message names.
 
-## 1.13.0 – 2026-10-08
+## 1.13.0 – 2026-10-07
 
 Rebuild the bridge (`Bridge\build.bat`): the bridge now also serves the `docs/` folder.
 The signal list and TIA tag tables stay the same. The 3D model is unchanged.
@@ -100,7 +100,7 @@ The exercise handbook sat next to the twin but could not be reached from it.
 **Docs**
 - README and chapter 07 mention the new button.
 
-## 1.12.0 – 2026-10-08
+## 1.12.0 – 2026-10-07
 
 Rebuild the bridge (`Bridge\build.bat`): the bridge code has not changed, but it carries the
 new minor version. The signal list and TIA tag tables stay the same. The 3D model is unchanged.
