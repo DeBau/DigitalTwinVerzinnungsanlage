@@ -263,6 +263,71 @@ export const tests = [
     },
   },
   {
+    name: 'E9 Simulation: Sensor schaltet nur mit Versorgung',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      await setze(t, 'term', PFAD(2), 150); await setze(t, 'sens', PFAD(2), 260); await lose(t);   // BN über −X1:1 an L+
+      await setze(t, 'lamp', PFAD(4), 300); await setze(t, 'term', PFAD(4), 420); await lose(t);   // X2 über −X1:2 an M
+      const s = (await t.objekte('sens'))[0], l = (await t.objekte('lamp'))[0];
+      await t.werkzeug('conn');
+      await t.klick([s.x + 30, s.y + 30]); await t.klick([l.x, l.y]);   // BK → X1
+      await t.werkzeug('sim');
+      const leuchtet = () => t.zaehle('#edstage .ink circle[fill="#F2C94C"]');
+      await t.klick([s.x, s.y + 30]);
+      t.gleich(await leuchtet(), 1, 'versorgter Sensor schaltet die Leuchte');
+      await t.klick([s.x, s.y + 30]);
+      await t.werkzeug('sel');
+      await setzeEinzeln(t, 'tno', PFAD(2), 480);   // liegt unter BU: keine automatische Leitung zu M mehr
+      await t.werkzeug('sim');
+      await t.klick([s.x, s.y + 30]);
+      t.gleich(await leuchtet(), 0, 'BU offen: Sensor schaltet nicht');
+    },
+  },
+  {
+    name: 'E9 Simulation: Sicherheitsrelais gibt mit Start S33/S34 erst nach dem Start frei',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      const sr = await setzeEinzeln(t, 'sr', 600, 200);
+      const l = await setzeEinzeln(t, 'lamp', PFAD(3), 400);
+      const p = (dx, dy) => [sr.x + dx, sr.y + dy];
+      const verbinde = async (...paare) => {
+        await t.werkzeug('conn');
+        for (const [a, b] of paare) { await t.klick(a); await t.klick(b); }
+        await t.werkzeug('sel');
+      };
+      await verbinde([p(30, 0), [sr.x + 30, 70]], [p(30, 80), [sr.x + 30, 590]], [p(60, 0), p(80, 0)], [p(110, 0), p(130, 0)],
+        [p(180, 0), [sr.x + 180, 70]], [p(180, 80), [l.x, l.y]], [[l.x, l.y + 60], [l.x, 590]]);
+      const leuchtet = () => t.zaehle('#edstage .ink circle[fill="#F2C94C"]');
+      await t.werkzeug('sim');
+      t.gleich(await leuchtet(), 1, 'ohne Start gibt das Relais sofort frei');
+      await t.werkzeug('sel');
+      const sf = await setzeEinzeln(t, 'tno', PFAD(6), 300);
+      await verbinde([p(145, 0), [sf.x, sf.y]], [[sf.x, sf.y + 60], p(160, 0)]);
+      await t.werkzeug('sim');
+      t.gleich(await leuchtet(), 0, 'mit Start S33/S34: noch keine Freigabe');
+      await t.klick([sf.x - 10, sf.y + 30]);   // Start drücken und loslassen
+      t.gleich(await leuchtet(), 1, 'nach dem Start freigegeben und gehalten');
+    },
+  },
+  {
+    name: 'E12 Zeitrelais: ein Wecker je Relais',
+    lauf: async (t) => {
+      await t.oeffne('stromlauf');
+      for (const [k, y] of [['key', 200], ['zan', 330]]) await setze(t, k, PFAD(2), y);
+      await t.page.fill('#props [data-prop="t"]', '20');
+      await lose(t);
+      await setzeEinzeln(t, 'tno', PFAD(5), 200);
+      await t.page.evaluate(() => {
+        const alt = window.setTimeout; window.wecker = 0;
+        window.setTimeout = (f, ms, ...r) => { if (ms > 5000) window.wecker++; return alt(f, ms, ...r); };
+      });
+      await t.werkzeug('sim');
+      await t.klick([PFAD(2) - 10, 230]);   // Schlüsselschalter: Zeitrelais läuft
+      for (let i = 0; i < 3; i++) await t.klick([PFAD(5) - 10, 230]);   // anderes Bedienteil, jedes Mal neu gezeichnet
+      t.gleich(await t.page.evaluate(() => window.wecker), 1, 'genau ein Wecker');
+    },
+  },
+  {
     name: 'E8 Kontaktspiegel unter der Spule, Querverweis am Kontakt',
     lauf: async (t) => {
       await selbsthaltung(t);

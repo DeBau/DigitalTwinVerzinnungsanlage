@@ -40,10 +40,11 @@ const netzteil = o => kasten(o.x + 10, o.y + 10, 80, 50) + linie(`M${o.x + 10} $
     + nummer(o.x + dx + 3, o.y + (dy ? 68 : 8), n)).join("")
   + text(o.x + 28, o.y + 32, "~", {a: "middle", g: 14, w: 600}) + text(o.x + 72, o.y + 52, "=", {a: "middle", g: 14, w: 600})
   + LB(o.x + 6, o.y + 40, o.v);
-// Sicherheitsrelais: Versorgung, zwei Kanäle S11/S12 und S21/S22, Start S34, Freigabekontakte 13/14 und 23/24
+// Sicherheitsrelais: Versorgung, zwei Kanäle S11/S12 und S21/S22, Start S33/S34, Freigabekontakte 13/14 und 23/24.
+// S33 steht hinten in der Liste, weil die Simulation die Freigabekontakte über ihre Stelle in der Liste anspricht.
 const SICHERHEITSRELAIS = [["A1", 30, 0, "u"], ["S11", 60, 0, "u"], ["S12", 80, 0, "u"], ["S21", 110, 0, "u"],
   ["S22", 130, 0, "u"], ["S34", 160, 0, "u"], ["13", 180, 0, "u"], ["23", 200, 0, "u"], ["A2", 30, 80, "d"],
-  ["14", 180, 80, "d"], ["24", 200, 80, "d"]];
+  ["14", 180, 80, "d"], ["24", 200, 80, "d"], ["S33", 145, 0, "u"]];
 const sicherheitsrelais = o => kasten(o.x + 10, o.y + 10, 200, 60)
   + text(o.x + 110, o.y + 44, "Sicherheitsrelais", {a: "middle", g: 11, w: 600}) + LB(o.x + 6, o.y + 44, o.v)
   + SICHERHEITSRELAIS.map(([n, dx, dy]) => stummel(o, dx, dy, n, 80)).join("");

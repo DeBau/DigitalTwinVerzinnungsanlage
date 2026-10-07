@@ -61,22 +61,31 @@ export const BEDIENUNG = {tno: "tastend", tnc: "tastend", estop: "rastend", esto
   lsw: "rastend", sens: "rastend", msk: "rastend"};
 export const kennung = o => o.v || o.id;
 const zustand = (o, aktiv) => ({betaetigt: !!ED.sim.st[kennung(o)], an: aktiv.has(o.v)});
-// Netz bei Zustand z(o) → {betaetigt, an} der Bauteile
+// Bauteile, die nur mit Versorgung schalten: Anschlüsse [an L+, an M]
+export const VERSORGUNG = {sens: ["BN", "BU"]};
+// Netz bei Zustand z(o) → {betaetigt, an} der Bauteile. Erst schalten die Bauteile ohne eigene Versorgung, danach die
+// versorgten (Sensor), wenn ihre Versorgung an L+ und M liegt.
 export function netzAus(d, cs, objs, z){
-  const netz = neuesNetz();
+  const netz = neuesNetz(), schalte = o => (SCHALTET[o.k] ? SCHALTET[o.k](z(o)) : [])
+    .forEach(([i, j]) => netz.u(knoten(o, name(o, i)), knoten(o, name(o, j))));
   verbindeFest(d, cs, objs, netz);
-  (d.o || []).forEach(o => (SCHALTET[o.k] ? SCHALTET[o.k](z(o)) : [])
-    .forEach(([i, j]) => netz.u(knoten(o, name(o, i)), knoten(o, name(o, j)))));
+  (d.o || []).filter(o => !VERSORGUNG[o.k]).forEach(schalte);
+  (d.o || []).filter(o => VERSORGUNG[o.k] && gespeist(o, netz, ...VERSORGUNG[o.k])).forEach(schalte);
   return netz;
 }
 // Verbraucher (Spule, Ventilspule, Leuchte): A1 bzw. X1 an L+ und A2 bzw. X2 an M
 export const VERBRAUCHER = [...SPULEN, "mbv", "lamp"];
 const gespeist = (o, netz, a, b) => netz.f(knoten(o, a)) === netz.f("pot:L+") && netz.f(knoten(o, b)) === netz.f("pot:M");
 // Sicherheitsrelais: versorgt, und beide Kanäle S11–S12, S21–S22 geschlossen
-const srAn = (o, netz) => gespeist(o, netz, "A1", "A2")
-  && netz.f(knoten(o, "S11")) === netz.f(knoten(o, "S12")) && netz.f(knoten(o, "S21")) === netz.f(knoten(o, "S22"));
+const verbunden = (netz, o, a, b) => netz.f(knoten(o, a)) === netz.f(knoten(o, b));
+const srBereit = (o, netz) => gespeist(o, netz, "A1", "A2") && verbunden(netz, o, "S11", "S12") && verbunden(netz, o, "S21", "S22");
+// Start S33/S34: Ist S34 verdrahtet, gibt das Relais erst frei, wenn S33–S34 geschlossen ist (oder S34 an L+ liegt),
+// und hält dann, solange es bereit ist (war = gerade freigegeben). Ohne Start gibt es sofort frei.
+const startVerdrahtet = (d, o) => (d.c || []).some(c => (c.a === o.id && c.pa === "S34") || (c.b === o.id && c.pb === "S34"));
+const srAn = (d, o, netz, war) => srBereit(o, netz) && (!startVerdrahtet(d, o) || war
+  || verbunden(netz, o, "S33", "S34") || netz.f(knoten(o, "S34")) === netz.f("pot:L+"));
 // Zeitrelais: an = gespeist (anzugsverzögert erst nach o.t Sekunden, abfallverzögert noch o.t Sekunden danach).
-// ED.sim.zeit[id] = {gespeist, seit}: letzter Wechsel; ein Wecker zeichnet neu, wenn die Zeit abläuft.
+// ED.sim.zeit[id] = {gespeist, seit, wecker}: letzter Wechsel; ein Wecker je Relais zeichnet neu, wenn die Zeit abläuft.
 export const VERZOEGERT = {
   zan: (g, vorbei) => g && vorbei,
   zab: (g, vorbei) => g || !vorbei,
@@ -84,17 +93,18 @@ export const VERZOEGERT = {
 function zeitrelais(o, g){
   const Z = ED.sim.zeit || (ED.sim.zeit = {}), jetzt = Date.now(), t = 1000 * (parseFloat(o.t) || 3);
   const z = Z[o.id] || (Z[o.id] = {gespeist: false, seit: -Infinity});
-  if (z.gespeist !== g) { z.gespeist = g; z.seit = jetzt; }
+  if (z.gespeist !== g) { z.gespeist = g; z.seit = jetzt; clearTimeout(z.wecker); z.wecker = null; }
   const rest = z.seit + t - jetzt;
-  if (rest > 0) setTimeout(() => { if (simOn()) renderInk(); }, rest + 30);
+  if (rest > 0 && !z.wecker) z.wecker = setTimeout(() => { z.wecker = null; if (simOn()) renderInk(); }, rest + 30);
   return VERZOEGERT[o.k](g, rest <= 0);
 }
-function eingeschaltet(d, netz){
+// Eingeschaltete Kennzeichen beim Netz netz; aktiv = bisher eingeschaltet (für die Selbsthaltung des Sicherheitsrelais)
+function eingeschaltet(d, netz, aktiv){
   const an = new Set();
   (d.o || []).forEach(o => {
     const g = VERBRAUCHER.includes(o.k) && gespeist(o, netz, name(o, 0), name(o, 1));
-    if (VERZOEGERT[o.k] ? zeitrelais(o, g) : g) an.add(o.v || o.id);
-    if (o.k === "sr" && srAn(o, netz)) an.add(o.v || o.id);
+    if (VERZOEGERT[o.k] ? zeitrelais(o, g) : g) an.add(kennung(o));
+    if (o.k === "sr" && srAn(d, o, netz, aktiv.has(kennung(o)))) an.add(kennung(o));
   });
   return an;
 }
@@ -104,7 +114,7 @@ export function simuliere(d, cs, objs){
   for (let i = 0; i < 12; i++) {
     const a = aktiv;
     netz = netzAus(d, cs, objs, o => zustand(o, a));
-    const neu = eingeschaltet(d, netz), gleich = neu.size === aktiv.size && [...neu].every(v => aktiv.has(v));
+    const neu = eingeschaltet(d, netz, a), gleich = neu.size === aktiv.size && [...neu].every(v => aktiv.has(v));
     aktiv = neu;
     if (gleich) break;
   }
@@ -172,5 +182,7 @@ export function simUnten(e, pt){
 }
 export const STROM_ANLEITUNG = `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">`
   + `Taster anklicken: Sie schalten, solange du drückst. Not-Halt, Schalter, Sensoren und Motorschutz rasten bei jedem `
-  + `Klick um. Eine Spule zieht an, wenn A1 an L+ und A2 an M liegt, und alle Kontakte mit ihrem Kennzeichen schalten mit.`
-  + `</p><p class="small muted" style="margin:0">Rot: Potenzial L+, blau: Potenzial M. Zum Bearbeiten „Auswählen“ wählen.</p></div>`;
+  + `Klick um. Eine Spule zieht an, wenn A1 an L+ und A2 an M liegt, und alle Kontakte mit ihrem Kennzeichen schalten mit. `
+  + `Ein Sensor schaltet nur mit Versorgung (BN an L+, BU an M). Ein Sicherheitsrelais mit verdrahtetem Start S33/S34 `
+  + `gibt erst nach dem Start frei.</p><p class="small muted" style="margin:0">Rot: Potenzial L+, blau: Potenzial M. `
+  + `Zum Bearbeiten „Auswählen“ wählen.</p></div>`;
