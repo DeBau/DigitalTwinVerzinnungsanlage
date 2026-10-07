@@ -16,7 +16,7 @@ export function seitenArt(k){
 }
 
 // Senkrechte Verbindung von unten aus A nach oben in B, bei Rücksprüngen links vorbei mit Pfeil nach oben.
-// spuren (spuren.js) ist die Spurbelegung der Zeichnung, noch unbenutzt.
+// Rücksprünge melden ihre Bahn in spuren (spuren.js) an: Zwei Rücksprünge liegen dann nie deckungsgleich übereinander.
 export function routeV([x1, y1], [x2, y2], spuren){
   const p = {p1: [x1, y1], p2: [x2, y2]};
   if (y2 > y1 + 4) {
@@ -24,8 +24,15 @@ export function routeV([x1, y1], [x2, y2], spuren){
     const m = Math.round((y1 + y2) / 20) * 10;
     return {...p, d: `M${x1} ${y1}V${m}H${x2}V${y2}`};
   }
+  return {...p, ...ruecksprung([x1, y1], [x2, y2], spuren)};
+}
+// Rücksprung: 20 unter A nach links auf die Bahn 50 neben der Kette, hoch bis 20 über B, hinein in B.
+// Netz ist der Startpunkt; die Bahn und die waagrechten Stücke weichen auf eine freie Spur aus.
+export function ruecksprung([x1, y1], [x2, y2], spuren){
   const lane = Math.min(x1, x2) - 50, ya = y1 + 20, yb = y2 - 20;
-  return {...p, d: `M${x1} ${y1}V${ya}H${lane}V${yb}H${x2}V${y2}`, up: [lane, (ya + yb) / 2]};
+  const roh = [[x1, y1], [x1, ya], [lane, ya], [lane, yb], [x2, yb], [x2, y2]];
+  const [, [, ya2], [lane2], [, yb2]] = spuren ? spuren.knick(roh, `${x1}:${y1}`) : roh;
+  return {d: `M${x1} ${y1}V${ya2}H${lane2}V${yb2}H${x2}V${y2}`, up: [lane2, (ya2 + yb2) / 2]};
 }
 
 // Linie von A nach B innerhalb einer Kette; spuren geht an routeV bzw. den Haken seite.verbinde

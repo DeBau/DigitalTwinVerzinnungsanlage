@@ -195,4 +195,26 @@ export const tests = [
       t.gleich(await verbindungen(t), ['step>trans'], 'nah angedockt');
     },
   },
+  {
+    name: 'G8 Zwei Rücksprünge liegen nicht deckungsgleich',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 220, 120);
+      await transition(t, 220, 190, 'BG1');
+      await t.setze('step', 220, 240);
+      await transition(t, 220, 310, 'BG2');
+      await t.setze('step', 220, 340);
+      await transition(t, 220, 410, 'BG3');
+      const d = await t.daten(), init = nach(d, '1', 'init');
+      await t.werkzeug('conn');
+      for (const v of ['BG2', 'BG3']) {
+        const q = nach(d, v);
+        await t.klick([q.x, q.y]); await t.klick([init.x + 20, init.y + 20]);
+      }
+      const wege = await t.page.locator('#edstage .ink [data-c] > path:first-child').evaluateAll((ps) => ps.map((p) => p.getAttribute('d')));
+      const bahnen = wege.map((w) => /^M[\d.]+ [\d.]+V[\d.]+H([\d.]+)V/.exec(w)).filter(Boolean).map((m) => +m[1]);
+      t.gleich(bahnen.length, 2, `zwei Rücksprünge: ${wege}`);
+      t.erwarte(bahnen[0] !== bahnen[1], `Bahnen deckungsgleich bei x ${bahnen}`);
+    },
+  },
 ];

@@ -1479,8 +1479,13 @@ pre.code code{font-size:inherit}
       const m = Math.round((y1 + y2) / 20) * 10;
       return { ...p, d: `M${x1} ${y1}V${m}H${x2}V${y2}` };
     }
+    return { ...p, ...ruecksprung([x1, y1], [x2, y2], spuren) };
+  }
+  function ruecksprung([x1, y1], [x2, y2], spuren) {
     const lane = Math.min(x1, x2) - 50, ya = y1 + 20, yb = y2 - 20;
-    return { ...p, d: `M${x1} ${y1}V${ya}H${lane}V${yb}H${x2}V${y2}`, up: [lane, (ya + yb) / 2] };
+    const roh = [[x1, y1], [x1, ya], [lane, ya], [lane, yb], [x2, yb], [x2, y2]];
+    const [, [, ya2], [lane2], [, yb2]] = spuren ? spuren.knick(roh, `${x1}:${y1}`) : roh;
+    return { d: `M${x1} ${y1}V${ya2}H${lane2}V${yb2}H${x2}V${y2}`, up: [lane2, (ya2 + yb2) / 2] };
   }
   function verbindeKette(A, B, spuren) {
     const s = seite(B);
