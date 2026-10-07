@@ -12,6 +12,7 @@ import { setzeBreite } from '../bausteine.js';
 import { textFeld } from '../eigenschaften.js';
 import { kennzeichen } from './elektro-kennzeichen.js';
 import { pruefeLeistung } from './elektro-pruefen.js';
+import { POLE_OBEN_UNTEN, andockeDreipolig, mehrpolig, poleKlick, poleKnoepfe } from './leistung-pole.js';
 
 export const LEITER = [["L1", 50], ["L2", 70], ["L3", 90], ["N", 110], ["PE", 130]];
 export const PE_STRICH = 'stroke-dasharray="10 4"';
@@ -25,6 +26,8 @@ registriereVorlage("leistung", {
   gruppen: ["leistung", "geraete", "elektro"], schienen: LEITER.map(([n, y]) => [n, y, 60, 915]),
   body: leistungBlatt,
   pruefe: pruefeLeistung,
+  werkzeugleiste: {get nachVerbinden(){ return poleKnoepfe(); }},
+  klick: poleKlick,
 });
 registriereGruppe("leistung", {
   name: "Hauptstromkreis",
@@ -32,6 +35,8 @@ registriereGruppe("leistung", {
     + "anderen Bauteil anklicken, auch direkt auf die Schienen L1, L2, L3, N, PE. Wendeschützschaltung: zwei Schütze, "
     + "beim zweiten L1 und L3 tauschen.",
   kennzeichen,
+  mehrpolig,
+  andocke: andockeDreipolig,
 });
 
 // Potenzialschiene: waagrechte Linie der Länge w; Leitungen docken irgendwo an (Anschluss „~“), nicht drehbar
@@ -48,7 +53,7 @@ const schiene = o => `<path d="M${o.x} ${o.y}H${o.x + (o.w || 400)}" stroke="${I
 /* ---------- Dreipolige Bauteile: Pole bei 10, 30, 50 ---------- */
 export const POLE3 = [["1", 10, 0, "u"], ["3", 30, 0, "u"], ["5", 50, 0, "u"], ["2", 10, 60, "d"], ["4", 30, 60, "d"], ["6", 50, 60, "d"]];
 // Dreipoliges Bauteil mit dem Schaltzeichen sym, Kennzeichen links
-const dreipolig = (n, lbl, sym, w = 60) => ({g: "leistung", n, lbl, w, h: 60, anschluesse: POLE3,
+const dreipolig = (n, lbl, sym, w = 60) => ({g: "leistung", n, lbl, w, h: 60, anschluesse: POLE3, pole: POLE_OBEN_UNTEN,
   zeichne: o => SYM[sym].zeichne(o.x + 30, o.y, {}) + LB(o.x - 4, o.y + 35, o.v)});
 // Motor: U1, V1, W1 oben, Schutzleiter PE rechts (x + 100)
 const MOTOR = [["U1", 10, 0, "u"], ["V1", 30, 0, "u"], ["W1", 50, 0, "u"], ["PE", 100, 0, "u"]];
@@ -65,9 +70,10 @@ registriereBauteile({
   ms3: dreipolig("Motorschutzschalter", "−FA1", "ms3", 90),
   k3: dreipolig("Schütz 3-polig (Hauptkontakte)", "−QA1", "schuetz3"),
   qs3: dreipolig("Hauptschalter 3-polig", "−QB1", "qs3", 72),
-  m3: {g: "leistung", n: "Drehstrommotor", lbl: "−MA1", w: 110, h: 80, anschluesse: MOTOR,
+  m3: {g: "leistung", n: "Drehstrommotor", lbl: "−MA1", w: 110, h: 80, anschluesse: MOTOR, pole: [["U1", "V1", "W1"]],
     zeichne: o => SYM.motor3.zeichne(o.x + 30, o.y, {}) + LB(o.x - 4, o.y + 56, o.v)},
   fu: {g: "leistung", n: "Frequenzumrichter", lbl: "−TA2", bx: -20, w: 130, h: 90, anschluesse: UMRICHTER, zeichne: umrichter,
+    pole: [["L1", "L2", "L3"], ["U", "V", "W"]],
     anschlussName: (o, n) => UMRICHTER_NAME[n] || n},
   rail: {g: "leistung", n: "Potenzialschiene", lbl: "L+", w: 400, h: 0, ...SCHIENE, zeichne: schiene},
 });

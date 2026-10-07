@@ -311,6 +311,7 @@ und `fuelle(tabelle, einträge)`.
 | `loeschen` | `(o, d) → [id, …]` | `removeObj` (bearbeiten.js), also Löschen und Radierer; darf vorher Verbindungen in d ergänzen | nur o und seine Verbindungen |
 | `kennzeichen` | `(k, d, vorschlag) → Text` | `makeObj` (andocken.js), auch für die Vorschau; `vorschlag` = `o.v` nach `neu` bzw. `nextLabel` | `vorschlag` |
 | `nachSetzen` | `(o, d, {A, dock})`, ändert d | `placeObj` im selben Verlaufsschritt; A = Kettenvorgänger, dock = Andockstelle | |
+| `mehrpolig` | `(a, pa, b, pb) → [{a, pa, b, pb}, …]` oder null | `leitungenZwischen` (andocken.js): Verbinden von Anschlüssen und Andocken mit `pa`/`pb` | eine Leitung |
 | `vorVerbinden` | `(A, B, d) → null`, `{ok: false, text}` oder `{ersetze(d)}` | `connect` (andocken.js), nur Verbindungen ohne Anschlüsse | verbinden |
 
 Ergibt `andocke` ein `pa` und `pb`, entsteht beim Loslassen eine Leitung zwischen diesen Anschlüssen (`dockLeitung`).

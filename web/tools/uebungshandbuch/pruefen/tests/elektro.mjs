@@ -238,4 +238,27 @@ export const tests = [
       t.erwarte((await befunde()).some((x) => x.includes('Schutzleiter PE')), 'Motor ohne PE');
     },
   },
+  {
+    name: 'E11 dreipolig verdrahten, Phasen tauschen, dreipolig andocken',
+    lauf: async (t) => {
+      await t.oeffne('leistung');
+      const leitungen = async (id) => (await t.daten()).c.filter((c) => c.b === id || c.a === id)
+        .map((c) => (c.a === id ? `${c.pa}-${c.b}:${c.pb}` : `${c.a}:${c.pa}-${c.pb}`)).sort();
+      const k1 = await setzeEinzeln(t, 'k3', 200, 300);
+      await t.werkzeug('conn');
+      await t.klick([k1.x + 10, 50]); await t.klick([k1.x + 10, k1.y]);
+      t.gleich(await leitungen(k1.id), ['_L1@0:~-1', '_L2@0:~-3', '_L3@0:~-5'], 'ein Verbinden, drei Pole');
+      await t.werkzeug('sel');
+      const k2 = await setzeEinzeln(t, 'k3', 500, 300);
+      await t.klick('#editor [data-pole="tauschen"]');
+      await t.werkzeug('conn');
+      await t.klick([k2.x + 10, 50]); await t.klick([k2.x + 10, k2.y]);
+      t.gleich(await leitungen(k2.id), ['_L1@0:~-5', '_L2@0:~-3', '_L3@0:~-1'], 'L1 und L3 getauscht');
+      await t.werkzeug('sel');
+      await t.klick('#editor [data-pole="tauschen"]');
+      const m = await setzeEinzeln(t, 'm3', k1.x + 55, k1.y + 135);
+      t.gleich([m.x, m.y], [k1.x, k1.y + 80], 'Motor dockt unter dem Schütz an');
+      t.gleich(await leitungen(m.id), [`${k1.id}:2-U1`, `${k1.id}:4-V1`, `${k1.id}:6-W1`], 'drei Leitungen beim Andocken');
+    },
+  },
 ];

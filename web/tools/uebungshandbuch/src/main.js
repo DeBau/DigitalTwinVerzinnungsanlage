@@ -46,6 +46,7 @@ import './editor/vorlagen/elektro-simulation.js';
 import './editor/vorlagen/elektro-pruefen.js';
 import './editor/vorlagen/elektro.js';
 import './editor/vorlagen/elektro-geraete.js';
+import './editor/vorlagen/leistung-pole.js';
 import './editor/vorlagen/leistung.js';
 import './editor/vorlagen/pneumatik-symbole.js';
 import './editor/vorlagen/pneumatik-simulation.js';

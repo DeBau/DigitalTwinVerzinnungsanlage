@@ -209,7 +209,7 @@ export function zeigerLoslassen(){
 export function ziehenEnde(){
   const dk = ED.drag.dock;
   if (ED.drag.moved) {
-    if (dk && !linked(dk.a, dk.b)) ED.data.c.push(dockLeitung(dk));   // angedockt: verbinden
+    if (dk && !linked(dk.a, dk.b)) ED.data.c.push(...dockLeitung(dk));   // angedockt: verbinden
     saveSketch(); renderInk();
   }
   ED.drag = null;
