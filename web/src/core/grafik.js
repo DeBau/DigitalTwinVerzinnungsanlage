@@ -111,10 +111,11 @@ export function qualitaetPruefen() {
     if (Q.gutSeit > 10000 && Q.stufe > 0 && !Q.gesperrt.has(Q.stufe - 1)) { stufeSetzen(Q.stufe - 1); Q.ruhe = 1200; Q.gutSeit = 0; try { localStorage.setItem('zinnbad-auto-stufe', Q.stufe); } catch { /* */ } }
   } else Q.gutSeit = 0;
 }
-$('btn-grafik').onclick = () => {
-  const folge = ['auto', 'hoch', 'mittel', 'niedrig'];
-  Q.modus = folge[(folge.indexOf(Q.modus) + 1) % folge.length];
-  try { localStorage.setItem('zinnbad-grafik', Q.modus); } catch { /* kein Speicher */ }
+// Qualität wählen (Grafik-Fenster): 'auto' regelt selbst, die anderen sind feste Stufen
+export const MODI = { auto: null, hoch: 0, mittel: 2, niedrig: 3 };
+export function qualitaetSetzen(modus) {
+  Q.modus = modus;
+  try { localStorage.setItem('zinnbad-grafik', modus); } catch { /* kein Speicher */ }
   Q.gesperrt.clear(); Q.gutSeit = 0; Q.ruhe = 1200;
-  stufeSetzen({ auto: Q.stufe, hoch: 0, mittel: 2, niedrig: 3 }[Q.modus]);
-};
+  stufeSetzen(MODI[modus] ?? Q.stufe);
+}

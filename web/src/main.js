@@ -64,6 +64,7 @@ import './ui/status.js';
 import './ui/bridge.js';
 import './core/grafik.js';
 import './core/tiefenschatten.js';
+import './ui/grafikdialog.js';
 import './ui/beschriftung.js';
 import './core/zusammenfassen.js';
 import * as THREE from 'three';

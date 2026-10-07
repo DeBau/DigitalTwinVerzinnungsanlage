@@ -96,7 +96,8 @@ match the TIA project.
 
 ## Graphics and performance
 
-- **"Graphics: Auto"** button at the bottom of the 3D view. *Auto* continuously measures the frame rate and switches automatically so the twin runs smoothly on any graphics hardware (target 60 frames/s). The level found is saved, and the next time you open the twin it starts with it right away. Clicking lets you set *High*, *Medium* and *Low* permanently.
+- **"Graphics"** button at the bottom of the 3D view (shows the current level, e.g. "Graphics: Auto (Medium)"). It opens the window with all graphics settings: quality, reflections, ambient occlusion and the graphics card the browser is currently using. Settings are remembered in the browser.
+- **Quality:** *Auto* continuously measures how many frames miss the display refresh and drops one level as soon as the picture stutters (target: a steady 60 frames/s). The level found is saved, and the next time you open the twin it starts with it right away. *High*, *Medium* and *Low* are fixed levels.
 
 | Level | Rendering |
 |---|---|
@@ -105,11 +106,12 @@ match the TIA project.
 | Low | like Medium, 70 % resolution |
 | (Auto only) Minimal | no shadows, 55 % resolution |
 
-- **"Ambient occlusion"** button next to it (highlighted = on): ambient occlusion (GTAO) shades corners, grooves, gaps and
+- **Reflections:** metal parts reflect a photo of a real workshop hall (applies at level *High*). Switched off, the brightness stays the same and metal looks matt.
+- **Ambient occlusion:** ambient occlusion (GTAO) shades corners, grooves, gaps and
   the areas under conveyors and devices, giving a much more three-dimensional look. It costs roughly a second scene render per frame
   (frame rate roughly halved); *Graphics: Auto* then drops one level if necessary. Default: off, the
   state is remembered in the browser. Transparent panels (enclosure, light curtain) cast no occlusion.
 
-- For the best rendering in the browser, use the powerful graphics card: Windows Settings → System → Display → Graphics → Chrome/Edge → *High performance*.
+- For the best rendering in the browser, use the powerful graphics card: Windows Settings → System → Display → Graphics → Chrome/Edge → *High performance*, then restart the browser completely. If the browser is running on the integrated graphics, the graphics window points this out. On laptops with an additional NVIDIA or AMD card, this is the most important step against stuttering.
 
 [◀ Back to overview](../README.en.md)

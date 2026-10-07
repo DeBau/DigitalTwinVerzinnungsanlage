@@ -3,8 +3,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { $, camera, renderer, scene } from './szene.js';
-import { t } from './sprache.js';
+import { camera, renderer, scene } from './szene.js';
 
 // ----------------------------------------------------------------------------
 // Tiefenschatten (Ambient Occlusion, GTAO): Verschattung in Ecken, Nuten, Spalten und unter Bauteilen.
@@ -59,13 +58,8 @@ export function szeneZeichnen() {
   TS.composer.render();
 }
 
-const knopf = $('btn-tiefenschatten');
-function knopfZeigen() {
-  knopf.setAttribute('aria-pressed', TS.an);
+// Ein/aus (Grafik-Fenster), Zustand je Browser gemerkt
+export function tiefenschattenSetzen(an) {
+  TS.an = an;
+  try { localStorage.setItem(SPEICHER, an ? '1' : '0'); } catch { /* kein Speicher */ }
 }
-knopf.onclick = () => {
-  TS.an = !TS.an;
-  try { localStorage.setItem(SPEICHER, TS.an ? '1' : '0'); } catch { /* kein Speicher */ }
-  knopfZeigen();
-};
-knopfZeigen();

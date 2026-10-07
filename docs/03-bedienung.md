@@ -96,7 +96,8 @@ zum TIA-Projekt passen.
 
 ## Grafik und Leistung
 
-- Knopf **„Grafik: Auto“** unten in der 3D-Ansicht. *Auto* misst laufend die Bildrate und schaltet automatisch, damit es auf jeder Grafik flüssig läuft (Ziel 60 Bilder/s). Die gefundene Stufe wird gespeichert, beim nächsten Öffnen startet der Zwilling gleich damit. Durch Klicken lassen sich *Hoch*, *Mittel* und *Niedrig* fest einstellen.
+- Knopf **„Grafik“** unten in der 3D-Ansicht (zeigt die aktuelle Stufe, z. B. „Grafik: Auto (Mittel)“). Er öffnet das Fenster mit allen Grafikeinstellungen: Qualität, Spiegelungen, Tiefenschatten und die Grafikkarte, auf der der Browser gerade rechnet. Einstellungen werden im Browser gemerkt.
+- **Qualität:** *Auto* misst laufend, wie viele Bilder den Bildtakt verpassen, und schaltet eine Stufe herunter, sobald es ruckelt (Ziel: gleichmäßig 60 Bilder/s). Die gefundene Stufe wird gespeichert, beim nächsten Öffnen startet der Zwilling gleich damit. *Hoch*, *Mittel* und *Niedrig* sind feste Stufen.
 
 | Stufe | Darstellung |
 |---|---|
@@ -105,11 +106,12 @@ zum TIA-Projekt passen.
 | Niedrig | wie Mittel, 70 % Auflösung |
 | (Auto zusätzlich) Minimal | ohne Schatten, 55 % Auflösung |
 
-- Knopf **„Tiefenschatten“** daneben (hervorgehoben = an): Ambient Occlusion (GTAO) verschattet Ecken, Nuten, Spalten und
+- **Spiegelungen:** Metallteile spiegeln ein Foto einer echten Werkhalle (wirkt in Stufe *Hoch*). Ausgeschaltet bleibt die Helligkeit gleich, Metall wirkt dann matt.
+- **Tiefenschatten:** Ambient Occlusion (GTAO) verschattet Ecken, Nuten, Spalten und
   die Bereiche unter Bändern und Geräten – deutlich plastischer. Kostet etwa eine zweite Szenendarstellung je Bild
   (Bildrate etwa halbiert); *Grafik: Auto* stellt dann gegebenenfalls eine Stufe niedriger. Standard: aus, der
   Zustand wird im Browser gemerkt. Durchsichtige Scheiben (Umhausung, Lichtvorhang) verschatten nicht.
 
-- Für die beste Darstellung im Browser die starke Grafikkarte verwenden: Windows-Einstellungen → System → Anzeige → Grafik → Chrome/Edge → *Hohe Leistung*.
+- Für die beste Darstellung im Browser die starke Grafikkarte verwenden: Windows-Einstellungen → System → Anzeige → Grafik → Chrome/Edge → *Hohe Leistung*, danach den Browser komplett neu starten. Rechnet der Browser auf der Onboard-Grafik, weist das Grafik-Fenster darauf hin. Auf Laptops mit zusätzlicher NVIDIA- oder AMD-Karte ist das der wichtigste Schritt gegen Ruckeln.
 
 [◀ Zurück zur Übersicht](../README.md)

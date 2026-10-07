@@ -233,6 +233,24 @@ a.chip-btn { text-decoration: none; }
 .legend { display: flex; justify-content: space-between; font: 400 11px var(--font-data); color: var(--muted); }
 #btn-wz-gross { justify-self: start; }
 
+/* Grafikeinstellungen (über dem Knopf „Grafik“) */
+.grafik-fenster { position: fixed; z-index: 35; width: min(360px, calc(100vw - 16px)); padding-bottom: 12px; background: var(--panel); color: var(--fg);
+  border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 18px 60px rgba(0,0,0,.28); }
+.gf-kopf { display: flex; align-items: center; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); border-radius: 10px 10px 0 0; }
+.gf-kopf b { flex: 1; font: 600 13px var(--font-label); letter-spacing: .04em; }
+.gf-zu { border: 0; background: none; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 2px 6px; }
+.gf-zeile { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center; padding: 12px 14px 0; }
+label.gf-zeile { cursor: pointer; }
+.gf-name { font: 500 13px var(--font-label); }
+.gf-name small { display: block; margin-top: 2px; color: var(--muted); font: 400 11.5px var(--font-ui); }
+.gf-wahl { grid-column: 1 / -1; display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.gf-wahl button { flex: 1; border: 0; background: none; color: var(--fg); font: 500 12px var(--font-label); padding: 6px 0; cursor: pointer; }
+.gf-wahl button + button { border-left: 1px solid var(--line); }
+.gf-wahl button[aria-checked="true"] { background: var(--accent); color: #fff; }
+.gf-zeile input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+.gf-gpu { margin: 12px 14px 0; padding-top: 10px; border-top: 1px solid var(--line); font: 400 11.5px var(--font-ui); color: var(--muted); }
+.gf-gpu.warnung { color: var(--fault); }
+
 /* Fenster Weg-Zeit-Diagramm (verschiebbar, Größe am Rand unten rechts ziehbar) */
 .fenster { position: fixed; left: 24px; top: 24px; z-index: 30; width: min(980px, calc(100vw - 16px)); height: min(720px, calc(100vh - 16px));
   min-width: 420px; min-height: 360px; max-width: calc(100vw - 8px); max-height: calc(100vh - 8px); resize: both; overflow: hidden;
@@ -430,8 +448,7 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
     <div class="toast" id="toast" hidden><b>Achtung</b><span id="toast-text"></span></div>
     <div class="stage-foot">
       <button class="chip-btn" id="btn-labels" aria-pressed="true" type="button">Beschriftung</button>
-      <button class="chip-btn" id="btn-grafik" type="button" title="Grafikqualität: Auto regelt nach Bildrate">Grafik: Auto</button>
-      <button class="chip-btn" id="btn-tiefenschatten" aria-pressed="false" type="button" title="Tiefenschatten (Ambient Occlusion): Verschattung in Ecken, Nuten und Spalten – realistischer, kostet Grafikleistung">Tiefenschatten</button>
+      <button class="chip-btn" id="btn-grafik" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="grafik-fenster" title="Grafikeinstellungen">Grafik: Auto</button>
       <button class="chip-btn" id="btn-cam" type="button">Ansicht zurücksetzen</button>
       <label class="chip-sel"><span>Ansicht</span><select id="ansicht-wahl" aria-label="Feste Ansicht wählen"></select></label>
       <button class="chip-btn" id="btn-hilfe" aria-pressed="true" type="button" title="Maussteuerung anzeigen">Steuerung</button>
@@ -846,6 +863,20 @@ addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
     <canvas id="fu-kurve" aria-label="Verlauf von Sollwert und Istdrehzahl des Umrichters"></canvas>
   </div>
 </section>
+<!-- Grafikeinstellungen: öffnet sich über dem Knopf „Grafik“ in der unteren Leiste -->
+<section class="grafik-fenster" id="grafik-fenster" role="dialog" aria-labelledby="grafik-titel" hidden>
+  <header class="gf-kopf"><b id="grafik-titel">Grafik</b><button class="gf-zu" id="grafik-zu" type="button" aria-label="Schließen">×</button></header>
+  <div class="gf-zeile">
+    <span class="gf-name">Qualität<small>Auto passt die Stufe an die Bildrate an</small></span>
+    <div class="gf-wahl" id="gf-qualitaet" role="radiogroup" aria-label="Qualität">
+      <button type="button" role="radio" data-modus="auto">Auto</button><button type="button" role="radio" data-modus="hoch">Hoch</button><button type="button" role="radio" data-modus="mittel">Mittel</button><button type="button" role="radio" data-modus="niedrig">Niedrig</button>
+    </div>
+  </div>
+  <label class="gf-zeile"><span class="gf-name">Spiegelungen<small>Metall spiegelt die Halle (wirkt in Stufe Hoch)</small></span><input type="checkbox" id="gf-spiegelung"></label>
+  <label class="gf-zeile"><span class="gf-name">Tiefenschatten<small>Verschattung in Ecken, Nuten und Spalten – kostet Grafikleistung</small></span><input type="checkbox" id="gf-tiefenschatten"></label>
+  <p class="gf-gpu" id="gf-gpu"></p>
+</section>
+
 <section class="fenster" id="wzf" role="dialog" aria-labelledby="wzf-titel" hidden>
   <header class="fenster-kopf" id="wzf-kopf">
     <b id="wzf-titel">Weg-Zeit-Diagramm · Drosseln</b>

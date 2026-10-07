@@ -482,4 +482,17 @@ export default {
   'Abtropfzeit': 'draining time',
   'Rezept: {0} {1} s': 'Recipe: {0} {1} s',
   'Die Demo-SPS und das Portal „automatisch“ tauchen und tropfen so lange. Steuert dein Programm das Portal, prüft der Zwilling, ob es die Zeiten einhält: Ist ein Korb kürzer getaucht oder abgetropft (0,5 s Toleranz), ist er mangelhaft.': 'The demo PLC and the gantry “automatic” dip and drain for this long. If your program controls the gantry, the twin checks whether it keeps these times: a basket dipped or drained for less (0.5 s tolerance) is defective.',
+  // Grafik-Fenster
+  'Grafik': 'Graphics',
+  'Grafikeinstellungen': 'Graphics settings',
+  'Qualität': 'Quality',
+  'Auto passt die Stufe an die Bildrate an': 'Auto adapts the level to the frame rate',
+  'Auto': 'Auto',
+  'Spiegelungen': 'Reflections',
+  'Metall spiegelt die Halle (wirkt in Stufe Hoch)': 'Metal reflects the hall (applies at level High)',
+  'Verschattung in Ecken, Nuten und Spalten – kostet Grafikleistung': 'Shading in corners, grooves and gaps – costs graphics performance',
+  'Grafikkarte: {0}': 'Graphics card: {0}',
+  'unbekannt': 'unknown',
+  'Das ist die Onboard-Grafik. Hat der Rechner zusätzlich eine NVIDIA- oder AMD-Karte: Windows-Einstellungen → System → Anzeige → Grafik → Browser auf „Hohe Leistung“ stellen und den Browser neu starten.': 'This is the integrated graphics. If the computer also has an NVIDIA or AMD card: Windows Settings → System → Display → Graphics → set the browser to “High performance” and restart the browser.',
+  'Schließen': 'Close',
 };

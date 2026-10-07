@@ -34,16 +34,44 @@ Object.assign(labelRenderer.domElement.style, { position: 'absolute', inset: '0'
 host.appendChild(labelRenderer.domElement);
 
 export const scene = new THREE.Scene();
-// Umgebung für Spiegelungen und Umgebungslicht: Foto einer echten Werkhalle (HDRI, eingebettet)
+// Umgebung für Spiegelungen und Umgebungslicht: Foto einer echten Werkhalle (HDRI, eingebettet).
+// Spiegelungen aus: dieselbe mittlere Farbe und Helligkeit, aber gleichmäßig – Metall spiegelt dann nichts Erkennbares.
+// Beide Umgebungen sind gleich groß, dadurch bleiben die Shader gleich und das Umschalten hängt nicht.
 const pmrem = new THREE.PMREMGenerator(renderer);
-function hallenfoto() {
-  const bytes = Uint8Array.from(atob(HALLE_HDR), (c) => c.charCodeAt(0));
-  const bild = new RGBELoader().setDataType(THREE.HalfFloatType).parse(bytes.buffer);
-  const tex = new THREE.DataTexture(bild.data, bild.width, bild.height, THREE.RGBAFormat, bild.type);
+const SPIEGEL_SPEICHER = 'zinnbad-spiegelung';
+export const UMGEBUNG = { spiegelung: true, foto: null, gleichmaessig: null };
+try { UMGEBUNG.spiegelung = localStorage.getItem(SPIEGEL_SPEICHER) !== '0'; } catch { /* kein Speicher */ }
+function equirect(daten, breite, hoehe, typ) {
+  const tex = new THREE.DataTexture(daten, breite, hoehe, THREE.RGBAFormat, typ);
   Object.assign(tex, { mapping: THREE.EquirectangularReflectionMapping, colorSpace: THREE.LinearSRGBColorSpace, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, generateMipmaps: false, flipY: true, needsUpdate: true });
   return tex;
 }
-const umgebungBerechnen = () => { const foto = hallenfoto(); scene.environment = pmrem.fromEquirectangular(foto).texture; foto.dispose(); };
+function hallenfoto() {
+  const bytes = Uint8Array.from(atob(HALLE_HDR), (c) => c.charCodeAt(0));
+  const bild = new RGBELoader().setDataType(THREE.HalfFloatType).parse(bytes.buffer);
+  return equirect(bild.data, bild.width, bild.height, bild.type);
+}
+// Mittlere Farbe des Fotos auf jedem Pixel (Halbgleitkomma wie das Foto)
+function gleichmaessigVon(foto) {
+  const { data, width, height } = foto.image, mittel = [0, 0, 0], n = width * height;
+  for (let i = 0; i < data.length; i += 4) for (let k = 0; k < 3; k++) mittel[k] += THREE.DataUtils.fromHalfFloat(data[i + k]) / n;
+  const halb = mittel.map((v) => THREE.DataUtils.toHalfFloat(v)), eins = THREE.DataUtils.toHalfFloat(1);
+  const neu = new Uint16Array(data.length);
+  for (let i = 0; i < neu.length; i += 4) { neu[i] = halb[0]; neu[i + 1] = halb[1]; neu[i + 2] = halb[2]; neu[i + 3] = eins; }
+  return equirect(neu, width, height, THREE.HalfFloatType);
+}
+const umgebungBerechnen = () => {
+  const foto = hallenfoto(), glatt = gleichmaessigVon(foto);
+  UMGEBUNG.foto = pmrem.fromEquirectangular(foto).texture;
+  UMGEBUNG.gleichmaessig = pmrem.fromEquirectangular(glatt).texture;
+  foto.dispose(); glatt.dispose();
+  scene.environment = UMGEBUNG.spiegelung ? UMGEBUNG.foto : UMGEBUNG.gleichmaessig;
+};
+export function spiegelungSetzen(an) {
+  UMGEBUNG.spiegelung = an;
+  scene.environment = an ? UMGEBUNG.foto : UMGEBUNG.gleichmaessig;
+  try { localStorage.setItem(SPIEGEL_SPEICHER, an ? '1' : '0'); } catch { /* kein Speicher */ }
+}
 umgebungBerechnen();
 scene.environmentIntensity = 0.95;
 
@@ -57,7 +85,7 @@ renderer.domElement.addEventListener('webglcontextlost', () => {
 });
 renderer.domElement.addEventListener('webglcontextrestored', () => {
   clearTimeout(neuLadenHinweis);
-  scene.environment?.dispose();
+  UMGEBUNG.foto?.dispose(); UMGEBUNG.gleichmaessig?.dispose();
   umgebungBerechnen();
   renderer.shadowMap.needsUpdate = true;
   window.zwillingFehler?.('');
