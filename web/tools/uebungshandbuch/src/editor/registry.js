@@ -8,6 +8,7 @@
 
 /* ---------- Vorlagen ---------- */
 export const VORL = {};       // Vorlage → ganze Anmeldung {n, d, gruppen, schienen, einblattig, body, …, Haken}
+                              //   Haken eingabe(e) → true: input-Ereignis eines eigenen Felds (editor/ereignisse.js)
 
 /* ---------- Bausteingruppen ---------- */
 export const GRUPPE = {};     // Gruppe → ganze Anmeldung {name, hinweis, kette, verbinde, andocke, mitziehen, loeschen,
