@@ -240,6 +240,17 @@ export const tests = [
     },
   },
   {
+    name: 'W1 Schnelleingabe lehnt einen Antrieb ab, den die Anlage nicht hat',
+    lauf: async (t) => {
+      await t.oeffne('wegschritt');
+      for (const mm of ['MM9', 'MM7']) {
+        const hinweis = await schnelleingabe(t, `MM2-, ${mm}+, MM2+`);
+        t.erwarte(hinweis.includes(`−${mm} gibt es an der Anlage nicht`) && hinweis.includes('−MM8'), `${mm}: ${hinweis}`);
+      }
+      t.gleich((await wsStriche(t)).length, 0, 'nichts gezeichnet');
+    },
+  },
+  {
     name: 'W1 Nach erfolgreicher Eingabe verschwindet die alte Fehlermeldung',
     lauf: async (t) => {
       await t.oeffne('wegschritt');

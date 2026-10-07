@@ -9,6 +9,7 @@ import { ANTRIEBE, antriebZu } from './anlage-antriebe.js';
 import { WS_RASTER, sigLoop, spalteBei, wsAus, wsPunkt, wsZeilen, zeileBei, zeilenName } from './wegschritt-striche.js';
 
 /* ---------- Ablauf lesen ---------- */
+const ANLAGE_ANTRIEBE = Object.keys(ANTRIEBE).map(mm => "−" + mm).join(", ");   // für die Meldung „gibt es nicht“
 // Eine Wartezeit braucht eine Bewegung davor: nicht am Anfang, nicht zwei Zeiten hintereinander. Meldung oder ""
 function zeitFehler(schritte, roh){
   if (!schritte.length) return `Der Ablauf beginnt mit dem Start −SF1 und einer Bewegung. Setz „${roh}“ hinter eine `
@@ -26,6 +27,8 @@ export function leseAblauf(text){
     if (zeit) { schritte.push({moves: [], zeit: "t = " + zeit[1].trim()}); continue; }
     const moves = roh.split(/\s+/).map(m => /^[-−–]?(MM\d+)([+\-−–])$/i.exec(m));
     if (!moves.length || moves.some(m => !m)) return {fehler: `„${roh}“ verstehe ich nicht. Beispiel: MM2−, MM3+, t = 10 s`};
+    const unbekannt = moves.map(m => m[1].toUpperCase()).find(mm => !ANTRIEBE[mm]);
+    if (unbekannt) return {fehler: `−${unbekannt} gibt es an der Anlage nicht. Es gibt ${ANLAGE_ANTRIEBE}.`};
     schritte.push({moves: moves.map(m => ({mm: m[1].toUpperCase(), aus: m[2] === "+"}))});
   }
   if (!schritte.length) return {fehler: "Trag einen Ablauf ein, z. B. MM2−, MM3+, MM2+."};
