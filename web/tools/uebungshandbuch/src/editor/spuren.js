@@ -2,7 +2,8 @@
 // an verbindungsWeg weiter (Leitungen: wireD, Ketten: routeV, Gruppen: Haken verbinde, Seitenbausteine: seite.verbinde).
 // Ein Weg meldet seine Abschnitte an und bekommt eine freie Spur: Abschnitte verschiedener Netze liegen dann nicht
 // deckungsgleich übereinander. Ein Netz ist ein Text wie "a:pa" (Objekt-ID und Anschluss).
-// Solange niemand belege oder knick aufruft, ändert sich kein Weg.
+// Solange niemand belege oder knick aufruft, ändert sich kein Weg. Mit sperre meldet zeichnungSVG die Kennzeichen der
+// Bauteile als Flächen, durch die kein Weg läuft (kennzeichenSperren in bauteile.js).
 
 // Versuchte Verschiebungen in Rasterschritten: erst die Ausgangslage, dann abwechselnd darüber und darunter
 export const SPUR_FOLGE = [0, 1, -1, 2, -2, 3];
@@ -14,13 +15,19 @@ export function neueSpuren(raster = 10){
     raster,
     belege: (achse, lage, von, bis, netz) => belegeSpur(belegt[achse], raster, lage, von, bis, netz),
     knick: (punkte, netz) => knickeWeg(belegt, raster, punkte, netz),
+    // Rechteck für alle Netze sperren (Kennzeichen eines Bauteils): Abschnitte weichen ihm aus wie einer belegten Spur
+    sperre: (x, y, w, h) => {
+      belegt.h.push({lage: y, dicke: h, von: x, bis: x + w, netz: null});
+      belegt.v.push({lage: x, dicke: w, von: y, bis: y + h, netz: null});
+    },
   };
 }
 
-// Liegt auf Spur lage zwischen von und bis schon ein Abschnitt eines anderen Netzes?
+// Liegt auf Spur lage zwischen von und bis schon ein Abschnitt eines anderen Netzes? Ein gesperrtes Rechteck belegt
+// alle Spuren von lage bis lage + dicke.
 export function spurFrei(liste, lage, von, bis, netz){
-  const a = Math.min(von, bis), b = Math.max(von, bis);
-  return !liste.some(s => s.netz !== netz && Math.abs(s.lage - lage) < 1 && s.von < b && a < s.bis);
+  const a = Math.min(von, bis), b = Math.max(von, bis), trifft = s => lage > s.lage - 1 && lage < s.lage + (s.dicke || 0) + 1;
+  return !liste.some(s => s.netz !== netz && trifft(s) && s.von < b && a < s.bis);
 }
 
 // Abschnitt anmelden; Rückgabe ist die belegte Lage (die Ausgangslage, wenn keine Spur in SPUR_FOLGE frei ist)

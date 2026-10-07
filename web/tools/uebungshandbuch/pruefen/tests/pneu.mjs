@@ -45,6 +45,21 @@ export const tests = [
     },
   },
   {
+    name: 'P1 Leitungen laufen nicht durch Kennzeichen',
+    daten: 'pneu-kennzeichen',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      const r = await t.page.$$eval('#edstage .ink [data-o="d"] text', (ts) => {
+        const b = ts.find((x) => x.textContent === '−RZ1').getBBox(); return [b.x, b.y, b.width, b.height];
+      });
+      t.erwarte(r[2] > 10, 'Kennzeichen −RZ1 gezeichnet');
+      const schneidet = ([x1, y1, x2, y2]) => Math.max(x1, x2) > r[0] && Math.min(x1, x2) < r[0] + r[2]
+        && Math.max(y1, y2) > r[1] && Math.min(y1, y2) < r[1] + r[3];
+      const [weg] = (await leitungen(t)).map(abschnitte);
+      t.erwarte(!weg.some(schneidet), `Leitung ${weg.join(' | ')} läuft durch −RZ1 ${r.map(Math.round)}`);
+    },
+  },
+  {
     name: 'P2 Simulation: Klick auf gespiegeltes Ventil schaltet die angeklickte Seite',
     daten: 'pneu-gespiegelt',
     lauf: async (t) => {

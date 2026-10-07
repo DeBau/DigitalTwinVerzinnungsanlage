@@ -47,9 +47,9 @@ importiert nie aus einer Vorlage.
 | `editor/svg.js` | SVG-Grundlagen: `INK`, `MUTE`, `SCHRIFT`, `SVGT`, `tw`, `clamp`, `arrowHead`, Blatthöhe `PH` |
 | `editor/status.js` | Zustand `ED` (ein Feld je Zeile), Markierung `markiere`, `istMarkiert`, `markiertId` |
 | `editor/registry.js` | Tabellen `VORL`, `GRUPPE`, `BAUSTEIN`, `SAMPLE`, `STRICH`, `STRICHFELD`, Lesefunktionen `vorlage`, `art`, `bauteil`, Anmelden |
-| `editor/spuren.js` | Spurbelegung `neueSpuren(raster)` mit `belege` und `knick`, `pfadD` |
+| `editor/spuren.js` | Spurbelegung `neueSpuren(raster)` mit `belege`, `knick` und `sperre` (Fläche für alle Netze), `pfadD` |
 | `editor/vorlagen-svg.js` | Raster, Punkte, Rahmen, Schriftfeld, `snap`, Stricharten `l` und `r`, Striche und Texte (`shapeD`, `strokesSVG`) |
-| `editor/bauteile.js` | Bauteile mit Anschlüssen: Strichstile, `drehung`, `portsOf`, `versetzt`, `virtuelleSchienen`, Leitungen, `simOn`, `pressed` |
+| `editor/bauteile.js` | Bauteile mit Anschlüssen: Strichstile, `drehung`, `portsOf`, `versetzt`, `virtuelleSchienen`, Leitungen, `kennzeichenSperren` (Kennzeichen als gesperrte Flächen in `spuren`, Aufruf in `zeichnungSVG`), `simOn`, `pressed` |
 | `editor/bausteine.js` | Geometrie: `umrissVon`, `mitteVon`, `kettenAus`, `kettenEin`, `gruppenId`, `gruppeVon`, `rund`, `setzeBreite`, `LINIE`, `platzhalter` |
 | `editor/auswahl.js` | `objById`, `uid`, `anySel`, `clearSel`, Tabellen `MARKIERUNG` und `TREFFER`, `trefferBei`, `markiertesElement`, `markiertesObjekt` |
 | `editor/kette.js` | Ablaufkette: senkrechte Verbindung, Kettenvorgänger, Ausrichten, Andocken, Seitenbausteine |

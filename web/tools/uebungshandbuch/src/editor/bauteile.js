@@ -1,5 +1,6 @@
 // Editor-Kern: Hilfen für Bauteile mit Anschlüssen (bauteil: true): Strichstile, Drehen und Spiegeln, Anschlüsse,
 // Potenzialschienen, Leitungsführung, Zustand der Simulation. Benutzt von den Vorlagen und vom Zeichnen.
+import { esc } from '../app/basis.js';
 import { INK, PH, SVGT, clamp } from './svg.js';
 import { ED } from './status.js';
 import { art, bauteil, vorlage } from './registry.js';
@@ -72,6 +73,24 @@ export function virtuelleSchienen(key, n){
 export function wireD(a, b, spuren){
   const punkte = ohneGeradePunkte([[a.x, a.y], ...leitungsKnicke(a, b), [b.x, b.y]]);
   return pfadD(spuren ? spuren.knick(punkte, `${a.x},${a.y}`) : punkte);
+}
+const GEGENSEITE = {start: "end", end: "start", middle: "middle"};
+const ANTEIL_LINKS = {start: 0, middle: .5, end: 1};   // Anteil der Textbreite links vom Anker
+// Kennzeichen (Text o.v) aller Bauteile in objs als gesperrte Flächen in spuren melden: Leitungen laufen nicht hindurch.
+export function kennzeichenSperren(spuren, objs){
+  Object.values(objs).forEach(o => { const r = kennzeichenFlaeche(o); if (r) spuren.sperre(...r); });
+}
+// Rechteck [x, y, w, h] um das Kennzeichen von o. Ort und Anker liest es aus dem gezeichneten Symbol (Haken zeichne),
+// gedreht wie das Bauteil; die Schrift bleibt aufrecht. null, wenn o kein Kennzeichen zeichnet.
+export function kennzeichenFlaeche(o){
+  const b = bauteil(o.k), text = `>${esc(o.v)}</text>`;
+  const svg = b && b.zeichne && o.v ? b.zeichne(o, false) : "", ende = svg.indexOf(text);
+  if (ende < 0) return null;
+  const m = /<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)"/.exec(svg.slice(svg.lastIndexOf("<text", ende)));
+  if (!m) return null;
+  const X = drehung(o), [x, y] = X ? X.pt(+m[1], +m[2]) : [+m[1], +m[2]], w = String(o.v).length * 7 + 2;
+  const anker = X && X.f * X.c < 0 ? GEGENSEITE[m[3]] : m[3];   // wie gedreht() in zeichnen.js
+  return [x - w * ANTEIL_LINKS[anker], y - 10, w, 13];
 }
 const senkrecht = q => q.d === "u" || q.d === "d";
 // Innere Eckpunkte der Leitung von a nach b, Querstück auf halbem Weg im 10er-Raster
