@@ -15,7 +15,7 @@ import { SENSOR_AUSTRITT } from '../bauteile/nutsensor.js';
 import { VENTIL_LEDS, inAnlage, rohrNeu } from './pneumatik.js';
 import { FELD_LEDS, feldverteiler, kabel, zumPort } from './verdrahtung.js';
 import { KIPPER_NACHFUEHREN, MM8, ST } from './pruefstation.js';
-import { S40_FUSS } from './befehlsgeraete.js';
+import { S40_FUSS, S50_FUSS } from './befehlsgeraete.js';
 import { KLICK, PULT_TASTER } from './register.js';
 
 // ----------------------------------------------------------------------------
@@ -223,5 +223,9 @@ zumSchrank([FM, V(2962, 75, FM.z), ...imKanal(2962)], M.kabel, 3.5);            
 zumSchrank([A.ma5, V(A.ma5.x + 30, A.ma5.y, A.ma5.z), V(A.ma5.x + 30, A.ma5.y - 60, A.ma5.z), V(A.ma5.x + 30, A.ma5.y - 60, KZ - 12), V(A.ma5.x + 30, KY, KZ - 12)], M.kabel, 4.5);   // seitlich aus dem Klemmenkasten, neben dem Motor zum Kanal
 zumSchrank([A.kf10, V(A.kf10.x, KY, A.kf10.z), V(A.kf10.x, KY, KI)], M.kabelGruen, 3.5);   // Keyence-Kabel an der Stativsäule nach unten zum Controller im Schrank
 for (const y of [200, 320]) halter(A.kf10.x, y, A.kf10.z + 4, 'y');
-// Vor-Ort-Steuerstelle −S40: aus dem Säulenfuß am Boden unter dem Prüfband (zwischen den Beinen) zum Kanal, dort hoch in den Kanal
-{ const f = S40_FUSS, x = 3720; zumSchrank([f, V(x, 14, f.z), V(x, 14, KI), V(x, KY, KI)], M.kabelGrau, 3.5); for (const zz of [1500, 1800]) box(24, 6, 30, M.kunststoff, x, 4, zz); }
+// Vor-Ort-Steuerstellen −S40/−S50: aus dem Säulenfuß gerade nach hinten am Boden bis unter den Kanal, dort hoch hinein
+// (−S50 30 mm versetzt: am Stellfuß des Prüfbands bei x 4340 vorbei). Kabelschellen am Boden.
+for (const [f, x] of [[S40_FUSS, S40_FUSS.x], [S50_FUSS, S50_FUSS.x - 30]]) {
+  zumSchrank([f, V(x, 14, f.z), V(x, 14, KI), V(x, KY, KI)], M.kabelGrau, 3.5);
+  for (const zz of [1700, 1900]) if (zz < f.z - 40) box(24, 6, 30, M.kunststoff, x, 4, zz);
+}

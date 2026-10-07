@@ -26,7 +26,8 @@ export const ST = {
   z: 1520, kipX: 3005, kipY: 400, korbX: 2925,                         // Kippachse P (Wellenmitte), Korbmitte am Endanschlag
   bg37X: 2885,                                                          // Strahl −BG37 Einlauf Mulde (Mulde lokal x = −120, in Grundstellung)
   trX: 3160, trY: 372, rinne0: 3150, rinne1: 3600, rinneY: 262, band0: 3620, band1: 4420, bandY: 236,
-  kamX: 3850, duesX: 4050, kltX: 4700, kltVoll: 144, klt: 0, aus: 0, kltTausch: 0,
+  kamX: 3850, duesX: 4050, ausDz: 330,   // ausDz: Ausschuss-KLT vor dem Prüfbandgestell (Beine bei z + 57)
+  kltX: 4700, kltVoll: 144, klt: 0, aus: 0, kltTausch: 0,
   teile: [], trichter: [], g: null, kipper: null, zylBody: null, zylStange: null, vBand: 0, vRinne: 0, rinneZeit: 0,
   trig: false, pruefT: 0, ergebnis: null, ergebnisT: 0, blasen: 0, kipBefehl: false, kipFertig: false, korbSumme: new Map(),
   kamLicht: null, ausschussPlane: null, kltPlane: null, rinneGruppe: null,
@@ -334,9 +335,9 @@ function trichterGeo(o, u) {
     for (const s of [-1, 1]) box(2, 30, L, M.edelstahl, s * 55, 15, L / 2, ru);
     for (const s of [-1, 1]) box(4, 40, 30, M.alu, s * 50, -10, 10, ru);          // Befestigung am Seitenprofil
     const rot = new THREE.MeshStandardMaterial({ color: 0xc23a2a, roughness: 0.6 });
-    kltKasten(x, z + 260, 300, 400, 147, rot);                                    // Ausschuss-KLT 400x300x147 (rot)
-    ST.ausschussPlane = fuellFlaeche(x, z + 260, 286, 386, 0xb8743f);
-    label('Ausschuss n.i.O.', anlage, x, 230, z + 260, 'klein');
+    kltKasten(x, z + ST.ausDz, 300, 400, 147, rot);                                    // Ausschuss-KLT 400x300x147 (rot)
+    ST.ausschussPlane = fuellFlaeche(x, z + ST.ausDz, 286, 386, 0xb8743f);
+    label('Ausschuss n.i.O.', anlage, x, 230, z + ST.ausDz, 'klein');
   }
   // KLT 6147 (600x400x147,5) für i.O.-Teile auf einem Transportroller am Pufferplatz; Füllstand −BG34 (Ultraschall)
   {

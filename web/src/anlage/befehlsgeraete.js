@@ -6,6 +6,7 @@ import { label, platte, tafel } from '../core/beschriftung.js';
 import { profil } from '../bauteile/aluprofil.js';
 import { KLICK, KNEBEL, POTIS, PULT_LAMPEN, PULT_TASTER } from './register.js';
 import { kabel } from './verdrahtung.js';
+import { BRUECKE, lage } from './kabelbruecke.js';
 import { daumenradschalter, ziffernanzeige } from './bcd-geraete.js';
 import { t as tr } from '../core/sprache.js';
 
@@ -91,6 +92,7 @@ export function meldeleuchte(parent, x, y, signal, farbe) {
   box(260, 12, 260, M.anthrazit, 0, 6, -40, g);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) zyl(7, 4, M.stahl, sx * 100, 14, -40 + sz * 100, null, g, 6);
   zyl(42, 30, M.anthrazit, 0, 25, -40, null, g, 32);                                    // Fußflansch
+  { const p = g.position; kabel(zurBruecke([V(p.x, 120, p.z - 40), V(p.x, 40, p.z - 40), V(p.x, 14, p.z - 76)]), anlage, M.kabel, 5); }   // Pultleitung unten aus dem Standrohr
   box(90, 60, 90, M.anthrazit, 0, 935, -40, g);                                         // Gelenkkupplung
   const kopf = new THREE.Group(); kopf.position.set(0, 1010, 0); kopf.rotation.x = -0.55; g.add(kopf);
   // Front 440 × 360: drei Felder, Beschriftung ≥ 9 mm unter den Frontringen, Überschriften zwischen den Trennlinien
@@ -129,6 +131,11 @@ export function meldeleuchte(parent, x, y, signal, farbe) {
 // k.zeilen: Tasterzeilen [{ key, x, farbe, text, bmk }] – ohne Angabe eine Zeile LINKS / HALT / RECHTS.
 //   Je weitere Zeile wird das Gehäuse 64 mm höher (Unterkante bleibt bei 1000 mm). k.W: Gehäusebreite (Standard 190).
 // k.leitung === false: Leitung wird woanders verlegt; Rückgabe: Fußpunkt der Säule (Leitungsaustritt) in Anlagenkoordinaten
+// Leitung vom Säulenfuß gerade nach hinten (−z) in die Kabelbrücke, darin zum Schaltschrank (eigene Lage je Leitung)
+function zurBruecke(weg) {
+  const f = weg[weg.length - 1], d = lage();
+  return [...weg, V(f.x, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)];
+}
 export function vorOrtStation(pos, bmk, k) {
   const g = new THREE.Group(); g.position.copy(pos); g.rotation.y = k.ry || 0; anlage.add(g);
   const W0 = (x, y, z) => V(x, y, z).applyAxisAngle(V(0, 1, 0), k.ry || 0).add(pos);   // lokal → anlage
@@ -177,7 +184,8 @@ export function vorOrtStation(pos, bmk, k) {
   label('Vor-Ort-Steuerstelle −' + bmk, g, 0, 1000 + H + 40, 0, 'klein');
   // Leitung: innen durch die Säule, am Fuß hinten heraus und am Boden zum Schaltschrank
   const fuss = W0(0, 14, -26), zBoden = fuss.z, saeule = [W0(0, 90, 0), W0(0, 40, 0), fuss];
-  if (k.leitung !== false) kabel([...saeule, V(-1220 + k.dx, 14, zBoden), V(-1220 + k.dx, 14, -60)], anlage, M.kabelGrau, 3.5);
+  if (k.leitung !== false && fuss.z > BRUECKE.z) kabel(zurBruecke(saeule), anlage, M.kabelGrau, 3.5);           // vor der Anlage: gerade nach hinten in die Kabelbrücke
+  else if (k.leitung !== false) kabel([...saeule, V(-1220 + k.dx, 14, zBoden), V(-1220 + k.dx, 14, -60)], anlage, M.kabelGrau, 3.5);
   else kabel(saeule, anlage, M.kabelGrau, 3.5);
   return fuss;
 }
@@ -198,9 +206,8 @@ export const S40_FUSS = vorOrtStation(S40_POS, 'S40', {
   ],
 });
 // −S50 Vor-Ort Prüfband: neben dem Prüfband auf der Bedienerseite, EIN/AUS und Drehzahlpotentiometer (wirkt am Umrichter −TA5).
-// Not-Halt und Quittieren an −S40 daneben; Leitung am Boden zum Fuß von −S40 und mit deren Leitung weiter
-const S50_FUSS = vorOrtStation(new THREE.Vector3(4310, 0, 2080), 'S50', {
+// Not-Halt und Quittieren an −S40 daneben; eigene Leitung gerade nach hinten in den Kabelkanal der Prüfstation
+export const S50_FUSS = vorOrtStation(new THREE.Vector3(4310, 0, 2080), 'S50', {
   sa: 'sa7', saT: 'SA7', pf: 'PF16_VorOrt5', pfT: 'PF16', leitung: false, poti: 'pbPoti', potiT: 'SF47', potiText: 'DREHZAHL',
   zeilen: [[{ key: 'sf45', x: -45, farbe: 0x23a35a, sym: '|', text: 'PRÜFBAND EIN', bmk: 'SF45' }, { key: 'sf46', x: 45, farbe: 0xd42a1f, text: 'PRÜFBAND AUS', bmk: 'SF46' }]],
 });
-kabel([S50_FUSS, V(S50_FUSS.x - 40, 14, S50_FUSS.z), V(S40_FUSS.x + 40, 14, S40_FUSS.z), S40_FUSS], anlage, M.kabelGrau, 3.5);

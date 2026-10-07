@@ -158,7 +158,7 @@ export function pruefstation(dt) {
     } else if (t.zustand === 'aus' || t.zustand === 'klt') {
       t.vy -= 9810 * dt * 0.6; t.x += t.vx * dt; t.y += t.vy * dt; t.z += t.vz * dt; t.rx += dt * 10;
       const boden = t.zustand === 'aus' ? 20 : 95;
-      if (t.zustand === 'aus' && t.z > ST.z + 260) { t.z = ST.z + 260 + (Math.random() - 0.5) * 200; t.vz = 0; t.vx = 0; }
+      if (t.zustand === 'aus' && t.z > ST.z + ST.ausDz) { t.z = ST.z + ST.ausDz + (Math.random() - 0.5) * 200; t.vz = 0; t.vx = 0; }
       if (t.zustand === 'klt' && t.x > ST.kltX - 100) { t.vx = 0; }
       if (t.y <= boden) teilAbschliessen(t);
     }
