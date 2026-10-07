@@ -48,6 +48,7 @@ importiert nie aus einer Vorlage.
 | `symbole/iec60617.js` | Schaltzeichen nach IEC 60617 als Tabelle `SYM` (Kontakte, Spulen, dreipolige Geräte, Motor, Umrichter) |
 | **Editor-Kern: Zeichnen** | |
 | `editor/svg.js` | SVG-Grundlagen: `INK`, `MUTE`, `SCHRIFT`, `SVGT`, `tw`, `clamp`, `arrowHead`, Blatthöhe `PH` |
+| `editor/datenpruefung.js` | Gespeicherte Zeichnungen beim Laden prüfen: `pruefeZeichnung`, `num`, `ZAHLENFELDER` |
 | `editor/status.js` | Zustand `ED` (ein Feld je Zeile), Markierung `markiere`, `istMarkiert`, `markiertId` |
 | `editor/registry.js` | Tabellen `VORL`, `GRUPPE`, `BAUSTEIN`, `SAMPLE`, `STRICH`, `STRICHFELD`, Lesefunktionen `vorlage`, `art`, `bauteil`, Anmelden |
 | `editor/spuren.js` | Spurbelegung `neueSpuren(raster)` mit `belege`, `knick` und `sperre` (Fläche für alle Netze), `pfadD` |
@@ -57,7 +58,7 @@ importiert nie aus einer Vorlage.
 | `editor/auswahl.js` | `objById`, `uid`, `anySel`, `clearSel`, Tabellen `MARKIERUNG` und `TREFFER`, `trefferBei`, `markiertesElement`, `markiertesObjekt` |
 | `editor/kette.js` | Ablaufkette: senkrechte Verbindung, Kettenvorgänger, Ausrichten, Andocken, Seitenbausteine |
 | `editor/zeichnen.js` | `bausteinZeichnen`, `verbindungsWeg`, `zeichnungSVG` mit Leitungen, Verbindungen, Bausteinen und Punkten, `abzweigpunkte`, `pageCount`, `wireRef` |
-| `editor/blaetter.js` | Blätter, `sketchSVG`, Schriftfeld-Daten `skMeta`, Speicherschlüssel `skKey` |
+| `editor/blaetter.js` | Blätter, `sketchSVG`, Schriftfeld-Daten `skMeta`, Speicherschlüssel `skKey`, `ladeSkizze` |
 | **App-Seiten** | `app/start.js`, `app/skizzen-kacheln.js`, `app/variablen.js`, `app/uebung.js` |
 | **Editor-Kern: Bedienung** | |
 | `editor/signalfeld.js` | Kennzeichenfeld mit Vorschlagsliste: `signalFeld`, `signalVorschlaege`, `normKennzeichen` |
@@ -157,6 +158,12 @@ Eine Zeichnung ist ein JSON-Objekt `{s, t, o, c, meta, ts}`:
 Die Zeichnung liegt im localStorage unter `uebh2:<scope>:sk:<key>`: `scope` ist die Übung (`L08`) oder `frei`,
 `key` die Vorlage (`grafcet`). `skKey(scope, key)` ergibt `<scope>:sk:<key>`, den Vorsatz `uebh2:` setzt der
 Speicher `S` (app/basis.js). `saveSketch` löscht den Eintrag, wenn die Zeichnung leer ist.
+
+Gelesen wird eine Zeichnung nur über `ladeSkizze(scope, key)` (blaetter.js). Sie prüft die Daten mit
+`pruefeZeichnung` (datenpruefung.js): Zahlenfelder über `num()`, Farben nur als `#hex`, `k`, IDs und Anschlüsse nur
+aus harmlosen Zeichen, ungültige Elemente fallen weg. Regel für Vorlagen-Entwickler: Werte aus gespeicherten Daten
+nie ungeprüft in Attribute schreiben, Zahlen über `num()`, Texte über `esc()`. Ein neues Zahlenfeld gehört in
+`ZAHLENFELDER` (datenpruefung.js).
 
 Die Feldnamen der Zeichnung (`o.k`, `c.pa`, `st.p` …) stehen in gespeicherten Zeichnungen der Nutzer. Benenne sie
 nie um, sonst lassen sich alte Zeichnungen nicht mehr öffnen. Alte Werte bleiben lesbar, z. B. die Bausteinart
@@ -544,19 +551,10 @@ Namen aus dem Plan und die Haken, die es dafür gibt:
 | `SIGART[bausteinart]` | Bausteinart `kennbuchstaben` | `kennzeichenFeld` (eigenschaften.js) |
 | `edit()` | `aendere()` (`edit` ist überall ein lokaler Parameter) | verlauf.js |
 
-### Merge-Hinweise ELEKTRO
+### Merge-Hinweise ELEKTRO (erledigt)
 
-`dockLeitung(dock)` (andocken.js) liefert im Branch `w1-elektro` eine **Liste** von Verbindungen, nicht mehr eine
-einzelne: Beim dreipoligen Andocken im Hauptstromkreis entstehen drei Leitungen (über `leitungenZwischen` und den
-Gruppen-Haken `mehrpolig`, dort mit `{andocken: true}`, also immer Pol für Pol, nie mit L1 ↔ L3 getauscht).
-
-* Aufrufer, die die Liste erwarten: `placeObj` (andocken.js) mit `d.c.push(...dockLeitung(dock))` und `ziehenEnde`
-  (zeiger.js) mit `ED.data.c.push(...dockLeitung(dk))`. Im KERN-Stand heißt die Stelle in zeiger.js
-  `d.c.push(dockLeitung(dk))`: beim Zusammenführen den Spread `...` ergänzen, sonst landet ein Array in `d.c`.
-* Vorschau `andockVorschau` (andocken.js): Ruft der KERN-Stand `verbindungsWeg(dockLeitung(dock), map, [])`, je
-  Leitung einen Weg zeichnen:
-  `dockLeitung(dock).map(c => verbindungsWeg(c, map, [])).filter(Boolean).map(gm => VORSCHAU(gm.d)).join("")`.
-  Der Kreis um den Anschluss (`andockPunkt`) bleibt einmal.
+`dockLeitung(dock)` (andocken.js) liefert eine Liste von Verbindungen (dreipolig: drei Leitungen). `placeObj`,
+`ziehenEnde` und `andockVorschau` sind darauf umgestellt.
 
 ### Namen aus Paket V (alt → neu)
 

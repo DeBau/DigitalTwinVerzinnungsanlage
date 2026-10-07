@@ -1,10 +1,11 @@
 // Editor-Kern: Verlauf (edit, Transaktionen, Rückgängig, Wiederholen), Speichern, Kopie aus einer früheren Übung.
 import { SHEETS } from '../app/daten.js';
 import { $, BY, S, esc } from '../app/basis.js';
+import { num } from './datenpruefung.js';
 import { ED } from './status.js';
 import { VORL } from './registry.js';
 import { clearSel } from './auswahl.js';
-import { deDate, skKey } from './blaetter.js';
+import { deDate, ladeSkizze, skKey } from './blaetter.js';
 import { updateProps } from './eigenschaften.js';
 import { refreshTpl, renderInk } from './anzeige.js';
 import { befundeWeg } from './pruefung.js';
@@ -107,7 +108,7 @@ export function takeList(){
     const sc = k.slice(0, -suf.length);
     if (sc === ED.scope) return;
     const n = (d.o || []).length + (d.s || []).length + (d.t || []).length;
-    if (n) out.push({sc, n, ts: d.ts || 0});
+    if (n) out.push({sc, n, ts: num(d.ts)});
   });
   const ord = sc => { const i = SHEETS.findIndex(x => x.id === sc); return i < 0 ? 999 : i; };
   return out.sort((a, b) => ord(a.sc) - ord(b.sc));
@@ -115,7 +116,7 @@ export function takeList(){
 // Eintrag im Menü „Aus früherer Übung“
 export function takeEintrag(x){
   const name = BY[x.sc] ? `${x.sc} ${esc(BY[x.sc].t)}` : "Freie Zeichnung (Vorlagen)";
-  return `<button type="button" role="menuitem" data-ed="takeit" data-from="${x.sc}"><b>${name}</b>`
+  return `<button type="button" role="menuitem" data-ed="takeit" data-from="${esc(x.sc)}"><b>${name}</b>`
     + `<span>${x.n} Elemente${x.ts ? " · geändert " + deDate(x.ts) : ""}</span></button>`;
 }
 export const TAKE_HINWEIS = `<p>Die Kopie ersetzt die Zeichnung dieser Übung. Das Original bleibt unverändert, `
@@ -137,7 +138,7 @@ export function takeMenu(btn){
   document.addEventListener("pointerdown", off, true);
 }
 export function takeSketch(sc){
-  const src = S.get(skKey(sc, ED.key)); $("#editor .takemenu")?.remove(); if (!src) return;
+  const src = ladeSkizze(sc, ED.key); $("#editor .takemenu")?.remove(); if (!src) return;
   const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
   const frage = `Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommst du zurück. Fortfahren?`;
   if (has && !confirm(frage)) return;

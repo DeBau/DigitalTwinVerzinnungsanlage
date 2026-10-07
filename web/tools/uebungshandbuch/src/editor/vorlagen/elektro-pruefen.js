@@ -3,12 +3,11 @@
 // einer Wendeschaltung, Spule hinter dem eigenen Öffner, Kurzschluss von L+ nach M ohne Verbraucher (bei wenigen
 // Bedienteilen und Spulen jede Kombination); im Hauptstromkreis Motor ohne PE. Wendeschaltung (zwei Schütze auf
 // einem Motor): Phasen getauscht? Im Stromlaufplan derselben Übung überhaupt verriegelt?
-import { S } from '../../app/basis.js';
 import { PH } from '../svg.js';
 import { art } from '../registry.js';
 import { portsOf, virtuelleSchienen } from '../bauteile.js';
 import { RESERVE_EDITOR, kettenLeitung, pageCount } from '../zeichnen.js';
-import { skKey } from '../blaetter.js';
+import { ladeSkizze } from '../blaetter.js';
 import { anschlussAnzeige, spulenVon } from './elektro-kennzeichen.js';
 import { autoLeitungen, breiteVon, imPfad, pfadNummer } from './elektro-pfade.js';
 import { BEDIENUNG, VERBRAUCHER, kennung, knoten, netzAus, neuesNetz, objekteVon } from './elektro-simulation.js';
@@ -98,7 +97,7 @@ export const pruefeLeistung = (d, {scope} = {}) => [...motorOhnePE(d), ...ohnePh
 
 /* ---------- Wendeschaltung: zwei Schütze auf einem Motor ---------- */
 // Die andere Skizze derselben Übung (gespeichert); ohne sie die Zeichnung selbst
-const skizze = (scope, key, d) => (scope && S.get(skKey(scope, key))) || d;
+const skizze = (scope, key, d) => (scope && ladeSkizze(scope, key)) || d;
 const PHASEN = ["L1", "L2", "L3"], KLEMMEN = ["U1", "V1", "W1"], DURCHGANG = ["ls3", "ms3", "qs3"];
 // Pole oben und unten eines dreipoligen Bauteils (gleich für Schütz und Schutzschalter)
 const pole = () => art("k3").pole;

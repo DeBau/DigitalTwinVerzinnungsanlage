@@ -3,7 +3,7 @@ import { EXVORL, STUFEN, STYLECHECK, TYPN, critOf, gradeOf } from './daten.js';
 import { $, $$, ART, BY, IC, S, chips, esc, hilfeLevel, hilfeText, mitbringen, qt, quelle, sigEntries, tableHTML, typOf, zielTag } from './basis.js';
 import { VORL } from '../editor/registry.js';
 import { pageCount } from '../editor/zeichnen.js';
-import { skKey, skMeta, sketchSVG } from '../editor/blaetter.js';
+import { ladeSkizze, skMeta, sketchSVG } from '../editor/blaetter.js';
 import { curTime, fmtTime } from './uebung.js';
 
 export function pageHead(ex, what){
@@ -68,7 +68,7 @@ export function ratePage(ex, f){
     <div class="sign"><div>Freigabe Fachgespräch (Kürzel)${f && S.get(k+":kuerzel") ? ": " + esc(S.get(k+":kuerzel")) : ""}</div><div>Arbeitszeit${f ? ": " + fmtTime(curTime(k)) : ""}</div></div></section>`;
 }
 export function sketchPage(scope, key, f){
-  const ex = BY[scope], d = f ? S.get(skKey(scope, key)) : null, meta = f ? skMeta(scope, key) : {title: ex ? `${ex.id} ${ex.t}` : VORL[key].n, vorlage: VORL[key].n};
+  const ex = BY[scope], d = f ? ladeSkizze(scope, key) : null, meta = f ? skMeta(scope, key) : {title: ex ? `${ex.id} ${ex.t}` : VORL[key].n, vorlage: VORL[key].n};
   return Array.from({length: pageCount(key, d)}, (_, i) => `<section class="pp land">${sketchSVG(key, ex, d, meta, false, i)}</section>`).join("");
 }
 export const nivTable = crit => `<h2>Niveaustufen</h2><p>Passend zur Selbsteinschätzung: 1 = noch nicht, 2 = mit Hilfe, 3 = selbstständig, 4 = sicher und kann es erklären. Richtwert für die Punkte: Stufe 1 bis 25 %, Stufe 2 bis 50 %, Stufe 3 bis 75 %, Stufe 4 bis 100 % des Höchstwerts.</p>

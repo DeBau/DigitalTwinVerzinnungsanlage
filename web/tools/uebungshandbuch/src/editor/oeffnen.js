@@ -1,10 +1,10 @@
 // Editor-Kern: Editor öffnen. Zustand zurücksetzen, Werkzeugleiste, Seitenleiste mit Palette, Blatt aufbauen.
 // Die Vorlage ergänzt Werkzeugleiste, Seitenleiste und Startwerkzeug über ihre Haken (vorlage(key)).
-import { $, $$, BY, IC, S } from '../app/basis.js';
+import { $, $$, BY, IC } from '../app/basis.js';
 import { ED } from './status.js';
 import { BAUSTEIN, GRUPPE, SAMPLE, vorlage } from './registry.js';
 import { RESERVE_EDITOR, bausteinZeichnen, pageCount, pcSample } from './zeichnen.js';
-import { skKey, skMeta, sketchSVG } from './blaetter.js';
+import { ladeSkizze, skMeta, sketchSVG } from './blaetter.js';
 import { FARBEN, STAERKEN } from './eigenschaften.js';
 import { sizeSVG } from './anzeige.js';
 import { hatPruefung } from './pruefung.js';
@@ -26,7 +26,7 @@ export const ZEICHENWERKZEUGE = ["pen", "line", "rect", "text", "erase"];
 export function openEditor(scope, key){
   const v = vorlage(key), pal = v.gruppen || [];
   const tool = pal.length ? "sel" : v.startWerkzeug || (ZEICHENWERKZEUGE.includes(ED.tool) ? ED.tool : "pen");
-  zuruecksetzen(scope, key, mitListen(S.get(skKey(scope, key)) || {}), tool);
+  zuruecksetzen(scope, key, mitListen(ladeSkizze(scope, key) || {}), tool);
   const dlg = $("#editor");
   dlg.innerHTML = `<div class="ed">${werkzeugleisteHTML(v, key, pal)}<div class="edbody">${seitenleisteHTML(v, pal)}`
     + `<div class="edstage" id="edstage" tabindex="-1"></div></div></div>`;

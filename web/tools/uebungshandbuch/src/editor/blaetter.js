@@ -2,6 +2,7 @@
 // Benutzt von Editor, Skizzen-Kacheln und Druck.
 import { BY, S } from '../app/basis.js';
 import { INK, PH, SVGT } from './svg.js';
+import { pruefeZeichnung } from './datenpruefung.js';
 import { VORL, vorlage } from './registry.js';
 import { frame } from './vorlagen-svg.js';
 import { RESERVE_EDITOR, pageCount, zeichnungSVG } from './zeichnen.js';
@@ -39,10 +40,12 @@ export function sketchSVG(key, ex, data, meta, edit=false, page=null){
   return edit ? svg : eigenerMarker(svg, "arw-" + (++markerZaehler));
 }
 export const skKey = (scope, key) => `${scope}:sk:${key}`;
+// Gespeicherte Zeichnung lesen, immer geprüft (datenpruefung.js); null, wenn keine da ist
+export const ladeSkizze = (scope, key) => pruefeZeichnung(S.get(skKey(scope, key)));
 export const deDate = t => new Date(t).toLocaleDateString("de-DE", {day: "2-digit", month: "2-digit", year: "numeric"});
 // Schriftfeld: eigene Angaben der Skizze, sonst Name aus „Meine Daten“ und Datum der letzten Änderung
 export const skMeta = (scope, key, d) => {
-  const ex = BY[scope]; d = d || S.get(skKey(scope, key)) || {}; const m = d.meta || {};
+  const ex = BY[scope]; d = d || ladeSkizze(scope, key) || {}; const m = d.meta || {};
   return {rows: m.rows || null, bed: m.bed || null, title: m.title || (ex ? `${ex.id} ${ex.t}` : VORL[key].n), vorlage: VORL[key].n,
     name: m.name || S.get("name") || "",
     datum: m.datum || (ex && S.get(ex.id+":datum")) || (d.ts ? deDate(d.ts) : ""),

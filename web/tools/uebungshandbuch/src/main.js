@@ -7,6 +7,7 @@ import './app/fortschritt.js';
 import './symbole/grund.js';
 import './symbole/iec60617.js';
 import './editor/svg.js';
+import './editor/datenpruefung.js';
 import './editor/status.js';
 import './editor/registry.js';
 import './editor/spuren.js';
