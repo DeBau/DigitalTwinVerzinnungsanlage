@@ -288,4 +288,59 @@ export const tests = [
       t.gleich(await fehler('#edstage'), [], 'Editor');
     },
   },
+  /* ---------- K18 Texte ---------- */
+  {
+    name: 'K18 Kern-Texte in Du-Form, ohne Gedankenstrich und ohne feste Übungsnummer',
+    lauf: async (t) => {
+      const pruefe = (text, wo) => {
+        t.erwarte(!/ – |—/.test(text), `${wo}: Gedankenstrich in „${text}“`);
+        t.erwarte(!/\b(Sie|Ihre?n?)\b/.test(text), `${wo}: Sie-Form in „${text}“`);
+      };
+      await t.oeffne('grafcet');
+      // Palettenhilfe des Kerns; der erste Absatz ist der Hinweis der Gruppe (Vorlage)
+      const hilfe = await t.page.locator('#editor .palhelp p').evaluateAll((ps) => ps.slice(1).map((p) => p.textContent).join(' '));
+      pruefe(hilfe, 'Palettenhilfe');
+      pruefe(await t.text('#editor .edbar .ttl'), 'Titel');
+      await t.knopf('take');
+      const menu = await t.text('#editor .takemenu');
+      pruefe(menu, 'Menü Aus früherer Übung');
+      t.erwarte(!/\bL\d\d\b/.test(menu), 'Menü ohne feste Übungsnummer');
+      await t.taste('Escape');
+      await t.setze('init', 200, 150);
+      const ph = await t.page.locator('#edstage .txtin').getAttribute('placeholder').catch(() => '');
+      pruefe(ph || '', 'Beschriftungsfeld');
+    },
+  },
+  /* ---------- K11 Tastenkürzel ---------- */
+  {
+    name: 'K11 Werkzeugtasten, G, Pfeile mit Umschalt, Übersicht mit ?',
+    lauf: async (t) => {
+      const gedrueckt = () => t.page.locator('#editor .edbar [data-tool][aria-pressed="true"]').first().getAttribute('data-tool');
+      await t.oeffne('grafcet');
+      for (const [k, w] of [['p', 'pen'], ['l', 'line'], ['t', 'text'], ['e', 'erase'], ['c', 'conn'], ['v', 'sel']]) {
+        await t.taste(k);
+        t.gleich(await gedrueckt(), w, `Taste ${k}`);
+      }
+      const raster = () => t.page.locator('#editor [data-ed="grid"]').getAttribute('aria-pressed');
+      const vorher = await raster();
+      await t.taste('g');
+      t.erwarte(await raster() !== vorher, 'G schaltet Raster fangen');
+      await t.taste('g');
+      await t.setze('init', 200, 150);
+      await t.taste('Escape');
+      await t.klick([200, 150]);
+      const [o0] = await t.objekte();
+      await t.taste('ArrowRight');
+      await t.taste('Shift+ArrowDown');
+      const [o1] = await t.objekte();
+      t.gleich([o1.x - o0.x, o1.y - o0.y], [10, 1], 'Pfeil 10, Umschalt+Pfeil 1');
+      await t.taste('Shift+?');
+      t.gleich(await t.zaehle('#editor .kuerzel'), 1, 'Übersicht offen');
+      await t.taste('Escape');
+      t.gleich([await t.zaehle('#editor .kuerzel'), await t.zaehle('#editor[open]')], [0, 1], 'Esc schließt nur die Übersicht');
+      await t.taste('+');
+      await t.taste('n');
+      t.gleich((await t.objekte()).length, 1, '+ und N belegt der Kern nicht');
+    },
+  },
 ];

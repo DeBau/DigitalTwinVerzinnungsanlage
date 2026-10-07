@@ -39,7 +39,7 @@ export function editLabel(x, y, anfang, ph, done){
 export function beschriftungsFeld(x, y, anfang, ph, stage){
   const r = stage.getBoundingClientRect(), m = ED.svg.getScreenCTM(), inp = document.createElement("textarea");
   inp.className = "txtin"; inp.value = anfang;
-  inp.placeholder = (ph || "Text") + " – Enter übernimmt, Alt+Enter neue Zeile";
+  inp.placeholder = (ph || "Text") + ". Enter übernimmt, Alt+Enter neue Zeile";
   inp.rows = Math.max(1, anfang.split("\n").length);
   inp.title = "Enter übernimmt, Alt+Enter (oder Umschalt+Enter) beginnt eine neue Zeile";
   inp.style.left = Math.max(4, Math.min(m.a * x + m.e - r.left, r.width - 270)) + "px";

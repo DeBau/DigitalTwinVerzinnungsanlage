@@ -120,8 +120,8 @@ export function takeEintrag(x){
 }
 export const TAKE_HINWEIS = `<p>Die Kopie ersetzt die Zeichnung dieser Übung. Das Original bleibt unverändert, `
   + `Rückgängig holt den alten Stand zurück.</p>`;
-export const TAKE_LEER = `<p>Noch keine andere Übung hat eine Zeichnung dieser Art. Sobald Sie z. B. in L08 einen Plan `
-  + `gezeichnet haben, erscheint er hier.</p>`;
+export const TAKE_LEER = `<p>Noch keine andere Übung hat eine Zeichnung dieser Art. Sobald du in einer anderen Übung einen `
+  + `Plan dieser Art gezeichnet hast, erscheint er hier.</p>`;
 // Menü öffnen bzw. schließen; ein Klick außerhalb schließt es
 export function takeMenu(btn){
   const old = $("#editor .takemenu"); if (old) { old.remove(); return; }
@@ -139,7 +139,7 @@ export function takeMenu(btn){
 export function takeSketch(sc){
   const src = S.get(skKey(sc, ED.key)); $("#editor .takemenu")?.remove(); if (!src) return;
   const has = ED.data.s.length || ED.data.t.length || ED.data.o.length;
-  const frage = `Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommen Sie zurück. Fortfahren?`;
+  const frage = `Die Zeichnung dieser Übung wird durch die Kopie aus ${sc} ersetzt. Mit Rückgängig kommst du zurück. Fortfahren?`;
   if (has && !confirm(frage)) return;
   const d = mitListen(JSON.parse(JSON.stringify(src)));
   if (d.meta) { delete d.meta.title; delete d.meta.datum; }   // Titel und Datum gehören zur neuen Übung

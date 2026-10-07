@@ -1,19 +1,19 @@
 // Editor-Kern: Listener des Editor-Dialogs (Palette ziehen, Klicks, Eigenschaftsfeld, Tastatur, Schließen).
 import { $, $$ } from '../app/basis.js';
-import { ED, markiertId } from './status.js';
+import { ED } from './status.js';
 import { art, vorlage } from './registry.js';
-import { anySel, clearSel, markiertesElement, markiertesObjekt } from './auswahl.js';
+import { clearSel, markiertesObjekt } from './auswahl.js';
 import { deDate } from './blaetter.js';
-import { istSignalFeld, schliesseListe, signalEingabe, signalTaste, signalWahl } from './signalfeld.js';
+import { istSignalFeld, schliesseListe, signalEingabe, signalWahl } from './signalfeld.js';
 import { lastProp, setLastProp, updateProps } from './eigenschaften.js';
 import { sizeSVG } from './anzeige.js';
 import { pruefeSkizze, waehleBefund, zeigeBefunde } from './pruefung.js';
 import { aendere, beginne, redo, schliesse, takeMenu, takeSketch, undo } from './verlauf.js';
-import { newline } from './beschriften.js';
 import { blattPunkt, fokusAufsBlatt, setTool } from './werkzeuge.js';
 import { applyProp, delSel, turnSel } from './bearbeiten.js';
 import { placeObj } from './andocken.js';
-import { AUSWAHL, zeigerBewegen } from './zeiger.js';
+import { zeigerBewegen } from './zeiger.js';
+import { rasterUmschalten, taste, werkzeugNachAbbruch } from './tastatur.js';
 import { doPrint, sketchPage } from '../app/druck.js';
 import { route } from '../app/router.js';
 
@@ -22,8 +22,6 @@ export const overSheet = e => {
   const r = ED.svg && $("#edstage").getBoundingClientRect();
   return r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
 };
-// Nach Abbruch zurück zum Auswählen, in Vorlagen ohne Palette beim bisherigen Werkzeug bleiben
-export const werkzeugNachAbbruch = () => setTool(vorlage(ED.key).gruppen ? "sel" : ED.tool);
 
 /* ---------- Ziehen aus der Palette ---------- */
 export function paletteDruecken(e){
@@ -61,15 +59,16 @@ export const AKTIONEN = {
   sfzu: () => { clearSel(); updateProps("neu"); },
   heute: () => { const f = $('#props [data-prop="md"]'); if (f) { f.value = deDate(Date.now()); applyProp("md", f.value); } },
   del: () => delSel(),
-  grid: t => { ED.grid = !ED.grid; t.setAttribute("aria-pressed", ED.grid); },
+  grid: () => rasterUmschalten(),
   dock: t => { ED.dock = !ED.dock; t.setAttribute("aria-pressed", ED.dock); },
   clear: () => alleLeeren(),
   print: () => doPrint(sketchPage(ED.scope, ED.key, true)),
   close: () => $("#editor").close(),
 };
+export const LEEREN_FRAGE = "Die ganze Skizze löschen? Das Schriftfeld bleibt, Rückgängig holt die Skizze zurück.";
 // „Alles leeren“: Bausteine, Striche und Texte weg, das Schriftfeld (meta) bleibt
 export function alleLeeren(){
-  if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm("Die ganze Skizze löschen?")) return;
+  if (!(ED.data.s.length || ED.data.t.length || ED.data.o.length) || !confirm(LEEREN_FRAGE)) return;
   clearSel();
   aendere(d => ({s: [], t: [], o: [], c: [], ...(d.meta ? {meta: d.meta} : {})}));
 }
@@ -117,62 +116,6 @@ export function feldGeaendert(e){
 // Tippen in einem Feld ist ein Verlaufsschritt je Feld und markiertem Element (Transaktion in verlauf.js)
 export const beginneFeld = f => beginne("feld:" + (ED.markiert ? ED.markiert.art + ED.markiert.id : "") + ":" + f);
 export const schliesseFeld = () => { if (ED.tx && ED.tx.schluessel.startsWith("feld:")) schliesse(); };
-
-/* ---------- Tastatur ---------- */
-export function tasteImFeld(e){
-  if (e.key === "Escape") { e.preventDefault(); fokusAufsBlatt(); return; }   // Esc verlässt das Feld, schließt nie
-  if (e.key !== "Enter" || !e.target.dataset.prop) return;
-  e.preventDefault();
-  if (e.target.tagName === "TEXTAREA" && (e.altKey || e.shiftKey || e.ctrlKey)) {   // neue Zeile
-    newline(e.target); e.target.rows = e.target.value.split("\n").length; applyProp(e.target.dataset.prop, e.target.value);
-  }
-  else fokusAufsBlatt();
-}
-export function beschrifteMarkiertes(){
-  const m = ED.markiert, beschrifte = m && AUSWAHL[m.art] && AUSWAHL[m.art].beschriften;
-  if (beschrifte) beschrifte(m.id);
-}
-// Esc: offenes Menü schließen, angefangene Eingabe der Vorlage (ED.vorlage.angefangen) verwerfen, sonst Markierung und Werkzeug aufheben.
-// true, wenn etwas zu tun war
-export function abbrechen(e){
-  if (!ED.svg) return false;
-  const menu = $("#editor .takemenu");
-  if (menu) { menu.remove(); return true; }   // offenes Menü „Aus früherer Übung“ zuerst
-  if (ED.vorlage.angefangen) {
-    e.preventDefault(); ED.vorlage.angefangen = null; $(".ghost", ED.svg).innerHTML = ""; updateProps(true);
-    return true;
-  }
-  if (ED.place || ED.verbindenVon || anySel()) {
-    e.preventDefault(); clearSel(); ED.verbindenVon = null; werkzeugNachAbbruch();
-    return true;
-  }
-  return false;
-}
-// Pfeiltasten verschieben Bausteine, Texte und Striche um 10
-export const verschiebeXY = (el, dx, dy) => { el.x += dx; el.y += dy; };
-export const VERSCHIEBE = {o: verschiebeXY, t: verschiebeXY, s: (st, dx, dy) => { st.p = st.p.map(([x, y]) => [x + dx, y + dy]); }};
-export function verschiebeMarkiertes(key){
-  const dx = {ArrowLeft: -10, ArrowRight: 10}[key] || 0, dy = {ArrowUp: -10, ArrowDown: 10}[key] || 0;
-  VERSCHIEBE[ED.markiert.art](markiertesElement(), dx, dy);
-}
-// Strg+Z nimmt zurück, Strg+Y und Strg+Umschalt+Z wiederholen
-export const VERLAUFSTASTEN = {z: () => undo(), y: () => redo(), "Umschalt+z": () => redo()};
-export function taste(e){
-  if (e.target.matches("input,select,textarea")) { if (!signalTaste(e)) tasteImFeld(e); return; }
-  const strg = e.ctrlKey || e.metaKey;
-  if ((e.key === "Enter" || e.key === "F2") && anySel() && ED.markiert.art !== "f") { e.preventDefault(); beschrifteMarkiertes(); return; }
-  const verlauf = strg && VERLAUFSTASTEN[(e.shiftKey ? "Umschalt+" : "") + e.key.toLowerCase()];
-  if (verlauf) { e.preventDefault(); verlauf(); return; }
-  if (strg && e.key.toLowerCase() === "a") { e.preventDefault(); return; }
-  const dreh = {r: "rot", m: "flip"}[e.key.toLowerCase()];   // Taste R dreht, M spiegelt
-  if (!strg && !e.altKey && markiertId("o") && dreh) { e.preventDefault(); turnSel(dreh); return; }
-  if (e.key === "Escape") { e.preventDefault(); abbrechen(e); return; }   // Esc schließt den Editor nie (nur „Fertig“)
-  if (e.key === " ") { e.preventDefault(); return; }   // Leertaste löst keinen Knopf aus und rollt das Blatt nicht
-  if ((e.key === "Delete" || e.key === "Backspace") && anySel()) { e.preventDefault(); delSel(); return; }
-  if (e.key.startsWith("Arrow") && anySel() && VERSCHIEBE[ED.markiert.art]) {
-    e.preventDefault(); aendere(() => verschiebeMarkiertes(e.key));
-  }
-}
 
 // Seiteneffekte: Listener des Editor-Dialogs. main.js ruft init() in der ursprünglichen Reihenfolge auf.
 export function init(){

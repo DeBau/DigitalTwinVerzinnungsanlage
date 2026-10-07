@@ -128,6 +128,23 @@ for (const [id, q] of Object.entries(QUIZ || {})) {
   walk(`stil.js [${i}]`, r);
 });
 
+// Texte des Skizzen-Editors: String-Literale in src/editor/** (ohne Kommentare, ohne ${…}) auf Gedankenstrich und Sie-Form
+function editorDateien(ordner) {
+  return readdirSync(ordner, { withFileTypes: true }).flatMap((e) => e.isDirectory() ? editorDateien(path.join(ordner, e.name))
+    : e.name.endsWith('.js') ? [path.join(ordner, e.name)] : []);
+}
+const ohneKommentare = (q) => q.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:"'`\\])\/\/.*$/gm, '$1');
+const STRICH_EDITOR = [/ – /, /—/, /\d–\d/];   // „ - “ ist im Quelltext meist ein Minus
+const LITERAL = /"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`/g;
+for (const datei of editorDateien(path.join(src, 'editor'))) {
+  const wo = path.relative(src, datei).replace(/\\/g, '/');
+  for (const m of ohneKommentare(readFileSync(datei, 'utf8')).matchAll(LITERAL)) {
+    const p = prosa(m[0].slice(1, -1).replace(/\$\{[^}]*\}/g, ' '));
+    for (const rx of STRICH_EDITOR) { const t = rx.exec(p); if (t) { warn('Editor: Gedankenstrich', wo, kurz(p, t.index, t[0].length)); break; } }
+    const sie = RX_SIE.exec(p); if (sie) warn('Editor: Sie-Form', wo, kurz(p, sie.index, sie[0].length));
+  }
+}
+
 /* ---------- Ausgabe ---------- */
 const html = vorlage
   .replace('__SIG__', () => JSON.stringify(sig))

@@ -73,7 +73,7 @@ export function verbindungFelder(c){
   }
   const beschriftung = gruppeVon(objById(c.a)).pfeiltext
     ? textFeld("cv", "Beschriftung", "z. B. BG13 / QA1", c.v) + SYMS
-    : HINWEIS("GRAFCET-Verbindungen tragen keine Beschriftung – die Bedingung steht an der Transition.");
+    : HINWEIS("GRAFCET-Verbindungen tragen keine Beschriftung. Die Bedingung steht an der Transition.");
   return propsKasten("Verbindung", beschriftung + loeschKnopf());
 }
 export const LEITUNGSARTEN = [["", "Arbeits-/Hauptleitung"], ["st", "Steuerleitung (gestrichelt)"]];

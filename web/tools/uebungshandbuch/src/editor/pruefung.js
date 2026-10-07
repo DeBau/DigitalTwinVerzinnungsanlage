@@ -20,10 +20,16 @@ export function pruefeSkizze(){
   return v.pruefe ? v.pruefe(ED.data, {scope: ED.scope, key: ED.key}) : [];
 }
 
-// Rote Markierung eines Befunds mit seiner Nummer
-export function befundSVG(b, i){
+// Freie Stelle für eine Befundnummer: liegt schon eine Nummer näher als 14, rückt sie um 14 nach unten
+export function freieStelle(x, y, belegt){
+  while (belegt.some(([bx, by]) => Math.abs(bx - x) < 14 && Math.abs(by - y) < 14)) y += 14;
+  belegt.push([x, y]);
+  return [x, y];
+}
+// Rote Markierung eines Befunds mit seiner Nummer; belegt sammelt die Orte der Nummern, damit keine eine andere verdeckt
+export function befundSVG(b, i, belegt = []){
   const o = b.o && objById(b.o), weg = b.c !== undefined && ED.svg.querySelector(`.ink [data-c="${b.c}"] path`);
-  const nr = (x, y) => SVGT(x, y, String(i + 1), "middle", 11, 700, ROT);
+  const nr = (x, y) => { const [fx, fy] = freieStelle(x, y, belegt); return SVGT(fx, fy, String(i + 1), "middle", 11, 700, ROT); };
   if (o) {
     const r = umrissVon(o);
     return `<rect x="${r.x - 7}" y="${r.y - 7}" width="${r.w + 14}" height="${r.h + 14}" rx="5" fill="none" stroke="${ROT}" `
@@ -56,7 +62,8 @@ export function befundListe(liste){
 export function zeigeBefunde(liste){
   befunde = liste;
   if (!ED.svg) return;
-  befundEbene().innerHTML = liste.map(befundSVG).join("");
+  const belegt = [];
+  befundEbene().innerHTML = liste.map((b, i) => befundSVG(b, i, belegt)).join("");
   const el = $("#props");
   if (el) el.innerHTML = befundListe(liste);
 }
