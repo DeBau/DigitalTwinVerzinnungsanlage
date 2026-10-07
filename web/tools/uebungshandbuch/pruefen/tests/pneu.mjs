@@ -83,4 +83,16 @@ export const tests = [
       t.erwarte((await texte(t, 'd')).includes('−MB7'), 'Spule 14 am Ventil gezeichnet');
     },
   },
+  {
+    name: 'P5 Andocken über Anschlüsse: Drossel rastet über Anschluss 4 ein und ist verbunden',
+    daten: 'pneu-ventil',
+    lauf: async (t) => {
+      await t.oeffne('pneumatik');
+      await t.setze('drv', 495, 300);   // Anschluss 1 der Drossel 10 neben und 50 über Anschluss 4 (480, 380)
+      const d = await t.daten(), drv = d.o.find((o) => o.k === 'drv');
+      t.gleich(drv.x + 20, 480, 'Drossel auf der Flucht von Anschluss 4');
+      t.gleich(d.c.map((c) => [c.a, c.pa, c.b === drv.id, c.pb]), [['v', '4', true, '1']], 'Leitung 4 → 1');
+      t.erwarte((await t.text('#editor')).includes('Andocken rastet'), 'Hinweis der Palette nennt das Andocken');
+    },
+  },
 ];

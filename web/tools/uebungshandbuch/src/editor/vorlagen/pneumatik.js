@@ -5,6 +5,7 @@ import { IC } from '../../app/basis.js';
 import { ED } from '../status.js';
 import { BAUSTEIN, art, fuelle, registriereBauteile, registriereGruppe, registriereVorlage } from '../registry.js';
 import { TX, grid } from '../vorlagen-svg.js';
+import { DIRV, portsOf } from '../bauteile.js';
 import { signalFeld } from '../signalfeld.js';
 import { listenFeld } from '../eigenschaften.js';
 import { VALVE, betaetigung, cylinder, drawValve, entlueftung, istSpule, rechteStellung, steuerNr, vPairs } from './pneumatik-symbole.js';
@@ -23,7 +24,30 @@ registriereVorlage("pneumatik", {
 });
 registriereGruppe("pneu", {name: "Pneumatik nach ISO 1219",
   hinweis: "Ventile, Zylinder und Quelle setzen, mit Verbinden die Leitungen von Anschluss zu Anschluss ziehen. "
-    + "Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken."});
+    + "Mit Andocken rastet ein Bauteil über einem freien Anschluss eines anderen ein und ist gleich verbunden. "
+    + "Freie Entlüftungen 3 und 5 bekommen ihr Dreieck selbst. Mit Simulation die Ventilbetätigung links oder rechts anklicken.",
+  andocke: andockeAnschluss});
+
+/* ---------- Andocken über Anschlüsse ---------- */
+// Ein freier Anschluss von o liegt einem freien, entgegengesetzt gerichteten Anschluss eines anderen Bauteils gegenüber:
+// o rückt auf dessen Flucht, beim Loslassen entsteht die Leitung pa → pb (Haken andocke der Gruppe).
+export function andockeAnschluss(o, andere){
+  let best = null;
+  portsOf(o).filter(q => anschlussFrei(o.id, q.n)).forEach(q => andere.forEach(p => portsOf(p).forEach(r => {
+    const k = andockAbstand(q, r);
+    if (k && anschlussFrei(p.id, r.n) && (!best || k.d < best.d)) best = {a: p.id, pa: r.n, b: o.id, pb: q.n, ...k};
+  })));
+  return best;
+}
+export const anschlussFrei = (id, n) => !ED.data.c.some(c => (c.a === id && c.pa === n) || (c.b === id && c.pb === n));
+export const GEGENUEBER = {u: "d", d: "u", l: "r", r: "l"};
+// Anschluss q (bewegt) gegenüber r: 20 bis 120 in Richtung von q, höchstens 20 daneben. Ergebnis {d, sx, sy} oder null
+export function andockAbstand(q, r){
+  if (GEGENUEBER[q.d] !== r.d) return null;
+  const [dx, dy] = DIRV[q.d], weg = (r.x - q.x) * dx + (r.y - q.y) * dy, quer = dx ? r.y - q.y : r.x - q.x;
+  if (weg < 20 || weg > 120 || Math.abs(quer) > 20) return null;
+  return {d: Math.abs(quer) + weg / 4, sx: dx ? 0 : quer, sy: dx ? quer : 0};
+}
 
 /* ---------- Eigenschaftsfelder ---------- */
 // Einträge der feldliste: [Feld, Beschriftung oder (o) → Text, Platzhalter oder Optionen, Kennbuchstaben, sichtbar(o)].
