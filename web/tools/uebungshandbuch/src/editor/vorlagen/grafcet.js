@@ -9,7 +9,8 @@ import { LINIE, platzhalter, setzeBreite } from '../bausteine.js';
 import { textFeld } from '../eigenschaften.js';
 import { AKTION_SEITE, AKTION_TEXT, aktionFelder, aw, hasMark, isStep, setzeAktion, zeichneAktion } from './grafcet-aktion.js';
 import { KETTEN_HAKEN, freieSchrittNummer, hinweisAnleitung } from './grafcet-kette.js';
-import { kettenKlick, kettenKnoepfeHTML } from './grafcet-knoepfe.js';
+import { kettenKlick, kettenKnoepfeHTML, kettenTaste } from './grafcet-knoepfe.js';
+import { pruefeGrafcet } from './grafcet-pruefen.js';
 
 /* ---------- Schritte, Transitionen, Verzweigungen ---------- */
 export const QUADRAT = o => ({x: o.x, y: o.y, w: 40, h: 40});
@@ -65,6 +66,8 @@ registriereVorlage("grafcet", {
   anleitung: hinweisAnleitung,
   werkzeugleiste: {nachVerbinden: kettenKnoepfeHTML()},   // + Schritt, Kette ausrichten, Neu nummerieren
   klick: kettenKlick,
+  taste: kettenTaste,                 // Taste + wie „+ Schritt“ (Haken baut KERN)
+  pruefe: pruefeGrafcet,              // Knopf „Prüfen“ (grafcet-pruefen.js)
 });
 export const LEGENDE_STRICH = `stroke="${G}" stroke-width="1.3"`;
 export const GRAFCET_LEGENDE = [

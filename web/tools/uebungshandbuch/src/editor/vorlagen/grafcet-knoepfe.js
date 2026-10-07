@@ -89,7 +89,8 @@ export function neuNummerieren(d){
 
 /* ---------- Werkzeugleiste ---------- */
 export const KETTEN_KNOEPFE = {
-  plus: {name: "+ Schritt", titel: "Transition und nächsten Schritt unter dem markierten Baustein anhängen", tue: plusSchritt},
+  plus: {name: "+ Schritt", titel: "Transition und nächsten Schritt unter dem markierten Baustein anhängen (Taste +)",
+    tue: plusSchritt},
   ausrichten: {name: "Kette ausrichten", titel: "Schritte und Transitionen mit Abstand 100 untereinander legen",
     tue: () => aendere(ketteAusrichten)},
   nummern: {name: "Neu nummerieren", titel: "Schritte in der Reihenfolge der Kette neu nummerieren, Verweise ziehen mit",
@@ -102,4 +103,10 @@ export function kettenKlick(e){
   const b = e.target.closest("[data-gc]"), knopf = b && KETTEN_KNOEPFE[b.dataset.gc];
   if (knopf) knopf.tue();
   return !!knopf;
+}
+// Vorlagen-Haken taste (baut KERN): Taste „+“ wirkt wie der Knopf „+ Schritt“
+export function kettenTaste(e){
+  if (e.key !== "+" || e.ctrlKey || e.metaKey || e.altKey) return false;
+  e.preventDefault(); plusSchritt();
+  return true;
 }

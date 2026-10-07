@@ -73,6 +73,7 @@ importiert nie aus einer Vorlage.
 | `editor/vorlagen/grafcet-aktion.js` | GRAFCET: Bausteinarten (`isStep`, `isTrans`, `isAct`), Aktionen zeichnen, Eigenschaftsfeld, Haken `seite` |
 | `editor/vorlagen/grafcet-kette.js` | GRAFCET: Regeln der Ablaufkette (Haken `nachSetzen`, `vorVerbinden`, `mitziehen`, `loeschen`), Einfügen, Ausrichten, Neu nummerieren |
 | `editor/vorlagen/grafcet-knoepfe.js` | GRAFCET: Knöpfe „+ Schritt“, „Kette ausrichten“, „Neu nummerieren“ (`data-gc`, Haken `klick`), `kettenFolge` |
+| `editor/vorlagen/grafcet-pruefen.js` | GRAFCET: Regeln für „Prüfen“ (`GRAFCET_REGELN`, Haken `pruefe`) |
 | `editor/vorlagen/grafcet.js` | GRAFCET: Schritte, Transitionen, Verzweigungen, Verweise, Aktionen als Seitenbausteine |
 | `editor/vorlagen/zustand.js` | Zustandsdiagramm: Zustände, Übergänge als gebogene Pfeile |
 | `editor/vorlagen/wegschritt-striche.js` | Weg-Schritt-Diagramm: Raster `WS_RASTER`, Stricharten Signallinie, Start, Zyklusende, Verknüpfung |

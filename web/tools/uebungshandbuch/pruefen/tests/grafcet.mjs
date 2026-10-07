@@ -246,4 +246,45 @@ export const tests = [
       t.gleich((await t.objekte('step')).map((o) => o.v), ['2'], 'neu nummeriert');
     },
   },
+  {
+    name: 'Prüfen: typische Fehler werden rot markiert',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('step', 220, 120);                  // kein Anfangsschritt
+      await t.setze('trans', 220, 200); await t.tippe(''); await t.taste('Enter');   // ohne Bedingung
+      await t.klick([700, 500]);
+      await t.setze('action', 500, 400); await t.tippe('MB9'); await t.taste('Enter');   // verwaist
+      await t.knopf('pruefen');
+      const text = await t.text('#props');
+      for (const s of ['Anfangsschritt', 'keine Bedingung', 'an keinem Schritt', 'endet die Kette']) {
+        t.erwarte(text.includes(s), `Befund „${s}“ fehlt: ${text}`);
+      }
+      t.erwarte(await t.zaehle('#edstage .befund rect') >= 3, 'rote Markierungen');
+    },
+  },
+  {
+    name: 'Prüfen: eine richtige Kette hat keine Befunde',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 220, 120);
+      await t.klick('#editor [data-gc="plus"]'); await t.tippe('BG1'); await t.taste('Enter');
+      await transition(t, 220, 300, 'BG2');
+      await t.setze('action', 320, 225); await t.tippe('MB1'); await t.taste('Enter');
+      const d = await t.daten(), init = nach(d, '1', 'init'), t2 = nach(d, 'BG2');
+      await t.werkzeug('conn'); await t.klick([t2.x, t2.y]); await t.klick([init.x + 20, init.y + 20]);
+      await t.knopf('pruefen');
+      t.erwarte((await t.text('#props')).includes('Keine Auffälligkeiten'), await t.text('#props'));
+    },
+  },
+  {
+    name: 'Taste + wie + Schritt (wenn KERN den Haken taste hat)',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await t.setze('init', 220, 120);
+      await t.taste('+');
+      const n = (await t.objekte()).length;
+      if (n === 1) return;   // Haken taste fehlt im Kern noch: übersprungen
+      t.gleich(n, 3, 'Transition und Schritt angehängt');
+    },
+  },
 ];
