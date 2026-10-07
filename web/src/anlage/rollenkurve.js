@@ -43,6 +43,28 @@ function ringSektor(r0, r1, y0, h, mat) {
   m.position.set(R, y0, zA);
   return m;
 }
+// Riemenrille einer Scheibe im Kurvenrahmen: Mitte c, Achse n (Drehachse = lokale x-Achse von obj), Riemenradius r
+function scheibe(obj, p, r) {
+  const c = kurveGruppe.worldToLocal(obj.localToWorld(p.clone()));
+  const n = kurveGruppe.worldToLocal(obj.localToWorld(p.clone().add(V(1, 0, 0)))).sub(c).normalize();
+  return { c, n, r };
+}
+// Halbkreis um die Scheibe auf der vom Gegenstück abgewandten Seite (Umschlingung 180°)
+function bogen(s, ziel) {
+  const u = ziel.clone().sub(s.c), e1 = u.addScaledVector(s.n, -u.dot(s.n)).normalize(), e2 = s.n.clone().cross(e1);
+  return Array.from({ length: 13 }, (_, k) => {
+    const w = Math.PI / 2 + k * Math.PI / 12;
+    return s.c.clone().addScaledVector(e1, s.r * Math.cos(w)).addScaledVector(e2, s.r * Math.sin(w));
+  });
+}
+// Geschlossener PU-Rundriemen Ø5 um zwei Scheiben: zwei Bögen, dazwischen gerade Trums
+function rundriemen(a, b, mat) {
+  const pa = bogen(a, b.c), pb = bogen(b, a.c);
+  const gerade = (p, q) => [0.25, 0.5, 0.75].map(f => p.clone().lerp(q, f));
+  const punkte = [...pa, ...gerade(pa.at(-1), pb[0]), ...pb, ...gerade(pb.at(-1), pa[0])];
+  const kurve = new THREE.CatmullRomCurve3(punkte, true, 'centripetal');
+  mesh(new THREE.TubeGeometry(kurve, 80, 2.5, 8, true), mat, kurveGruppe, false);
+}
 const RI = 125, RA = 105;                                                     // Rollenkörper lokal x = +125 (innen) … −105 (außen)
 {
   // Seitenwangen (Stahlblech 5 mm, gebogen) und Seitenführungen
@@ -58,6 +80,8 @@ const RI = 125, RA = 105;                                                     //
   const kegel = new THREE.CylinderGeometry(rAus, rIn, RI + RA, 24, 1);        // oben = außen (nach Drehung lokal −x)
   const rolleMat = new THREE.MeshStandardMaterial({ color: 0xc9ced3, metalness: 0.85, roughness: 0.28 });
   const riemenMat = new THREE.MeshStandardMaterial({ color: 0xd8692a, roughness: 0.45 });   // PU-Rundriemen orange
+  const iM = 7;                                                               // angetriebene Rolle (dritte Rille für den Antriebsriemen)
+  const RILLEN = [-5.5, 5.5, 0];                                              // Rille 1, Rille 2, Antriebsrille
   const koepfe = [];
   for (let i = 0; i < N; i++) {
     const t = (i + 0.5) * dT, g = rahmen(t);
@@ -65,22 +89,15 @@ const RI = 125, RA = 105;                                                     //
     const dreh = new THREE.Group(); kipp.add(dreh);
     const k = mesh(kegel, rolleMat, dreh); k.rotation.z = Math.PI / 2; k.position.x = (RI - RA) / 2;
     zyl(4, 262, M.stahl, 0, 0, 0, 'x', dreh, 8);                              // Sechskantachse in den Seitenwangen
-    zyl(15, 16, M.kunststoff, -RA - 11, 0, 0, 'x', dreh, 16);                 // Rundriemenkopf PA (zwei Rillen)
-    for (const dx of [-5, 5]) zyl(15.6, 2, M.schwarz, -RA - 11 + dx, 0, 0, 'x', dreh, 16);
+    zyl(15, 16, M.kunststoff, -RA - 11, 0, 0, 'x', dreh, 16);                 // Rundriemenkopf PA (Rillen)
+    for (const dx of RILLEN.slice(0, i === iM ? 3 : 2)) zyl(15.6, 2, M.schwarz, -RA - 11 + dx, 0, 0, 'x', dreh, 16);
     for (const sx of [-1, 1]) zyl(7, 4, M.schwarz, sx * 132, 0, 0, 'x', kipp, 6);   // Achsmutter außen an der Wange
     KURVE.rollen.push(dreh);
     kurveGruppe.updateMatrixWorld(true);
-    koepfe.push([-5, 5].map(dx => kurveGruppe.worldToLocal(dreh.localToWorld(V(-RA - 11 + dx, 0, 0)))));
+    koepfe.push(RILLEN.map(dx => scheibe(dreh, V(-RA - 11 + dx, 0, 0), 16)));
   }
-  // Rundriemen von Rolle zu Rolle (abwechselnd in Rille 1 und 2): Ober- und Untertrum
-  const trum = (a, b) => {
-    const d = b.clone().sub(a), m = mesh(new THREE.CylinderGeometry(2.5, 2.5, d.length(), 6), riemenMat, kurveGruppe, false);
-    m.position.copy(a).addScaledVector(d, 0.5); m.quaternion.setFromUnitVectors(V(0, 1, 0), d.normalize());
-  };
-  for (let i = 0; i + 1 < N; i++) {
-    const r = i % 2, a = koepfe[i][r], b = koepfe[i + 1][r];
-    for (const dy of [-15.5, 15.5]) trum(a.clone().add(V(0, dy, 0)), b.clone().add(V(0, dy, 0)));
-  }
+  // Rundriemen von Rolle zu Rolle (abwechselnd in Rille 1 und 2), um beide Köpfe geschlungen
+  for (let i = 0; i + 1 < N; i++) rundriemen(koepfe[i][i % 2], koepfe[i + 1][i % 2], riemenMat);
   // Halter der Seitenführungen
   for (const t of [0.3, 0.785, 1.27]) {
     const g = rahmen(t);
@@ -101,7 +118,7 @@ const RI = 125, RA = 105;                                                     //
   }
   // Antrieb: Aufsteckgetriebemotor außen an der mittleren Rolle, Rundriemen von der Antriebsscheibe zum Rollenkopf
   {
-    const iM = 7, t = (iM + 0.5) * dT, g = rahmen(t);
+    const t = (iM + 0.5) * dT, g = rahmen(t);
     const yS = 205;                                                            // Antriebswelle unter den Rollen
     const halter = new THREE.Group(); halter.position.y = yS - (BAND_Y - 3 - 36); g.add(halter);
     kurveGruppe.updateMatrixWorld(true);
@@ -109,13 +126,8 @@ const RI = 125, RA = 105;                                                     //
     zyl(10, 60, M.stahl, -142, yS, 0, 'x', g, 16);                              // Welle durch die Außenwange
     zyl(16, 14, M.kunststoff, -RA - 11, yS, 0, 'x', g, 16);                    // Rundriemenscheibe
     box(10, 60, 70, M.anthrazit, -137, yS + 10, 0, g);                         // Lagerplatte an der Wange
-    const kopf = koepfe[iM][0];
-    const unten = kurveGruppe.worldToLocal(g.localToWorld(V(-RA - 11 - 5, yS, 0)));
-    for (const dz of [-16, 16]) {
-      const a = unten.clone().add(V(0, 0, 0)), b = kopf.clone();
-      const d = V(Math.sin(t) * dz, 0, Math.cos(t) * dz);
-      trum(a.add(d), b.add(d));
-    }
+    const kopf = koepfe[iM][2], xRille = g.worldToLocal(kurveGruppe.localToWorld(kopf.c.clone())).x;
+    rundriemen(scheibe(g, V(xRille, yS, 0), 17), kopf, riemenMat);
     label('Rollenkurve −MA6 (90°, konische Rollen, Rundriemen)', g, 0, BAND_Y + 200, 0, 'klein');
   }
   // Lichtschranken am Kurvenanfang und -ende: Haltewinkel außen an den gebogenen Seitenwangen zwischen zwei Tragrollen,
