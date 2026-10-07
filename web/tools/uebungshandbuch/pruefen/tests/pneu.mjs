@@ -95,4 +95,26 @@ export const tests = [
       t.erwarte((await t.text('#editor')).includes('Andocken rastet'), 'Hinweis der Palette nennt das Andocken');
     },
   },
+  {
+    name: 'W3 Signalgebertext bleibt in seiner Zeile, nicht in der Kopfzeile',
+    daten: 'ws-signale',
+    lauf: async (t) => {
+      await t.oeffne('wegschritt');
+      const ys = await t.page.$$eval('#edstage .ink text', (ts) => ts.filter((x) => /BG/.test(x.textContent))
+        .map((x) => [x.textContent, +x.getAttribute('y')]));
+      t.gleich(ys.length, 3, 'drei Signalgeber beschriftet');
+      for (const [n, y] of ys) t.erwarte(y - 8 >= 74, `${n} ragt in die Kopfzeile (Grundlinie ${y})`);
+      const zeile = (y) => Math.floor((y - 74) / 62);
+      t.gleich(zeile(ys.find(([n]) => n === '−BG4')[1] - 8), zeile(186), '−BG4 in der Zeile seines Punkts');
+    },
+  },
+  {
+    name: 'W4 Hinweis auf die zurückgezogene VDI 3260',
+    lauf: async (t) => {
+      await t.page.evaluate(() => { location.hash = '#/vorlagen'; }); await t.ruhe();
+      t.erwarte((await t.text('#app, body')).includes('nach der zurückgezogenen VDI 3260'), 'Vorlagenbeschreibung');
+      await t.oeffne('wegschritt');
+      t.erwarte((await t.text('#editor')).includes('nach der zurückgezogenen VDI 3260'), 'Hilfe der Seitenleiste');
+    },
+  },
 ];
