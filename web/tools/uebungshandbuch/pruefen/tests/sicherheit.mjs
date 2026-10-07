@@ -1,6 +1,7 @@
 // Abnahmetest der Datenprüfung (editor/datenpruefung.js): Eine präparierte Skizze im Speicher führt keinen Code aus.
 // Die Startdaten schreiben Code in Bausteinart, Koordinaten, Farben, Strichstärke, Anschluss, Texte, Schriftfeld,
-// Zeitstempel und in den Namen einer früheren Übung. Jeder Code setzt window.__boese.
+// Zeitstempel und in den Namen einer früheren Übung (den Schlüssel entfernt schon die App, router.js KEY_OK). Eine
+// gültige frühere Übung (L17) trägt dieselbe präparierte Skizze. Jeder Code setzt window.__boese.
 const fremd = (t) => t.page.evaluate(() => ({
   boese: window.__boese ?? null,
   on: [...document.querySelectorAll('*')].flatMap((e) => [...e.attributes].filter((a) => /^on/i.test(a.name)).map((a) => e.tagName + ' ' + a.name)),
@@ -23,7 +24,7 @@ export const tests = [
       t.erwarte((await t.text('#edstage .ink')).includes('<img src=x'), 'Text bleibt sichtbar als Text');
       await sauber(t, 'Editor');
       await t.knopf('take');
-      t.gleich(await t.zaehle('#editor .takemenu [data-ed="takeit"]'), 1, 'Eintrag der früheren Übung');
+      t.gleich(await t.zaehle('#editor .takemenu [data-ed="takeit"]'), 1, 'nur die gültige frühere Übung L17');
       await t.klick('#editor .takemenu [data-ed="takeit"]');
       await sauber(t, 'Aus früherer Übung');
       await t.drucke();

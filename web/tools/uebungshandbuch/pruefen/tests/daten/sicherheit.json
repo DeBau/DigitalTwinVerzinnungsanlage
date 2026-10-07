@@ -98,5 +98,77 @@
   "s": [],
   "t": [],
   "c": []
+ },
+ "uebh2:L17:sk:grafcet": {
+  "o": [
+   {
+    "id": "o1",
+    "k": "step",
+    "x": 100,
+    "y": 100,
+    "v": "<img src=x onerror=window.__boese=1>"
+   },
+   {
+    "id": "o2",
+    "k": "\"/><img src=x onerror=window.__boese=2>",
+    "x": 1,
+    "y": 1
+   },
+   {
+    "id": "o3",
+    "k": "step",
+    "x": "1\" onload=\"window.__boese=3",
+    "y": 300,
+    "v": "2"
+   },
+   {
+    "id": "x\"><img src=x onerror=window.__boese=4>",
+    "k": "step",
+    "x": 300,
+    "y": 300
+   }
+  ],
+  "c": [
+   {
+    "a": "o1",
+    "b": "o3",
+    "v": "<b>x</b>"
+   },
+   {
+    "a": "o1",
+    "pa": "\"><img src=x onerror=window.__boese=5>",
+    "b": "o3"
+   }
+  ],
+  "s": [
+   {
+    "c": "red\" onload=\"window.__boese=6",
+    "w": "2\" onload=\"window.__boese=7",
+    "p": [
+     [
+      10,
+      10
+     ],
+     [
+      "20\" onload=\"x",
+      30
+     ]
+    ]
+   }
+  ],
+  "t": [
+   {
+    "x": 500,
+    "y": 500,
+    "v": "<script>window.__boese=8</script>",
+    "c": "#000\" onload=\"window.__boese=9",
+    "s": "14\" onload=\"window.__boese=10"
+   }
+  ],
+  "meta": {
+   "title": "<img src=x onerror=window.__boese=11>",
+   "pfadbreite": "46\" onload=\"x"
+  },
+  "ts": "\"><img src=x onerror=window.__boese=12>"
  }
 }

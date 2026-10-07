@@ -23,8 +23,8 @@ async function lauf(datei) {
   try {
     if (nur.has('A')) meld.A = await seiten(browser, url, S, IDS);
     if (nur.has('B')) for (const k of VORLAGEN) meld['B ' + k] = await leer(browser, url, S, k);
-    if (nur.has('B')) meld['B L16'] = await leer(browser, url, S, 'wegschritt', 'L16');
-    if (nur.has('C')) for (const k of [...VORLAGEN, 'L16-wegschritt', 'L12-grafcet']) meld['C ' + k] = await beispiel(browser, url, S, k);
+    if (nur.has('B')) meld['B L21'] = await leer(browser, url, S, 'wegschritt', 'L21');
+    if (nur.has('C')) for (const k of [...VORLAGEN, 'L21-wegschritt', 'L17-grafcet']) meld['C ' + k] = await beispiel(browser, url, S, k);
   } finally { await browser.close(); }
   return { S, meld };
 }

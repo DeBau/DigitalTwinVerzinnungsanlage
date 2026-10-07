@@ -16,7 +16,7 @@ export class Treiber {
   ruhe(ms = 30) { return ruhe(this.page, ms); }
 
   /* ---------- Bedienen ---------- */
-  // Editor der Vorlage key öffnen: scope "frei" (Seite Vorlagen) oder eine Übung, z. B. "L12"
+  // Editor der Vorlage key öffnen: scope "frei" (Seite Vorlagen) oder eine Übung, z. B. "L17"
   async oeffne(key, scope = 'frei') {
     Object.assign(this, { key, scope });
     const ziel = scope === 'frei' ? '#/vorlagen' : `#/${scope}/2`;

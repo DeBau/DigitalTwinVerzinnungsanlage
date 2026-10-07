@@ -1,4 +1,4 @@
-// GRAFCET-Tests am Seitenumbruch: Die L12-Kette mit „+ Schritt“ über zwei Blätter, Aktionen an den Schritten am
+// GRAFCET-Tests am Seitenumbruch: Die L17-Kette mit „+ Schritt“ über zwei Blätter, Aktionen an den Schritten am
 // Blattende. Nichts liegt auf Rand oder Schriftfeld, nichts auf den Verweisen der Abbruchstelle, im Druck ist kein
 // Text abgeschnitten.
 import { schneiden, umriss } from './hilfen.mjs';
@@ -36,8 +36,8 @@ async function druckTexte(t) {
 }
 
 // Anfangsschritt, 9 × „+ Schritt“, Aktionen an Schritt 6 und 7
-async function l12Kette(t) {
-  await t.oeffne('grafcet', 'L12');
+async function l17Kette(t) {
+  await t.oeffne('grafcet', 'L17');
   await t.setze('init', 200, 80);
   for (const b of BED) { await t.klick('#editor [data-gc="plus"]'); await t.tippe(b); await t.taste('Enter'); }
   for (const v of ['6', '7']) {
@@ -50,9 +50,9 @@ async function l12Kette(t) {
 
 export const tests = [
   {
-    name: 'Seitenumbruch: L12-Kette über zwei Blätter, Aktionen bleiben am Schritt, Druck ohne Anschnitt',
+    name: 'Seitenumbruch: L17-Kette über zwei Blätter, Aktionen bleiben am Schritt, Druck ohne Anschnitt',
     lauf: async (t) => {
-      const d = await l12Kette(t), os = d.o;
+      const d = await l17Kette(t), os = d.o;
       t.gleich(os.filter((o) => o.k === 'step').length, 9, 'Schritte 2 bis 10');
       for (const o of os) t.erwarte(!amUmbruch(umriss(o)), `${o.k} ${o.v} liegt am Blattende bei y ${o.y}`);
       for (let i = 0; i < os.length; i++) for (let j = i + 1; j < os.length; j++) {

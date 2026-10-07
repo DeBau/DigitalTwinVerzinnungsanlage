@@ -18,7 +18,7 @@ const datei = path.resolve(process.argv[2] || 'docs/uebungshandbuch.ref.html');
 const url = pathToFileURL(datei).href;
 const browser = await starte();
 mkdirSync(path.dirname(beispielDatei('x')), { recursive: true });
-const ziele = [...VORLAGEN.map((key) => ({ name: key, scope: 'frei', key })), { name: 'L16-wegschritt', scope: 'L16', key: 'wegschritt' }, { name: 'L12-grafcet', scope: 'L12', key: 'grafcet' }];
+const ziele = [...VORLAGEN.map((key) => ({ name: key, scope: 'frei', key })), { name: 'L21-wegschritt', scope: 'L21', key: 'wegschritt' }, { name: 'L17-grafcet', scope: 'L17', key: 'grafcet' }];
 for (const { name, scope, key } of ziele) {
   const { ctx, page, meldungen } = await neueSeite(browser, url);
   await oeffne(page, scope, key);

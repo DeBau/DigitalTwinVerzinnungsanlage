@@ -42,25 +42,25 @@ async function ziehe(page, a, z, schritte = 6) {
 // A: alle Seiten der App
 export async function seiten(browser, url, S, ids) {
   const { ctx, page, meldungen } = await neueSeite(browser, url);
-  const ziele = ['#/', '#/vorlagen', '#/signale', '#/anlage', '#/richtlinien', '#/konzept', '#/bewertung', '#/bewertung/L05'];
+  const ziele = ['#/', '#/vorlagen', '#/signale', '#/anlage', '#/richtlinien', '#/konzept', '#/bewertung', '#/bewertung/L05', '#/unterlagen', '#/projekt', '#/richtlinien/stil'];
   for (const id of ids) for (let p = 1; p <= 6; p++) ziele.push(`#/${id}/${p}`);
-  const mitBild = new Set(['#/', '#/vorlagen', '#/signale', '#/richtlinien', '#/bewertung/L05', '#/L01/1', '#/L12/1', '#/L12/2', '#/L12/4', '#/L12/5', '#/L12/6', '#/L32/2']);
+  const mitBild = new Set(['#/', '#/vorlagen', '#/signale', '#/richtlinien', '#/bewertung/L05', '#/L01/1', '#/L17/1', '#/L17/2', '#/L17/4', '#/L17/5', '#/L17/6', '#/L37/2']);
   for (const z of ziele) {
     await hash(page, z);
     await S.dom_(page, `A ${z}`);
     if (mitBild.has(z)) { await page.evaluate(() => scrollTo(0, 0)); await S.bild(page, `A ${z}`); }
   }
   // Interaktionen in einer Übung: Phase 4 Prüfpunkte, Quiz, Hilfe, Variablen
-  await hash(page, '#/L12/2');
+  await hash(page, '#/L17/2');
   for (const sel of ['[data-act="hilfe"]', '[data-act="var-import"]', '[data-act="var-add"]']) {
-    const n = await page.locator(sel).count(); if (n) { await page.locator(sel).first().click(); await ruhe(page); await S.dom_(page, `A L12/2 ${sel}`); }
+    const n = await page.locator(sel).count(); if (n) { await page.locator(sel).first().click(); await ruhe(page); await S.dom_(page, `A L17/2 ${sel}`); }
   }
-  await hash(page, '#/L12/1');
-  { const n = await page.locator('[data-act="quiz"]').count(); if (n) { await page.locator('[data-act="quiz"]').first().click(); await ruhe(page); await S.dom_(page, 'A L12/1 quiz'); } }
-  await hash(page, '#/L12/5');
-  { const n = await page.locator('[data-set]').count(); for (let i = 0; i < Math.min(n, 4); i++) { await page.locator('[data-set]').nth(i).click(); await ruhe(page); } await S.dom_(page, 'A L12/5 set'); }
-  await page.locator('[data-act="print"]').first().click().catch(() => {}); await ruhe(page, 100); await S.dom_(page, 'A L12 print', '#print');
-  await S.dom_(page, 'A L12 dlg', '#dlg');
+  await hash(page, '#/L17/1');
+  { const n = await page.locator('[data-act="quiz"]').count(); if (n) { await page.locator('[data-act="quiz"]').first().click(); await ruhe(page); await S.dom_(page, 'A L17/1 quiz'); } }
+  await hash(page, '#/L17/5');
+  { const n = await page.locator('[data-set]').count(); for (let i = 0; i < Math.min(n, 4); i++) { await page.locator('[data-set]').nth(i).click(); await ruhe(page); } await S.dom_(page, 'A L17/5 set'); }
+  await page.locator('[data-act="print"]').first().click().catch(() => {}); await ruhe(page, 100); await S.dom_(page, 'A L17 print', '#print');
+  await S.dom_(page, 'A L17 dlg', '#dlg');
   await ctx.close();
   return meldungen;
 }
