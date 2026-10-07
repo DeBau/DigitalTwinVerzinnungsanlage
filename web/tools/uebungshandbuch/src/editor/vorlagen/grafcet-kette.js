@@ -79,10 +79,8 @@ export function aktionenVon(d, id){
 export function kettenRest(d, o){
   const ids = [], offen = [o];
   while (offen.length) {
-    const A = offen.pop();
-    for (const c of d.c) {
-      const B = c.a === A.id && objIn(d, c.b);
-      if (!B || isAct(B) || B.id === o.id || ids.includes(B.id) || B.y <= A.y) continue;
+    for (const B of nachfolger(d, offen.pop(), true)) {
+      if (B.id === o.id || ids.includes(B.id)) continue;
       ids.push(B.id); offen.push(B);
     }
   }
@@ -93,8 +91,16 @@ export function grafcetMitziehen(o, {umschalt}, d){
   const glieder = umschalt ? kettenRest(d, o) : [];
   return [...aktionenVon(d, o.id), ...glieder.flatMap(id => [id, ...aktionenVon(d, id)])];
 }
-// Erstes Kettenglied nach bzw. vor A (Aktionen zählen nicht)
-export const nachfolgerIn = (d, A) => { const c = d.c.find(c => c.a === A.id && !isAct(objIn(d, c.b))); return c && objIn(d, c.b); };
+/* ---------- Nachbarn in der Kette ---------- */
+// Kettennachfolger von A (Aktionen zählen nicht); unten: nur die weiter unten, also ohne Rücksprünge
+export const nachfolger = (d, A, unten = false) => d.c.filter(c => c.a === A.id).map(c => objIn(d, c.b))
+  .filter(B => B && !isAct(B) && (!unten || B.y > A.y));
+// Schritte, Transitionen und Verweise nach A, über Verzweigungslinien hinweg
+export function nachfolgerUeberLinien(d, A, tiefe = 0){
+  const weiter = B => isStep(B) || isTrans(B) || B.k === "ref" || tiefe > 3 ? [B] : nachfolgerUeberLinien(d, B, tiefe + 1);
+  return nachfolger(d, A).flatMap(weiter);
+}
+// Erstes Kettenglied vor B (Aktionen zählen nicht)
 export const vorgaengerIn = (d, B) => { const c = d.c.find(c => c.b === B.id && !isAct(objIn(d, c.a))); return c && objIn(d, c.a); };
 // Kettenglieder ids samt ihren Aktionen um dy senkrecht verschieben
 export function verschiebeRest(d, ids, dy){
@@ -121,10 +127,6 @@ export const EINFUEGEN = [
   {passt: (A, o) => isStep(A) && isTrans(o), folge: (o, d) => [o, neuesGlied(d, "step", freieSchrittNummer(d))]},
   {passt: (A, o) => isStep(A) && isStep(o), folge: (o, d) => [neuesGlied(d, "trans", ""), o]},
 ];
-// Nachfolger von A weiter unten in der Kette (ohne den Baustein ohne)
-export function nachfolgerUnten(d, A, ohne = null){
-  return d.c.filter(c => c.a === A.id && c.b !== ohne).map(c => objIn(d, c.b)).find(B => B && !isAct(B) && B.y > A.y);
-}
 // glieder unter A einhängen: A → glieder → nachher (bisheriger Nachfolger von A).
 // nachher rückt mit dem Rest der Kette um eine Teilung nach unten.
 export function haengeEin(A, glieder, d, nachher){
@@ -136,7 +138,7 @@ export function haengeEin(A, glieder, d, nachher){
 // Echtes Einfügen: Hatte A schon einen Nachfolger, kommt o (mit Partner) zwischen A und den Nachfolger.
 // false, wenn A keinen Nachfolger hat oder die Arten nicht passen.
 export function einfuegen(A, o, d){
-  const nachher = nachfolgerUnten(d, A, o.id), regel = nachher && EINFUEGEN.find(r => r.passt(A, o));
+  const nachher = nachfolger(d, A, true).find(B => B.id !== o.id), regel = nachher && EINFUEGEN.find(r => r.passt(A, o));
   if (!regel) return false;
   loeseVerbindung(d, A, o);
   haengeEin(A, regel.folge(o, d), d, nachher);
@@ -150,7 +152,7 @@ export function grafcetLoeschen(o, d){
 }
 // Schritt o in T1 → o → T2 → N: T2 geht mit, T1 hängt sich an N, und N rückt mit dem Rest der Kette an die Stelle von o
 export function ketteSchliessen(o, d){
-  const T1 = vorgaengerIn(d, o), T2 = nachfolgerIn(d, o), N = T2 && nachfolgerIn(d, T2);
+  const T1 = vorgaengerIn(d, o), T2 = nachfolger(d, o)[0], N = T2 && nachfolger(d, T2)[0];
   if (!T1 || !isTrans(T2)) return [];
   if (N && N.id !== o.id) {
     if (N.y > o.y) verschiebeRest(d, [N.id, ...kettenRest(d, N)], o.y - N.y);

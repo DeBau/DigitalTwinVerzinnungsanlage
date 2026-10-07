@@ -6,7 +6,7 @@ import { markiertesObjekt, objById } from '../auswahl.js';
 import { aendere } from '../verlauf.js';
 import { editObjLabel } from '../beschriften.js';
 import { isAct, isStep, isTrans } from './grafcet-aktion.js';
-import { aktionenVon, freieSchrittNummer, haengeEin, legeUnter, nachfolgerUnten, neuesGlied, objIn, vorgaengerIn } from './grafcet-kette.js';
+import { aktionenVon, freieSchrittNummer, haengeEin, legeUnter, nachfolger, neuesGlied, objIn, vorgaengerIn } from './grafcet-kette.js';
 import { linienBreiteAnpassen } from './grafcet-schnipsel.js';
 
 /* ---------- Reihenfolge der Kette ---------- */
@@ -18,7 +18,7 @@ export function kettenFolge(d){
   const besuche = A => {
     if (gesehen.has(A.id)) return;
     gesehen.add(A.id); folge.push(A);
-    d.c.filter(c => c.a === A.id).map(c => objIn(d, c.b)).filter(B => B && !isAct(B)).sort((a, b) => a.x - b.x).forEach(besuche);
+    nachfolger(d, A).sort((a, b) => a.x - b.x).forEach(besuche);
   };
   [...anfang, ...glieder].forEach(besuche);
   return folge;
@@ -34,7 +34,7 @@ export function stammVon(d, o){
 export function anhaengeStelle(d){
   const m = markiertesObjekt();
   if (m) return stammVon(d, m);
-  const enden = d.o.filter(o => (isStep(o) || isTrans(o)) && !nachfolgerUnten(d, o));
+  const enden = d.o.filter(o => (isStep(o) || isTrans(o)) && !nachfolger(d, o, true).length);
   return enden.sort((a, b) => b.y - a.y)[0] || null;
 }
 // Nach einem Schritt kommt zuerst die Transition, nach einer Transition zuerst der Schritt. Bei einer Verzweigungs- oder
@@ -46,7 +46,7 @@ export function plusSchritt(){
   aendere(d => {
     let A = anhaengeStelle(d);
     if (!A) A = Object.assign(neuesGlied(d, "init", "1"), {x: 180, y: 60});
-    const nachher = nachfolgerUnten(d, A);
+    const nachher = nachfolger(d, A, true)[0];
     trans = neuesGlied(d, "trans", ""); schritt = neuesGlied(d, "step", freieSchrittNummer(d));
     haengeEin(A, transitionZuerst(d, A) ? [trans, schritt] : [schritt, trans], d, nachher);
   });

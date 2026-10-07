@@ -7,7 +7,7 @@ import { ED } from '../status.js';
 import { clearSel, objById } from '../auswahl.js';
 import { renderInk } from '../anzeige.js';
 import { isAct, isStep, isTrans, spielZustand } from './grafcet-aktion.js';
-import { aktionenVon, objIn } from './grafcet-kette.js';
+import { aktionenVon, nachfolgerUeberLinien, objIn } from './grafcet-kette.js';
 
 export const SPIEL_KNOPF = `<button type="button" class="tool" data-tool="sim" `
   + `title="Kette durchspielen: Transition anklicken, der Ablauf schaltet weiter">${IC.play}Durchspielen</button>`;
@@ -18,10 +18,8 @@ export const SPIEL_ANLEITUNG = `<div class="props"><div class="palh">Kette durch
 
 // Schritte, die über Verzweigungslinien (und Verweise) vor bzw. nach der Transition liegen
 export const zielSchritt = (d, ref) => d.o.find(o => isStep(o) && o.v === (/\d+/.exec(ref.v || "") || [""])[0]);
-export function schritteNach(d, A, tiefe = 0){
-  return d.c.filter(c => c.a === A.id).map(c => objIn(d, c.b)).filter(B => B && !isAct(B) && !isTrans(B)).flatMap(B =>
-    isStep(B) ? [B] : B.k === "ref" ? [zielSchritt(d, B)].filter(Boolean) : tiefe < 4 ? schritteNach(d, B, tiefe + 1) : []);
-}
+export const schrittOderZiel = (d, B) => isStep(B) ? [B] : B.k === "ref" ? [zielSchritt(d, B)].filter(Boolean) : [];
+export const schritteNach = (d, A) => nachfolgerUeberLinien(d, A).flatMap(B => schrittOderZiel(d, B));
 export function schritteVor(d, B, tiefe = 0){
   return d.c.filter(c => c.b === B.id).map(c => objIn(d, c.a)).filter(A => A && !isAct(A) && !isTrans(A)).flatMap(A =>
     isStep(A) ? [A] : tiefe < 4 ? schritteVor(d, A, tiefe + 1) : []);

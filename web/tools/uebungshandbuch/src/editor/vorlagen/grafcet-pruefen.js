@@ -1,16 +1,11 @@
 // GRAFCET: Regeln für den Knopf „Prüfen“ (Vorlagen-Haken pruefe, Kern in editor/pruefung.js).
 // Jede Regel bekommt die Zeichnung d und gibt Befunde {stufe, text, o?, c?} zurück. Die Texte sprechen den Azubi an.
 import { isAct, isStep, isTrans } from './grafcet-aktion.js';
-import { objIn } from './grafcet-kette.js';
+import { nachfolger, nachfolgerUeberLinien } from './grafcet-kette.js';
 
 export const befundFehler = (text, wo = {}) => ({stufe: "fehler", text, ...wo});
 export const befundHinweis = (text, wo = {}) => ({stufe: "hinweis", text, ...wo});
 export const nummerierteSchritte = d => d.o.filter(o => o.k === "step" || o.k === "init");
-export const kettenNachfolger = (d, A) => d.c.filter(c => c.a === A.id).map(c => objIn(d, c.b)).filter(B => B && !isAct(B));
-// Schritte und Transitionen nach A, über Verzweigungslinien hinweg
-export function echteNachfolger(d, A, tiefe = 0){
-  return kettenNachfolger(d, A).flatMap(B => isStep(B) || isTrans(B) || tiefe > 3 ? [B] : echteNachfolger(d, B, tiefe + 1));
-}
 
 export function regelAnfangsschritt(d){
   const anfang = d.o.filter(o => o.k === "init");
@@ -21,7 +16,7 @@ export function regelAnfangsschritt(d){
 export function regelWechsel(d){
   const liste = [];
   for (const A of d.o.filter(o => isStep(o) || isTrans(o))) {
-    for (const B of echteNachfolger(d, A)) {
+    for (const B of nachfolgerUeberLinien(d, A)) {
       if (isStep(A) && isStep(B)) liste.push(befundFehler(`Auf Schritt ${A.v} folgt direkt Schritt ${B.v}. Dazwischen gehört eine `
         + "Transition.", {o: B.id}));
       if (isTrans(A) && isTrans(B)) liste.push(befundFehler("Zwei Transitionen folgen direkt aufeinander. Dazwischen gehört ein "
@@ -45,7 +40,7 @@ export function regelVerweise(d){
   return d.o.filter(o => o.k === "ref").filter(o => !nummern.has((/\d+/.exec(o.v || "") || [""])[0]))
     .map(o => befundFehler(o.v ? `Den Schritt ${o.v} als Sprungziel gibt es nicht.` : "Der Verweis hat kein Ziel.", {o: o.id}));
 }
-export const kettenEnde = (d, o) => (isStep(o) || isTrans(o)) && !kettenNachfolger(d, o).length && d.c.some(c => c.b === o.id);
+export const kettenEnde = (d, o) => (isStep(o) || isTrans(o)) && !nachfolger(d, o).length && d.c.some(c => c.b === o.id);
 export const regelZyklus = d => d.o.filter(o => kettenEnde(d, o))
   .map(o => befundHinweis("Hier endet die Kette. Schließ sie mit einem Rücksprung zum Anfangsschritt oder einem Verweis.", {o: o.id}));
 
