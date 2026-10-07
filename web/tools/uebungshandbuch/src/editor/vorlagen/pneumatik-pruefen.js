@@ -62,9 +62,9 @@ export function doppelteKennzeichen(d){
     .map(([k, os]) => ({stufe: "fehler", text: `${k} kommt ${os.length}-mal vor.`, o: os[1].id}));
 }
 // Antriebe ohne Endlagensensoren (die SPS erfährt sonst nicht, wann die Bewegung fertig ist); je fehlendem Sensor ein Befund
-const ENDLAGEN = [["s1", "hintere"], ["s2", "vordere"]];
+const SENSOR_ENDLAGEN = [["s1", "hintere"], ["s2", "vordere"]];
 export function fehlendeSensoren(d){
-  return d.o.filter(o => ANTRIEB_ARTEN.includes(o.k)).flatMap(o => ENDLAGEN.filter(([f]) => !o[f]).map(([, lage]) => ({
+  return d.o.filter(o => ANTRIEB_ARTEN.includes(o.k)).flatMap(o => SENSOR_ENDLAGEN.filter(([f]) => !o[f]).map(([, lage]) => ({
     stufe: "hinweis", o: o.id, text: `${bauteilName(o)}: Sensor für die ${lage} Endlage fehlt. Ohne ihn weiß die SPS nicht, `
       + `wann die Bewegung fertig ist.`})));
 }

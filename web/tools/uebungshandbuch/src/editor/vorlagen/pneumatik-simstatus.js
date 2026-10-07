@@ -15,7 +15,7 @@ export const SIM_HILFE = `<p class="small" style="margin:0 0 6px">Auf die Betät
   + `Grundstellung zurück. Beim bistabilen Ventil ist die Spule nur 1, solange du drückst (Impuls). Seine Stellung bleibt und `
   + `steht unter den Signalen. Zum Bearbeiten „Auswählen“ wählen.</p>`;
 // Haken anleitung der Vorlage, solange das Werkzeug Simulation gewählt ist
-export const simAnleitung = () => `<div class="props"><div class="palh">Simulation</div>${SIM_HILFE}`
+export const pneuSimAnleitung = () => `<div class="props"><div class="palh">Simulation</div>${SIM_HILFE}`
   + `<div id="simstatus">${simStatusHTML()}</div></div>`;
 
 // Bistabil: Wegeventil mit Rastung durch zwei Betätigungen (nicht 5/3, das von Federn in die Mitte gestellt wird)
@@ -45,10 +45,10 @@ const schaltstellungen = () => ED.data.o.filter(o => VALVE[o.k] && istBistabil(o
   .map(o => `${esc(o.v || [o.spl, o.spr].filter(Boolean).join("/"))}: ${steuerNr(o, vstate(o))}`);
 export function simStatusHTML(){
   if (!simOn()) return "";
-  const signal = ([n, an]) => `<span style="display:inline-block;margin:0 10px 4px 0;font-size:12.5px">`
+  const signalZeile = ([n, an]) => `<span style="display:inline-block;margin:0 10px 4px 0;font-size:12.5px">`
     + `<b>${esc(n)}</b> <span style="color:${an ? "#2E7D4F" : "#8A949C"};font-weight:700">${an ? 1 : 0}</span></span>`;
   const sig = simSignale(), st = schaltstellungen();
-  return (sig.length ? `<div>${sig.map(signal).join("")}</div>` : "")
+  return (sig.length ? `<div>${sig.map(signalZeile).join("")}</div>` : "")
     + (st.length ? `<div class="small muted" data-simstellung>Schaltstellung ${st.join(", ")}</div>` : "") + wegZeitSVG();
 }
 export function simStatusZeigen(){

@@ -75,7 +75,7 @@ export function wireD(a, b, spuren){
   return pfadD(spuren ? spuren.knick(punkte, `${a.x},${a.y}`) : punkte);
 }
 // Textanker auf der Gegenseite (gespiegelte Schrift)
-export const GEGENSEITE = {start: "end", end: "start", middle: "middle"};
+export const ANKER_SPIEGEL = {start: "end", end: "start", middle: "middle"};
 const ANTEIL_LINKS = {start: 0, middle: .5, end: 1};   // Anteil der Textbreite links vom Anker
 // Kennzeichen (Text o.v) aller Bauteile in objs als gesperrte Flächen in spuren melden: Leitungen laufen nicht hindurch.
 export function kennzeichenSperren(spuren, objs){
@@ -90,7 +90,7 @@ export function kennzeichenFlaeche(o){
   const m = /<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)"/.exec(svg.slice(svg.lastIndexOf("<text", ende)));
   if (!m) return null;
   const X = drehung(o), [x, y] = X ? X.pt(+m[1], +m[2]) : [+m[1], +m[2]], w = String(o.v).length * 7 + 2;
-  const anker = X && X.f * X.c < 0 ? GEGENSEITE[m[3]] : m[3];   // wie gedreht() in zeichnen.js
+  const anker = X && X.f * X.c < 0 ? ANKER_SPIEGEL[m[3]] : m[3];   // wie gedreht() in zeichnen.js
   return [x - w * ANTEIL_LINKS[anker], y - 10, w, 13];
 }
 const senkrecht = q => q.d === "u" || q.d === "d";

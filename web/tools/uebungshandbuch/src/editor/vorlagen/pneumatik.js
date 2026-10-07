@@ -10,7 +10,7 @@ import { signalFeld } from '../signalfeld.js';
 import { listenFeld } from '../eigenschaften.js';
 import { VALVE, betaetigung, cylinder, drawValve, entlueftung, istEntlueftung, istSpule, rechteStellung, steuerNr, vPairs } from './pneumatik-symbole.js';
 import { GERAET, oeffnung } from './pneumatik-geraete.js';
-import { simAnleitung } from './pneumatik-simstatus.js';
+import { pneuSimAnleitung } from './pneumatik-simstatus.js';
 import { simulationKlick, simulationWechsel } from './pneumatik-simulation.js';
 import { ANTRIEB_KNOPF, antriebKlick } from './pneumatik-antriebe.js';
 import { pneuPruefen } from './pneumatik-pruefen.js';
@@ -23,7 +23,7 @@ registriereVorlage("pneumatik", {
     + `title="Ventile per Klick schalten, Druck und Zylinderbewegung ansehen">${IC.play}Simulation</button>` + ANTRIEB_KNOPF},
   klick: antriebKlick,
   pruefe: pneuPruefen,
-  anleitung: () => ED.tool === "sim" ? simAnleitung() : null,
+  anleitung: () => ED.tool === "sim" ? pneuSimAnleitung() : null,
   werkzeugWechsel: simulationWechsel,
   zeiger: {unten: simulationKlick},
 });

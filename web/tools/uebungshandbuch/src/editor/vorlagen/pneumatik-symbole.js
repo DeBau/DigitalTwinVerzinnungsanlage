@@ -2,7 +2,7 @@
 // Benutzt von vorlagen/pneumatik.js (Bauteile) und pneumatik-simulation.js (Schaltstellungen).
 import { INK, SVGT, arrowHead } from '../svg.js';
 import { ED } from '../status.js';
-import { BLUE, DIRV, GEGENSEITE, LB, PN, PP, SK, drehung, portsOf, pressed, simOn } from '../bauteile.js';
+import { ANKER_SPIEGEL, BLUE, DIRV, LB, PN, PP, SK, drehung, portsOf, pressed, simOn } from '../bauteile.js';
 
 // Stellung von Kolben bzw. Schwenkantrieb (0 bis 1) und Schaltstellung eines Ventils, solange die Simulation läuft
 export const posOf = o => simOn() && ED.sim.pos[o.id] !== undefined ? ED.sim.pos[o.id] : 0;
@@ -109,7 +109,7 @@ export function aufrecht(o, x, y, d, versatz){
   const X = drehung(o), [vx, vy, anker] = versatz[X ? X.dir(d) : d];
   if (!X) return [x + vx, y + vy, anker];
   const [px, py] = X.pt(x, y), [ux, uy] = X.zurueck(px + vx, py + vy);
-  return [ux, uy, X.f * X.c < 0 ? GEGENSEITE[anker] : anker];
+  return [ux, uy, X.f * X.c < 0 ? ANKER_SPIEGEL[anker] : anker];
 }
 // Steueranschluss (14, 12, 10) und Name der Spule (z. B. −MB3) um die Spulenmitte (x, cy), Halbbreite b, außen Richtung d.
 // Waagrecht: Nummer darüber, Name darunter zur Kästchenkante hin. Senkrecht: Nummer links, Name rechts daneben.
