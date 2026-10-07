@@ -471,4 +471,25 @@ export const tests = [
       t.gleich(await t.zaehle(`#edstage .ink [data-o="${mv.id}"] path`), 2, 'Verriegelung: Wirklinie und Dreiecke');
     },
   },
+  {
+    name: 'Integration: Querstücke im Hauptstromkreis laufen nicht über fremde Klemmen',
+    daten: 'elektro-fremde-klemmen',
+    lauf: async (t) => {
+      await t.oeffne('leistung');
+      const wege = await t.page.$$eval('#edstage .ink [data-c] path', (ps) => [...new Set(ps.map((p) => p.getAttribute('d')))]);
+      const punkte = (d) => [...d.matchAll(/([MLHV])([-\d.]+)(?:[ ,]([-\d.]+))?/g)].reduce((P, [, c, a, b]) => {
+        const [x, y] = P.length ? P[P.length - 1] : [0, 0];
+        return [...P, c === 'H' ? [+a, y] : c === 'V' ? [x, +a] : [+a, +b]];
+      }, []);
+      const klemmen = [[190, 310], [210, 310], [230, 310], [190, 370], [210, 370], [230, 370]];   // −QA1, nicht verdrahtet
+      const auf = (k, [a, b]) => Math.min(a[0], b[0]) - 1 <= k[0] && k[0] <= Math.max(a[0], b[0]) + 1
+        && Math.min(a[1], b[1]) - 1 <= k[1] && k[1] <= Math.max(a[1], b[1]) + 1;
+      t.gleich(wege.length, 3, 'drei Leitungen −FA1 → −QA2');
+      for (const d of wege) {
+        const P = punkte(d), stuecke = P.slice(1).map((q, i) => [P[i], q]);
+        const ueber = klemmen.filter((k) => stuecke.some((s) => auf(k, s)));
+        t.gleich(ueber, [], `Leitung ${d} über Klemmen von −QA1`);
+      }
+    },
+  },
 ];

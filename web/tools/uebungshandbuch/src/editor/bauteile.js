@@ -81,6 +81,11 @@ const ANTEIL_LINKS = {start: 0, middle: .5, end: 1};   // Anteil der Textbreite 
 export function kennzeichenSperren(spuren, objs){
   Object.values(objs).forEach(o => { const r = kennzeichenFlaeche(o); if (r) spuren.sperre(...r); });
 }
+// Anschlüsse aller Bauteile in objs als kleine gesperrte Flächen: Querstücke laufen nicht über fremde Klemmen.
+// Das erste und das letzte Stück einer Leitung hängen am Anschluss und bleiben (knickeWeg in spuren.js).
+export function anschlussSperren(spuren, objs){
+  Object.values(objs).filter(o => !istSchiene(o)).forEach(o => portsOf(o).forEach(p => spuren.sperre(p.x - 4, p.y - 4, 8, 8)));
+}
 // Rechteck [x, y, w, h] um das Kennzeichen von o. Ort und Anker liest es aus dem gezeichneten Symbol (Haken zeichne),
 // gedreht wie das Bauteil; die Schrift bleibt aufrecht. null, wenn o kein Kennzeichen zeichnet.
 export function kennzeichenFlaeche(o){

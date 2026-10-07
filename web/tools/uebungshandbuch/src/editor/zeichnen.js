@@ -5,7 +5,7 @@ import { ED, istMarkiert } from './status.js';
 import { BAUSTEIN, art, bauteil, vorlage } from './registry.js';
 import { neueSpuren } from './spuren.js';
 import { strokesSVG } from './vorlagen-svg.js';
-import { BLUE, drehung, istSchiene, kennzeichenSperren, portsOf, simOn, versetzt, virtuelleSchienen, wireD, wireEnds } from './bauteile.js';
+import { BLUE, anschlussSperren, drehung, istSchiene, kennzeichenSperren, portsOf, simOn, versetzt, virtuelleSchienen, wireD, wireEnds } from './bauteile.js';
 import { gruppeVon, mitteVon, umrissVon } from './bausteine.js';
 import { verbindeKette } from './kette.js';
 
@@ -182,6 +182,7 @@ export function zeichnungSVG(d, edit=false, key=null){
   const rails = v.hintergrund ? v.hintergrund(d, cs) : "";   // Haken hintergrund, z. B. Strompfade zu L+ und M
   const spuren = neueSpuren();   // eine Belegung für alle Verbindungen der Zeichnung
   kennzeichenSperren(spuren, objs);   // Leitungen meiden die Kennzeichen der Bauteile
+  anschlussSperren(spuren, objs);   // und die Anschlüsse fremder Bauteile
   const conns = cs.map((c, i) => {
     const gm = verbindungsWeg(c, objs, cs, spuren);
     if (!gm) return "";

@@ -3,10 +3,10 @@
 // Ein Weg meldet seine Abschnitte an und bekommt eine freie Spur: Abschnitte verschiedener Netze liegen dann nicht
 // deckungsgleich übereinander. Ein Netz ist ein Text wie "a:pa" (Objekt-ID und Anschluss).
 // Solange niemand belege oder knick aufruft, ändert sich kein Weg. Mit sperre meldet zeichnungSVG die Kennzeichen der
-// Bauteile als Flächen, durch die kein Weg läuft (kennzeichenSperren in bauteile.js).
+// Bauteile und ihre Anschlüsse als Flächen, durch die kein Weg läuft (kennzeichenSperren, anschlussSperren in bauteile.js).
 
 // Versuchte Verschiebungen in Rasterschritten: erst die Ausgangslage, dann abwechselnd darüber und darunter
-export const SPUR_FOLGE = [0, 1, -1, 2, -2, 3];
+export const SPUR_FOLGE = [0, 1, -1, 2, -2, 3, -3];
 
 // Neue, leere Belegung. raster ist der Abstand zweier Spuren.
 export function neueSpuren(raster = 10){
@@ -39,17 +39,28 @@ export function belegeSpur(liste, raster, lage, von, bis, netz){
 }
 
 // Rechtwinkligen Linienzug anmelden. Die inneren Abschnitte weichen auf eine freie Spur aus, der erste und der
-// letzte bleiben, weil sie an Anschlüssen hängen. Rückgabe: die neuen Punkte.
+// letzte bleiben, weil sie an Anschlüssen hängen. Eine Spur gilt erst als frei, wenn auch die beiden Nachbarstücke,
+// die sich mit ihr verlängern oder verkürzen, frei sind (sonst nur der Abschnitt selbst). Rückgabe: die neuen Punkte.
 export function knickeWeg(belegt, raster, punkte, netz){
   const p = punkte.map(q => [...q]);
-  for (let i = 0; i + 1 < p.length; i++) {
+  for (let i = 1; i + 2 < p.length; i++) {
     const [a, b] = [p[i], p[i + 1]], waagrecht = Math.abs(a[1] - b[1]) < 1;
     const achse = waagrecht ? "h" : "v", k = waagrecht ? 1 : 0, j = 1 - k;
-    if (i === 0 || i + 2 === p.length) { belegeSpur(belegt[achse], raster, a[k], a[j], b[j], netz); continue; }
-    const l = belegeSpur(belegt[achse], raster, a[k], a[j], b[j], netz);
+    const lagen = SPUR_FOLGE.map(s => a[k] + s * raster).filter(l => spurFrei(belegt[achse], l, a[j], b[j], netz));
+    const l = lagen.find(l => nachbarnFrei(belegt[waagrecht ? "v" : "h"], p, i, k, l, netz)) ?? lagen[0] ?? a[k];
     a[k] = l; b[k] = l;
   }
+  p.slice(1).forEach((b, i) => {
+    const a = p[i], waagrecht = Math.abs(a[1] - b[1]) < 1, k = waagrecht ? 1 : 0;
+    belegeSpur(belegt[waagrecht ? "h" : "v"], raster, a[k], a[1 - k], b[1 - k], netz);
+  });
   return p;
+}
+// Sind die Nachbarstücke von Abschnitt i (p[i] → p[i + 1]) frei, wenn er auf Lage l liegt? Die äußeren Enden
+// (Anschluss oder Knick) zählen nicht mit, nur die Strecke bis 5 davor.
+export function nachbarnFrei(liste, p, i, k, l, netz){
+  const frei = (q, ende) => { const r = ende[k] < l ? 1 : -1; return spurFrei(liste, q[1 - k], ende[k] + 5 * r, l, netz); };
+  return frei(p[i], p[i - 1]) && frei(p[i + 1], p[i + 2]);
 }
 
 // Linienzug als SVG-Pfad
