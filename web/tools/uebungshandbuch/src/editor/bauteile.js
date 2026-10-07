@@ -3,6 +3,7 @@
 import { INK, PH, SVGT, clamp } from './svg.js';
 import { ED } from './status.js';
 import { art, bauteil, vorlage } from './registry.js';
+import { pfadD } from './spuren.js';
 
 // Strichstile und Beschriftungen der Bauteilsymbole: Pfad, gestrichelt, Kennzeichen, Anschlussname
 export const SK = `stroke="${INK}" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"`;
@@ -65,17 +66,26 @@ export function virtuelleSchienen(key, n){
   return r;
 }
 // Leitungsweg zwischen zwei Anschlüssen: erst 14 in Anschlussrichtung hinaus, dann rechtwinklig verbinden.
-// spuren (spuren.js) ist die Spurbelegung der Zeichnung, noch unbenutzt.
+// spuren (spuren.js) ist die Spurbelegung der Zeichnung: Das Querstück weicht auf eine freie Spur aus, damit Leitungen
+// verschiedener Netze nie deckungsgleich liegen. Netz ist der Startanschluss a (seine Lage auf dem Blatt).
 export function wireD(a, b, spuren){
-  if ((a.d === "u" || a.d === "d") && (b.d === "u" || b.d === "d") && Math.abs(a.x - b.x) < 1) return `M${a.x} ${a.y}V${b.y}`;
-  const A = versetzt(a, 14), B = versetzt(b, 14), va = a.d === "u" || a.d === "d", vb = b.d === "u" || b.d === "d";
-  let mid;
-  // je Anschluss eigene Querhöhe bzw. Querlage: verschiedene Potenziale liegen nie übereinander
-  const quer = (u, v, lage) => Math.round((u + v) / 20) * 10 + (Math.round(lage / 20) % 4) * 10 - 10;
-  if (va && vb) { const my = quer(A[1], B[1], a.x); mid = [[A[0], my], [B[0], my]]; }
-  else if (!va && !vb) { const mx = quer(A[0], B[0], a.y); mid = [[mx, A[1]], [mx, B[1]]]; }
-  else if (va) mid = [[A[0], B[1]]]; else mid = [[B[0], A[1]]];
-  return "M" + [[a.x, a.y], A, ...mid, B, [b.x, b.y]].map(p => p.join(" ")).join("L");
+  const punkte = ohneGeradePunkte([[a.x, a.y], ...leitungsKnicke(a, b), [b.x, b.y]]);
+  return pfadD(spuren ? spuren.knick(punkte, `${a.x},${a.y}`) : punkte);
+}
+const senkrecht = q => q.d === "u" || q.d === "d";
+// Innere Eckpunkte der Leitung von a nach b, Querstück auf halbem Weg im 10er-Raster
+export function leitungsKnicke(a, b){
+  if (senkrecht(a) && senkrecht(b) && Math.abs(a.x - b.x) < 1) return [];
+  const A = versetzt(a, 14), B = versetzt(b, 14), mitte = (u, v) => Math.round((u + v) / 20) * 10;
+  if (senkrecht(a) && senkrecht(b)) { const my = mitte(A[1], B[1]); return [A, [A[0], my], [B[0], my], B]; }
+  if (!senkrecht(a) && !senkrecht(b)) { const mx = mitte(A[0], B[0]); return [A, [mx, A[1]], [mx, B[1]], B]; }
+  return [A, senkrecht(a) ? [A[0], B[1]] : [B[0], A[1]], B];
+}
+// Punkte, die auf einer Geraden zwischen ihren Nachbarn liegen (oder doppelt sind), fallen weg
+export function ohneGeradePunkte(p){
+  const gerade = (a, m, b) => (Math.abs(a[0] - m[0]) < .5 && Math.abs(m[0] - b[0]) < .5)
+    || (Math.abs(a[1] - m[1]) < .5 && Math.abs(m[1] - b[1]) < .5);
+  return p.filter((m, i) => i === 0 || i === p.length - 1 || !gerade(p[i - 1], m, p[i + 1]));
 }
 // Punkt n weiter in Richtung q.d des Anschlusses q
 export function versetzt(q, n){
