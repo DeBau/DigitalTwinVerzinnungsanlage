@@ -143,7 +143,8 @@ export const tests = [
         const ys = new Set(d.match(/-?[\d.]+/g).filter((_, i) => i % 2).map(Number));
         t.gleich(ys.size, 1, `waagrecht auf Anschlusshöhe: ${d}`);
       }
-      const punkte = await t.page.$$eval('#edstage .ink circle[r="2.8"]', (cs) => cs.map((c) => [+c.getAttribute('cx'), +c.getAttribute('cy')]));
+      const punkte = await t.page.$$eval('#edstage .ink circle[r="2.8"]',
+        (cs) => cs.map((c) => [+c.getAttribute('cx'), +c.getAttribute('cy')]));
       for (const y of [290, 350]) t.erwarte(punkte.some(([x, py]) => x === PFAD(1) && py === y), `Abzweigpunkt bei ${y}`);
     },
   },
@@ -196,6 +197,18 @@ export const tests = [
       t.gleich(await t.zaehle('#edstage .ink text:has-text("Kurzschluss")'), 0, 'kein Kurzschluss');
       await t.werkzeug('sel');
       t.gleich(await t.zaehle('#edstage .ink path.strom'), 0, 'ohne Simulation keine Unterlegung');
+    },
+  },
+  {
+    name: 'E8 Kontaktspiegel unter der Spule, Querverweis am Kontakt',
+    lauf: async (t) => {
+      await selbsthaltung(t);
+      await setzeEinzeln(t, 'nc', PFAD(5), 200);   // Öffner −QA1 in Pfad 5
+      const spiegel = await t.page.$$eval('#edstage .ink g.spiegel text',
+        (ts) => ts.map((x) => [x.textContent, x.getAttribute('text-anchor')]));
+      t.gleich(spiegel, [['2', 'end'], ['5', 'start']], 'Schließer in Pfad 2 links, Öffner in Pfad 5 rechts');
+      const verweise = await t.page.$$eval('#edstage .ink text', (ts) => ts.map((x) => x.textContent).filter((x) => x.startsWith('/')));
+      t.gleich(verweise.sort(), ['/1', '/1'], 'beide Kontakte verweisen auf Pfad 1');
     },
   },
 ];

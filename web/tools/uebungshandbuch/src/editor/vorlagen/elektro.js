@@ -11,6 +11,7 @@ import { gruppenId } from '../bausteine.js';
 import { pageCount } from '../zeichnen.js';
 import { kennzeichen, kontaktAnschluss, kontaktNummern, merkeOrdnung } from './elektro-kennzeichen.js';
 import { autoLeitungSVG, kennzeichenSVG, merkePfade, pfadKlick, pfadKnopf, pfadNummer, pfadX, stromlaufBlatt } from './elektro-pfade.js';
+import { spiegelSVG } from './elektro-spiegel.js';
 import { STROM_ANLEITUNG, simKnopf, simUnten, simWechsel, simZusatz, stromSVG } from './elektro-simulation.js';
 
 /* ---------- Vorlage ---------- */
@@ -18,10 +19,10 @@ import { STROM_ANLEITUNG, simKnopf, simUnten, simWechsel, simZusatz, stromSVG } 
 // den Stromfluss unterlegen, automatische Leitungen
 export function stromlaufHintergrund(d, cs){
   merkeOrdnung(d); merkePfade(d);
-  if (!simOn() || !ED.svg) return autoLeitungSVG(d, cs);
+  if (!simOn() || !ED.svg) return autoLeitungSVG(d, cs) + spiegelSVG(d);
   const objs = Object.fromEntries((d.o || []).map(o => [o.id, o]));
   virtuelleSchienen("stromlauf", pageCount("stromlauf", d)).forEach(r => { objs[r.id] = r; });
-  return stromSVG(d, cs, objs) + autoLeitungSVG(d, cs);
+  return stromSVG(d, cs, objs) + autoLeitungSVG(d, cs) + spiegelSVG(d);
 }
 registriereVorlage("stromlauf", {
   n: "Stromlaufplan", d: "Steuerstromkreis zwischen L+ und M: Taster, Not-Halt, SPS, Sicherheitsrelais",

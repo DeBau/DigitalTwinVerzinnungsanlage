@@ -65,7 +65,8 @@ export function stromlaufBlatt(ex, page, meta){
     s += TX(pfadX(i, breite), 52, 9, String(i), "middle")
       + `<path d="M${pfadX(i, breite)} 74V586" stroke="${G2}" stroke-width=".6" stroke-dasharray="2 5"/>`;
   }
-  return grid(10, "#EEF1F3", 40, 80, 975, 580) + s + TX(40, 615, 9, "Strompfad-Nr. oben, Kontaktspiegel unter den Spulen");
+  return grid(10, "#EEF1F3", 40, 80, 975, 580) + s
+    + TX(40, 682, 9, "Strompfad-Nr. oben, Kontaktspiegel unter den Spulen: links Schließer, rechts Öffner, mit Pfad");
 }
 
 /* ---------- Kennzeichen links oder rechts ---------- */
