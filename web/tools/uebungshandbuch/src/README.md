@@ -501,6 +501,20 @@ Namen aus dem Plan und die Haken, die es dafür gibt:
 | `SIGART[bausteinart]` | Bausteinart `kennbuchstaben` | `kennzeichenFeld` (eigenschaften.js) |
 | `edit()` | `aendere()` (`edit` ist überall ein lokaler Parameter) | verlauf.js |
 
+### Merge-Hinweise ELEKTRO
+
+`dockLeitung(dock)` (andocken.js) liefert im Branch `w1-elektro` eine **Liste** von Verbindungen, nicht mehr eine
+einzelne: Beim dreipoligen Andocken im Hauptstromkreis entstehen drei Leitungen (über `leitungenZwischen` und den
+Gruppen-Haken `mehrpolig`, dort mit `{andocken: true}`, also immer Pol für Pol, nie mit L1 ↔ L3 getauscht).
+
+* Aufrufer, die die Liste erwarten: `placeObj` (andocken.js) mit `d.c.push(...dockLeitung(dock))` und `ziehenEnde`
+  (zeiger.js) mit `ED.data.c.push(...dockLeitung(dk))`. Im KERN-Stand heißt die Stelle in zeiger.js
+  `d.c.push(dockLeitung(dk))`: beim Zusammenführen den Spread `...` ergänzen, sonst landet ein Array in `d.c`.
+* Vorschau `andockVorschau` (andocken.js): Ruft der KERN-Stand `verbindungsWeg(dockLeitung(dock), map, [])`, je
+  Leitung einen Weg zeichnen:
+  `dockLeitung(dock).map(c => verbindungsWeg(c, map, [])).filter(Boolean).map(gm => VORSCHAU(gm.d)).join("")`.
+  Der Kreis um den Anschluss (`andockPunkt`) bleibt einmal.
+
 ### Namen aus Paket V (alt → neu)
 
 Wer auf `welle1-k0` angefangen hat, findet die Namen so wieder:
