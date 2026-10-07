@@ -82,9 +82,9 @@ export function hilfslinien(o, marks){
 // Vorschau der Verbindung, die beim Loslassen entsteht, und Kreis um den Anschluss
 export function andockVorschau(o, dock){
   const map = Object.fromEntries(ED.data.o.map(p => [p.id, p])); map[o.id] = o;
-  const gm = verbindungsWeg(dockLeitung(dock), map, []);   // mit pa/pb: Leitung von Anschluss zu Anschluss
+  const wege = dockLeitung(dock).map(c => verbindungsWeg(c, map, [])).filter(Boolean);   // je Leitung ein Weg (mehrpolig)
   const p = vorschauPunkt(map, dock);
-  return (gm ? VORSCHAU(gm.d) : "")
+  return wege.map(gm => VORSCHAU(gm.d)).join("")
     + `<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#2F80ED" fill-opacity=".25" stroke="#2F80ED" stroke-width="1.5"/>`;
 }
 // Ort des Vorschaukreises: am Anschluss pa von dock.a, wenn der Haken andocke ihn nennt, sonst am Andockpunkt der Kette
@@ -97,11 +97,16 @@ export function avoidBreak(o){   // Bausteine nicht in Schriftfeld/Rand am Blatt
   for (let i = 0; i < 4; i++) { const b = umrissVon(o), k = Math.floor((b.y + b.h + 80) / PH), B = k * PH;
     if (k >= 1 && b.y < B + 70 && b.y + b.h > B - 80) o.y += B + 70 - b.y; else break; }
 }
-// Verbindung, die beim Andocken entsteht; zwischen Anschlüssen, wenn der Haken andocke pa und pb nennt
+// Verbindungen, die beim Andocken entstehen; Leitungen zwischen Anschlüssen, wenn der Haken andocke pa und pb nennt
 export function dockLeitung(dock){
-  const c = {a: dock.a, b: dock.b, v: ""};
-  if (dock.pa !== undefined) Object.assign(c, {pa: dock.pa, pb: dock.pb});
-  return c;
+  if (dock.pa === undefined) return [{a: dock.a, b: dock.b, v: ""}];
+  return leitungenZwischen(dock.a, dock.pa, dock.b, dock.pb, {andocken: true});
+}
+// Leitungen für eine Verbindung von Anschluss pa an a nach pb an b. Der Gruppen-Haken mehrpolig(a, pa, b, pb) darf
+// stattdessen alle Leitungen nennen, z. B. drei Pole auf einmal (vorlagen/leistung.js). wie = {andocken: true} beim Andocken
+export function leitungenZwischen(a, pa, b, pb, wie = {}){
+  const o = objById(a) || objById(b), mehr = o && gruppeVon(o).mehrpolig;
+  return ((mehr && mehr(a, pa, b, pb, wie)) || [{a, pa, b, pb}]).map(w => ({...w, v: ""}));
 }
 export const linked = (a, b) => ED.data.c.some(c => (c.a === a && c.b === b) || (c.a === b && c.b === a));
 export function placeObj(k, pt){
@@ -112,7 +117,7 @@ export function placeObj(k, pt){
   aendere(d => {
     d.o.push(o);
     if (A) d.c.push({a: A.id, b: o.id, v: ""});
-    else if (dock && !linked(dock.a, dock.b)) d.c.push(dockLeitung(dock));
+    else if (dock && !linked(dock.a, dock.b)) d.c.push(...dockLeitung(dock));
     const nachSetzen = gruppeVon(o).nachSetzen;   // Haken nachSetzen(o, d, {A, dock}), z. B. Transition ergänzen
     if (nachSetzen) nachSetzen(o, d, {A, dock});
   }, {ohneRender: true});
@@ -123,9 +128,11 @@ export function placeObj(k, pt){
 export function connectPorts(a, pa, b, pb){
   if (a === b && pa === pb) return;
   if (a.startsWith("_") && b.startsWith("_")) return;
-  const gleich = c => (c.a === a && c.pa === pa && c.b === b && c.pb === pb) || (c.a === b && c.pa === pb && c.b === a && c.pb === pa);
-  if (ED.data.c.some(gleich)) return;
-  aendere(d => { d.c.push({a, pa, b, pb, v: ""}); markiere("c", d.c.length - 1); });
+  const gleich = w => c => (c.a === w.a && c.pa === w.pa && c.b === w.b && c.pb === w.pb)
+    || (c.a === w.b && c.pa === w.pb && c.b === w.a && c.pb === w.pa);
+  const neu = leitungenZwischen(a, pa, b, pb).filter(w => !ED.data.c.some(gleich(w)));
+  if (!neu.length) return;
+  aendere(d => { d.c.push(...neu); markiere("c", d.c.length - 1); });
 }
 export function connect(a, b){
   const A = objById(a); if (!A || (a === b && !gruppeVon(A).schleife)) return;

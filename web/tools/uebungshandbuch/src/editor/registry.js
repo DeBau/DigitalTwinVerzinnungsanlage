@@ -12,13 +12,14 @@ export const VORL = {};       // Vorlage → ganze Anmeldung {n, d, gruppen, sch
 
 /* ---------- Bausteingruppen ---------- */
 export const GRUPPE = {};     // Gruppe → ganze Anmeldung {name, hinweis, kette, verbinde, andocke, mitziehen, loeschen,
-                              //   kennzeichen, nachSetzen, vorVerbinden, …}; Signaturen in src/README.md
+                              //   kennzeichen, nachSetzen, vorVerbinden, mehrpolig, …}; Signaturen in src/README.md
 
 // Eintrag einer Vorlage; {} für einen unbekannten Schlüssel, damit Haken ohne weitere Prüfung abfragbar sind
 export const vorlage = key => VORL[key] || {};
 
 /* ---------- Bausteine ---------- */
 // Bausteinart oder Palettenvariante → {n, g, mk, hide, zeichne, anschluesse, feldliste, beschriftung, …, Haken};
+// anschlussName(o, n) → angezeigter Name des gespeicherten Anschlusses n (wireRef in zeichnen.js), z. B. "PE2" → "PE";
 // Bauteile zusätzlich {bauteil: true, w, h, bx, def, lbl, info}
 // Haken der Pneumatik-Simulation (Aufrufer in vorlagen/pneumatik-simulation.js):
 //   sim(o, stellung, hatDruck, belegt) → {src, pairs, dir, ablass}: Druckquellen, offene Wege, Richtung, Anschlüsse offen

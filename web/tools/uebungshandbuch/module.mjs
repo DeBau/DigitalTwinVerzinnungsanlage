@@ -41,9 +41,40 @@ const declNames = (s) => {
   if (d.type === 'VariableDeclaration') return d.declarations.flatMap((x) => x.id.type === 'Identifier' ? [x.id.name] : []);
   return [];
 };
+// Lokal deklarierte Namen (Parameter, Variablen in Funktionen, catch). Sie verdecken gleichnamige Exporte anderer
+// Module und bekommen deshalb keinen Import (sonst zöge z. B. ein Parameter „text“ einen Import aus symbole/grund.js).
+function lokale(ast) {
+  const out = new Set();
+  const muster = (p) => {
+    if (!p) return;
+    if (p.type === 'Identifier') out.add(p.name);
+    else if (p.type === 'ObjectPattern') p.properties.forEach((q) => muster(q.value || q.argument));
+    else if (p.type === 'ArrayPattern') p.elements.forEach(muster);
+    else if (p.type === 'AssignmentPattern') muster(p.left);
+    else if (p.type === 'RestElement') muster(p.argument);
+  };
+  const lauf = (n, tief) => {
+    if (!n || typeof n.type !== 'string') return;
+    if (/Function/.test(n.type)) { n.params.forEach(muster); if (n.id && tief) out.add(n.id.name); tief = true; }
+    if (n.type === 'VariableDeclarator' && tief) muster(n.id);
+    if (n.type === 'CatchClause') muster(n.param);
+    for (const v of Object.values(n)) {
+      if (Array.isArray(v)) v.forEach((x) => lauf(x, tief)); else if (v && typeof v.type === 'string') lauf(v, tief);
+    }
+  };
+  ast.body.forEach((s) => lauf(s, false));
+  return out;
+}
 const ohneImporte = (t) => t.replace(/^import [^;]*;[ ]*(\r?\n)?/gm, '');
+const istGeteilt = (n) => n.startsWith('symbole/');
+// symbole/ teilt sich der Editor mit dem Schaltplan: Dort zählen für andere Module nur die Exporte,
+// und die Importzeilen pflegt das Modul selbst (imports schreibt es nicht um).
 function module() {
-  return folge.map((n, i) => { const t = ohneImporte(lies(n)), ast = parse(t); return { n, i, t, ast, top: new Set(ast.body.flatMap(declNames)) }; });
+  return folge.map((n, i) => {
+    const t = ohneImporte(lies(n)), ast = parse(t), eigen = new Set(ast.body.flatMap(declNames));
+    const exporte = ast.body.filter((s) => s.type === 'ExportNamedDeclaration').flatMap(declNames);
+    return { n, i, t, ast, eigen, top: istGeteilt(n) ? new Set(exporte) : eigen, lokal: lokale(ast) };
+  });
 }
 
 const [cmd, ...a] = process.argv.slice(2);
@@ -69,10 +100,15 @@ if (cmd === 'imports' || cmd === 'check') {
   let fehler = 0;
   for (const m of M) {
     const imp = new Map();
-    for (const s of m.ast.body) for (const r of refs(s)) { const g = wo.get(r); if (g && g !== m && !m.top.has(r)) (imp.get(g) || imp.set(g, new Set()).get(g)).add(r); }
+    for (const s of m.ast.body) {
+      for (const r of refs(s)) {
+        const g = wo.get(r);
+        if (g && g !== m && !m.eigen.has(r) && !m.lokal.has(r)) (imp.get(g) || imp.set(g, new Set()).get(g)).add(r);
+      }
+    }
     const auf = [...imp].filter(([g]) => g.i > m.i);
     if (auf.length) { fehler++; console.log(`SCHICHT: ${m.n} benutzt aus später geladenen Modulen ${auf.map(([g, s]) => `${g.n} (${[...s].join(', ')})`).join('; ')}`); }
-    if (cmd === 'imports') {
+    if (cmd === 'imports' && !istGeteilt(m.n)) {
       const nl = m.t.includes('\r\n') ? '\r\n' : '\n';
       const rel = (n) => { const r = path.posix.relative(path.posix.dirname(m.n), n) + '.js'; return r.startsWith('.') ? r : './' + r; };
       const kopf = [...imp].sort((x, y) => x[0].i - y[0].i).map(([g, s]) => `import { ${[...s].sort().join(', ')} } from '${rel(g.n)}';`).join(nl);

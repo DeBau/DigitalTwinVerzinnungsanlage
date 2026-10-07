@@ -251,7 +251,7 @@ export function rdp(p, eps){
 export function ziehenEnde(){
   const dk = ED.drag.dock;
   if (ED.drag.moved) {
-    aendere(d => { if (dk && !linked(dk.a, dk.b)) d.c.push(dockLeitung(dk)); });   // angedockt: verbinden
+    aendere(d => { if (dk && !linked(dk.a, dk.b)) d.c.push(...dockLeitung(dk)); });   // angedockt: verbinden
     schliesse(); renderInk();
   }
   ED.drag = null;

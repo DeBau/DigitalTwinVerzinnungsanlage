@@ -43,6 +43,9 @@ importiert nie aus einer Vorlage.
 | `app/daten.js` | Platzhalter `__SIG__`, `__SHEETS__`, `__TEXTE__`, `__QUIZ__`, `__STIL__`, Stammdaten (EXTRA, STUFEN, EXVORL, CYL, PHASES, STYLECHECK, STIL, CRIT, critOf, TYPN, gradeOf) |
 | `app/basis.js` | `$`, `$$`, `BY`, Speicher `S`, `esc`, Chips, Hilfestufen, Icons `IC`, Signalliste |
 | `app/fortschritt.js` | Phasen erledigt, Prüfpunkte |
+| **Schaltzeichen** (gemeinsam mit dem Schaltplan) | |
+| `symbole/grund.js` | Zeichen-Grundlagen `linie`, `wirklinie`, `kreis`, `kasten`, `punkt`, `text`, `nummer` |
+| `symbole/iec60617.js` | Schaltzeichen nach IEC 60617 als Tabelle `SYM` (Kontakte, Spulen, dreipolige Geräte, Motor, Umrichter) |
 | **Editor-Kern: Zeichnen** | |
 | `editor/svg.js` | SVG-Grundlagen: `INK`, `MUTE`, `SCHRIFT`, `SVGT`, `tw`, `clamp`, `arrowHead`, Blatthöhe `PH` |
 | `editor/status.js` | Zustand `ED` (ein Feld je Zeile), Markierung `markiere`, `istMarkiert`, `markiertId` |
@@ -76,7 +79,15 @@ importiert nie aus einer Vorlage.
 | `editor/vorlagen/wegschritt-striche.js` | Weg-Schritt-Diagramm: Raster `WS_RASTER`, Zeilen (`wsZeilen`, `wsPunkt`), Stricharten Signallinie, Start, Zyklusende, Verknüpfung |
 | `editor/vorlagen/wegschritt-eingabe.js` | Weg-Schritt-Diagramm: Schnelleingabe („MM2−, MM3+ …“), Bedeutung 1/0 je Zeile, Prüfregeln `wsPruefen` |
 | `editor/vorlagen/wegschritt.js` | Weg-Schritt-Diagramm: Formular, Seitenleiste, Werkzeuge |
-| `editor/vorlagen/elektro.js` | Stromlaufplan mit den Gruppen Steuerstromkreis (`elektro`) und Geräte/SPS (`geraete`) |
+| `editor/vorlagen/elektro-kennzeichen.js` | Kennzeichen-Vorschläge je Bausteinart, Ordnungsziffern der Kontakte, `SPULEN` |
+| `editor/vorlagen/elektro-pfade.js` | Strompfade: Breite 46/60, Blatt, Ketten, automatische Leitungen zu L+ und M, Seite der Kennzeichen |
+| `editor/vorlagen/elektro-spiegel.js` | Kontaktspiegel unter den Spulen, Querverweise an den Kontakten |
+| `editor/vorlagen/elektro-simulation.js` | Stromfluss-Simulation: Netz, Spulen, Zeitrelais, Bedienen, Unterlegung L+ rot, M blau |
+| `editor/vorlagen/elektro-pruefen.js` | Knopf „Prüfen“ für Stromlaufplan und Hauptstromkreis |
+| `editor/vorlagen/elektro-klemmen.js` | Klemmenplan im Eigenschaftsfeld |
+| `editor/vorlagen/elektro.js` | Stromlaufplan: Vorlage, Gruppe Steuerstromkreis (`elektro`), Glieder im Strompfad |
+| `editor/vorlagen/elektro-geraete.js` | Gruppe Geräte und SPS (`geraete`): DI 8, DQ 8, Netzteil, Sicherheitsrelais |
+| `editor/vorlagen/leistung-pole.js` | Dreipolig verdrahten (`mehrpolig`), Phasen tauschen, dreipolig andocken |
 | `editor/vorlagen/leistung.js` | Hauptstromkreis mit Potenzialschiene |
 | `editor/vorlagen/pneumatik-symbole.js` | Wegeventile (Tabelle `VALVE`, `vPairs`, Steueranschluss `steuerNr` nach ISO 11727), Zylinder, Entlüftungen nach ISO 1219 |
 | `editor/vorlagen/pneumatik-geraete.js` | Symbole ohne Schaltstellung (`GERAET[k]`): Quelle, Wartungseinheit, Drosseln, Logikventile, Messgeräte |
@@ -103,6 +114,8 @@ Daten bleiben außerhalb von `src/`: `uebungen.js`, `quiz.js`, `stil.js`, `texte
 * `node web/tools/uebungshandbuch/module.mjs imports` trägt in allen Modulen die passenden Importe ein. Rufe es
   nach jedem Verschieben oder neuen Querbezug auf.
 * `node web/tools/uebungshandbuch/module.mjs check` meldet Schichtverletzungen.
+* Lokale Namen (Parameter, Variablen in Funktionen) bekommen keinen Import. `symbole/` pflegt seine Importe selbst
+  (gemeinsam mit dem Schaltplan); für andere Module zählen dort nur die Exporte.
 * `node web/tools/uebungshandbuch/module.mjs move <Name> <von> <nach>` verschiebt eine Deklaration samt Kommentar.
 * `waechter.mjs` läuft bei jedem Build. Er prüft, dass jeder Bezeichner deklariert, importiert oder ein
   Browser-Global ist. esbuild meldet einen vergessenen Import nicht, er fiele sonst erst im Browser auf.
@@ -320,6 +333,7 @@ und `fuelle(tabelle, einträge)`.
 | `loeschen` | `(o, d) → [id, …]` | `removeObj` (bearbeiten.js), also Löschen und Radierer; darf vorher Verbindungen in d ergänzen | nur o und seine Verbindungen |
 | `kennzeichen` | `(k, d, vorschlag) → Text` | `makeObj` (andocken.js), auch für die Vorschau; `vorschlag` = `o.v` nach `neu` bzw. `nextLabel` | `vorschlag` |
 | `nachSetzen` | `(o, d, {A, dock})`, ändert d | `placeObj` im selben Verlaufsschritt; A = Kettenvorgänger, dock = Andockstelle | |
+| `mehrpolig` | `(a, pa, b, pb, {andocken}) → [{a, pa, b, pb}, …]` oder null | `leitungenZwischen` (andocken.js): Verbinden von Anschlüssen und Andocken mit `pa`/`pb` (dann `andocken: true`) | eine Leitung |
 | `vorVerbinden` | `(A, B, d) → null`, `{ok: false, text}` oder `{ersetze(d)}` | `connect` (andocken.js), nur Verbindungen ohne Anschlüsse | verbinden |
 
 Ergibt `andocke` ein `pa` und `pb`, entsteht beim Loslassen eine Leitung zwischen diesen Anschlüssen (`dockLeitung`).
@@ -341,6 +355,7 @@ einfachen Verbindung (ein Verlaufsschritt).
 | `radius` | alle | Zahl, am einfachsten über `...rund(r)` | Pfeile an den Kreisrand (zeichnen.js, zustand.js) | Rechteckrand |
 | `neu` | alle | `(o, pt, mk)`, Bauteil `(o, pt)`; setzt `x`, `y`, `v` … | `makeObj`, `neuesBauteil` (andocken.js) | Mitte bei pt |
 | `anschluesse` | alle | `[[Name, dx, dy, Richtung]]` oder `(o) → […]`, Richtung u, d, l, r | `portsOf` (bauteile.js): Verbinden, Leitungen | keine Anschlüsse |
+| `anschlussName` | alle | `(o, n) → Text`: angezeigter Name des gespeicherten Anschlusses n | `wireRef` (zeichnen.js), Verweis an Abbruchstellen | n |
 | `feldliste` | alle | `[[Feld, Beschriftung, Platzhalter oder Optionen]]`; Optionen `[[Wert, Text]]` ergeben eine Auswahl, Feld `v` das Kennzeichenfeld | `objektFelder` (eigenschaften.js), `listenFeld` | keine Felder |
 | `felder` | alle | `(o) → HTML` | `objektFelder`, statt der `feldliste` | `feldliste` |
 | `titel` | alle | Text | `objektFelder` | `n` |
@@ -508,11 +523,25 @@ Namen aus dem Plan und die Haken, die es dafür gibt:
 | `mitziehen` | Gruppe `mitziehen(o, {umschalt}, d)` | `mitnehmen` (zeiger.js) |
 | `loesche`, `nachLoeschen` | Gruppe `loeschen(o, d)`: mitgehende IDs, ergänzt vorher Verbindungen | `removeObj` |
 | `kennzeichen` | Gruppe `kennzeichen(k, d, vorschlag)` | `makeObj` |
-| `autoLeitungen` (L+/M-Block) | Vorlage `hintergrund(d, cs)` | elektro.js (`strompfadAnschluesse`), Aufruf in `zeichnungSVG` |
+| `autoLeitungen` (L+/M-Block) | Vorlage `hintergrund(d, cs)` | elektro-pfade.js (`autoLeitungen`, `autoLeitungSVG`), Aufruf in `zeichnungSVG` |
 | `weg` | Gruppe `verbinde(…, spuren)`, `seite.verbinde(A, B, spuren)`, `routeV`, `wireD` | `verbindungsWeg` |
 | `PRUEF[vorlage]` | Vorlage `pruefe(d, {scope, key})` | pruefung.js |
 | `SIGART[bausteinart]` | Bausteinart `kennbuchstaben` | `kennzeichenFeld` (eigenschaften.js) |
 | `edit()` | `aendere()` (`edit` ist überall ein lokaler Parameter) | verlauf.js |
+
+### Merge-Hinweise ELEKTRO
+
+`dockLeitung(dock)` (andocken.js) liefert im Branch `w1-elektro` eine **Liste** von Verbindungen, nicht mehr eine
+einzelne: Beim dreipoligen Andocken im Hauptstromkreis entstehen drei Leitungen (über `leitungenZwischen` und den
+Gruppen-Haken `mehrpolig`, dort mit `{andocken: true}`, also immer Pol für Pol, nie mit L1 ↔ L3 getauscht).
+
+* Aufrufer, die die Liste erwarten: `placeObj` (andocken.js) mit `d.c.push(...dockLeitung(dock))` und `ziehenEnde`
+  (zeiger.js) mit `ED.data.c.push(...dockLeitung(dk))`. Im KERN-Stand heißt die Stelle in zeiger.js
+  `d.c.push(dockLeitung(dk))`: beim Zusammenführen den Spread `...` ergänzen, sonst landet ein Array in `d.c`.
+* Vorschau `andockVorschau` (andocken.js): Ruft der KERN-Stand `verbindungsWeg(dockLeitung(dock), map, [])`, je
+  Leitung einen Weg zeichnen:
+  `dockLeitung(dock).map(c => verbindungsWeg(c, map, [])).filter(Boolean).map(gm => VORSCHAU(gm.d)).join("")`.
+  Der Kreis um den Anschluss (`andockPunkt`) bleibt einmal.
 
 ### Namen aus Paket V (alt → neu)
 

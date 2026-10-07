@@ -45,6 +45,7 @@ export const skMeta = (scope, key, d) => {
   const ex = BY[scope]; d = d || S.get(skKey(scope, key)) || {}; const m = d.meta || {};
   return {rows: m.rows || null, bed: m.bed || null, title: m.title || (ex ? `${ex.id} ${ex.t}` : VORL[key].n), vorlage: VORL[key].n,
     name: m.name || S.get("name") || "",
-    datum: m.datum || (ex && S.get(ex.id+":datum")) || (d.ts ? deDate(d.ts) : "")};
+    datum: m.datum || (ex && S.get(ex.id+":datum")) || (d.ts ? deDate(d.ts) : ""),
+    pfadbreite: m.pfadbreite};   // Stromlaufplan: Breite der Strompfade (vorlagen/elektro-pfade.js)
 };
 
