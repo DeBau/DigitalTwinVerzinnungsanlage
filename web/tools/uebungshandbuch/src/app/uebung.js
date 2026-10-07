@@ -52,6 +52,9 @@ export const fwThemaHTML = w => `<div class="prose">${chips(w.h)}${quelle(w)}</d
 export const aufgabeHTML = s => (s.beschr ? `<div class="prose beschr">${chips(s.beschr)}</div>` : `<div class="prose">${chips(s.sit)}</div>`)
   + (s.tab ? `<h3>${s.tab.cap}</h3>` + tableHTML(s.tab.head, s.tab.rows) : "")
   + (s.list ? `<h3>${s.list.cap}</h3><ol class="prose">${s.list.items.map(x => `<li>${chips(x)}</li>`).join("")}</ol>` : "");
+// Fachwissen zum Aufgabenschritt i (Feld fw in uebungen.js), jedes Thema öffnet sein Popup
+const fwZuHTML = (s, i) => { const n = ((s.fw || {})[i] || []).filter(x => s.wissen && s.wissen[x]);
+  return n.length ? `<span class="fwzu">${n.map(x => `<a href="#" data-act="ns-fw" data-i="${x}">${s.wissen[x].t}</a>`).join("")}</span>` : ""; };
 const hatWissen = s => !!(s.wissen && s.wissen.length);
 const nachschlagenHTML = s => `<div class="box nachschlagen"><h4>Nachschlagen</h4><div class="nsbtns"><button class="btn small" type="button" data-act="ns-aufgabe">Aufgabe</button>${hatWissen(s) ? `<button class="btn small nsalle" type="button" data-act="ns-alle">Fachwissen</button>` : ""}</div>`
   + (hatWissen(s) ? `<ul class="fwthemen">${s.wissen.map((w, i) => `<li><a href="#" data-act="ns-fw" data-i="${i}">${w.t}</a></li>`).join("")}</ul>` : "") + `</div>`;
@@ -204,7 +207,7 @@ export function phaseHTML(s, p){
       : H("Ausführen", "Programmiere in TIA, lade in PLCSIM Advanced und nimm am Zwilling in Betrieb. Hake jeden Arbeitsschritt ab.");
     if (!erk) h += stilHinweis(s);
     if (s.hilfe && Object.keys(s.hilfe).length) h += `<p class="muted small">Zu einzelnen Schritten gibt es gestufte Hilfen. Du darfst sie nutzen. Öffne nur so viel, wie du brauchst: Die App hält ehrlich fest, welche Stufe du geöffnet hast, und zeigt das in der Selbsteinschätzung und im Ausdruck.</p>`;
-    h += `<ol class="tasks">${s.auf.map((a, i) => `<li><input type="checkbox" data-k="${k}:a${i}" aria-label="Schritt ${i+1} erledigt"><span class="tx">${chips(a)}</span>${(s.hilfe || {})[i] ? `<div class="hilfe" data-hilfe="${i}">${hilfeInner(s, i)}</div>` : ""}</li>`).join("")}</ol>`;
+    h += `<ol class="tasks">${s.auf.map((a, i) => `<li><input type="checkbox" data-k="${k}:a${i}" aria-label="Schritt ${i+1} erledigt"><span class="tx">${chips(a)}${fwZuHTML(s, i)}</span>${(s.hilfe || {})[i] ? `<div class="hilfe" data-hilfe="${i}">${hilfeInner(s, i)}</div>` : ""}</li>`).join("")}</ol>`;
     h += bezugHTML(s, 4) + tplHTML(s, 4);
     h += `<h3>${erk ? "Notizen zur Untersuchung" : "Notizen zur Inbetriebnahme"}</h3><textarea data-k="${k}:ibn" rows="4" aria-label="Notizen"></textarea>`;
     return h;

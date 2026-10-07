@@ -37,6 +37,7 @@
 .ctx h4{font-size:14px;color:var(--ink2);margin-bottom:8px}
 .ctx figure{margin:0}
 .nsbtns{display:grid;grid-template-columns:1fr;gap:8px}.nsbtns .nsalle{display:none}.nsbtns .btn{justify-content:center}
+.fwzu{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.fwzu a{font-size:12.5px;padding:2px 9px;border-radius:999px;background:var(--blue-soft);color:var(--ink);text-decoration:none}.fwzu a::before{content:"Fachwissen: ";color:var(--ink2)}.fwzu a:hover{text-decoration:underline}
 .fwthemen{margin:10px 0 0;padding-left:18px;font-size:13.5px;display:grid;gap:4px}
 .nsdlg{max-height:calc(100vh - 48px);overflow-y:auto}
 .ctx figure img{width:100%;border-radius:7px;display:block;cursor:zoom-in;border:1px solid var(--line)}

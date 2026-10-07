@@ -100,6 +100,7 @@ for (const s of SHEETS) {
     gedeckt.forEach((i) => { if (!(i >= 0 && i < (s.ziele || []).length)) warn('Datenformat', `${id} pr/lf`, `Zielindex ${i} gibt es nicht (0 bis ${(s.ziele || []).length - 1})`); });
   }
   if (s.typ && !TYPEN.includes(s.typ)) warn('Datenformat', `${id} typ`, `„${s.typ}“ unbekannt (${TYPEN.join(', ')})`);
+  for (const [i, f] of Object.entries(s.fw || {})) if (!s.auf || !s.auf[+i] || !Array.isArray(f) || f.some(n => !(texte[id]?.wissen || [])[n])) warn('Datenformat', `${id} fw.${i}`, 'kein passender Aufgabenschritt in auf oder Fachwissen-Nummer fehlt in texte');
   for (const [i, h] of Object.entries(s.hilfe || {})) if (!s.auf || !s.auf[+i] || !Array.isArray(h)) warn('Datenformat', `${id} hilfe.${i}`, 'kein passender Aufgabenschritt in auf oder keine Liste');
   (s.ergebnis || []).forEach((e, i) => { if (!e || !e.n || !ART.includes(e.a)) warn('Datenformat', `${id} ergebnis[${i}]`, 'n fehlt oder a nicht in ' + ART.join(', ')); });
 }
