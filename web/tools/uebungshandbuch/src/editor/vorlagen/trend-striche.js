@@ -7,9 +7,9 @@ import { SVGT } from '../svg.js';
 import { ED, markiere } from '../status.js';
 import { STRICH, STRICHFELD, fuelle } from '../registry.js';
 import { shapeD } from '../vorlagen-svg.js';
-import { FARBEN, auswahlFeld, textFeld, updateProps } from '../eigenschaften.js';
+import { FARBEN, auswahlFeld, textFeld, updateProps, zeigeHinweis } from '../eigenschaften.js';
 import { renderInk } from '../anzeige.js';
-import { aendere, beginne, schliesse } from '../verlauf.js';
+import { aendere, beginne, saveSketch, schliesse } from '../verlauf.js';
 import { fangen } from '../werkzeuge.js';
 import { beginneStrich } from '../zeiger.js';
 
@@ -31,7 +31,7 @@ export function kurvenPfad(p){
 /* ---------- Strichart band ---------- */
 export const bandRand = st => {
   const [[x1, y1], [x2, y2]] = st.p;
-  return {x: Math.min(x1, x2), y: Math.min(y1, y2), w: Math.abs(x2 - x1), h: Math.abs(y2 - y1)};
+  return {x: Math.min(x1, x2), y: Math.min(y1, y2), w: +Math.abs(x2 - x1).toFixed(2), h: +Math.abs(y2 - y1).toFixed(2)};
 };
 export function bandSVG(st){
   const b = bandRand(st), strich = `stroke="${st.c}" stroke-width="${st.w}" stroke-dasharray="7 4"`;
@@ -67,6 +67,11 @@ export function kurvenVorschau(q){
   $(".ghost", ED.svg).innerHTML = `<path d="${shapeD({k: "kurve", p})}" stroke="#2F80ED" stroke-width="1.6" `
     + `stroke-dasharray="5 4" fill="none"/>` + p.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#2F80ED"/>`).join("");
 }
+// Gerade angelegtes Band ohne Höhe wieder entfernen (wie der Kern einen bloßen Klick verwirft) und Hinweis zeigen
+export function bandVerwerfen(){
+  ED.data.s.pop(); ED.hist.pop(); saveSketch(); renderInk();
+  zeigeHinweis("Ein Band braucht eine Höhe: oben und unten verschieden aufziehen.");
+}
 export const TREND_ZEIGER = {
   unten(e, pt){
     if (ED.tool !== "kurve" || !ED.vorlage.angefangen) trendSchrittEnde();   // Klick aufs Blatt beendet den offenen Schritt
@@ -82,9 +87,10 @@ export const TREND_ZEIGER = {
     kurvenVorschau(fangen(pt));
     return true;
   },
-  // Neues Band markieren und das Beschriftungsfeld öffnen
+  // Neues Band markieren und das Beschriftungsfeld öffnen. Ein Band ohne Höhe entsteht nicht.
   gezogen(st){
     if (st.k !== "band") return false;
+    if (!bandRand(st).h) { bandVerwerfen(); return true; }
     markiere("s", ED.data.s.length - 1); renderInk(); updateProps("neu");
     const f = $('#props [data-prop="bl"]'); if (f) f.focus();
     return true;

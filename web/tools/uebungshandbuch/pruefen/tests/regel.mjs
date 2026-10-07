@@ -170,6 +170,21 @@ export const tests = [
     },
   },
   {
+    name: 'P2-5 Trend: Band fängt in y auf eine Viertelzeile, ohne Höhe entsteht kein Band',
+    lauf: async (t) => {
+      await t.oeffne('trend');
+      await t.werkzeug('band');
+      await t.ziehe([300, 200], [960, 196]);
+      t.gleich(await t.daten(), null, 'Band ohne Höhe wird nicht angelegt');
+      await t.ziehe([300, 200], [960, 210]);
+      const [[, y1], [, y2]] = (await t.daten()).s[0].p;
+      t.erwarte(Math.abs(y2 - y1 - 47.5 / 4) < 0.02, `Band eine Viertelzeile hoch: ${y2 - y1}`);
+      await t.taste('Escape'); await t.werkzeug('line');
+      await t.ziehe([100, 100], [300, 250]);
+      t.gleich((await t.daten()).s[1].p, [[80, 87.5], [301.25, 230]], 'Linie rastet weiter auf ganzen Zeilen');
+    },
+  },
+  {
     name: 'T2 Kästchenraster im Druck echt 5 mm',
     lauf: async (t) => {
       await t.oeffne('raster');

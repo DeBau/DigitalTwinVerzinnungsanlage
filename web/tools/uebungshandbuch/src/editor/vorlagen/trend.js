@@ -105,13 +105,18 @@ export function achsenSVG(d){
 }
 
 /* ---------- Fangen ---------- */
-// Im Diagramm fängt ein Punkt auf dem nächsten Schnittpunkt der Teilstriche, außerhalb im 10er-Raster
+// Im Diagramm fängt ein Punkt auf dem nächsten Schnittpunkt der Teilstriche, außerhalb im 10er-Raster.
+// Beim Band fängt y feiner (BAND_TEILE je Zeile), damit auch ein schmales Toleranzband wie ±2 °C geht.
+export const BAND_TEILE = 4;
+export const bandAktiv = () => ED.tool === "band"
+  || !!(ED.drag && ED.drag.kind === "h" && ED.data.s[ED.drag.i] && ED.data.s[ED.drag.i].k === "band");
 export function trendFang([x, y]){
   const dg = TREND.diagramme.find(q => y >= q.y0 - 10 && y <= q.y0 + q.h + 10);
   if (!dg || x < TREND.x0 - 10 || x > TREND.x1 + 10) return snap([x, y]);
-  const sw = spaltenBreite(), zh = zeilenHoehe(dg), i = Math.round((x - TREND.x0) / sw), j = Math.round((y - dg.y0) / zh);
+  const teile = bandAktiv() ? BAND_TEILE : 1, zeilen = dg.zeilen * teile, zh = zeilenHoehe(dg) / teile;
+  const sw = spaltenBreite(), i = Math.round((x - TREND.x0) / sw), j = Math.round((y - dg.y0) / zh);
   const begrenzt = (v, max) => Math.max(0, Math.min(max, v));
-  return [+(TREND.x0 + begrenzt(i, TREND.spalten) * sw).toFixed(2), +(dg.y0 + begrenzt(j, dg.zeilen) * zh).toFixed(2)];
+  return [+(TREND.x0 + begrenzt(i, TREND.spalten) * sw).toFixed(2), +(dg.y0 + begrenzt(j, zeilen) * zh).toFixed(2)];
 }
 
 registriereVorlage("trend", {
