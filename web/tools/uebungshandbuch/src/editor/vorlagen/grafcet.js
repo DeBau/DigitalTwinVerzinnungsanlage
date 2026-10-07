@@ -7,11 +7,12 @@ import { BAUSTEIN, SAMPLE, fuelle, registriereGruppe, registriereVorlage } from 
 import { G, TX, dots } from '../vorlagen-svg.js';
 import { LINIE, platzhalter, setzeBreite } from '../bausteine.js';
 import { textFeld } from '../eigenschaften.js';
-import { AKTION, BEDINGUNG_KENNBUCHSTABEN, isStep } from './grafcet-aktion.js';
+import { AKTION, BEDINGUNG_KENNBUCHSTABEN, imSpiel, isStep } from './grafcet-aktion.js';
 import { KETTEN_HAKEN, freieSchrittNummer, hinweisAnleitung } from './grafcet-kette.js';
 import { schnipselNachSetzen } from './grafcet-schnipsel.js';
 import { kettenKlick, kettenKnoepfeHTML, kettenTaste } from './grafcet-knoepfe.js';
 import { pruefeGrafcet } from './grafcet-pruefen.js';
+import { SPIEL_KNOPF, spielAnleitung, spielKlick, spielWechsel } from './grafcet-spiel.js';
 
 /* ---------- Schritte, Transitionen, Verzweigungen ---------- */
 export const QUADRAT = o => ({x: o.x, y: o.y, w: 40, h: 40});
@@ -28,17 +29,20 @@ export const SCHRITT = {
   beschriftung: {hinweis: "Schrittnummer"},
 };
 export const KASTEN = o => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/>`;
-export const zeichneAnfangsschritt = o => KASTEN(o)
-  + `<rect x="${o.x+4}" y="${o.y+4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x+20, o.y+25, o.v);
-export const zeichneMakro = o => KASTEN(o) + `<path d="M${o.x} ${o.y+5}H${o.x+40}M${o.x} ${o.y+35}H${o.x+40}" ${LINIE}/>`
-  + SVGT(o.x+20, o.y+25, o.v, "middle", 12);
+// Beim Durchspielen trägt ein aktiver Schritt einen Punkt (Marke)
+export const MARKE = (o, edit) => edit && imSpiel("aktiv", o.id) ? `<circle cx="${o.x+20}" cy="${o.y+31}" r="3" fill="${INK}"/>` : "";
+export const zeichneAnfangsschritt = (o, edit) => KASTEN(o)
+  + `<rect x="${o.x+4}" y="${o.y+4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x+20, o.y+25, o.v) + MARKE(o, edit);
+export const zeichneMakro = (o, edit) => KASTEN(o) + `<path d="M${o.x} ${o.y+5}H${o.x+40}M${o.x} ${o.y+35}H${o.x+40}" ${LINIE}/>`
+  + SVGT(o.x+20, o.y+25, o.v, "middle", 12) + MARKE(o, edit);
 // Bei einer Abbruchstelle heißt die Transition nach dem Schritt davor bzw. danach
 export function transitionName(o, objs, cs, dir){
   const c = cs.find(c => dir === "von" ? c.b === o.id && isStep(objs[c.a]) : c.a === o.id && isStep(objs[c.b]));
   if (c) return `Schritt ${(dir === "von" ? objs[c.a] : objs[c.b]).v}`;
   return o.v ? `Transition ${o.v}` : "Transition";
 }
-export const zeichneTransition = (o, edit) => `<path d="M${o.x-14} ${o.y}H${o.x+14}" stroke="${INK}" stroke-width="3.2"/>`
+export const zeichneTransition = (o, edit) => `<path d="M${o.x-14} ${o.y}H${o.x+14}" `
+  + `stroke="${edit && imSpiel("schaltbar", o.id) ? "#2F80ED" : INK}" stroke-width="3.2"/>`   // blau: schaltet beim Durchspielen
   + (o.nr ? SVGT(o.x-20, o.y+4, `(${o.nr})`, "end", 11, 400) : "")
   + (o.v ? SVGT(o.x+22, o.y+5, o.v, "start", 13, 400) : platzhalter(edit, "Bedingung", o.x+22, o.y+5, "start"));
 export const verzweigungsBreite = o => o.w || 200;
@@ -65,8 +69,10 @@ export const zeichneVerweis = (o, edit) =>
 registriereVorlage("grafcet", {
   n: "GRAFCET", d: "Ablauf nach DIN EN 60848 mit Symbollegende", gruppen: ["grafcet"],
   body: (ex, page) => dots(20) + (page ? "" : GRAFCET_LEGENDE),
-  anleitung: hinweisAnleitung,
-  werkzeugleiste: {nachVerbinden: kettenKnoepfeHTML()},   // + Schritt, Kette ausrichten, Neu nummerieren
+  anleitung: () => spielAnleitung() || hinweisAnleitung(),
+  werkzeugleiste: {nachVerbinden: kettenKnoepfeHTML() + SPIEL_KNOPF},   // + Schritt, ausrichten, nummerieren, Durchspielen
+  werkzeugWechsel: spielWechsel,
+  zeiger: {unten: spielKlick},
   klick: kettenKlick,
   taste: kettenTaste,                 // Taste + wie „+ Schritt“ (Haken baut KERN)
   pruefe: pruefeGrafcet,              // Knopf „Prüfen“ (grafcet-pruefen.js)
@@ -123,7 +129,7 @@ export const VERWEIS = {
 };
 fuelle(BAUSTEIN, {
   init: {g: "grafcet", n: "Anfangsschritt", ...SCHRITT, zeichne: zeichneAnfangsschritt},
-  step: {g: "grafcet", n: "Schritt", ...SCHRITT, zeichne: o => KASTEN(o) + SVGT(o.x+20, o.y+25, o.v)},
+  step: {g: "grafcet", n: "Schritt", ...SCHRITT, zeichne: (o, edit) => KASTEN(o) + SVGT(o.x+20, o.y+25, o.v) + MARKE(o, edit)},
   macro: {g: "grafcet", n: "Makroschritt", ...SCHRITT, ...MAKRO},
   trans: {g: "grafcet", n: "Transition", ...TRANSITION},
   action: {...AKTION, n: "Aktion kontinuierlich", mk: {t: "kont"}},

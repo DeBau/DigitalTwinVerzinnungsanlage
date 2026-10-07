@@ -15,6 +15,10 @@ export const isTrans = o => !!o && o.k === "trans";
 export const isAct = o => !!o && AKTIONSARTEN.includes(o.k);
 export const atype = o => o.k === "actionq" ? "q" : (o.t || "kont");
 
+// Zustand beim Durchspielen (grafcet-spiel.js): {aktiv, aktionen, schaltbar} als Mengen von IDs, sonst null
+export const spielZustand = () => (ED.tool === "sim" && ED.vorlage.spiel) || null;
+export const imSpiel = (menge, id) => { const s = spielZustand(); return !!(s && s[menge] && s[menge].has(id)); };
+
 /* ---------- Aktionen ---------- */
 // Arten mit einer Marke über dem Kasten, die Platz braucht: Pfeil, Ereignis oder Zuweisungsbedingung
 export const MIT_MARKE = {akt: () => true, deakt: () => true, ereig: () => true, kont: o => !!(o.b || o.hb)};
@@ -50,7 +54,8 @@ export const AKTIONSMARKE = {
 };
 export function zeichneAktion(o, edit){
   const x = o.x, y = o.y, w = aw(o), qw = qBreite(o), tc = x + qw + (w - qw)/2, marke = AKTIONSMARKE[atype(o)];
-  let r = `<rect x="${x}" y="${y}" width="${w}" height="30" fill="#fff" ${LINIE}/>`;
+  const fuellung = edit && imSpiel("aktionen", o.id) ? "#DFF5E1" : "#fff";   // beim Durchspielen: Aktion wirkt
+  let r = `<rect x="${x}" y="${y}" width="${w}" height="30" fill="${fuellung}" ${LINIE}/>`;
   if (qw) r += `<path d="M${x+30} ${y}V${y+30}" ${LINIE}/>` + SVGT(x+15, y+20, o.q || "S", "middle", 12, 600);
   r += o.v ? SVGT(tc, y+20, o.v, "middle", 13, 400) : platzhalter(edit, "Aktion", tc, y+20);
   return r + (marke ? marke(o, x + 16, y, edit) : "");

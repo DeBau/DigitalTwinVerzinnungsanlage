@@ -3546,6 +3546,11 @@ END_CASE;`)}
   var isTrans = (o) => !!o && o.k === "trans";
   var isAct = (o) => !!o && AKTIONSARTEN.includes(o.k);
   var atype = (o) => o.k === "actionq" ? "q" : o.t || "kont";
+  var spielZustand = () => ED.tool === "sim" && ED.vorlage.spiel || null;
+  var imSpiel = (menge, id) => {
+    const s = spielZustand();
+    return !!(s && s[menge] && s[menge].has(id));
+  };
   var MIT_MARKE = { akt: () => true, deakt: () => true, ereig: () => true, kont: (o) => !!(o.b || o.hb) };
   var hasMark = (o) => isAct(o) && !!(MIT_MARKE[atype(o)] || (() => false))(o);
   var ACT_T = {
@@ -3573,7 +3578,8 @@ END_CASE;`)}
   };
   function zeichneAktion(o, edit) {
     const x = o.x, y = o.y, w = aw(o), qw = qBreite(o), tc = x + qw + (w - qw) / 2, marke = AKTIONSMARKE[atype(o)];
-    let r = `<rect x="${x}" y="${y}" width="${w}" height="30" fill="#fff" ${LINIE}/>`;
+    const fuellung = edit && imSpiel("aktionen", o.id) ? "#DFF5E1" : "#fff";
+    let r = `<rect x="${x}" y="${y}" width="${w}" height="30" fill="${fuellung}" ${LINIE}/>`;
     if (qw) r += `<path d="M${x + 30} ${y}V${y + 30}" ${LINIE}/>` + SVGT(x + 15, y + 20, o.q || "S", "middle", 12, 600);
     r += o.v ? SVGT(tc, y + 20, o.v, "middle", 13, 400) : platzhalter(edit, "Aktion", tc, y + 20);
     return r + (marke ? marke(o, x + 16, y, edit) : "");
@@ -4061,6 +4067,57 @@ END_CASE;`)}
   ];
   var pruefeGrafcet = (d) => d.o.length ? GRAFCET_REGELN.flatMap((regel) => regel(d)) : [];
 
+  // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet-spiel.js
+  var SPIEL_KNOPF = `<button type="button" class="tool" data-tool="sim" title="Kette durchspielen: Transition anklicken, der Ablauf schaltet weiter">${IC.play}Durchspielen</button>`;
+  var SPIEL_ANLEITUNG = `<div class="props"><div class="palh">Kette durchspielen</div><p class="small" style="margin:0 0 6px">Klick auf eine <b>blaue Transition</b>: Sie schaltet, wenn ihre Bedingung erfüllt wäre. Der Punkt wandert in den nächsten Schritt, die Aktionen der aktiven Schritte werden grün.</p><p class="small muted" style="margin:0">Ein Klick auf einen Schritt schaltet ihn von Hand ein oder aus. Zum Bearbeiten wählst du „Auswählen“.</p></div>`;
+  var zielSchritt = (d, ref) => d.o.find((o) => isStep(o) && o.v === (/\d+/.exec(ref.v || "") || [""])[0]);
+  function schritteNach(d, A, tiefe = 0) {
+    return d.c.filter((c) => c.a === A.id).map((c) => objIn(d, c.b)).filter((B) => B && !isAct(B) && !isTrans(B)).flatMap((B) => isStep(B) ? [B] : B.k === "ref" ? [zielSchritt(d, B)].filter(Boolean) : tiefe < 4 ? schritteNach(d, B, tiefe + 1) : []);
+  }
+  function schritteVor(d, B, tiefe = 0) {
+    return d.c.filter((c) => c.b === B.id).map((c) => objIn(d, c.a)).filter((A) => A && !isAct(A) && !isTrans(A)).flatMap((A) => isStep(A) ? [A] : tiefe < 4 ? schritteVor(d, A, tiefe + 1) : []);
+  }
+  function schaltbar(d, aktiv, tr) {
+    const vor = schritteVor(d, tr);
+    return vor.length > 0 && vor.every((s) => aktiv.has(s.id));
+  }
+  function spielAuffrischen() {
+    const s = ED.vorlage.spiel, d = ED.data;
+    s.aktionen = new Set([...s.aktiv].flatMap((id) => aktionenVon(d, id)));
+    s.schaltbar = new Set(d.o.filter((o) => isTrans(o) && schaltbar(d, s.aktiv, o)).map((o) => o.id));
+    renderInk();
+  }
+  function spielWechsel(t) {
+    if (t !== "sim") {
+      delete ED.vorlage.spiel;
+      return;
+    }
+    clearSel();
+    ED.vorlage.spiel = { aktiv: new Set(ED.data.o.filter((o) => o.k === "init").map((o) => o.id)) };
+    spielAuffrischen();
+  }
+  var SPIEL_KLICK = [
+    { passt: isTrans, tue: (d, s, tr) => {
+      if (!schaltbar(d, s.aktiv, tr)) return;
+      schritteVor(d, tr).forEach((x) => s.aktiv.delete(x.id));
+      schritteNach(d, tr).forEach((x) => s.aktiv.add(x.id));
+    } },
+    { passt: isStep, tue: (d, s, x) => {
+      if (!s.aktiv.delete(x.id)) s.aktiv.add(x.id);
+    } }
+  ];
+  function spielKlick(e) {
+    const s = spielZustand();
+    if (!s) return false;
+    const h = e.target.closest("[data-o]"), o = h && objById(h.dataset.o), regel = o && SPIEL_KLICK.find((r) => r.passt(o));
+    if (regel) {
+      regel.tue(ED.data, s, o);
+      spielAuffrischen();
+    }
+    return true;
+  }
+  var spielAnleitung = () => spielZustand() ? SPIEL_ANLEITUNG : null;
+
   // web/tools/uebungshandbuch/src/editor/vorlagen/grafcet.js
   var QUADRAT = (o) => ({ x: o.x, y: o.y, w: 40, h: 40 });
   var naechsteSchrittNummer = () => freieSchrittNummer(ED.data);
@@ -4081,14 +4138,15 @@ END_CASE;`)}
     beschriftung: { hinweis: "Schrittnummer" }
   };
   var KASTEN = (o) => `<rect x="${o.x}" y="${o.y}" width="40" height="40" fill="#fff" ${LINIE}/>`;
-  var zeichneAnfangsschritt = (o) => KASTEN(o) + `<rect x="${o.x + 4}" y="${o.y + 4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v);
-  var zeichneMakro = (o) => KASTEN(o) + `<path d="M${o.x} ${o.y + 5}H${o.x + 40}M${o.x} ${o.y + 35}H${o.x + 40}" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v, "middle", 12);
+  var MARKE = (o, edit) => edit && imSpiel("aktiv", o.id) ? `<circle cx="${o.x + 20}" cy="${o.y + 31}" r="3" fill="${INK}"/>` : "";
+  var zeichneAnfangsschritt = (o, edit) => KASTEN(o) + `<rect x="${o.x + 4}" y="${o.y + 4}" width="32" height="32" fill="none" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v) + MARKE(o, edit);
+  var zeichneMakro = (o, edit) => KASTEN(o) + `<path d="M${o.x} ${o.y + 5}H${o.x + 40}M${o.x} ${o.y + 35}H${o.x + 40}" ${LINIE}/>` + SVGT(o.x + 20, o.y + 25, o.v, "middle", 12) + MARKE(o, edit);
   function transitionName(o, objs, cs, dir) {
     const c = cs.find((c2) => dir === "von" ? c2.b === o.id && isStep(objs[c2.a]) : c2.a === o.id && isStep(objs[c2.b]));
     if (c) return `Schritt ${(dir === "von" ? objs[c.a] : objs[c.b]).v}`;
     return o.v ? `Transition ${o.v}` : "Transition";
   }
-  var zeichneTransition = (o, edit) => `<path d="M${o.x - 14} ${o.y}H${o.x + 14}" stroke="${INK}" stroke-width="3.2"/>` + (o.nr ? SVGT(o.x - 20, o.y + 4, `(${o.nr})`, "end", 11, 400) : "") + (o.v ? SVGT(o.x + 22, o.y + 5, o.v, "start", 13, 400) : platzhalter(edit, "Bedingung", o.x + 22, o.y + 5, "start"));
+  var zeichneTransition = (o, edit) => `<path d="M${o.x - 14} ${o.y}H${o.x + 14}" stroke="${edit && imSpiel("schaltbar", o.id) ? "#2F80ED" : INK}" stroke-width="3.2"/>` + (o.nr ? SVGT(o.x - 20, o.y + 4, `(${o.nr})`, "end", 11, 400) : "") + (o.v ? SVGT(o.x + 22, o.y + 5, o.v, "start", 13, 400) : platzhalter(edit, "Bedingung", o.x + 22, o.y + 5, "start"));
   var verzweigungsBreite = (o) => o.w || 200;
   var VERZWEIGUNG = {
     aus: (o, tx) => [clamp(tx, o.x, o.x + verzweigungsBreite(o)), o.y],
@@ -4116,9 +4174,11 @@ END_CASE;`)}
     d: "Ablauf nach DIN EN 60848 mit Symbollegende",
     gruppen: ["grafcet"],
     body: (ex, page) => dots(20) + (page ? "" : GRAFCET_LEGENDE),
-    anleitung: hinweisAnleitung,
-    werkzeugleiste: { nachVerbinden: kettenKnoepfeHTML() },
-    // + Schritt, Kette ausrichten, Neu nummerieren
+    anleitung: () => spielAnleitung() || hinweisAnleitung(),
+    werkzeugleiste: { nachVerbinden: kettenKnoepfeHTML() + SPIEL_KNOPF },
+    // + Schritt, ausrichten, nummerieren, Durchspielen
+    werkzeugWechsel: spielWechsel,
+    zeiger: { unten: spielKlick },
     klick: kettenKlick,
     taste: kettenTaste,
     // Taste + wie „+ Schritt“ (Haken baut KERN)
@@ -4182,7 +4242,7 @@ END_CASE;`)}
   };
   fuelle(BAUSTEIN, {
     init: { g: "grafcet", n: "Anfangsschritt", ...SCHRITT, zeichne: zeichneAnfangsschritt },
-    step: { g: "grafcet", n: "Schritt", ...SCHRITT, zeichne: (o) => KASTEN(o) + SVGT(o.x + 20, o.y + 25, o.v) },
+    step: { g: "grafcet", n: "Schritt", ...SCHRITT, zeichne: (o, edit) => KASTEN(o) + SVGT(o.x + 20, o.y + 25, o.v) + MARKE(o, edit) },
     macro: { g: "grafcet", n: "Makroschritt", ...SCHRITT, ...MAKRO },
     trans: { g: "grafcet", n: "Transition", ...TRANSITION },
     action: { ...AKTION, n: "Aktion kontinuierlich", mk: { t: "kont" } },

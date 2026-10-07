@@ -315,6 +315,25 @@ export const tests = [
     },
   },
   {
+    name: 'Kette durchspielen: Transition schaltet weiter, Aktionen leuchten',
+    lauf: async (t) => {
+      await t.oeffne('grafcet');
+      await kurzeKette(t);
+      const d = await t.daten(), init = nach(d, '1', 'init'), s2 = nach(d, '2', 'step'), t1 = nach(d, 'BG1');
+      const a = d.o.find((o) => o.k === 'action');
+      await t.werkzeug('sim');
+      const punkt = (o) => t.zaehle(`#edstage .ink [data-o="${o.id}"] circle`);
+      t.gleich([await punkt(init), await punkt(s2)], [1, 0], 'am Anfang ist Schritt 1 aktiv');
+      await t.klick([t1.x, t1.y]);
+      t.gleich([await punkt(init), await punkt(s2)], [0, 1], 'nach BG1 ist Schritt 2 aktiv');
+      const fuellung = await t.page.locator(`#edstage .ink [data-o="${a.id}"] rect:not([fill="transparent"])`).first().getAttribute('fill');
+      t.gleich(fuellung, '#DFF5E1', 'Aktion MB1 wirkt');
+      t.erwarte((await t.text('#props')).includes('durchspielen'), 'Anleitung im Eigenschaftsfeld');
+      await t.werkzeug('sel');
+      t.gleich(await punkt(s2), 0, 'nach dem Durchspielen keine Punkte');
+    },
+  },
+  {
     name: 'Taste + wie + Schritt (wenn KERN den Haken taste hat)',
     lauf: async (t) => {
       await t.oeffne('grafcet');
