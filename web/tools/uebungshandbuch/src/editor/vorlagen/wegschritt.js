@@ -122,7 +122,7 @@ export const WS_ANLEITUNG = {
     [`Den <b>Zielpunkt</b> anklicken: den Beginn der Bewegung, die erst ausgelöst wird, wenn die Bedingung erfüllt ist.`,
       `Davor entsteht der Verknüpfungspunkt (UND = Schrägstrich, ODER = Punkt) mit Pfeil zum Ziel.`,
       `Danach mit <b>Signallinie</b> jeden Signalgeber anklicken und dann den Verknüpfungspunkt. Die Linien laufen dort zusammen.`]],
-  eq: [() => "Zyklusende", [`Die <b>Spalte nach dem letzten Schritt</b> anklicken. Sie wird zu „n = 1“, der Zyklus schließt sich.`]],
+  eq: [() => "Zyklusende", [`Die <b>Spalte nach dem letzten Schritt</b> anklicken. Die Spalte wird zu „n = 1“, der Zyklus schließt sich.`]],
 };
 // Anleitung im Eigenschaftsfeld, solange ein Werkzeug gewählt und nichts markiert ist
 export function wsAnleitung(){

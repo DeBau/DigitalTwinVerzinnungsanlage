@@ -44,7 +44,7 @@ registriereVorlage("stromlauf", {
 /* ---------- Gruppe Steuerstromkreis ---------- */
 registriereGruppe("elektro", {
   name: "Steuerstromkreis",
-  hinweis: "Kontakte und Spule untereinander setzen: Sie verbinden sich zum Strompfad und docken oben an L+ und unten "
+  hinweis: "Kontakte und Spule untereinander setzen: Die Bauteile verbinden sich zum Strompfad und docken oben an L+ und unten "
     + "an M an. Kennzeichen per Doppelklick ändern.",
   kette: true,
   kennzeichen,
@@ -104,7 +104,7 @@ registriereBauteile({
   zan: {...glied("Zeitrelais anzugsverzögert", "−KF2", zeitrelaisBild(false), ["A1", "A2"], {links: 34, kb: SPULE}), ...ZEIT},
   zab: {...glied("Zeitrelais abfallverzögert", "−KF2", zeitrelaisBild(true), ["A1", "A2"], {links: 34, kb: SPULE}), ...ZEIT},
   mv: {g: "elektro", n: "Mechanische Verriegelung", lbl: "", w: 46, h: 12, drehbar: false, zeichne: verriegelung,
-    info: "Zwischen zwei Spulen setzen, z. B. bei der Wendeschützschaltung. Sie ersetzt die Verriegelung mit Öffnern nicht."},
+    info: "Zwischen zwei Spulen setzen, z. B. bei der Wendeschützschaltung. Die Verriegelung mit Öffnern brauchst du trotzdem."},
   lamp: glied("Meldeleuchte", "−PF1", SCHALTZEICHEN("lamp"), ["X1", "X2"], {links: 20, kb: ["PF"]}),
   tno: glied("Taster Schließer", "−SF1", SCHALTZEICHEN("tno"), ["13", "14"], {kontakt: "no", kb: TASTER}),
   tnc: glied("Taster Öffner", "−SF2", SCHALTZEICHEN("tnc"), ["11", "12"], {kontakt: "nc", kb: TASTER}),

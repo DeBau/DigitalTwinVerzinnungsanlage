@@ -13,7 +13,7 @@ import { aktionenVon, nachfolgerUeberLinien, objIn } from './grafcet-kette.js';
 export const SPIEL_KNOPF = `<button type="button" class="tool" data-tool="sim" `
   + `title="Kette durchspielen: Transition anklicken, der Ablauf schaltet weiter">${IC.play}Durchspielen</button>`;
 export const SPIEL_ANLEITUNG = `<div class="props"><div class="palh">Kette durchspielen</div><p class="small" style="margin:0 0 6px">`
-  + `Klick auf eine <b>blaue Transition</b>: Sie schaltet, wenn ihre Bedingung erfüllt wäre. Der Punkt wandert in den `
+  + `Klick auf eine <b>blaue Transition</b>: Die Transition schaltet, wenn ihre Bedingung erfüllt wäre. Der Punkt wandert in den `
   + `nächsten Schritt, die Aktionen der aktiven Schritte werden grün.</p><p class="small muted" style="margin:0">Ein Klick `
   + `auf einen Schritt schaltet ihn von Hand ein oder aus. Zum Bearbeiten wählst du „Auswählen“.</p></div>`;
 

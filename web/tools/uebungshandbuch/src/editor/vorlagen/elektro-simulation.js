@@ -181,7 +181,7 @@ export function simUnten(e, pt){
   return true;
 }
 export const STROM_ANLEITUNG = `<div class="props"><div class="palh">Simulation</div><p class="small" style="margin:0 0 6px">`
-  + `Taster anklicken: Sie schalten, solange du drückst. Not-Halt, Schalter, Sensoren und Motorschutz rasten bei jedem `
+  + `Taster anklicken: Ein Taster schaltet, solange du drückst. Not-Halt, Schalter, Sensoren und Motorschutz rasten bei jedem `
   + `Klick um. Eine Spule zieht an, wenn A1 an L+ und A2 an M liegt, und alle Kontakte mit ihrem Kennzeichen schalten mit. `
   + `Ein Sensor schaltet nur mit Versorgung (BN an L+, BU an M). Ein Sicherheitsrelais mit verdrahtetem Start S33/S34 `
   + `gibt erst nach dem Start frei.</p><p class="small muted" style="margin:0">Rot: Potenzial L+, blau: Potenzial M. `

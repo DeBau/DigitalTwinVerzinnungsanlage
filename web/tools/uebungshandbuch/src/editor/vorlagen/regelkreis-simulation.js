@@ -143,7 +143,7 @@ export const simFeld = (f, lbl, wert, an) => `<label class="prop" ${an ? "" : 's
 export function simPanel(){
   const sim = ED.vorlage.sim, regler = auswahlFeld("regler", "Regler", SIM_REGLER, sim.regler).replace('data-prop=', 'data-rks=');
   return `<div class="props"><div class="palh">Regelkreis ausprobieren</div>`
-    + HINWEIS("Die Strecke verhält sich wie ein Tank: Sie folgt verzögert (10 s) und merkt erst nach 1 s etwas.")
+    + HINWEIS("Die Strecke verhält sich wie ein Tank: Der Istwert folgt verzögert (10 s) und merkt erst nach 1 s etwas.")
     + regler + simFeld("kp", "Verstärkung Kp", sim.kp, sim.regler !== "2P")
     + simFeld("tn", "Nachstellzeit Tn in s", sim.tn, sim.regler === "PI")
     + `<div class="propact" style="justify-content:flex-start;gap:6px"><button type="button" class="tool" data-rk="sprung">`
