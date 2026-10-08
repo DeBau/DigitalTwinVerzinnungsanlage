@@ -315,9 +315,11 @@ function trichterGeo(o, u) {
     ST.kamLicht = new THREE.MeshStandardMaterial({ color: 0xc8ccd0, emissive: 0xf4f8ff, emissiveIntensity: 0, roughness: 0.6, side: THREE.DoubleSide });
     const df = new THREE.Mesh(new THREE.RingGeometry(26, 53, 40), ST.kamLicht); df.rotation.x = Math.PI / 2; df.position.y = -8; rl.add(df);
     label('Keyence CV-X Kamera −KF10', k2, 0, 90, 0, 'klein');
-    // Kamera- und Ringlichtleitung: oben aus der Kamera über den Ausleger zur Säule, an der Säulenrückseite nach unten
-    A.kf10 = V(cx, yA - 50, cz - 34);
-    leitung([V(ST.kamX + 10, yK + 45, z), V(ST.kamX + 10, yA + 32, z), V(cx, yA + 32, z - 20), V(cx, yA + 32, cz - 34), A.kf10], M.kabelGruen, 3.5, 20);
+    // Kamera- und Ringlichtleitung: oben aus der Kamera über Ausleger und Kreuzklemmstück (Oberkante yA + 30), Bogen R 35
+    // hinter dem Klemmstück nach unten (Abstand ≥ 4 mm zur Kante), unter dem Klemmstück an die Säulenrückseite
+    const yL = yA + 38, zF = cz - 68;                                              // Leitungsebene oben, Fallstrecke hinter dem Klemmstück
+    A.kf10 = V(cx, 340, cz - 34);
+    leitung([V(ST.kamX + 10, yK + 45, z), V(ST.kamX + 10, yL, z), V(cx, yL, z - 30), V(cx, yL, zF), V(cx, 400, zF), V(cx, 400, cz - 34), A.kf10], M.kabelGruen, 3.5, 20);
   }
   // Ausblasdüse −MB16: Flachstrahldüse vorn am Seitenprofil, bläst n.i.O.-Teile durch die Lücke hinten auf die Rutsche
   {

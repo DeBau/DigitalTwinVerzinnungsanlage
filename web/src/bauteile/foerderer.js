@@ -3,10 +3,13 @@ import { anlage } from '../core/szene.js';
 import { canvasTextur } from '../core/texturen.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { M } from '../core/materialien.js';
+import { abnutzen } from '../core/gebrauch.js';
 import { V, box, cached, mesh, zyl } from '../core/geometrie.js';
 import { label, platte, tafel } from '../core/beschriftung.js';
 import { profil, stellfuss } from './aluprofil.js';
 import { BAND_Y, TROMMEL_R } from '../anlage/baender.js';
+
+const fuehrungMat = abnutzen(M.edelstahl.clone(), 'schiene');          // Seitenführung mit Schleifspuren der Körbe
 
 // Generischer Gurtbandförderer in lokalen Koordinaten: Förderrichtung +z, Mitte z = 0, Breite x ±110
 // Gurt: Flachdrahtgurt Edelstahl 1.4301 (Teilung 12,7 mm, Flachband 1,4 x 8 mm, Querstäbe Ø 2,4 mm, verschweißte Ränder),
@@ -116,7 +119,7 @@ export function gurtband(parent, L, opt) {
     zyl(5, 270, M.stahl, 0, BAND_Y - 2 * TROMMEL_R - 22, z, 'x', parent, 12);
   }
   for (const sx of [-1, 1]) {                                            // Seitenführungen an Haltern
-    for (const [a, b] of opt.fuehrung) box(4, 22, b - a, M.edelstahl, sx * 70, BAND_Y + 32, (a + b) / 2, parent);
+    for (const [a, b] of opt.fuehrung) box(4, 22, b - a, fuehrungMat, sx * 70, BAND_Y + 32, (a + b) / 2, parent);
     for (const z of opt.halter) {                                        // Abstandshalter: Winkel, Platte, Stift, Stange, Hülse
       box(4, 80, 30, M.anthrazit, sx * 134.5, BAND_Y + 2, z, parent);
       box(32, 4, 30, M.anthrazit, sx * 121.5, BAND_Y + 44, z, parent);    // Platte steht 1 mm über den Winkel

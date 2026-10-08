@@ -11,21 +11,27 @@ import { BRUECKE, lage } from './kabelbruecke.js';
 // Kabelwanne gelocht 60 × 35 hinter Band 2 (lokal in b2g: x = 365 … 425, Boden y = 310), vom Bandanfang (Welt x 470)
 // bis zum Bandkopf (Welt x 2790). Sie läuft hinter dem Kühlwassertank vorbei (Tankrückwand x = 340) über der
 // Kabelbrücke am Boden. Getragen von Bodenstützen (Fuß neben der Kabelbrücke, Ausleger unter die Wanne) und im
-// Tankbereich von Wandkonsolen an der Tankrückwand. Am Bandanfang führt ein senkrechtes Fallstück die Leitungen
-// in die Kabelbrücke und weiter zum Schaltschrank.
+// Tankbereich von Wandkonsolen an der Tankrückwand. Am Bandanfang biegt die Wanne nach unten ab: senkrechtes Fallstück
+// (Boden innen, Öffnung nach außen), unten eine Einführungshaube auf der Kabelbrücke, durch die die Leitungen senkrecht
+// unter die Abdeckung gehen und darin zum Schaltschrank laufen.
 // Spuren: 6 nebeneinander (x = 372 … 412), je 2 Lagen. In jeder Spur liegt die weiter hinten eingelegte Leitung unten.
 // ----------------------------------------------------------------------------
 export const WB2 = { x: 395, B: 60, H: 35, y: 310, z0: B2x(470), z1: B2x(2790) };
+WB2.zFall = WB2.z0 - 9;                                   // Bodenebene des Fallstücks (Ende des Wannenbodens)
+const HAUBE = { h: 40 };
 const spurX = (i) => WB2.x - 23 + 8 * i;
 const lageY = (e) => WB2.y + 4 + 7 * e;
 {
   const { x, B, H, y, z0, z1 } = WB2;
   const wanne = kabelrinne(V(0, 0, 0), 0, { L: z1 - z0 + 9, B, H, enden: [z1 - z0 + 9] });
   b2g.add(wanne); wanne.position.set(x, y, z0 - 9); wanne.rotation.y = -Math.PI / 2;
-  // Fallstück am Bandanfang: Boden senkrecht (Normale +z), Seiten bei x ± 30, von der Wannenoberkante bis über die Brücke
-  const fall = kabelrinne(V(0, 0, 0), 0, { L: y + H - 30, B, H });
-  b2g.add(fall); fall.position.set(x, y + H, z0 - 44);
-  fall.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(V(0, -1, 0), V(0, 0, 1), V(-1, 0, 0)));
+  // Fallstück: Boden senkrecht in Verlängerung des Wannenbodens (Ebene z = WB2.zFall), Seiten bei x ± 30, offen nach −z
+  const fall = kabelrinne(V(0, 0, 0), 0, { L: y - HAUBE.h, B, H });
+  b2g.add(fall); fall.position.set(x, y, WB2.zFall);
+  fall.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(V(0, -1, 0), V(0, 0, -1), V(1, 0, 0)));
+  // Einführungshaube (Kunststoff) auf der Kabelbrücke unter dem Fallstück: Leitungen gehen darin senkrecht unter die Abdeckung
+  box(B + 8, HAUBE.h, H + 10, M.kunststoff, x, HAUBE.h / 2, WB2.zFall - H / 2, b2g);
+  box(B + 14, 4, H + 16, M.kunststoff, x, HAUBE.h - 2, WB2.zFall - H / 2, b2g);              // Kragen, Fallstück steckt darin
   // Bodenstützen: Fußplatte neben der Kabelbrücke (lokal x 250 … 350), Stiel C 41, Ausleger unter der Wanne
   for (const wx of [560, 900, 1650, 2000, 2350, 2700]) {
     const z = B2x(wx), h = y - 21 - 6;
@@ -44,11 +50,12 @@ const lageY = (e) => WB2.y + 4 + 7 * e;
   }
 }
 // Leitung in die Wanne legen: pkte = Weg bis über die Einlegestelle (letzter Punkt oberhalb der Wanne, lokal b2g).
-// Danach: zur Spur, hinunter auf die Lage, die Wanne entlang zum Fallstück, hinunter, in die Kabelbrücke zum Schrank.
+// Danach: zur Spur, hinunter auf die Lage, die Wanne entlang und über die Kante ins Fallstück (gleicher Abstand vom
+// Boden, die untere Lage innen), in der Haube senkrecht unter die Abdeckung, darin in ihre Lage und zum Schrank.
 export function inWanneB2(spur, ebene, pkte, mat = M.kabelGrau, r = 2.6) {
-  const x = spurX(spur), y = lageY(ebene), e = pkte[pkte.length - 1], zF = WB2.z0 - (ebene ? 40 : 33);
+  const x = spurX(spur), y = lageY(ebene), e = pkte[pkte.length - 1], zF = WB2.zFall - (y - WB2.y);
   const d = lage(), lx = B2.z - (BRUECKE.z + d), zB = BRUECKE.x + d - B2.xm;
-  return leitung([...pkte, V(x, e.y, e.z), V(x, y, e.z), V(x, y, zF), V(x, 40, zF), V(lx, 14, zF - 40), V(lx, 14, zB), V(B2.z + 60, 14, zB)], mat, r, 14, b2g);
+  return leitung([...pkte, V(x, e.y, e.z), V(x, y, e.z), V(x, y, zF), V(x, 6, zF), V(lx, 14, zF - 120), V(lx, 14, zB), V(B2.z + 60, 14, zB)], mat, r, 14, b2g);
 }
 // Punkt aus Anlagenkoordinaten in b2g-Koordinaten
 export const inB2 = (p) => V(B2.z - p.z, p.y, p.x - B2.xm);

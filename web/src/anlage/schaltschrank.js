@@ -13,7 +13,7 @@ import { sensorLed } from '../core/leds.js';
 import { buendel, leitung, rohr } from '../bauteile/leitungen.js';
 import { BAND, BAND2, KURVE, LS_POS, STOPPER } from './baender.js';
 import { MULDE, ST } from './pruefstation.js';
-import { dummy, rohrNeu } from './pneumatik.js';
+import { ZULEITUNG, dummy, rohrNeu } from './pneumatik.js';
 import { drucktaster, meldeleuchte, tafelText, wahlschalter } from './befehlsgeraete.js';
 import { koerbe } from './koerbe.js';
 import { ausgang, ausgangSps, eingang, ketteLaeuft, korbAmPyrometer } from '../logik/eingaenge.js';
@@ -62,7 +62,7 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
     c.fillText('0', 18, 17); c.fillText('I', 82, 17);
   }, 4), 100, 26, g, 405.2, 1710, QZ, Math.PI / 2);
   // Flanschplatte oben mit Kabelverschraubungen (Leitungen aus der Gitterrinne)
-  box(260, 5, 120, M.blech, 0, 2102.5, -60, g);
+  box(260, 5, 120, M.blech, 85, 2102.5, -5, g);
 
   // --- Montageplatte (verzinkt) ---
   box(700, 1880, 3, M.verzinkt, 0, 1100, -170, g);
@@ -597,10 +597,11 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   });
   lbl('Schirmauflage / Zugentlastung', 0, 275, PF + 60);
   // Eingeführte Leitungen von oben (Gitterrinne): durch die Flanschplatte in den linken Senkrechtkanal
-  [[M.kabel, -90, 6], [M.kabelGrau, -62, 4.5], [M.kabelGrau, -40, 4.5], [M.kabelGruen, -20, 3.5], [M.kabelOrange, 2, 5], [M.kabelGrau, 22, 4.5]].forEach(([mat, dx, r], i) => {
-    zyl(r + 4, 16, M.kunststoff, dx, 2112, -60, null, g, 16);                   // Kabelverschraubung
-    zyl(r + 5.5, 4, M.kunststoff, dx, 2098, -60, null, g, 6);                    // Gegenmutter
-    ab.add([[dx, 2160, -60], [dx, 2040 - i * 6, -60], [dx - 60, 2040 - i * 6, PF + 30 + i * 8], [-320, 2040 - i * 6, PF + 30 + i * 8], [-320, 1900, PF + 30 + i * 8]], mat, r, 25);   // schräg auf die Kanalebene
+  Object.values(ZULEITUNG).forEach(({ x, z, r, mat }, i) => {
+    const dx = x + 1500, dz = z + 280;                                           // Lage der Leitung in der Rinne = Verschraubung
+    zyl(r + 4, 16, M.kunststoff, dx, 2112, dz, null, g, 16);                     // Kabelverschraubung
+    zyl(r + 5.5, 4, M.kunststoff, dx, 2098, dz, null, g, 6);                     // Gegenmutter
+    ab.add([[dx, 2115, dz], [dx, 2040 - i * 6, dz], [dx - 60, 2040 - i * 6, PF + 30 + i * 8], [-320, 2040 - i * 6, PF + 30 + i * 8], [-320, 1900, PF + 30 + i * 8]], mat, r, 25);   // schräg auf die Kanalebene
   });
 
   // Adern erzeugen (Instanzen)

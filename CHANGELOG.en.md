@@ -8,6 +8,31 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.18.0 – 2026-10-09
+
+The plant no longer looks factory new: signs of use on all surfaces and targeted wear on side guides, curve rollers and
+operator panels. Also clean cable routing in wire mesh and cable trays, new pneumatic distribution and a reworked
+guard door. The bridge only changes its version number.
+
+**Why**
+A plant in operation has dust, abrasion and handling marks. Without them the twin looked unrealistically clean.
+
+**New**
+- Signs of use (`core/gebrauch.js`): dust and dirt near the floor, dirt runs, stains, fine scratches in the paint,
+  uneven gloss on metal, heat tint at the rim of the tin bath. Computed in the shader from world position, no extra draw
+  calls, in all graphics levels. Strength in the console: `__zwilling.GEBRAUCH.staerke.value`.
+- Targeted wear: dark rub streaks on the side guides (strongest on the outside of the curve), polished tracks of the
+  basket runners with deposits on the rollers of the roller curve, worn areas, fingerprints and scratches around the
+  buttons on the operator panel and local control stations.
+- Wire mesh trays 200 × 60 above the gantry with riser trays on the columns; each cable to the control cabinet in its own lane.
+
+**Changed**
+- Cable tray on belt 1 and trough on belt 2 bend down at the start of the belt and lead the cables into the cable bridge.
+- Pneumatics: distributor block on the column for −QM1 and −QM2, multipole connector on the valve terminal, −MM4 via
+  rigid PA tube to the throttle.
+- Rear guard door: SICK TR10 Lock interlock with control housing and locking bolt.
+- Cables at Liquiphant, camera and ring light routed without collisions.
+
 ## 1.17.4 – 2026-10-08
 
 New images of the plant in the README and the docs, a clear view again in four fixed views and a new interactive

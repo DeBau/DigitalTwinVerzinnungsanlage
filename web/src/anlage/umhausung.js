@@ -10,8 +10,8 @@ import { werkerLaden } from './werker.js';
 import { LV, UMH, ZAUN } from './halle.js';
 import { paneel, schutzzaun, zaunTuer } from '../bauteile/schutzzaun.js';
 
-// Schutztür hinten: Flügel (dreht um das Scharnier), LEDs am Zuhaltemodul, Klickflächen
-export const TUER = { fluegel: null, ledVerriegelt: null, ledOffen: null, klick: [] };
+// Schutztür hinten: Flügel (dreht um das Scharnier), LEDs (TR10 Lock, Bediengehäuse), Klickflächen, Riegelbolzen (k = 0 ein … 1 aus)
+export const TUER = { fluegel: null, ledVerriegelt: null, ledOffen: null, klick: [], riegelStellen: null, k: 1 };
 import { dummy } from './pneumatik.js';
 
 // ----------------------------------------------------------------------------

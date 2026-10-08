@@ -10,6 +10,7 @@ import { t as tr } from '../core/sprache.js';
 import { profil } from '../bauteile/aluprofil.js';
 import { sensorLed } from '../core/leds.js';
 import { halter, kurvenRohr, leitung, schlauch } from '../bauteile/leitungen.js';
+import { gitterrinne, steigend } from '../bauteile/gitterrinne.js';
 import { steckverschraubung } from '../bauteile/zylinder.js';
 import { BAD_X } from './zinnbad.js';
 import { mm4 } from './abdeckung.js';
@@ -31,15 +32,15 @@ for (const sx of [-1, 1]) for (const sy of [-1, 1]) zyl(4, 2, M.stahl, sx * 76, 
 box(40, 110, 30, M.festoAlu, -44, 0, 21, ventilinsel);                                              // linke Endplatte
 box(14, 110, 30, M.festoAlu, 57, 0, 21, ventilinsel);                                               // rechte Endplatte
 for (const x of [-60, 60]) for (const y of [-45, 45]) zyl(2.8, 2, M.stahl, x, y, 36.5, 'z', ventilinsel, 6);   // Befestigungsschrauben
-// Multipol-Elektrikanschluss (Sub-D 25-polig) mit Stecker und Leitung nach unten
+// Multipol-Elektrikanschluss (Sub-D 25-polig) mit Stecker, Leitung seitlich nach links (über Versorgung 1 und Abluft hinweg)
 box(38, 64, 28, M.kunststoff, -44, 12, 50, ventilinsel);
 box(30, 20, 3, M.schwarz, -44, 14, 65, ventilinsel);
 box(22, 30, 12, M.kunststoff, -44, 10, 71, ventilinsel);
-zyl(5, 12, M.kunststoff, -44, -9, 72, null, ventilinsel, 10);                                       // Knickschutz
+zyl(5, 12, M.kunststoff, -61, 10, 71, 'x', ventilinsel, 10);                                        // Knickschutz
 for (const y of [-2, 22]) zyl(1.6, 3, M.stahl, -44, y, 78, 'z', ventilinsel, 6);                     // Rändelschrauben
 platte(tafel('festo', 34, 9, (c) => { c.fillStyle = '#ffffff'; c.fillRect(0, 0, 34, 9); c.fillStyle = '#0091dc'; c.font = '700 7px Arial'; c.textAlign = 'center'; c.fillText('FESTO', 17, 7.2); }, 8), 30, 8, ventilinsel, -44, 37, 64.2);
-// Versorgung 1 (QS-8) und Abluft 3/5 (Schalldämpfer) an der linken Endplatte
-const p1 = new THREE.Group(); p1.position.set(-52, -40, 36); p1.rotation.x = Math.PI / 2; ventilinsel.add(p1);
+// Versorgung 1 (QS-8) unten an der linken Endplatte (Schlauch kommt von unten), Abluft 3/5 (Schalldämpfer) vorn
+const p1 = new THREE.Group(); p1.position.set(-52, -55, 29); p1.rotation.x = Math.PI; ventilinsel.add(p1);
 steckverschraubung(p1, 0, 0, 0, 6);
 for (const x of [-38, -28]) { zyl(4.2, 4, M.stahl, x, -40, 38, 'z', ventilinsel, 6); zyl(3.8, 14, M.kunststoff, x, -40, 47, 'z', ventilinsel, 10); }
 platte(tafel('vtugTyp', 36, 14, (c) => {
@@ -113,14 +114,29 @@ mano.position.set(38, 0, 83.3); wartung.add(mano);
 label('Wartungseinheit 6 bar', wartung, 5, 110, 40, 'klein');
 const druckluftMat = new THREE.MeshStandardMaterial({ color: 0x2f7fd0, roughness: 0.45 });
 // Druckluft-Fallleitung (Hallennetz) mit Kugelhahn, dann zur Wartungseinheit
-// (Fallleitung in Flucht mit dem Eingang der Wartungseinheit: ein einziger Bogen nach unten/vorn)
+// (Fallleitung in Flucht mit dem Eingang der Wartungseinheit: ein einziger Bogen nach unten/vorn).
+// Rohrschellen mit kurzem Abstandshalter an der Seitenwand der linken Steigrinne
 zyl(11, 1960, M.alu, -830, 640 + 980, -170, null);
 zyl(14, 40, M.messing, -830, 760, -170, null, anlage, 6);
 box(70, 8, 14, M.rot, -795, 772, -170);
-for (const y of [1000, 1500, 2000]) box(30, 20, 120, M.deckel, -830, y, -230);
+for (const y of [1150, 1550, 1950]) { zyl(13, 14, M.verzinkt, -830, y, -170, null, anlage, 16); box(14, 10, 8, M.verzinkt, -812, y, -165); }
 leitung([[-830, 640, -170], [-830, 580, -170], [-772, 580, -170]], druckluftMat, 5, 30);
-// Wartungseinheit → Ventilinsel: hoch, vor der Ventilinsel herüber und von vorn in den Anschluss 1
-leitung([[-620, 580, -170], [-580, 580, -170], [-580, 840, -170], [-580, 840, -90], [-752, 840, -90], [-752, 840, -164]], druckluftMat, 4, 30);
+// Verteilerblock (Alu, 3 × G1/4) an der Innenseite der linken Säule hinter der Wartungseinheit: Eingang vorn oben
+// von der Wartungseinheit, Abgang vorn unten zur Ventilinsel −QM1, Abgang unten zur Ventilinsel −QM2 am Band
+const VB = V(-640, 700, -235);
+box(30, 60, 30, M.festoAlu, VB.x, VB.y, VB.z);
+for (const y of [VB.y - 20, VB.y + 20]) zyl(3.2, 2, M.stahl, VB.x + 16, y, VB.z, 'x', anlage, 6);   // Befestigung an der Säule (Nutensteine)
+const vbAnschluss = (y, z, rx) => { const f = new THREE.Group(); f.position.set(VB.x, y, z); f.rotation.x = rx; anlage.add(f); steckverschraubung(f, 0, 0, 0, 6); };
+vbAnschluss(VB.y + 15, VB.z + 15, Math.PI / 2);
+vbAnschluss(VB.y - 15, VB.z + 15, Math.PI / 2);
+vbAnschluss(VB.y - 30, VB.z, Math.PI);
+export const DRUCK_QM2 = V(VB.x, VB.y - 45, VB.z);                                 // Schlauchende am unteren Abgang
+// Wartungseinheit (Ausgang rechts, Steckverschraubung) → Verteilerblock: hoch, nach links und von vorn hinein
+{ const f = new THREE.Group(); f.position.set(-616, 580, -170); f.rotation.z = -Math.PI / 2; anlage.add(f); steckverschraubung(f, 0, 0, 0, 6); }
+leitung([[-601, 580, -170], [-558, 580, -170], [-558, VB.y + 15, -160], [VB.x, VB.y + 15, -160], [VB.x, VB.y + 15, VB.z + 30]], druckluftMat, 4, 30);
+// Verteilerblock → −QM1: nach vorn, über der Wartungseinheit nach links und von unten in den Anschluss 1
+// (Spulen und Handhilfsbetätigungen bleiben frei)
+leitung([[VB.x, VB.y - 15, VB.z + 30], [VB.x, VB.y - 15, -160], [-752, VB.y - 15, -160], [-752, 740, -160], [-752, 780, -186], [-752, 810, -186]], druckluftMat, 4, 30);
 
 // Pneumatikschläuche: je Zylinder A (Kolbenseite) und B (Stangenseite); leuchten, wenn belüftet
 for (const c of ZYL_LISTE) {
@@ -137,10 +153,15 @@ for (const y of [1010, 1130, 1250, 1370]) for (const q of ventilPorts) halter(q.
 // −MM3 auf der Traverse
 {
   const A = inAnlage(mm3.g, mm3.portA), B = inAnlage(mm3.g, mm3.portB), q = ventilPorts[2];
-  // oben schräg auf die Zylinderachse, darüber entlang und senkrecht in die Anschlüsse
-  leitung([q.p4, V(q.p4.x, 1440, q.p4.z), V(A.x, 1440, A.z), A], ZYL.MM3.matA, 3, 30);
-  leitung([q.p2, V(q.p2.x, 1456, q.p2.z), V(q.p2.x + 60, 1456, B.z), V(B.x, 1456, B.z), B], ZYL.MM3.matB, 3, 30);
-  for (const x of [-500, -300]) box(16, 8, 30, M.kunststoff, x, 1452, B.z);
+  // oben schräg auf die Zylinderachse, so tief wie der Biegeradius es erlaubt entlang und von oben in die Anschlüsse;
+  // B liegt in Schlauchhaltern (Alu-Winkel mit Nutenstein in der oberen Zylindernut, Clip oben)
+  const yA = A.y + 30, yB = A.y + 46, oben = mm3.g.position.y + 27;
+  leitung([q.p4, V(q.p4.x, yA, q.p4.z), V(A.x, yA, A.z), A], ZYL.MM3.matA, 3, 30);
+  leitung([q.p2, V(q.p2.x, yB, q.p2.z), V(q.p2.x + 60, yB, B.z), V(B.x, yB, B.z), B], ZYL.MM3.matB, 3, 30);
+  for (const x of [-480, -300]) {
+    box(10, yB - 4 - oben, 3, M.deckel, x, (yB - 4 + oben) / 2, B.z - 6);
+    box(12, 9, 10, M.schwarz, x, yB, B.z);
+  }
 }
 // −MM1/−MM2 in die Kettenwanne bis zum Festpunkt der Energiekette
 [0, 1].forEach((i) => {
@@ -150,62 +171,87 @@ for (const y of [1010, 1130, 1250, 1370]) for (const q of ventilPorts) halter(q.
     leitung([p, V(p.x, yo, p.z), V(p.x, yo, KETTE.z + dz), V(p.x, 1310, KETTE.z + dz), V(KETTE.xa, 1310, KETTE.z + dz)], mat, 2.8, 28);
   });
 });
-// −MM4: hoch in die Gitterrinne, über das Portal und an der rechten Säule im Kabelkanal hinunter
-{
-  const q = ventilPorts[3];
-  [[q.p4, ZYL.MM4.matA], [q.p2, ZYL.MM4.matB]].forEach(([p, mat], k) => {
-    leitung([p, V(p.x, 1480 + k * 10, p.z), V(-775 + k * 12, 1480 + k * 10, p.z), V(-775 + k * 12, 1480 + k * 10, -250)], mat, 3, 30);
-  });
-}
-// Kabelkanäle (PVC, mit Deckel) an den Portalsäulen
-function kabelkanal(x, z, y0, y1, b = 60, t = 60) {
-  box(b, y1 - y0, t, M.pvc, x, (y0 + y1) / 2, z);
-  box(b + 4, y1 - y0, 3, M.pvcHell, x, (y0 + y1) / 2, z + t / 2 + 1.5);
-}
-const RINNE_Y = 2150;
-kabelkanal(-775, -260, 1000, RINNE_Y - 30);
-kabelkanal(835, -260, 560, RINNE_Y - 30);                                       // endet über −XD2: Leitungen treten unten gerade aus
-// Gitterrinne (verzinkt) über dem Portal vom Schaltschrank bis zur rechten Säule
-function gitterrinne(x0, x1, y, z, b = 200, h = 60) {
-  const L = x1 - x0, xm = (x0 + x1) / 2;
-  for (const dz of [-b / 2, -b / 4, 0, b / 4, b / 2]) zyl(2.2, L, M.verzinkt, xm, y, z + dz, 'x', anlage, 6);
-  for (const s of [-1, 1]) for (const dy of [h / 2, h]) zyl(2.2, L, M.verzinkt, xm, y + dy, z + s * b / 2, 'x', anlage, 6);
-  const n = Math.floor(L / 50) + 1;
-  const boden = new THREE.InstancedMesh(new THREE.BoxGeometry(4, 4, b), M.verzinkt, n);
-  const seite = new THREE.InstancedMesh(new THREE.BoxGeometry(4, h, 4), M.verzinkt, 2 * n);
-  for (let i = 0; i < n; i++) {
-    dummy.position.set(x0 + i * 50, y - 2, z); dummy.rotation.set(0, 0, 0); dummy.updateMatrix(); boden.setMatrixAt(i, dummy.matrix);
-    for (const s of [0, 1]) { dummy.position.set(x0 + i * 50, y + h / 2, z + (s ? 1 : -1) * b / 2); dummy.updateMatrix(); seite.setMatrixAt(2 * i + s, dummy.matrix); }
-  }
-  boden.castShadow = seite.castShadow = true;
-  anlage.add(boden); anlage.add(seite);
-}
 export const dummy = new THREE.Object3D();
-gitterrinne(-1560, 860, RINNE_Y, -260);
-// Leitungen in der Rinne
-[[M.kabel, -70, 6], [M.kabelGrau, -50, 4.5], [M.kabelGrau, -36, 4.5], [M.kabelGruen, -22, 3.5], [M.kabelOrange, 2, 5]].forEach(([mat, dz, r]) => {
-  zyl(r, 1960, mat, -1560 + 980 + 300, RINNE_Y + r + 1, -260 + dz, 'x');
-});
-zyl(3, 1440, ZYL.MM4.matA, 120, RINNE_Y + 4, -260 + 40, 'x');
-zyl(3, 1440, ZYL.MM4.matB, 120, RINNE_Y + 4, -260 + 50, 'x');
-for (let x = -1500; x <= 800; x += 300) box(6, 16, 150, M.kunststoff, x, RINNE_Y + 12, -280);   // Kabelbinder
-// Stützen der Rinne auf den Portalsäulen
+// Gitterrinnen 200 × 60: waagrecht über dem Portal vom Schaltschrank bis zur rechten Säule, senkrecht als Steigrinnen
+// an den Außenseiten der Portalsäulen (Boden an der Säule, zur Seite offen). Die Leitungen liegen in der Steigrinne
+// nebeneinander auf dem Boden und treten oben durch Aussparungen im Boden der waagrechten Rinne (Kantenschutz) ein,
+// am Schrank ebenso nach unten aus.
+const RINNE_Y = 2150, RINNE_X0 = -1560;
+const aus = (x0, x1, z0, z1, kante) => ({ x0: x0 - RINNE_X0, x1: x1 - RINNE_X0, z0: z0 + 260, z1: z1 + 260, kante: kante - RINNE_X0 });
+gitterrinne(V(RINNE_X0, RINNE_Y, -260), 890 - RINNE_X0, { aussparung: [
+  aus(-1510, -1310, -310, -210, -1310),                                          // Abgang zum Schaltschrank (Leitungen kommen von rechts)
+  aus(-810, -710, -310, -210, -810),                                             // linke Steigrinne (Leitungen gehen nach links ab)
+  aus(-710, -610, -210, -160, -610),                                             // Schläuche −MM4 von der Ventilinsel (gehen nach rechts ab)
+  aus(790, 890, -310, -160, 790)] });                                            // rechte Steigrinne (Leitungen kommen von links)
+const BODEN_L = -749, BODEN_R = 809;                                            // Bodenebene der Steigrinnen (Querstäbe an der Säule)
+gitterrinne(V(BODEN_L, 1000, -260), RINNE_Y - 10 - 1000, { lage: steigend(-1) });
+gitterrinne(V(BODEN_R, 560, -260), RINNE_Y - 10 - 560, { lage: steigend(1) });   // beginnt über −XD2: Leitungen treten unten aus
+// x einer Leitung (Radius r), die in der Steigrinne auf dem Boden liegt
+export const amBoden = (seite, r) => seite < 0 ? BODEN_L - 2.2 - r : BODEN_R + 2.2 + r;
+// Stützen der Rinne auf den Portalsäulen und auf dem Schaltschrank
 for (const x of [-700, 760]) { profil(45, 45, RINNE_Y - 1295 - 14, 'y', x, (RINNE_Y + 1295 - 14) / 2, -260); box(70, 8, 230, M.deckel, x, RINNE_Y - 8, -260); }
 box(60, 10, 230, M.deckel, -1250, RINNE_Y - 9, -260);
-profil(45, 45, RINNE_Y - 2100 - 14, 'y', -1500, (RINNE_Y + 2100 - 14) / 2, -260);
-// −MM4-Schläuche aus dem rechten Kanal über das Führungsgestell zum Zylinder
+profil(45, 45, RINNE_Y - 2100 - 14, 'y', -1535, (RINNE_Y + 2100 - 14) / 2, -260);
+// Leitungen zum Schaltschrank: jede in eigener Lage z (steigt in der Steigrinne in dieser Lage auf und biegt oben direkt
+// ab, so kreuzt keine eine andere), Kabelverschraubung im Schrankdach bei x
+export const ZULEITUNG = {
+  heizung: { x: -1460, z: -301, r: 5, mat: M.kabel },
+  XD2: { x: -1430, z: -289, r: 4, mat: M.kabelGrau },
+  QM1: { x: -1400, z: -278, r: 4, mat: M.kabel },
+  XD1: { x: -1370, z: -267, r: 4, mat: M.kabelGrau },
+};
+// Weg ab der Steigrinne (x, Lage z): hoch auf den Rinnenboden, darin zum Schrank und durch die Verschraubung
+export function zumSchrank(name, x) {
+  const l = ZULEITUNG[name], y = RINNE_Y + 2.2 + l.r;
+  return [V(x, y, l.z), V(l.x, y, l.z), V(l.x, 2100, l.z)];
+}
+// Kabelbinder um die Bündel auf dem Rinnenboden (Lagen z0 … z1)
+const binder = (x, z0, z1) => box(5, 14, z1 - z0 + 4, M.kunststoff, x, RINNE_Y + 9, (z0 + z1) / 2);
+for (const x of [-1250, -1000]) binder(x, -306, -263);
+for (const x of [-500, -200, 100, 400, 700]) { binder(x, -306, -285); binder(x, -205, -183); }
+// −MM4: an der Ventilinsel senkrecht hoch in die Rinne, in der Lage der Anschlüsse über das Portal, in der rechten
+// Steigrinne hinunter und unten heraus. Unter der Rinne geht der Schlauch über einen Steckverbinder QSS-6 in starres
+// PA-Rohr Ø 6 über (nur gerade Stücke, Ecken mit L-Steckverbindern): senkrecht an der Säule (Haltewinkel mit Doppelschelle), waagrecht an der Rückseite des
+// Tragprofils (Doppelschellen im Nutenstein, hinter dem Fahrweg des Deckels bis z −181), über dem Anschluss hoch in
+// eine Schottverschraubung im Haltewinkel auf dem Profil. Von dort kurzes Schlauchstück von oben in die Drossel.
 {
-  const A = inAnlage(mm4.g, mm4.portA), B = inAnlage(mm4.g, mm4.portB);
-  [[A, ZYL.MM4.matA, 0], [B, ZYL.MM4.matB, 1]].forEach(([ziel, mat, k]) => {
-    // im Kanal hinunter, unten heraus, in eigener Höhe zum Zylinder und von oben in den Anschluss
-    const z1 = -175 - k * 5, yh = 510 + k * 12;
-    leitung([V(835, 900, -250 + k * 8), V(835, yh, -250 + k * 8), V(835, yh, z1), V(ziel.x, yh, z1), V(ziel.x, yh, ziel.z), ziel], mat, 3, 30);
+  const q = ventilPorts[3], A = inAnlage(mm4.g, mm4.portA), B = inAnlage(mm4.g, mm4.portB), x = amBoden(1, 3);
+  const yT = 397.5, zT = [-192, -206], yS = 453;                                 // Rohrlage am Tragprofil, Oberkante Schottwinkel
+  // Doppelschelle (Kunststoff) für beide Rohre mit Schraube; an der Säule auf einem Haltewinkel
+  const schelle = (sx, sy, waagrecht) => { box(waagrecht ? 12 : 16, waagrecht ? 16 : 12, 30, M.kunststoff, sx, sy, -199); zyl(3.5, 2, M.stahl, sx, sy, -215, 'z', anlage, 6); };
+  box(3, 30, 52, M.verzinkt, 806.5, 480, -212); zyl(4, 2, M.stahl, 809, 480, -228, 'x', anlage, 6);
+  schelle(814, 480, false);
+  // gerades Rohrstück a…b (Achse x/z, null = y) und L-Verbinder mit Löseringen auf den Schenkeln [Achse, Richtung]
+  const gerade = (a, b, achse, mat) => { const m = a.clone().add(b).multiplyScalar(0.5); zyl(3, a.distanceTo(b), mat, m.x, m.y, m.z, achse, anlage, 10); };
+  const winkel = (c, ...schenkel) => {
+    box(11, 11, 11, M.stahl, c.x, c.y, c.z);
+    for (const [ach, s] of schenkel) { const p = c.clone(); p[ach || 'y'] += s * 7; zyl(5, 3, M.qsBlau, p.x, p.y, p.z, ach, anlage, 12); }
+  };
+  for (const sx of [880, 1150]) schelle(sx, yT, true);
+  [[q.p4, A, ZYL.MM4.matA], [q.p2, B, ZYL.MM4.matB]].forEach(([p, ziel, mat], k) => {
+    const yR = RINNE_Y + 2.2 + 3, z = zT[k];
+    leitung([p, V(p.x, yR, p.z), V(x, yR, p.z), V(x, 660, p.z), V(x, 600, z), V(x, 546, z)], mat, 3, 30);
+    zyl(4.6, 20, M.stahl, x, 535, z, null, anlage, 12);                           // Steckverbinder Schlauch → Rohr
+    for (const dy of [-9, 9]) zyl(5, 3, M.qsBlau, x, 535 + dy, z, null, anlage, 12);
+    // starres Rohr nur gerade, in den Ecken Steck-L-Verbinder QSL-6
+    gerade(V(x, 524, z), V(x, yT + 12, z), null, mat); winkel(V(x, yT, z), [null, 1], ['x', 1]);
+    gerade(V(x + 12, yT, z), V(ziel.x - 12, yT, z), 'x', mat); winkel(V(ziel.x, yT, z), ['x', -1], [null, 1]);
+    gerade(V(ziel.x, yT + 12, z), V(ziel.x, yS - 18, z), null, mat);
+    // Schottwinkel am Tragprofil (Nutenstein), Schottverschraubung: unten Rohr, oben Schlauch
+    box(12, yS - 380, 3, M.verzinkt, ziel.x, (yS + 380) / 2, -185);
+    box(12, 3, 30, M.verzinkt, ziel.x, yS - 1.5, -200);
+    for (const [dy, rx] of [[0, 0], [-3, Math.PI]]) { const f = new THREE.Group(); f.position.set(ziel.x, yS + dy, z); f.rotation.x = rx; anlage.add(f); steckverschraubung(f, 0, 0, 0, 4.6); }
+    leitung([V(ziel.x, yS + 15, z), V(ziel.x, 500, z), V(ziel.x, 500, ziel.z), ziel], mat, 3, 30);
   });
 }
-// Ventilinsel-Multipolleitung in den Kanal
-leitung([[-744, 868, -143], [-744, 820, -143], [-860, 820, -143], [-860, 900, -143], [-860, 900, -260], [-775, 900, -260], [-775, 1060, -260]], M.kabel, 4, 25);
-// Heizungsleitung (Last) vom Bad in den Kanal
-leitung([[BAD_X + 120, 120, -170], [BAD_X + 120, 120, -235], [835, 120, -235], [835, 600, -235]], M.kabel, 5, 35);
+// Ventilinsel-Multipolleitung: über dem Versorgungsschlauch nach links, neben der Montageplatte nach hinten
+// (ausnahmsweise Biegeradius 2 × D), von unten in die Steigrinne und auf ihren Boden
+{
+  const z = ZULEITUNG.QM1.z, x = amBoden(-1, 4);
+  leitung([V(-764, 890, -144), V(-795, 890, -144), V(-795, 890, z), V(-795, 1010, z), V(x, 1090, z), ...zumSchrank('QM1', x)], M.kabel, 4, 16, anlage, 2);
+}
+// Heizungsleitung (Last) vom Bad hinter der rechten Säule herum und von unten in die Steigrinne
+{ const x = amBoden(1, 5); leitung([V(BAD_X + 120, 120, -170), V(BAD_X + 120, 120, -330), V(x, 120, -330), V(x, 220, ZULEITUNG.heizung.z), ...zumSchrank('heizung', x)], M.kabel, 5, 35); }
 
 // Kabelwanne zum Hubmodul (Gitterrinne verzinkt wie über dem Portal, 60 × 35 bzw. 48 × 35):
 // Steigwanne am Mitnehmer der X-Kette, Längswanne über Traverse und Konsole nach vorn, Querwanne über der

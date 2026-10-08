@@ -16,7 +16,7 @@ import { B2_MOTOR, b2g } from './band2.js';
 import { inB2, inWanneB2 } from './wanne-band2.js';
 import { BG9_KOPF, BG10_KOPF, bad } from './zinnbad.js';
 import { KETTE, haken, schlitten } from './portal.js';
-import { HK1, SPUR, WANNE, dummy, inAnlage, wannenWeg } from './pneumatik.js';
+import { DRUCK_QM2, HK1, SPUR, WANNE, ZULEITUNG, amBoden, dummy, inAnlage, wannenWeg, zumSchrank } from './pneumatik.js';
 
 // ----------------------------------------------------------------------------
 // Sensorverdrahtung
@@ -92,7 +92,7 @@ export function feldverteiler(x, y, z, ry, name, belegung) {
 // Letztes Stück zum Port: Die Leitungen eines Verteilers laufen als Bündel senkrecht vor der Frontplatte,
 // jede in ihrer Port-Spalte und in eigener Lage (Abstand zur Front), und biegen mit Mindestradius waagrecht
 // in ihren Stecker. Die Leitung, die zuerst abbiegt, liegt innen – so kreuzt keine eine andere oder einen Stecker.
-const STECKER_ENDE = 72;                                  // Kabelaustritt des M12-Steckers (lokal z)
+const STECKER_ENDE = 35 + 32;                             // Kabelaustritt des M12-Steckers (lokal z): Buchse 35 + Stecker 33, Leitung 1 mm im Knickschutz
 export function zumPort(weg, port, parent = anlage, r = 2.4) {
   const { g, xx, yy, zei } = port;
   const lokal = (v) => g.worldToLocal(parent.localToWorld(v.clone()));
@@ -115,13 +115,15 @@ const XD1 = feldverteiler(-655, 1000, -260, Math.PI / 2, '−XD1 Feldverteiler P
 const XD2 = feldverteiler(715, 560, -260, -Math.PI / 2, '−XD2 Feldverteiler Bad', [
   ['BG7_MM4_offen'], ['BG8_MM4_zu'], ['BG9_Temperatur'], ['BG10_Fuellhoehe'], null, null, null, null]);
 
-// Sammelleitungen (M23, 12-adrig) in die Kabelkanäle an den Säulen → Gitterrinne → Schaltschrank
+// Sammelleitungen (M23, 12-adrig) von unten in die Steigrinnen an den Säulen → Gitterrinne → Schaltschrank
 {
   const s = XD1.sammel;
-  kabel([s, V(s.x, 820, s.z), V(s.x, 820, -340), V(-775, 820, -340), V(-775, 820, -260), V(-775, 1000, -260)], anlage, M.kabelGrau, 4);
+  const x1 = amBoden(-1, 4);
+  kabel([s, V(s.x, 820, s.z), V(s.x, 820, -340), V(x1, 820, -340), V(x1, 900, ZULEITUNG.XD1.z), ...zumSchrank('XD1', x1)], anlage, M.kabelGrau, 4);
   const t = XD2.sammel;
-  // hinter der Säule herum und von unten in den Kabelkanal auf ihrer anderen Seite
-  kabel([t, V(t.x, 380, t.z), V(t.x, 380, -325), V(835, 380, -325), V(835, 380, -260), V(835, 640, -260)], anlage, M.kabelGrau, 4);
+  // hinter der Säule herum und von unten in die Steigrinne auf ihrer anderen Seite
+  const x2 = amBoden(1, 4);
+  kabel([t, V(t.x, 380, t.z), V(t.x, 380, -345), V(x2, 380, -345), V(x2, 480, ZULEITUNG.XD2.z), ...zumSchrank('XD2', x2)], anlage, M.kabelGrau, 4);
 }
 
 // −MM3 (Traverse): Austritt am Zylinderboden nach hinten über das Zylinderende hinaus, in Sensorhöhe nach vorn
@@ -148,18 +150,24 @@ const KETTE_KABEL = [];            // Leitungen in der Kette: Querversatz dz
 const Y_VERT = V(238, 560, -30);                        // im Haken
 box(18, 30, 24, M.ifm, Y_VERT.x, Y_VERT.y, Y_VERT.z, haken);                     // ifm Y-Verteiler EBC114
 label('Y-Verteiler BG1/BG2', haken, Y_VERT.x, Y_VERT.y - 70, Y_VERT.z, 'klein');
+// Winkelstecker: die Sensorleitungen gehen unten seitlich zu den Sensoren ab, die Sammelleitung rechts nach oben neben
+// der Kante des Hakenträgers – nichts hängt unter dem Verteiler durch (sonst taucht eine Schlaufe in den Abstreifer)
 [['BG1_MM1_eingehaengt', -6], ['BG2_MM1_geloest', 6]].forEach(([sig, dz]) => {
   const [e, w] = austritt(sig, haken);
-  const zp = Y_VERT.z + dz;
-  stecker(haken, V(Y_VERT.x, Y_VERT.y - 15, zp), '-y');
-  kabel([e, V(w.x + 12, e.y, e.z), V(w.x + 12, 470, e.z), V(Y_VERT.x, 470, zp), V(Y_VERT.x, Y_VERT.y - 15 - 32, zp)], haken, M.kabelGrau, 1.6, 8, false);
+  const a = steckerWinkel(haken, V(Y_VERT.x, Y_VERT.y - 15, Y_VERT.z + dz), '-y', '-x');
+  kabel([e, V(w.x + 12, e.y, e.z), V(w.x + 12, a.y, e.z), V(w.x + 12, a.y, a.z), a], haken, M.kabelGrau, 1.6, 8, false);
 });
-stecker(haken, V(Y_VERT.x + 9, Y_VERT.y, Y_VERT.z), '+x');
+const yAb = steckerWinkel(haken, V(Y_VERT.x + 9, Y_VERT.y, Y_VERT.z), '+x', '+y');
 // Sensorleitung −BG1/−BG2: vom Y-Verteiler am Mitnehmerschwert hoch in die Hub-Energiekette,
 // am Schlitten mit den −MM1-Schläuchen an der Plattenkante hoch und in die waagrechte Kette zu −XD1
 kabel([...wannenWeg(SPUR.BG1, 2.4, 1389), V(SPUR.BG1.ab, 1062, SPUR.BG1.z), V(SPUR.BG1.ab, 1062, HK1.zF + 10), V(HK1.x + 19, 1062, HK1.zF + 10)], schlitten, M.kabelGrau, 2.4, 10, false);
 KETTE_KABEL.push({ dz: -16, port: XD1.ports[0] });
-kabel([V(HK1.x + 19, HK1.yC0 - 4, HK1.zM + 8), V(140, HK1.yC0 - 4, HK1.zM + 8), V(140, 640, HK1.zM + 8), V(Y_VERT.x + 9 + 32, 640, Y_VERT.z), V(Y_VERT.x + 9 + 32, Y_VERT.y, Y_VERT.z)], haken, M.kabelGrau, 2.2, 16, false);
+// Sammelleitung vom Verteiler: neben der Kante hoch, im Bogen auf den Hakenträger (Oberkante 604), darauf zum
+// Mitnehmerschwert, über dessen Fußwinkel (Oberkante 612) und an der Seite des Schwerts hoch zum Kettenende
+{
+  const yT = 604 + 2.2, yF = 612 + 2.2, xS = 140 + 2.2;
+  kabel([yAb, V(yAb.x, yT, Y_VERT.z), V(175, yT, Y_VERT.z), V(160, yF, -12), V(xS, yF, -12), V(xS, HK1.yC0 - 20, -12), V(HK1.x + 19, HK1.yC0 - 4, HK1.zM + 8)], haken, M.kabelGrau, 2.2, 16);
+}
 
 // Festseite der Energiekette: in der Kettenwanne bis hinter die Säule, durch eine Kabeltülle im Wannenboden
 // senkrecht hinter der Säule hinunter und vor die Säule zu −XD1
@@ -169,12 +177,28 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
   zumPort([V(KETTE.xa - 10, 1313, z), V(x, 1313, z), V(x, 1130 - k * 6, z), V(-548 - k * 6, 1130 - k * 6, z)], port);
 });
 
-// −MM4 (Gestell rechts): am Zylinderboden heraus, hinter dem Gestell und vor der Säule unter der Abdeckung durch zu −XD2
-[['BG7_MM4_offen', 0, 318], ['BG8_MM4_zu', 1, 324]].forEach(([sig, port, y]) => {
-  const [e, w] = austritt(sig);
-  const x = 1400 + port * 6;
-  zumPort([e, w, V(x, w.y, w.z), V(x, y, w.z), V(x, y, -200), V(660, y, -200)], XD2.ports[port]);
-});
+// −MM4 (Gestell rechts): am Zylinderboden heraus, kurz frei hinunter in starres Elektro-Installationsrohr Ø 20 (PVC
+// grau, nur gerade Stücke mit Tüllen an den Enden; in der Ecke liegen die Leitungen frei). Rohr 1 läuft unter dem
+// Zylinderboden nach hinten (Haltewinkel am Querträger), Rohr 2 hinter den Gestellstützen und vor der Säule zu −XD2
+// (Abstandschellen an Stützen und Säule, z ≤ −190: außerhalb des Deckelfahrwegs). Am Rohrende in die Gassen.
+{
+  const XR = 1405, YU = 330, ZR = -200, XE = 690, Z0 = -35, ECKE = 30;
+  const stueck = (a, b, achse) => {                                              // gerades Rohrstück a…b mit Tüllen
+    const m = a.clone().add(b).multiplyScalar(0.5);
+    zyl(10, a.distanceTo(b), M.pvc, m.x, m.y, m.z, achse, anlage, 16);
+    for (const p of [a, b]) zyl(11, 6, M.schwarz, p.x, p.y, p.z, achse, anlage, 16);
+  };
+  stueck(V(XR, YU, Z0), V(XR, YU, ZR + ECKE), 'z');
+  stueck(V(XR - ECKE, YU, ZR), V(XE, YU, ZR), 'x');
+  for (const x of [1330, 1000]) box(16, 26, 27, M.pvcHell, x, YU, -197);         // Abstandschellen an den Stützen
+  box(16, 26, 27, M.pvcHell, 760, YU, -201.5);                                    // an der Säule
+  box(3, 40, 24, M.verzinkt, 1354, 318, -100); box(66, 3, 24, M.verzinkt, 1385.5, 318.5, -100);   // Haltewinkel am Querträger
+  box(24, 22, 16, M.pvcHell, XR, YU, -100);
+  [['BG7_MM4_offen', 0, 3.5], ['BG8_MM4_zu', 1, -3.5]].forEach(([sig, port, d]) => {
+    const [e, w] = austritt(sig);
+    zumPort([e, w, V(XR, w.y, w.z), V(XR, YU + d, w.z), V(XR, YU + d, ZR), V(660, YU + d, ZR)], XD2.ports[port]);
+  });
+}
 // −BG9 Thermoelement und −BG10 Niveauelektrode: M12-Stecker unten an den Köpfen hinter dem Bad, tief an der
 // Rückwand entlang (außerhalb des Fahrwegs der Abdeckung) und von unten in ihre Gassen vor −XD2
 {
@@ -184,15 +208,18 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
   stecker(bad, V(k10.x, k10.y - 15, k10.z), '-y');
   zumPort([V(k10.x, k10.y - 47, k10.z), V(k10.x, 230, k10.z), V(580, 230, k10.z)], XD2.ports[3]);
 }
-// Lichtschranken −BG11…−BG13: Stecker hinten am Sensor, senkrecht in den Kabelkanal am Bandgestell
+// Lichtschranken −BG11…−BG13: Stecker hinten am Sensor, senkrecht in die Kabelrinne am Bandgestell (Weg bis auf den
+// Rinnenboden; weiter in die Kabelbrücke weiter unten, siehe „Leitungen aus der Rinne Band 1“)
 {
+  const band1 = [];
+  const aufBoden = (x, r) => KANAL1.boden + r;
   for (const sig of ['BG12_Bandanfang', 'BG11_Korb', 'BG13_Bandende']) {
-    const p = BAND.stecker[sig];
+    const p = BAND.stecker[sig], x = KANAL1.lage[sig];
     const a = steckerWinkel(anlage, p, '-x', '-y');                               // gewinkelt: Abgang direkt nach unten
-    kabel([a, V(a.x, 285, p.z), V(-160, 285, p.z), V(-160, KANAL1.oben - 4, p.z)], anlage, M.kabelGrau, 2.2, 10, false);
+    band1.push({ x, r: 2.2, weg: [a, V(a.x, 285, p.z), V(x, 285, p.z), V(x, aufBoden(x, 2.2), p.z)] });
   }
-  // Inkrementalgeber −BG18: Leitung nach oben, unter dem Band hindurch in den Kanal (direkt auf −X5, nicht über Feldverteiler)
-  { const g = BAND.geberStecker, a = steckerWinkel(anlage, g, '+y', '+x'); kabel([a, V(-148, a.y, g.z), V(-148, KANAL1.oben - 4, g.z)], anlage, M.kabelGrau, 2.8, 14); }
+  // Inkrementalgeber −BG18: Leitung nach oben, unter dem Band hindurch in die Rinne (direkt auf −X5, nicht über Feldverteiler)
+  { const g = BAND.geberStecker, a = steckerWinkel(anlage, g, '+y', '+x'), x = KANAL1.lage.geber; band1.push({ x, r: 2.8, weg: [a, V(x, a.y, g.z), V(x, aufBoden(x, 2.8), g.z)] }); }
   // Band 2: Lichtschranken −BG21…−BG24 und Pyrometer −BT2 → Kabelwanne hinter Band 2 (wanne-band2.js) → Kabelbrücke
   {
     for (const [sig, spur, lage2] of [['BG21_B2_Anfang', 5, 1], ['BG22_B2_Kuehlung', 3, 1], ['BG24_B2_Ende', 0, 0]]) {
@@ -279,17 +306,18 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
       leitung([P, V(xv, P.y, P.z), V(xv, 150, P.z), V(xr, auf(2.4), P.z - 40), V(xr, auf(2.4), zh), V(xr, 310, zh), V(Z.x, 370, zh), Z], druck, 2.4, 12);
     });
   }
-  // Druckluftversorgung −QM2 (PUN-8) von der Wartungseinheit am Portal: an der Säule hinunter, durch die Querrinne
+  // Druckluftversorgung −QM2 (PUN-8) vom Verteilerblock an der Portalsäule: an der Säule hinunter, durch die Querrinne
   // unter dem Band hindurch, in der Rinne nach vorn und vor der Ventilinsel von unten an den Versorgungsanschluss
   const xs = 190;
-  leitung([V(-625, 580, -170), V(-625, 160, -170), V(-625, 160, QR.z + 15), V(-625, auf(4), QR.z + 15), V(xs, auf(4), QR.z + 15), V(xs, auf(4), QM2.z - 70), V(xs, 120, QM2.z - 55)], druck, 4, 40);
+  const d = DRUCK_QM2;
+  leitung([d, V(d.x, 160, d.z), V(d.x, 160, QR.z + 15), V(d.x, auf(4), QR.z + 15), V(xs, auf(4), QR.z + 15), V(xs, auf(4), QM2.z - 70), V(xs, 120, QM2.z - 55)], druck, 4, 40);
   schlauch([V(xs, 120, QM2.z - 55), V(xs, 145, QM2.z - 45), V(187, 175, QM2.z - 18), V(186, 186, QM2.z - 3), V(186, 192, QM2.z)], druck, 4);
-  // Sammelleitungen am Kanalende (Lichtschranken −BG11…−BG13, Geber −BG18): senkrecht hinunter, am Boden in die Kabelbrücke
-  // (Abgang unten aus dem Kanal vor der Brücke, nicht durch ihre Deckfläche)
-  [M.kabelGrau, M.kabelGrau, M.kabelGrau, M.kabelGrau].forEach((mat, i) => {
-    const dx = -168 + i * 6;
-    kabel(unterBruecke(dx, 2.4, [V(dx, KANAL1.unten + 5, 925), V(dx, 2.4, 925)]), anlage, mat, 2.4, 20, false);
-  });
+  // Leitungen aus der Rinne Band 1 (Lichtschranken −BG11…−BG13, Geber −BG18): in ihrer Lage über den Rinnenboden nach vorn,
+  // in der senkrechten Rinne hinunter und am Boden in die Kabelbrücke (seitlich unter die Abdeckung, nicht durch ihre Deckfläche)
+  for (const { x, r, weg } of band1) {
+    const z = KANAL1.z1 + 1 + r;                                                  // über die Kante auf den Boden der senkrechten Rinne
+    kabel(unterBruecke(x, r, [...weg, V(x, aufBoden(x, r), z), V(x, r, z)]), anlage, M.kabelGrau, r, 20, false);
+  }
   // Bandmotor −MA1: aus dem Klemmenkasten über der Lüfterhaube zur Rinne, hinter dem Trennsteg zur Kabelbrücke
   { const k = B1_MOTOR.abgang; kabel([k[0], k[1], V(237, k[1].y, -500), V(237, auf(4.5), -500), V(237, auf(4.5), RI.zr), V(287, auf(4.5), RI.zw), ...zurBruecke(287, 4.5)], anlage, M.kabel, 4.5, 30, false); }
 }

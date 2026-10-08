@@ -49,35 +49,86 @@ export function schutzzaun(pfad, maxBreite = 1500) {
     if (i) paneel(punkte[i - 1][0], punkte[i - 1][1], x, z);
   });
 }
-// Drehflügeltür im Zaun zwischen den Pfosten bei xA (Scharnier) und xB (Schließseite) auf der Linie z, öffnet nach −z.
-// Sicherheitsschalter mit Zuhaltung (Bauart Euchner MGB2: Zuhaltemodul am Pfosten, Griffmodul mit Riegel am Flügel,
-// Bedienmodul mit Türanforderung). Rückgabe: { fluegel, ledVerriegelt, ledOffen, klick[] }
+// Drehflügeltür im Zaun zwischen dem Scharnierpfosten bei xA und dem Eckpfosten bei xB (Linie z), öffnet nach −z (außen).
+// Scharnierachse 35 mm vor der Zaunlinie und 10 mm neben dem Flügel: so schwenkt der Flügel bis 92° frei am Pfosten vorbei.
+// Zuhaltung −BG41: SICK TR10 Lock TR10-SRM01C (6054758, RFID, Ruhestrom), Maße nach SICK-Datenblatt TR10-SRM01C
+// (Maßzeichnung Sensor S. 4, Betätiger und Befestigungswinkel S. 5): Sensor 45 × 140 × 50 senkrecht flach auf dem
+// Eckpfosten, Riegelbolzen Ø 9,525 oben 25 mm vor der Montagefläche, fährt 10 mm in den Betätiger. Betätigerkopf
+// 40 × 40 auf dem Befestigungswinkel (3 mm, Schenkel 47, Kopfmitte 31,5 vor der Winkelfläche) an der Schließkante des
+// Flügels: beim Schließen gleitet der Kopf von vorn über den Sensor (Anfahrrichtung frontal).
+// Türanforderung −SF49 darunter in einem schmalen Aufbaugehäuse (40 breit wie der Pfosten, 2 Befehlsstellen Ø 22 untereinander).
+// Rückgabe: { fluegel, ledVerriegelt, ledOffen, klick[], riegelStellen(k) } mit k = 0 Bolzen eingefahren … 1 ausgefahren
+const TR10 = { y: 1290, b: 45, h: 140, t: 50, bolzen: 25, kopf: 40, kh: 16, luft: 2, winkel: 31.5 };
 export function zaunTuer(xA, xB, z) {
-  const fluegel = new THREE.Group(); fluegel.position.set(xA + 35, 0, z); anlage.add(fluegel);
-  const w = xB - xA - 70, h = H1 - H0, ym = (H0 + H1) / 2;
-  for (const sy of [-1, 1]) box(w, 30, 20, schwarz, w / 2, ym + sy * (h / 2 - 15), 0, fluegel);   // Rahmen oben/unten
-  for (const sx of [0, 1]) box(30, h - 60, 20, schwarz, sx * (w - 15) + (sx ? 0 : 15), ym, 0, fluegel);   // Rahmen seitlich
-  box(w - 60, 30, 20, schwarz, w / 2, 1050, 0, fluegel);                               // Querriegel
+  const fluegel = new THREE.Group(); fluegel.position.set(xA + 45, 0, z - 35); anlage.add(fluegel);
+  tuerFluegel(fluegel, xB - xA - 70);
+  scharniere(fluegel, xA, z);
+  const kante = xB - 35;                                                                // Schließkante des Flügels (15 mm Spalt zum Pfosten)
+  const tg = new THREE.Group(); tg.position.set(kante - fluegel.position.x, 0, 35); fluegel.add(tg);   // lokal: x ab Kante, z ab Zaunlinie
+  const griff = tuerGriff(tg);
+  betaetiger(tg);
+  const s = tr10Sensor(kante + TR10.winkel, z - 30);
+  const bg = bediengehaeuse(xB, z - 30);                                         // mittig auf dem Eckpfosten, bündig mit seinen Kanten
+  return { fluegel, ledVerriegelt: s.led, ledOffen: bg.ledOffen, klick: [bg.taster, ...griff], riegelStellen: s.stellen };
+}
+// Flügel lokal: Rahmen 30 × 20 von x = −10 bis w − 10, Ebene z = 35 (Zaunlinie), Gitter wie die Paneele
+function tuerFluegel(g, w) {
+  const h = H1 - H0, ym = (H0 + H1) / 2, xm = -10 + w / 2, zf = 35;
+  for (const sy of [-1, 1]) box(w, 30, 20, schwarz, xm, ym + sy * (h / 2 - 15), zf, g);   // Rahmen oben/unten
+  for (const x of [5, w - 25]) box(30, h - 60, 20, schwarz, x, ym, zf, g);               // Rahmen seitlich
+  box(w - 60, 30, 20, schwarz, xm, 1050, zf, g);                                       // Querriegel
   const geo = new THREE.PlaneGeometry(w - 60, h - 60), uv = geo.attributes.uv;
   for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * (w - 60) / 20, uv.getY(i) * (h - 60) / 100);
-  const m = new THREE.Mesh(geo, GITTER); m.position.set(w / 2, ym, 0); fluegel.add(m);
-  for (const y of [H0 + 250, H1 - 250]) { zyl(12, 90, M.stahl, -12, y, 0, null, fluegel, 16); box(40, 60, 8, M.stahl, 8, y, -14, fluegel); }   // Scharniere
-  // Griffmodul (Flügel, außen −z): Gehäuse, Türgriff, Riegel greift ins Zuhaltemodul
-  const gm = new THREE.Group(); gm.position.set(w - 25, 1050, -32); fluegel.add(gm);
-  box(46, 200, 34, M.anthrazit, 0, 0, 0, gm);
-  box(14, 120, 30, M.stahl, -8, 0, -30, gm);                                           // Türgriff
-  for (const y of [-55, 55]) box(14, 14, 20, M.stahl, -8, y, -12, gm);
-  box(30, 20, 30, M.stahl, 30, 40, 0, gm);                                             // Riegel
-  // Zuhaltemodul am Schließpfosten (außen), Bedienmodul mit Türanforderung darunter
-  const zm = new THREE.Group(); zm.position.set(xB - 30 - 23, 1050, z - 32); anlage.add(zm);
-  box(46, 200, 34, M.anthrazit, 0, 0, 0, zm);
-  box(42, 60, 2, new THREE.MeshStandardMaterial({ color: 0x1d6fbf, roughness: 0.4 }), 0, 50, -17.5, zm);   // Beschriftungsfeld
-  const ledVerriegelt = new THREE.MeshStandardMaterial({ color: 0x113311, emissive: 0x22dd55, emissiveIntensity: 1.6 });
+  const m = new THREE.Mesh(geo, GITTER); m.position.set(xm, ym, zf); g.add(m);
+}
+// Scharniere: Bolzen in der Drehachse, Lappen am Flügel oben, Lappen am Pfosten (Außenseite) darunter
+function scharniere(g, xA, z) {
+  for (const y of [H0 + 250, H1 - 250]) {
+    zyl(12, 120, M.stahl, 0, y, 0, null, g, 16);                                         // Bolzen Ø 24
+    box(40, 55, 25, M.stahl, 15, y + 30, 12.5, g);                                       // Flügellappen bis zum Rahmen
+    box(35, 55, 15, M.stahl, xA + 30, y - 30, z - 27.5);                                 // Pfostenlappen
+  }
+}
+// Bügelgriff (Profilgriff Ø 20, Stützweite 160) außen auf dem Schließholm des Flügels
+function tuerGriff(tg) {
+  const teile = [920, 1080].map((y) => box(14, 14, 32, M.stahl, -15, y, -26, tg));      // Stützen
+  teile.push(zyl(10, 190, M.stahl, -15, 1000, -50, null, tg, 16));
+  return teile;
+}
+// Betätiger TR10 Lock: Haltewinkel (Alu-Vierkant 20 × 57,5) auf dem Schließholm, SICK-Befestigungswinkel an seiner
+// Stirnseite (fluchtend mit der Flügelkante), Kopf 40 × 40 mittig über dem Riegelbolzen des Sensors
+function betaetiger(tg) {
+  const { y, kopf, kh, luft } = TR10, zk = -55, yk = y + luft + kh / 2;
+  box(20, 55, 57.5, M.alu, -10, y - 7.5, -38.75, tg);                                    // Haltewinkel bis vor den Sensor
+  box(3, 47, 25, M.stahl, 1.5, y + luft + kh - 23.5, zk, tg);                             // Befestigungswinkel: Schenkel …
+  box(8.5, 3, 25, M.stahl, 7.25, y + luft + kh - 1.5, zk, tg);                            // … und Steg zum Kopf
+  box(kopf, kh, kopf, gelb, 11.5 + kopf / 2, yk, zk, tg);                                // Betätigerkopf (RFID)
+  box(10, 1, 8, new THREE.MeshStandardMaterial({ color: 0x1d6fbf, roughness: 0.4 }), 11.5 + kopf / 2, yk + kh / 2 + 0.5, zk - 12, tg);   // Pfeilmarke
+}
+// Sensor TR10 Lock flach auf dem Eckpfosten: x = Bolzenmitte, zf = Pfostenfläche; Rücken schwarz, Front gelb, oben
+// 50 tief, unten auf 32 verjüngt; Riegelbolzen bewegt (dyn), LED STATUS grün
+function tr10Sensor(x, zf) {
+  const g = new THREE.Group(); g.position.set(x, 0, zf); anlage.add(g);
+  const { y, b, h, t } = TR10;
+  box(b, h, 32, schwarz, 0, y - h / 2, -16, g);
+  box(b, 85, t - 32, gelb, 0, y - 42.5, -32 - (t - 32) / 2, g);
+  zyl(4.8, 23, M.kunststoff, 0, y - h - 11.5, -16, null, g, 12);                          // Kabelverschraubung
+  zyl(3.25, 55, M.kunststoff, 0, y - h - 50, -16, null, g, 8);                            // Leitung Ø 6,5 ins Bediengehäuse (M20 oben)
+  const led = new THREE.MeshStandardMaterial({ color: 0x113311, emissive: 0x22dd55, emissiveIntensity: 1.6 });
+  box(14, 4, 2, led, 0, y - 60, -t - 0.5, g);                                             // STATUS
+  box(14, 4, 2, M.kunststoff, 0, y - 70, -t - 0.5, g);                                    // DIAG
+  const bolzen = zyl(4.76, 12, M.stahl, 0, y - 6, -TR10.bolzen, null, g, 12);
+  bolzen.userData.dyn = true;
+  return { led, stellen: (k) => { bolzen.position.y = y - 6 + 10 * k; } };
+}
+// Schmales Aufbaugehäuse (grau, 40 × 130 × 55) flach und bündig auf dem Eckpfosten, Mitte x: zwei Befehlsstellen Ø 22
+// untereinander – oben Leuchtmelder gelb (Zuhaltung entriegelt), unten Leuchtdrucktaster blau Türanforderung −SF49
+function bediengehaeuse(x, zf) {
+  const g = new THREE.Group(); g.position.set(x, 1010, zf); anlage.add(g);
+  box(40, 130, 55, new THREE.MeshStandardMaterial({ color: 0x9a9fa4, roughness: 0.5 }), 0, 0, -27.5, g);
   const ledOffen = new THREE.MeshStandardMaterial({ color: 0x332a00, emissive: 0xffb000, emissiveIntensity: 0 });
-  box(8, 8, 3, ledVerriegelt, -10, 85, -18, zm); box(8, 8, 3, ledOffen, 10, 85, -18, zm);
-  box(46, 90, 34, M.anthrazit, 0, -150, 0, zm);                                        // Bedienmodul
-  const taster = zyl(11, 8, new THREE.MeshStandardMaterial({ color: 0x3d8de0, emissive: 0x3d8de0, emissiveIntensity: 0.4 }), 0, -150, -20, 'z', zm, 20);
-  zyl(14, 3, M.stahl, 0, -150, -17.5, 'z', zm, 20);
-  zyl(7, 12, M.kunststoff, 0, -205, 0, null, zm, 12);                                  // M12-Anschluss unten
-  return { fluegel, ledVerriegelt, ledOffen, klick: [taster, ...gm.children] };
+  for (const yy of [30, -30]) zyl(14.5, 3, M.stahl, 0, yy, -56.5, 'z', g, 24);             // Frontringe Ø 29
+  zyl(11, 6, ledOffen, 0, 30, -60, 'z', g, 20);
+  const taster = zyl(11, 8, new THREE.MeshStandardMaterial({ color: 0x3d8de0, emissive: 0x3d8de0, emissiveIntensity: 0.4 }), 0, -30, -61, 'z', g, 20);
+  return { ledOffen, taster };
 }

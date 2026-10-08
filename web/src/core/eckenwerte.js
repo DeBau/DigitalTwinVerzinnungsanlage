@@ -29,6 +29,7 @@ export function eckenMaterial(m) {
     const e = m.clone();
     e.color.set(0xffffff);
     e.vertexColors = true;
+    delete e.userData.abnutzung;                                              // steht je Ecke (gebrauchArt), nicht im Material
     e.onBeforeCompile = shaderErweitern;
     e.customProgramCacheKey = () => 'eckenwerte';
     MATERIALIEN.set(key, e);
@@ -36,7 +37,7 @@ export function eckenMaterial(m) {
   return MATERIALIEN.get(key);
 }
 
-// Hängt Farbe (linear) und Rauheit/Metallanteil des Materials an jede Ecke der Geometrie
+// Hängt Farbe (linear), Rauheit/Metallanteil und Art der Abnutzung des Materials an jede Ecke der Geometrie
 export function eckenwerteAnhaengen(g, m) {
   const n = g.attributes.position.count;
   const farbe = new Float32Array(n * 3), rauMetall = new Float32Array(n * 2);
@@ -47,4 +48,5 @@ export function eckenwerteAnhaengen(g, m) {
   }
   g.setAttribute('color', new THREE.BufferAttribute(farbe, 3));
   g.setAttribute('rauMetall', new THREE.BufferAttribute(rauMetall, 2));
+  g.setAttribute('gebrauchArt', new THREE.BufferAttribute(new Float32Array(n).fill(m.userData.abnutzung || 0), 1));   // core/gebrauch.js
 }

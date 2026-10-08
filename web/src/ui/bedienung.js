@@ -4,6 +4,7 @@ import { $, anlage, camera, controls, renderer } from '../core/szene.js';
 import { fmt0 } from '../core/format.js';
 import { PULT_TASTER } from '../anlage/register.js';
 import { DEKADEN } from '../anlage/bcd-geraete.js';
+import { SCHRANK } from '../anlage/schaltschrank.js';
 import { personEntfernen, personStarten } from '../anlage/werker.js';
 import { BAND, BAND2 } from '../anlage/baender.js';
 import { MM8, MULDE, ST } from '../anlage/pruefstation.js';
@@ -25,8 +26,10 @@ let pultGedrueckt = null;
 function treffer(e) {
   const r = renderer.domElement.getBoundingClientRect();
   raycaster.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
-  return raycaster.intersectObjects(PULT_TASTER.map(t => t.kappe), false)[0];
+  return raycaster.intersectObjects(PULT_TASTER.map(t => t.kappe), false).find(erreichbar);
 }
+// Umrichter im Schaltschrank sind nur bei offenen Türen anklickbar (gleiche Schwelle wie die Beschriftungen im Schrank)
+const erreichbar = (h) => h.object.userData.art !== 'umrichter' || SCHRANK.auf > 0.6;
 // Potentiometer wie ein Drehknopf: ziehen (nach oben/rechts = mehr, 160 px = 0…100 %), Mausrad 5 % je Raste.
 // Neben dem Mauszeiger steht dabei der Wert.
 let potiZug = null, tippAus = 0;

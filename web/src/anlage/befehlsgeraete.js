@@ -9,6 +9,7 @@ import { kabel } from './verdrahtung.js';
 import { BRUECKE, lage } from './kabelbruecke.js';
 import { daumenradschalter, ziffernanzeige } from './bcd-geraete.js';
 import { t as tr } from '../core/sprache.js';
+import { frontAbnutzen } from '../core/gebrauch.js';
 
 // 3D-Bedienpult und Vor-Ort-Steuerstelle (alle Taster/Schalter anklickbar)
 //  art 'tast' = Taster (solange gedrückt), 'notHalt' = rastend (Klick drücken / Klick entriegeln), 'wahl' = Wahl-/Schlüsselschalter
@@ -113,6 +114,8 @@ export function meldeleuchte(parent, x, y, signal, farbe) {
     T('START  −SF1', -110, R2 - 40); T('STOP  −SF2', 20, R2 - 40); T(tr('Anlage läuft'), 150, R2 - 37, 9.5); T('−PF1', 150, R2 - 49, 8.5, 500);
     T(tr('MELDUNGEN'), 0, -76, 12, 700);
     [['Temperatur', '−PF2'], ['Füllhöhe unterschr.', '−PF3'], ['Korb vorhanden', '−PF4'], ['Handbetrieb', '−PF7']].forEach(([a, b], i) => { T(tr(a), -150 + i * 100, R3 - 38, 9.5); T(b, -150 + i * 100, R3 - 51, 8.5, 500); });
+    // Gebrauchsspuren: START, STOP, Quittieren und Betriebsart werden täglich bedient, Not-Halt und Tauchzeit seltener
+    frontAbnutzen(c, W, H, [[-110, R2, 15, 1], [20, R2, 15, 1], [90, R1, 15, 0.9], [-30, R1, 15, 0.7], [-150, R1, 20, 0.4], [-180, R2 + 4, 18, 0.5], [150, R2, 15, 0.15]], 3);
   }, k), W, H, kopf, 0, 0, 0.5);
   notHaltTaster(kopf, -150, R1, 'sf0');
   wahlschalter(kopf, -30, R1, 'sa1');
@@ -171,6 +174,9 @@ export function vorOrtStation(pos, bmk, k) {
       T('0', -27, -H / 2 + 52, 8); T('100 %', 32, -H / 2 + 52, 8);
       T(tr(k.potiText), 0, -H / 2 + 34, 8.5); T('−' + k.potiT, 0, -H / 2 + 23, 8, 500);
     }
+    // Gebrauchsspuren: Tipptaster am meisten, Schlüsselschalter mittel, Not-Halt und Quittieren seltener
+    frontAbnutzen(c, W, H, [[-45, H / 2 - 67, 15, 0.6], ...zeilen.flatMap((z, i) => z.map((t) => [t.x, zy(i), 15, 1])),
+      ...(k.nh ? [[-40, -H / 2 + 77, 20, 0.35], [55, -H / 2 + 77, 15, 0.6]] : []), ...(k.poti ? [[0, -H / 2 + 77, 16, 0.8]] : [])], bmk.length + bmk.charCodeAt(1));
   }, 4), W, H, f, 0, 0, 0);
   wahlschalter(f, -45, H / 2 - 67, k.sa, true);
   meldeleuchte(f, 45, H / 2 - 67, k.pf, 0xf4f7fb);

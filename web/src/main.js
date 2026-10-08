@@ -72,6 +72,7 @@ import { KW, ZYL, st } from './logik/zustand.js';
 import { $, KAMERA, TAKT, anlage, camera, controls, labelRenderer, renderer, scene, sun } from './core/szene.js';
 import { VERSION } from './version.js';
 import { M } from './core/materialien.js';
+import { GEBRAUCH } from './core/gebrauch.js';
 import { ledsAktualisieren } from './core/leds.js';
 import { BAND, BAND2, KURVE } from './anlage/baender.js';
 import { MM8, MULDE, ST } from './anlage/pruefstation.js';
@@ -101,7 +102,7 @@ verbinden();
 setTimeout(() => { if (st.modus === 'demo' && !st.plcVerbunden) { demo.auto = true; ereignis('Demo: Automatik EIN'); } }, 1500);
 
 // Testzugang (Konsole): __zwilling.sim(30) rechnet 30 s Anlagenzeit ohne Darstellung
-window.__zwilling = { renderer, sun, st, KW, ZYL, demo, koerbe, scene, anlage, THREE, eingang, BAND, BAND2, KURVE, MM8, MULDE, ST, M, camera, cam(px, py, pz, tx, ty, tz) { KAMERA.bewegt = true; camera.position.set(px, py, pz); controls.target.set(tx, ty, tz); }, sim(sek) {
+window.__zwilling = { renderer, sun, st, KW, ZYL, demo, koerbe, scene, anlage, THREE, eingang, BAND, BAND2, KURVE, MM8, MULDE, ST, M, GEBRAUCH, camera, cam(px, py, pz, tx, ty, tz) { KAMERA.bewegt = true; camera.position.set(px, py, pz); controls.target.set(tx, ty, tz); }, sim(sek) {
   for (let t = 0; t < sek; t += 0.01) { if (ketteLaeuft()) demoSps(0.01); prozess(0.01); }
 } };
 

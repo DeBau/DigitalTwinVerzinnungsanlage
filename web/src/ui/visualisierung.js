@@ -124,9 +124,14 @@ export function visual(dt) {
   const blink = (performance.now() % 1000) < 550;
   for (const l of PULT_LAMPEN) l.mat.emissiveIntensity = ausgang(l.signal) ? 1.8 : 0;
   for (const l of QM2.leds) l.mat.emissiveIntensity = wirksam(l.signal) ? 2.4 : 0;
-  // Schutztür: Flügel schwenkt nach außen (ca. 1,4 s), LEDs am Zuhaltemodul (grün = zugehalten, gelb = entriegelt, blinkt bei Anforderung)
+  // Schutztür: schwenkt nach außen, sobald sie geöffnet wird (Zuhaltung −BG41 ist dann entriegelt, ca. 1,4 s). Der Riegelbolzen
+  // der TR10 Lock fährt nur bei geschlossener Tür und verriegelter Zuhaltung in den Betätiger. LEDs: grün = zugehalten (TR10),
+  // gelb = entriegelt (Bediengehäuse, blinkt bei Anforderung)
   const zielW = st.tuer.offen ? 1.6 : 0, w = TUER.fluegel.rotation.y;
   TUER.fluegel.rotation.y = w + Math.max(-dt * 1.2, Math.min(dt * 1.2, zielW - w));
+  const zielK = st.tuer.verriegelt && w < 0.001 ? 1 : 0;
+  TUER.k += Math.max(-dt * 4, Math.min(dt * 4, zielK - TUER.k));
+  TUER.riegelStellen(TUER.k);
   TUER.ledVerriegelt.emissiveIntensity = st.tuer.verriegelt && !st.tuer.anf ? 1.6 : 0;
   TUER.ledOffen.emissiveIntensity = !st.tuer.verriegelt || (st.tuer.anf > 0 && blink) ? 1.6 : 0;
   for (const s of SAEULE) s.mat.emissiveIntensity = ausgang(s.signal) ? (s.signal === 'PF3_Fuellhoehe' && !blink ? 0.2 : 1.6) : 0;

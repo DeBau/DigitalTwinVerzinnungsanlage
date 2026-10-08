@@ -25,11 +25,11 @@ export function korbUnterkante() { const u = (1 - ZYL.MM2.pos) * 300 + 446 - 158
 function ueberBad() { return ZYL.MM3.pos > 0.97; }
 
 // ----------------------------------------------------------------------------
-// Schutztür hinten mit Sicherheitsschalter und Zuhaltung −BG41 (Bauart Euchner MGB2, Prinzip Ruhestrom: verriegelt
-// durch Federkraft, entriegelt nur mit Freigabe). Ablauf wie an der realen Anlage:
-//  1. Türanforderung −SF49 am Bedienmodul: −KF2 schaltet die Anlage sicher ab (Stopp-Kategorie 1),
+// Schutztür hinten mit Sicherheitsschalter und Zuhaltung −BG41 (SICK TR10 Lock TR10-SRM01C, Prinzip Ruhestrom:
+// verriegelt durch Federkraft, entriegelt nur mit Freigabe). Ablauf wie an der realen Anlage:
+//  1. Türanforderung −SF49 am Bediengehäuse neben der Tür: −KF2 schaltet die Anlage sicher ab (Stopp-Kategorie 1),
 //  2. nach der Nachlaufzeit (Stillstand von Portal und Bändern) entriegelt die Zuhaltung, die Tür lässt sich öffnen,
-//  3. Tür schließen: der Riegel fährt ein, die Zuhaltung verriegelt; danach Quittieren und START.
+//  3. Tür schließen: der Betätiger gleitet über den Sensor, der Riegelbolzen fährt ein, die Zuhaltung verriegelt; danach Quittieren und START.
 // Tür offen oder Zuhaltung entriegelt hält −KF2 abgeschaltet (zweikanalig im Sicherheitskreis wie Not-Halt und −BG20).
 // ----------------------------------------------------------------------------
 const NACHLAUF = 2;
@@ -82,7 +82,10 @@ export function prozess(dt) {
       : p3 > 0.97 ? 'Kollision: −MM2 senkt auf die geschlossene Badabdeckung (−BG7 fehlt)' : 'Kollision: −MM2 senkt auf den Badrand (−MM3 nicht in Endlage)',
     last: ZYL.MM2.ventil > 0 ? 1.12 : (angehaengt ? 0.82 : 0.95),
   });
-  zylinderBewegen(ZYL.MM3, dt, { gesperrt: p2 > 0.05, sperrText: 'Kollision: −MM3 fährt nicht, Tauchzylinder −MM2 ist nicht oben (−BG3)' });
+  // −MM3 darf bei gesenktem −MM2 nicht verfahren – die letzten 10 mm in die Endlage (Sensor schaltet 3 mm davor, die
+  // Dämpfung kriecht) fährt er aber zu Ende: der Korb steht da schon über dem Ziel, das ist keine Kollision
+  const mm3Ziel = ZYL.MM3.ventil > 0 ? ZYL.MM3.hub : 0, mm3FaehrtEin = Math.abs(mm3Ziel - ZYL.MM3.x) < 10;
+  zylinderBewegen(ZYL.MM3, dt, { gesperrt: p2 > 0.05 && !mm3FaehrtEin, sperrText: 'Kollision: −MM3 fährt nicht, Tauchzylinder −MM2 ist nicht oben (−BG3)' });
   zylinderBewegen(ZYL.MM4, dt, { gesperrt: ZYL.MM4.ventil > 0 && p3 > 0.6 && p2 > 0.45, sperrText: 'Kollision: Abdeckung −MM4 stößt an den abgesenkten Korb' });
 
   // Regelstrecke Zinnbad: Heizelement (PT1, 6 s) → Bad (PT1, 150 s, Verluste an die Umgebung)

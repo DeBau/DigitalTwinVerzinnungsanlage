@@ -40,3 +40,5 @@ export const M = {
   qsBlau: new THREE.MeshStandardMaterial({ color: 0x1d6fbf, metalness: 0.0, roughness: 0.42 }),   // Lösering QS (POM blau)
   festoAlu: new THREE.MeshStandardMaterial({ color: 0xc3c8cd, metalness: 0.8, roughness: 0.35 }),
 };
+// Ohne Gebrauchsspuren (core/gebrauch.js): flüssiges Zinn und Hallenboden (hat eigene Flecken in der Textur)
+M.zinn.userData.ohneGebrauch = M.boden.userData.ohneGebrauch = true;

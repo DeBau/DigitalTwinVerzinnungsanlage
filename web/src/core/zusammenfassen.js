@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { $, anlage } from './szene.js';
+import { $, anlage, scene } from './szene.js';
 import { KNEBEL, PULT_TASTER } from '../anlage/register.js';
 import { LED_GEO, LED_GRUPPEN, LED_LISTE } from './leds.js';
 import { bodenMesh } from '../anlage/halle.js';
@@ -13,6 +13,8 @@ import { TUER } from '../anlage/umhausung.js';
 import { Q, STUFEN, stufeSetzen, stufenVorbereiten } from './grafik.js';
 import { t } from './sprache.js';
 import { freieProfilendenAbdecken } from '../bauteile/aluprofil.js';
+import { GEBRAUCH, gebrauchsspurenAnwenden } from './gebrauch.js';
+import { BAD_X, RAND_Y } from '../anlage/zinnbad.js';
 import { eckenMaterial, eckenwerteAnhaengen, eckenwerteMoeglich, oberflaeche } from './eckenwerte.js';
 
 // ----------------------------------------------------------------------------
@@ -65,7 +67,7 @@ function szeneZusammenfassen() {
     for (let x = o; x; x = x.parent) if (x.userData.dyn) return;     // Körbe usw. behalten eigene Materialien
     const m = o.material;
     if (m.transparent || !m.emissive || m.emissive.getHex() !== 0 || m.type !== 'MeshStandardMaterial') return;
-    const key = [m.color.getHex(), m.roughness, m.metalness, m.map?.uuid, m.roughnessMap?.uuid, m.alphaMap?.uuid, m.alphaTest, m.side, m.envMapIntensity, m.flatShading].join('|');
+    const key = [m.color.getHex(), m.roughness, m.metalness, m.map?.uuid, m.roughnessMap?.uuid, m.alphaMap?.uuid, m.alphaTest, m.side, m.envMapIntensity, m.flatShading, m.userData.abnutzung].join('|');   // Abnutzung: core/gebrauch.js
     if (!kanon.has(key)) kanon.set(key, m); else o.material = kanon.get(key);
   });
   const gruppen = new Map();
@@ -145,6 +147,9 @@ function szeneZusammenfassen() {
   console.info(`Szene zusammengefasst: ${vorher} Teile → ${nachher} Meshes`);
 }
 szeneZusammenfassen();
+anlage.updateMatrixWorld(true);
+anlage.localToWorld(GEBRAUCH.waerme.value.set(BAD_X, RAND_Y, 0));
+gebrauchsspurenAnwenden(scene);
 stufenVorbereiten();
 if (Q.modus !== 'auto') stufeSetzen({ hoch: 0, mittel: 2, niedrig: 3 }[Q.modus]);
 else {

@@ -220,9 +220,10 @@ function tankAusruestung(tz) {
   label('Frischwasser', b2g, fx, 1330, fz, 'klein');
   // Leitungen in die Kabelwanne hinter Band 2 (wanne-band2.js): Spur/Lage nach Einlegestelle, siehe dort
   const PX = 265, PZ = tz - 125;                                                                   // Pumpenlage wie oben
-  // Liquiphant −BG38/−BG39: Stecker nach unten, unter dem Gerät zur Wand, an der Wand (Schellen) hoch und von oben in die Wanne
+  // Liquiphant −BG38/−BG39: Stecker nach unten, im engen Bogen unter dem Gerät zur Wand, an der Wand (Schellen) hoch und
+  // von oben in die Wanne. Nur 15 mm unter den Stecker: −BG38 sitzt über der Kabelbrücke (Oberkante 28 mm)
   [[bg38, 3], [bg39, 2]].forEach(([sn, spur]) => {
-    const a2 = sn.a, yu = a2.y - 40, zw = a2.z + 21;                                               // neben dem Sechskant des Sensors
+    const a2 = sn.a, yu = a2.y - 15, zw = a2.z + 21;                                               // neben dem Sechskant des Sensors
     inWanneB2(spur, 0, [a2, V(a2.x, yu, a2.z), V(a2.x, yu, zw), V(352, yu, zw), V(352, 360, zw)], M.kabelGrau, 2.2);
     for (let y = yu + 40; y < 290; y += 120) box(10, 8, 12, M.kunststoff, 350, y, zw, b2g);       // Kabelschellen an der Tankwand
   });

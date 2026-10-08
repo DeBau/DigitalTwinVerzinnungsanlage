@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { anlage } from '../core/szene.js';
 import { M } from '../core/materialien.js';
+import { GEBRAUCH, abnutzen } from '../core/gebrauch.js';
 import { V, box, mesh, zyl } from '../core/geometrie.js';
 import { label } from '../core/beschriftung.js';
 import { profil, stellfuss } from '../bauteile/aluprofil.js';
@@ -68,17 +69,23 @@ function rundriemen(a, b, mat) {
 const RI = 125, RA = 105;                                                     // Rollenkörper lokal x = +125 (innen) … −105 (außen)
 {
   // Seitenwangen (Stahlblech 5 mm, gebogen) und Seitenführungen
+  // Abnutzung: Die Körbe schleifen an den Führungen, außen werden sie in der Kurve angedrückt (stärkste Spuren)
   for (const sx of [-1, 1]) {
     ringSektor(R + sx * 127.5 - 2.5 + 0, R + sx * 127.5 + 2.5, BAND_Y - 80, 74, M.verzinkt);
-    ringSektor(R + sx * 70 - 2, R + sx * 70 + 2, BAND_Y + 21, 22, M.edelstahl);
+    ringSektor(R + sx * 70 - 2, R + sx * 70 + 2, BAND_Y + 21, 22, abnutzen(M.edelstahl.clone(), sx > 0 ? 'schieneKurve' : 'schiene'));
   }
+  // Laufspuren der Kufen auf den Rollen (Kufen 38 mm neben der Korbmitte): Kurvenmittelpunkt in Weltkoordinaten
+  kurveGruppe.updateMatrixWorld(true);
+  const mitte = kurveGruppe.localToWorld(V(R, 0, zA));
+  GEBRAUCH.kurve.value.set(mitte.x, mitte.z, R / 1000, 0.038);
   // Konische Tragrollen: Kegelspitze im Kurvenmittelpunkt; die Achse ist so geneigt, dass die Oberkante waagrecht liegt
   const N = 14, dT = Math.PI / 2 / N;
+  GEBRAUCH.rollenJeRad.value = 1 / dT;                                        // Abnutzung je Rolle verschieden
   const rIn = 12, rAus = rIn * (R + RA) / (R - RI);                           // Ø24 innen, Ø43 außen
   const neig = Math.atan((rAus - rIn) / (RI + RA));
   const abstand = (RI * (rAus - rIn) + rIn * (RI + RA)) / Math.hypot(RI + RA, rAus - rIn);   // Achse → Oberkante
   const kegel = new THREE.CylinderGeometry(rAus, rIn, RI + RA, 24, 1);        // oben = außen (nach Drehung lokal −x)
-  const rolleMat = new THREE.MeshStandardMaterial({ color: 0xc9ced3, metalness: 0.85, roughness: 0.28 });
+  const rolleMat = abnutzen(new THREE.MeshStandardMaterial({ color: 0xc9ced3, metalness: 0.85, roughness: 0.28 }), 'kurvenrolle');
   const riemenMat = new THREE.MeshStandardMaterial({ color: 0xd8692a, roughness: 0.45 });   // PU-Rundriemen orange
   const iM = 7;                                                               // angetriebene Rolle (dritte Rille für den Antriebsriemen)
   const RILLEN = [-5.5, 5.5, 0];                                              // Rille 1, Rille 2, Antriebsrille

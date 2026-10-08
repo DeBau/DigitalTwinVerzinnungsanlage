@@ -8,6 +8,31 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.18.0 – 2026-10-09
+
+Die Anlage sieht nicht mehr fabrikneu aus: Gebrauchsspuren auf allen Oberflächen, gezielte Abnutzung an Seitenführungen,
+Kurvenrollen und Bedienpanels. Dazu saubere Leitungsführung in Gitter- und Kabelrinnen, neue Pneumatikverteilung und eine
+überarbeitete Schutztür. Die Bridge ändert nur die Versionsnummer.
+
+**Warum**
+Eine Anlage im Einsatz hat Staub, Abrieb und Griffspuren. Ohne sie wirkte der Zwilling unrealistisch sauber.
+
+**Neu**
+- Gebrauchsspuren (`core/gebrauch.js`): Staub und Schmutz in Bodennähe, Schmutzläufer, Flecken, feine Kratzer im Lack,
+  ungleichmäßiger Glanz auf Metall, Anlauffarben am Rand des Zinnbads. Im Shader aus der Weltposition berechnet, ohne
+  zusätzliche Draw Calls, in allen Grafikstufen. Stärke in der Konsole: `__zwilling.GEBRAUCH.staerke.value`.
+- Gezielte Abnutzung: dunkle Abriebstreifen an den Seitenführungen (außen in der Kurve am stärksten), blanke Laufspuren
+  der Korbkufen mit Ablagerung auf den Rollen der Rollenkurve, abgegriffene Bereiche, Fingerabdrücke und Kratzer um die
+  Taster an Bedienpult und Vor-Ort-Steuerstellen.
+- Gitterrinnen 200 × 60 über dem Portal mit Steigrinnen an den Säulen; Leitungen zum Schaltschrank je in eigener Lage.
+
+**Geändert**
+- Kabelrinne an Band 1 und Wanne an Band 2 biegen am Bandanfang nach unten ab und führen die Leitungen in die Kabelbrücke.
+- Pneumatik: Verteilerblock an der Säule für −QM1 und −QM2, Multipol-Anschluss an der Ventilinsel, −MM4 über starres
+  PA-Rohr zur Drossel.
+- Schutztür hinten: Zuhaltung SICK TR10 Lock mit Bediengehäuse und Riegelbolzen.
+- Leitungen an Liquiphant, Kamera und Ringlicht ohne Kollisionen verlegt.
+
 ## 1.17.4 – 2026-10-08
 
 Neue Bilder der Anlage in README und Doku, wieder freie Sicht in vier festen Ansichten und eine neue interaktive

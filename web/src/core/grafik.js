@@ -10,6 +10,7 @@ import { SCHRANK } from '../anlage/schaltschrank.js';
 import { koerbe } from '../anlage/koerbe.js';
 import { groesse } from '../ui/ansicht.js';
 import { t } from './sprache.js';
+import { gebrauchAnwenden } from './gebrauch.js';
 
 // Qualität: Ist der Rechner zu langsam (z. B. Onboard-Grafik), werden Auflösung und Schattenkarte reduziert
 // ----------------------------------------------------------------------------
@@ -32,6 +33,7 @@ const lambertVon = (m) => {
   if (m.type !== 'MeshStandardMaterial') return m;
   if (!LAMBERT.has(m)) {
     const l = new THREE.MeshLambertMaterial({ color: m.color, vertexColors: m.vertexColors, map: m.map, emissive: m.emissive, emissiveIntensity: m.emissiveIntensity, transparent: m.transparent, opacity: m.opacity, side: m.side, alphaMap: m.alphaMap, alphaTest: m.alphaTest, depthWrite: m.depthWrite, polygonOffset: m.polygonOffset, polygonOffsetFactor: m.polygonOffsetFactor, polygonOffsetUnits: m.polygonOffsetUnits });
+    if (m.userData.gebrauch) { l.userData.abnutzung = m.userData.abnutzung; gebrauchAnwenden(l); }
     l.userData.std = m; LAMBERT.set(m, l);
   }
   return LAMBERT.get(m);
