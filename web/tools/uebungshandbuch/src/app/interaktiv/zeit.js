@@ -29,12 +29,17 @@ function ztTime(ms){
 }
 const ztSek = ms => `${(Math.round(ms / 100) / 10).toLocaleString("de-DE")} s`;
 
+// Ausdruck statt Operand: enthält Leerzeichen, # oder Klammern. Der Knopf heißt dann „IN (Bedingung)“.
+const ztAusdruck = t => /[\s#()]/.test(t);
+const ztInKnopf = z => ztAusdruck(z.n.in) ? "IN (Bedingung)" : z.n.in;
+
 function zeitNeu(at){
   const arten = (at.art || "TON").split(",").filter(a => ZE_ARTEN.includes(a));
   const pt = +at.pt > 0 ? +at.pt : 2000;
   const n = {in: at.in || "IN", q: at.q || "Q", r: at.r || "R", et: at.et || ""};
   // Ohne sq und et entfallen Q => und ET => im Aufruf; man liest sie dann als #inst….Q bzw. #inst….ET
-  const scl = {in: at.sin || `"${n.in}"`, q: at.sq || "", r: at.sr || `"${n.r}"`, et: at.et || ""};
+  // in darf auch ein Ausdruck sein (z. B. „#temperatureOk AND #levelOk“): In SCL steht er ohne Anführungszeichen
+  const scl = {in: at.sin || (ztAusdruck(n.in) ? n.in : `"${n.in}"`), q: at.sq || "", r: at.sr || `"${n.r}"`, et: at.et || ""};
   return {arten, n, scl, inst: at.inst || "#instTimer", pts: [...new Set([...ZT_PT, pt])].sort((a, b) => a - b),
     m: zeModell(arten[0] || "TON", pt), ansicht: "FUP", laeuft: false, ruhe: 0};
 }
@@ -121,7 +126,7 @@ function ztAnzeigeHTML(z){
 const ztKnopf = (akt, t, prim, an) => `<button type="button" class="btn small${prim ? " primary" : ""}" data-ia-akt="${akt}"${an === undefined ? "" : ` aria-pressed="${an}"`}>${t}</button>`;
 function ztEingaengeHTML(z){
   const m = z.m, r = m.art === "TONR" ? iaSignalKnopf("r", z.n.r, m.r) : "";
-  return `<div class="ia-knoepfe">${iaSignalKnopf("in", z.n.in, m.in)}${r}${ztKnopf("tippen", `IN kurz antippen (${ztSek(ZT_TIPPEN)})`)}</div>`;
+  return `<div class="ia-knoepfe">${iaSignalKnopf("in", ztInKnopf(z), m.in)}${r}${ztKnopf("tippen", `IN kurz antippen (${ztSek(ZT_TIPPEN)})`)}</div>`;
 }
 function ztSteuerHTML(z){
   const uhr = z.laeuft ? ztKnopf("pause", "Anhalten") : ztKnopf("abspielen", "Abspielen", true);
@@ -155,7 +160,7 @@ function ztBegriffeHTML(){
 
 function zeitHTML(z){
   const m = z.m;
-  const kopf = `<div class="ia-kopf"><b>Probier es aus:</b> Klicke auf ${iaName(z.n.in)} oder tippe es kurz an. Die Zeit läuft dann los.${bxTabs(z.arten, m.art, "art")}</div>`;
+  const kopf = `<div class="ia-kopf"><b>Probier es aus:</b> Klicke auf ${iaName(ztInKnopf(z))} oder tippe es kurz an. Die Zeit läuft dann los.${bxTabs(z.arten, m.art, "art")}</div>`;
   const art = `<div class="ze-art"><b>${m.art}</b> ${ZT_NAME[m.art]}</div>`;
   return kopf + art + `<div class="ze-oben">${ztEingaengeHTML(z)}${ztAnzeigeHTML(z)}</div>`
     + `<div class="ia-bild ze-bild">${bxTabs(ZT_ANSICHTEN, z.ansicht, "ansicht")}${ZT_BILD[z.ansicht](z)}</div>` + ztSatzHTML(z) + ztSteuerHTML(z)

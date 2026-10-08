@@ -53,6 +53,57 @@ button.zf-als:hover{border-color:var(--blue)}
 .zf-feld.zf-exp{border-left-color:var(--yellow)}
 .zf-feld.zf-man{border-left-color:var(--blue)}
 .ia-zahl .ia-scl{font-size:13.5px}
+.dt-steck{font-size:13.5px;padding:8px 12px;border-radius:9px;background:var(--sunk);line-height:1.6}
+.dt-steck code{font:12.5px var(--mono);padding:0 4px;border-radius:4px;background:var(--panel);border:1px solid var(--line)}
+
+/* ---------- Zahl: Speicheraufbau (zahl-speicher.js) ---------- */
+.zs{display:grid;gap:10px;min-width:0}
+.zs-leiste{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.zs-leiste .ia-tabs{margin-left:0;flex-wrap:wrap}
+.zs-leiste .btn[aria-pressed=true]{border-color:var(--blue);color:var(--blue)}
+.zs-rollen{overflow-x:auto;padding-bottom:4px}
+.zs-gitter{display:grid;gap:6px;min-width:min-content}
+.zs-zeile{display:grid;grid-template-columns:repeat(var(--n),minmax(28px,1fr));gap:0}
+.zs-feld{display:grid;gap:2px;justify-items:center;text-align:center;margin:0 2px;padding:6px 4px;border:2px solid var(--line);border-radius:9px;background:var(--panel);color:var(--ink);font:13px var(--sans);cursor:pointer;min-width:0}
+.zs-feld:hover{border-color:var(--blue)}
+.zs-feld b{font:700 14px var(--mono)}
+.zs-wert{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.zs-wert code{font:12.5px var(--mono)}
+.zs-rolle{font-size:12px;color:var(--ink2)}
+.zs-op{font:600 11px var(--cond);text-transform:uppercase;letter-spacing:.04em;color:var(--blue)}
+.zs-feld.wahl{border-color:var(--blue);background:var(--blue-soft)}
+.zs-feld.drin{border-color:var(--ok);background:var(--ok-soft)}
+.zs-feld.drin .zs-rolle{color:var(--ok);font-weight:600}
+.zs-feld.enthaelt{border-style:dashed;border-color:var(--blue)}
+.zs-feld.teil{border-color:var(--yellow);background:var(--yellow-soft)}
+.zs-feld.versetzt{border-style:dotted}
+.zs-bit{display:grid;justify-items:center;gap:2px;padding:4px 0;opacity:.55;border-radius:6px}
+.zs-bit.drin{opacity:1;background:var(--blue-soft)}
+.zs-bit.links{border-left:2px solid var(--line)}
+.zs-bit .zf-bit{width:24px;height:30px;font-size:15px}
+.zs-bit .zf-tag{writing-mode:vertical-rl;transform:rotate(180deg)}
+.zs-bit .zf-tag .sig{padding:2px 0}
+.zs-detail{display:grid;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.zs-detail-kopf b{font:700 15px var(--mono)}
+.zs-detail p{margin:0}
+
+/* ---------- Großes Popup (zahl-gross.js) und Datentyp-Tabellen ---------- */
+dialog.iadlg{max-width:min(1240px,calc(100vw - 24px));height:min(900px,calc(100vh - 24px))}
+.iadlg-in{display:flex;flex-direction:column;height:100%}
+.iadlg-kopf{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid var(--line)}
+.iadlg-kopf h2{font-size:20px;margin:0}
+.iadlg-body{flex:1;overflow:auto;padding:16px 22px}
+.iadlg-body .ia{margin:0}
+.zf-gross-tabs{margin-left:0}
+.dt-rollen{overflow-x:auto}
+.dt-tab{border-collapse:collapse;font-size:13.5px;width:100%}
+.dt-tab th,.dt-tab td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.dt-tab thead th{font:600 12.5px var(--cond);color:var(--ink2);background:var(--sunk)}
+.dt-tab code{font:12px var(--mono);display:inline-block;margin:1px 0}
+.dt-tab tr.aktiv{background:var(--blue-soft)}
+.dt-tab .dt-ja{color:var(--ok);font-weight:700;text-align:center}
+.dt-tab .dt-nein{color:var(--ink2);text-align:center}
+.dt-abw{margin-top:4px;padding:4px 8px;border-radius:6px;background:var(--yellow-soft);font-size:12.5px}
 
 /* ---------- Bitmuster ---------- */
 .bm-feld{display:grid;gap:8px}
