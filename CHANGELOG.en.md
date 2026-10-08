@@ -8,6 +8,42 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.17.0 – 2026-10-08
+
+The exercise handbook (`docs\uebungshandbuch.html`) changes a lot, the twin (`web\index.html`) only visually.
+In the bridge only the version number changes. Signal list and TIA tag tables stay the same.
+
+**Why**
+The exercises were hard to follow and incomplete: background knowledge was only shown in the first step, templates
+were long tables in the text, new topics were often not explained, and some statements did not match the TIA help.
+
+**New**
+- **Standard for all exercises** in `web/tools/uebungshandbuch/uebungVorlage.md` (structure, background knowledge,
+  templates, interactive explanations, writing rules, sources, checklist). L01 to L10 follow it.
+- **Look-up:** from step 2, the task and every knowledge topic open as a popup from the sidebar; each task step and
+  each template shows the matching topics.
+- **Templates in a popup:** card with progress, filling in row by row with large 0/1 and yes/no buttons, keyboard,
+  deviations between expected and measured values, overview of the whole table.
+- **Interactive explanations** to try out: logic in FBD, LAD and SCL with program status, PLC cycle with startup,
+  cycle time, response time and short pulses, latches (SR, RS, coils, self-holding), all edge types, IEC timers and
+  counters, number formats with a memory view (double word, words, bytes, bits, high and low byte) and all data
+  types, bit patterns, arithmetic with overflow, rounding and comparing.
+- **L01 to L10 reworked** and independently checked against the TIA help V21, SCE training documents and the
+  programming guideline: new knowledge topics (incl. hardware configuration, programming languages, all edge types,
+  data types), SCL in every exercise, calculations and bit patterns verified.
+
+**Changed**
+- "Schreibstellenplan" is now called **Ausgangsliste** (output list; not a technical term, marked as a handbook name).
+- PLC cycle described everywhere as in the SCE documents: inputs into the PII, OB1, PIQ to the outputs at the end
+  of the cycle.
+- Twin: cables from the panel and local control stations run straight to the rear, reject box in front of the
+  inspection conveyor frame.
+
+**Docs**
+- `docs/01-inbetriebnahme.en.md`: hardware configuration with slots, corrected tag import path, demo only starts
+  with START.
+- README: note on Siemens sources in the exercise handbook.
+
 ## 1.16.0 – 2026-10-07
 
 The twin changes (`web\index.html`). In the bridge only the version number changes. Signal list and TIA tag tables

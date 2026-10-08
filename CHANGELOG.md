@@ -8,6 +8,40 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.17.0 – 2026-10-08
+
+Das Übungshandbuch (`docs\uebungshandbuch.html`) ändert sich stark, der Zwilling (`web\index.html`) nur
+optisch. In der Bridge ändert sich nur die Versionsnummer. Signalliste und TIA-Variablentabellen bleiben gleich.
+
+**Warum**
+Die Übungen waren unübersichtlich und lückenhaft: Fachwissen stand nur im ersten Schritt, Vorlagen als lange
+Tabellen im Text, Neues wurde oft nicht erklärt, und einige Aussagen stimmten nicht mit der TIA-Hilfe überein.
+
+**Neu**
+- **Standard für alle Übungen** in `web/tools/uebungshandbuch/uebungVorlage.md` (Aufbau, Fachwissen, Vorlagen,
+  interaktive Erklärungen, Schreibregeln, Quellen, Prüfliste). L01 bis L10 sind danach ausgearbeitet.
+- **Nachschlagen:** Ab Schritt 2 öffnen Aufgabe und jedes Fachwissen-Thema ein Popup aus der Seitenleiste; unter
+  jedem Aufgabenschritt und an jeder Vorlage stehen die passenden Themen.
+- **Vorlagen im Popup:** Karte mit Fortschritt, Ausfüllen Zeile für Zeile mit großen Tasten 0/1 und ja/nein,
+  Tastatur, Abweichungen zwischen Erwartung und Messung, Übersicht der ganzen Tabelle.
+- **Interaktive Erklärungen** zum Ausprobieren: Verknüpfungen in FUP, KOP und SCL im Programmstatus, SPS-Zyklus mit
+  Anlauf, Zykluszeit, Reaktionszeit und kurzen Impulsen, Speicher (SR, RS, Spulen, Selbsthaltung), alle Flankenarten,
+  IEC-Zeiten und -Zähler, Zahlenformate mit Speicheransicht (Doppelwort, Wörter, Bytes, Bits, höherwertig und
+  niederwertig) und allen Datentypen, Bitmuster, Rechnen mit Überlauf, Runden und Vergleichen.
+- **L01 bis L10 überarbeitet** und unabhängig gegen TIA-Hilfe V21, SCE-Lehrunterlagen und Programmierleitfaden
+  geprüft: neue Fachwissen-Themen (u. a. Hardwarekonfiguration, Programmiersprachen, alle Flankenarten, Datentypen),
+  SCL in jeder Übung, Rechnungen und Bitmuster nachgerechnet.
+
+**Geändert**
+- „Schreibstellenplan“ heißt jetzt **Ausgangsliste** (kein Fachbegriff, als Name des Handbuchs gekennzeichnet).
+- SPS-Zyklus überall wie in den SCE-Unterlagen: Eingänge ins PAE, OB1, am Zyklusende PAA an die Ausgänge.
+- Zwilling: Leitungen von Pult und Vor-Ort-Stellen gerade nach hinten, Ausschusskiste vor dem Prüfbandgestell.
+
+**Doku**
+- `docs/01-inbetriebnahme.md`: Hardwarekonfiguration mit Steckplätzen, Importweg der PLC-Variablen korrigiert,
+  Demo startet erst mit START.
+- README: Hinweis zu Siemens-Quellen im Übungshandbuch.
+
 ## 1.16.0 – 2026-10-07
 
 Der Zwilling ändert sich (`web\index.html`). In der Bridge ändert sich nur die Versionsnummer. Signalliste und
