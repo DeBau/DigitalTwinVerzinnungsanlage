@@ -8,6 +8,25 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.17.1 – 2026-10-08
+
+Only the source of the exercise handbook is reorganised. Handbook, twin and bridge behave as in 1.17.0; in the twin
+and the bridge only the version number changes.
+
+**Why**
+All 37 exercises were in one large file `uebungen.js`, the quick checks in `quiz.js` and the texts separately in
+`texte/`. Working on one exercise meant searching in three places, and parallel work on different exercises clashed
+in the same file.
+
+**Changed**
+- One folder per exercise `web/tools/uebungshandbuch/uebungen/Lxx/` with `uebung.js` (master data), `texte.json`
+  (task description and background knowledge) and `quiz.js` (quick checks). `uebungen.js`, `quiz.js` and `texte/` are gone.
+- The build reports an exercise folder without `uebung.js` and an `id` that does not match the folder name.
+
+**Docs**
+- `uebungVorlage.md` (where the data lives, adding a new exercise), `src/README.md` and
+  `docs/07-uebungshandbuch.en.md` describe the new folder structure.
+
 ## 1.17.0 – 2026-10-08
 
 The exercise handbook (`docs\uebungshandbuch.html`) changes a lot, the twin (`web\index.html`) only visually.

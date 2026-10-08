@@ -8,6 +8,25 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.17.1 – 2026-10-08
+
+Nur der Quelltext des Übungshandbuchs ist neu geordnet. Handbuch, Zwilling und Bridge verhalten sich wie in 1.17.0,
+im Zwilling und in der Bridge ändert sich nur die Versionsnummer.
+
+**Warum**
+Alle 37 Übungen standen in einer einzigen großen Datei `uebungen.js`, die Kurz-Checks in `quiz.js` und die Texte
+getrennt davon in `texte/`. Wer an einer Übung arbeitete, musste an drei Stellen suchen, und gleichzeitige Arbeiten an
+verschiedenen Übungen kamen sich in derselben Datei in die Quere.
+
+**Geändert**
+- Je Übung ein eigener Ordner `web/tools/uebungshandbuch/uebungen/Lxx/` mit `uebung.js` (Stammdaten), `texte.json`
+  (Aufgabenbeschreibung und Fachwissen) und `quiz.js` (Kurz-Checks). `uebungen.js`, `quiz.js` und `texte/` entfallen.
+- Der Build meldet einen Übungsordner ohne `uebung.js` und eine `id`, die nicht zum Ordnernamen passt.
+
+**Doku**
+- `uebungVorlage.md` (Wo die Daten liegen, neue Übung anlegen), `src/README.md` und `docs/07-uebungshandbuch.md`
+  beschreiben die neue Ordnerstruktur.
+
 ## 1.17.0 – 2026-10-08
 
 Das Übungshandbuch (`docs\uebungshandbuch.html`) ändert sich stark, der Zwilling (`web\index.html`) nur
