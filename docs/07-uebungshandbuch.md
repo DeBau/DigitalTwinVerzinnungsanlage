@@ -87,18 +87,31 @@ dabei schmal.
 
 <table>
 <tr>
-<td width="50%"><img src="bilder/16-uebungshandbuch-gefaehrdungsmatrix.jpg" alt="Gefährdungsmatrix in L14 mit grauer Musterzeile zum Verschiebezylinder −MM3"></td>
-<td width="50%"><img src="bilder/17-uebungshandbuch-zahlen.jpg" alt="Ausgefüllte Wertetabelle %IB1 in L06 mit Byte in BIN, HEX und DEZ"></td>
+<td colspan="2"><img src="bilder/38-uebungshandbuch-vorlage-karten.jpg" alt="Wertetabelle der Eingänge in L01 im Popup, Ansicht Karten: links die Zeilenliste mit Häkchen und einer gelb markierten Abweichung, rechts die Karte zu %I0.3 mit großen Tasten 0 und 1, ja und nein und dem Hinweis auf die Abweichung"></td>
 </tr>
 <tr>
-<td colspan="2"><img src="bilder/21-uebungshandbuch-wertetabelle.jpg" alt="Schritt Ausführen in L01: Wertetabelle der Eingänge mit vorgegebenen Adressen, Kennzeichen und Geräten, Musterzeile und eingetragenen Pegeln"></td>
+<td width="50%"><img src="bilder/39-uebungshandbuch-vorlage-uebersicht.jpg" alt="Dieselbe Wertetabelle in der Ansicht Übersicht: alle Zeilen auf einen Blick, die Abweichung gelb hinterlegt, mit Bemerkung"></td>
+<td width="50%"><img src="bilder/40-uebungshandbuch-vorlage-karte.jpg" alt="Schritt Ausführen in L01: Vorlagen als Karten mit Fortschritt, 10 von 24 Zeilen fertig, 1 Abweichung, Knopf Weiter ausfüllen"></td>
 </tr>
 </table>
 
 Viele Unterlagen füllst du direkt im Handbuch aus: Wertetabellen, Funktionstabellen, Schnittstellen
-eines Bausteins, Gefährdungsmatrix, Messprotokolle. Was schon feststeht, etwa Adresse und
-Kennzeichen, ist vorgegeben. Eine graue **Musterzeile** über den leeren Zeilen zeigt dir, wie du
-einträgst. Sie steht auch auf dem leeren Ausdruck, aber nicht auf dem Ausdruck mit deinen Eingaben.
+eines Bausteins, Gefährdungsmatrix, Messprotokolle. Im Schritt steht jede Vorlage als **Karte** mit
+Fortschritt: wie viele Zeilen fertig sind, wo eine Abweichung steht, und ein Knopf **Ausfüllen**
+bzw. **Weiter ausfüllen**.
+
+Der Knopf öffnet die Vorlage als Popup. In der Ansicht **Karten** stehen links alle Zeilen, rechts
+füllst du eine Zeile nach der anderen aus. Was schon feststeht, etwa Adresse, Kennzeichen und Gerät,
+ist oben vorgegeben. Pegel trägst du mit großen Tasten **0** und **1** ein, Antworten mit **ja** und
+**nein**, und die Vorlage springt danach von selbst weiter. Mit der Tastatur geht es auch: 0, 1, j, n
+und die Pfeiltasten. Die Ansicht **Übersicht** zeigt die ganze Tabelle auf einen Blick, ein Klick auf
+eine Zeile bringt dich zu ihrer Karte. Mit dem Filter **Offen** siehst du nur, was noch fehlt.
+
+Passen zwei Einträge nicht zusammen, zum Beispiel erwartet 0 und gemessen 1, markiert die Vorlage
+die Zeile gelb als **Abweichung** und bittet dich um eine Bemerkung. Eine Abweichung ist kein Fehler,
+wenn du sie erklären kannst. Der Filter **Abweichung** zeigt nur diese Zeilen. **Beispiel: so trägst
+du ein** zeigt dir eine ausgefüllte Musterzeile. Sie steht auch auf dem leeren Ausdruck, aber nicht
+auf dem Ausdruck mit deinen Eingaben.
 
 Eine Vorlage gehört zu einem Schritt und bleibt in den späteren Schritten der Übung bearbeitbar. So
 trägst du zum Beispiel erst im Planen ein, was du erwartest, und im Ausführen, was du misst. Manche

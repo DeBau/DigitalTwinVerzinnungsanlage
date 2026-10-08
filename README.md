@@ -138,7 +138,7 @@ alle deine Dokumente, die Seite „Dein Projekt wächst mit“ zeigt, wie dein T
 <table>
 <tr>
 <td width="50%"><img src="docs/bilder/15-uebungshandbuch-start.jpg" alt="Startseite des Übungshandbuchs mit Lernpfad"></td>
-<td width="50%"><img src="docs/bilder/16-uebungshandbuch-gefaehrdungsmatrix.jpg" alt="Gefährdungsmatrix mit Musterzeile im Schritt Planen"></td>
+<td width="50%"><img src="docs/bilder/38-uebungshandbuch-vorlage-karten.jpg" alt="Vorlage Wertetabelle im Popup: Zeilenliste, große 0/1-Tasten und Hinweis auf eine Abweichung"></td>
 </tr>
 </table>
 
