@@ -80,6 +80,8 @@ umbaust. Am Ende steht ein durchgängiges Anlagenprogramm statt vieler Einzellö
 Der Fortschritt ist immer sichtbar: Im Lernpfad füllt sich jede Übung mit jedem erledigten Schritt,
 insgesamt sind es 222 Schritte. Ein Schritt gilt erst als erledigt, wenn alles darin bearbeitet ist.
 Ein nicht bestandener Prüffall zählt erst, wenn du Ursache, Änderung und Nachtest festgehalten hast.
+Der Übungskopf mit Kennung, Titel, Arbeitszeit und Drucken bleibt beim Scrollen oben stehen und wird
+dabei schmal.
 
 ## Vorlagen zum Ausfüllen
 
@@ -110,7 +112,8 @@ bearbeitest.
 **Fachwissen: warum, wieso, weshalb.** Zu jeder Übung gibt es aufklappbare Erklärungen zum
 Hintergrund, mit Quellenangabe. Die Programmierregeln stützen sich auf den Programmierleitfaden und
 den Programmierstyleguide von Siemens für S7-1200/S7-1500, die Fachinhalte auf die einschlägigen
-Normen, etwa DIN EN 61131-3, DIN EN 60848 (GRAFCET) und DIN EN 60204-1.
+Normen, etwa DIN EN 61131-3, DIN EN 60848 (GRAFCET) und DIN EN 60204-1. Viele Themen enthalten
+[interaktive Erklärungen](#interaktive-erklärungen) zum Ausprobieren.
 
 **Gestufte Hilfen.** Zu schwierigen Arbeitsschritten gibt es Hilfen in bis zu drei Stufen:
 Denkanstoß, Vorgehen, Lösungsskizze. Jede Stufe öffnest du erst nach der vorigen, also nur so viel,
@@ -137,6 +140,61 @@ stehen nur die Regeln, die bis dahin eingeführt sind, neue Regeln sind markiert
 Bedeutung und den Übungen, in denen sie vorkommen. Fährst du über ein Kennzeichen wie −MM1 im Text,
 siehst du sofort, was dahintersteckt. Die Anlagenseite beschreibt Prozess, Antriebe, Befehlsstellen
 und Sicherheitskonzept.
+
+## Interaktive Erklärungen
+
+<table>
+<tr>
+<td width="50%"><img src="bilder/30-uebungshandbuch-vorschau.jpg" alt="Thema „Endlagen-Plausibilität mit XOR“ in L02, Schritt Informieren: die Erklärung steht als kleine Vorschau im Text, darunter der Hinweis „Anklicken, um es groß zu öffnen und auszuprobieren“"></td>
+<td width="50%"><img src="bilder/31-uebungshandbuch-fachwissen-popup.jpg" alt="Schritt Planen in L04: Fachwissen „TP: Impuls fester Länge für den Lampentest“ als Popup aus der Seitenleiste Nachschlagen, mit Vorschau der Erklärung"></td>
+</tr>
+</table>
+
+Was sich ausprobieren lässt, beschreibt das Fachwissen nicht nur, es zeigt es zum Anklicken. Du
+schaltest Eingänge, spielst Zeiten ab oder änderst Bits und siehst sofort, was die CPU daraus macht:
+FUP, KOP und SCL im Programmstatus wie in TIA, dazu Funktionstabelle, Signalverlauf oder
+Impulsdiagramm und ein Satz, der das Ergebnis begründet. Unter *Begriffe* stehen die Fachwörter dazu.
+
+**Vorschau und Popup.** Im Text steht jede Erklärung als kleine Vorschau, verkleinert und unten
+ausgeblendet. Ein Klick darauf („Anklicken, um es groß zu öffnen und auszuprobieren“) öffnet sie
+groß in einem Popup, und dort probierst du aus. **„← Zurück“** oben links, **„×“** oben rechts oder
+Esc schließen das Popup, ein Klick daneben schließt nichts. Die Vorschau zeigt danach den letzten
+Stand.
+
+**Popup über Popup.** Im Schritt Informieren stehen alle Fachwissen-Themen zum Aufklappen im Text.
+Ab dem Schritt Planen schlägst du ein Thema in der Seitenleiste *Nachschlagen* nach, es öffnet sich
+als Popup. Die Erklärung legt sich darüber, und „← Zurück“ bringt dich genau dorthin zurück. Beim
+Speicheraufbau gibt es eine dritte Ebene: „Speicheraufbau groß ansehen“.
+
+<table>
+<tr>
+<td width="50%"><img src="bilder/32-uebungshandbuch-zeiten.jpg" alt="Erklärung Zeiten in L04: TP-Box in FUP, Impulsdiagramm nach dreimal Antippen von −SF4, der zweite Druck verlängert den Impuls nicht, ET steigt als Rampe bis PT"></td>
+<td width="50%"><img src="bilder/33-uebungshandbuch-zyklus.jpg" alt="Erklärung SPS-Zyklus in L01: CPU in RUN, −BG40 ist 1, Klemme, PAE, OB1, PAA und Ausgang im Signalverlauf, gemessene Reaktionszeit 15,5 ms"></td>
+</tr>
+<tr>
+<td width="50%"><img src="bilder/34-uebungshandbuch-logik.jpg" alt="Erklärung Verknüpfung in L02: XOR in KOP im Programmstatus mit −BG14 und −BG15, Funktionstabelle mit markierter Zeile und Signalverlauf"></td>
+<td width="50%"><img src="bilder/35-uebungshandbuch-speicheraufbau.jpg" alt="Speicheraufbau in L06: %ID0 mit %IW0 und %IW2, %IB0 bis %IB3 und allen 32 Bits bündig untereinander, höherwertig und niederwertig beschriftet, jedes Bit mit Adresse und Kennzeichen"></td>
+</tr>
+<tr>
+<td width="50%"><img src="bilder/36-uebungshandbuch-bitmuster.jpg" alt="Erklärung Bitmuster in L08: ROL beim Abspielen, Ergebnis 16#04, Lauflicht mit −PF3 an, SCL mit Status und Slice-Zugriff"></td>
+<td width="50%"><img src="bilder/37-uebungshandbuch-rechnen.jpg" alt="Erklärung Rechnen in L10: IN_RANGE mit MIN 80, VAL 87 und MAX 100, FUP-Box, SCL mit Status und Zahlenstrahl"></td>
+</tr>
+</table>
+
+| Art | Was du ausprobierst | Erstmals in |
+|---|---|---|
+| **Zyklus** | STOP, ANLAUF und RUN, PAE, OB1 und PAA animiert, Zykluszeit, Reaktionszeit, kurze Impulse | L01 |
+| **Logik** | UND, ODER, NICHT und XOR in FUP, KOP und SCL, Funktionstabelle, Signalverlauf | L02 |
+| **Speicher** | SR- und RS-Box, Selbsthaltung, Setzen und Rücksetzen mit Spulen, Dominanz | L03 |
+| **Flanke** | -\|P\|-, -\|N\|-, P_TRIG, N_TRIG, R_TRIG, F_TRIG Zyklus für Zyklus | L03 |
+| **Zeit** | TP, TON, TOF und TONR mit Impulsdiagramm, ET und PT | L04 |
+| **Zähler** | CTU, CTD und CTUD mit CU, CD, R, LD und PV | L05 |
+| **Zahl** | Bits, Datentypen, Speicheraufbau von Doppelwort bis Bit, Zweierkomplement, Real, BCD | L05, L06, BCD in L09 |
+| **Rechnen** | ADD bis MOD, Überlauf mit ENO, ROUND, CMP, IN_RANGE mit Zahlenstrahl | L07, L10 |
+| **Bitmuster** | AND, OR und XOR mit Maske, Schieben und Rotieren, Lauflicht | L08 |
+
+Jede Erklärung beginnt mit **„Probier es aus“**: Dort steht, was du anklicken sollst und worauf du
+achtest. Was du hier siehst, prüfst du später am Zwilling.
 
 ## Meine Unterlagen und Dein Projekt wächst mit
 

@@ -128,7 +128,7 @@ realistischere Darstellung.
 vier Stufen von den ersten Signalen bis zur Anlage, die vollständig an deinem Programm hängt:
 erst Handbetrieb und Verriegelungen, dann Betriebsarten, Befehlsausgabe und Automatik, danach Not-Halt-Diagnose,
 Förderstrecke, Regelung und Antriebe. Jede Übung folgt denselben sechs Schritten vom Informieren
-bis zum Bewerten, mit Fachwissen samt Quellen, gestuften Hilfen, Kurz-Checks und Prüfprotokoll.
+bis zum Bewerten, mit Fachwissen samt Quellen und interaktiven Erklärungen, gestuften Hilfen, Kurz-Checks und Prüfprotokoll.
 Planungsunterlagen zeichnest du im eingebauten Skizzeneditor: GRAFCET, Weg-Schritt-Diagramm,
 Strom- und Pneumatikschaltplan, Regelkreis und Trend. Tabellen wie Wertetabelle oder
 Gefährdungsmatrix füllst du in Vorlagen mit Musterzeile aus. Die Mappe „Meine Unterlagen“ sammelt
@@ -169,7 +169,7 @@ Mehr dazu in **[07 – Übungshandbuch](docs/07-uebungshandbuch.md)**.
 | **[04 – Signale und TIA](docs/04-signale.md)** | `signale.csv`, Adressbelegung, Bridge, Signalmonitor, Öffner und Schließer |
 | **[05 – Übungsaufgaben](docs/05-uebungen.md)** | 24 Aufgaben vom Einstieg bis zur Taktzeitoptimierung, nach Schwierigkeit geordnet |
 | **[06 – Entwicklung](docs/06-entwicklung.md)** | Build, Aufbau des Quellcodes, Werkzeuge, Konventionen |
-| **[07 – Übungshandbuch](docs/07-uebungshandbuch.md)** | Interaktiver Lehrgang im Browser: 37 Übungen in vier Stufen, sechs Schritte je Übung, Ausfüllvorlagen, Meine Unterlagen, Fachwissen, gestufte Hilfen, Kurz-Checks, Skizzeneditor mit GRAFCET-, Elektro- und Pneumatikvorlagen |
+| **[07 – Übungshandbuch](docs/07-uebungshandbuch.md)** | Interaktiver Lehrgang im Browser: 37 Übungen in vier Stufen, sechs Schritte je Übung, Ausfüllvorlagen, Meine Unterlagen, Fachwissen mit interaktiven Erklärungen, gestufte Hilfen, Kurz-Checks, Skizzeneditor mit GRAFCET-, Elektro- und Pneumatikvorlagen |
 | **[Änderungen](CHANGELOG.md)** | Was sich in welcher Version geändert hat |
 
 ---
