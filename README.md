@@ -211,13 +211,13 @@ docs/                       Dokumentation und Bilder
 © 2026 **Bauer Automation Solutions**, Dennis Bauer — siehe [LICENSE](LICENSE).
 
 **Für Ausbildung und Lehre frei.** Nutzen, anpassen und weitergeben in Berufsschulen, Hochschulen,
-überbetrieblichen Ausbildungsstätten und in der innerbetrieblichen Ausbildung — unentgeltlich.
+überbetrieblichen Ausbildungsstätten und in der innerbetrieblichen Ausbildung, unentgeltlich.
 Eine Schulung darf Geld kosten; der Zwilling nicht.
 
 **Nicht erlaubt:** Verkauf, Vermietung oder Unterlizenzierung des Zwillings, einzeln oder als
 Bestandteil eines anderen Produkts. Bei Weitergabe bitte nennen:
 *Digitaler Zwilling Verzinnungsanlage © Bauer Automation Solutions, Dennis Bauer.*
-Für alles darüber hinaus gibt es eine Lizenzvereinbarung — frag einfach an.
+Für alles darüber hinaus gibt es eine Lizenzvereinbarung, frag einfach an.
 
 Der Zwilling verwendet [three.js](https://threejs.org) und
 [three-mesh-bvh](https://github.com/gkjohnson/three-mesh-bvh) unter MIT-Lizenz sowie die Schrift
