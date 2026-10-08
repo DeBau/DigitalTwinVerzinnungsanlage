@@ -108,6 +108,7 @@ renderer.domElement.addEventListener('webglcontextrestored', () => {
 export const camera = new THREE.PerspectiveCamera(34, 1, 0.05, 40);
 
 // Feste Ansichten (Meter): pos = Kamera, ziel = Drehpunkt; gruppe/name für die Auswahlliste
+// Kameras vor den Bändern stehen über 1,7 m: Blick über den Lichtvorhang −BG20 (Strahlen bis 1,65 m), nicht hindurch
 const A = (gruppe, name, px, py, pz, tx, ty, tz) => ({ gruppe, name, pos: new THREE.Vector3(px, py, pz), ziel: new THREE.Vector3(tx, ty, tz) });
 export const ANSICHT = {
   gesamt: A('Übersicht', 'Gesamtanlage', 3.3, 2.5, 5.2, 1.0, 0.55, 0.9),
@@ -117,13 +118,13 @@ export const ANSICHT = {
   portal: A('Teilprozesse', 'Portal · Haken −MM1/−MM2/−MM3', 0.35, 1.55, 1.9, 0.15, 1.0, -0.15),
   bad: A('Teilprozesse', 'Zinnbad (Blick ins Bad)', 1.05, 1.15, 1.05, 0.40, 0.42, 0),
   pneumatik: A('Teilprozesse', 'Pneumatik · Ventilinsel −QM1', -0.15, 1.25, 0.95, -0.66, 0.85, -0.2),
-  kurve: A('Teilprozesse', 'Rollenkurve −MA6', -0.75, 1.15, 2.45, 0.15, 0.3, 1.35),
-  kuehlung: A('Teilprozesse', 'Band 2 · Sprühkühlung', 1.45, 1.1, 2.75, 1.3, 0.45, 1.52),
+  kurve: A('Teilprozesse', 'Rollenkurve −MA6', 0.55, 1.95, 2.55, 0.05, 0.3, 1.3),
+  kuehlung: A('Teilprozesse', 'Band 2 · Sprühkühlung', 1.6, 1.95, 2.85, 1.3, 0.45, 1.5),
   kuehlwasser: A('Teilprozesse', 'Kühlwassertank · Nachspeisung', 1.95, 1.05, 0.35, 1.3, 0.45, 1.2),
   kipper: A('Teilprozesse', 'Korbkipper −MM8', 2.7, 1.15, 2.75, 3.0, 0.4, 1.52),
-  pruefung: A('Teilprozesse', 'Vibrorinne · Prüfband · Kamera', 3.45, 1.25, 2.85, 3.85, 0.35, 1.52),
+  pruefung: A('Teilprozesse', 'Vibrorinne · Prüfband · Kamera', 3.2, 1.95, 3.0, 3.9, 0.35, 1.5),
   klt: A('Teilprozesse', 'Ausschleusen · KLT', 4.55, 1.05, 2.65, 4.45, 0.2, 1.6),
-  pult: A('Steuerstellen', 'Bedienpult (START/STOP/NOT-HALT)', -0.35, 1.55, 1.95, -0.65, 1.05, 0.86),
+  pult: A('Steuerstellen', 'Bedienpult (START/STOP/NOT-HALT)', -0.58, 1.7, 2.98, -0.8, 1.0, 2.1),
   s10: A('Steuerstellen', 'Vor-Ort −S10 Band 1 (Antrieb)', 1.45, 1.55, -2.1, 0.3, 0.8, -0.95),
   s30: A('Steuerstellen', 'Vor-Ort −S30 Rollenkurve', -0.36, 1.35, 2.75, -0.48, 1.165, 1.81),
   s20: A('Steuerstellen', 'Vor-Ort −S20 Band 2', 2.54, 1.35, 2.95, 2.42, 1.165, 2.03),

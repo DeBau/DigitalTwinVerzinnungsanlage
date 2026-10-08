@@ -1,4 +1,5 @@
-// Doku-Bilder für docs/bilder/ (1400 × 788, Seitenleiste offen, Grafikstufe Hoch, Tiefenschatten an, Demo ohne SPS).
+// Doku-Bilder für docs/bilder/ (1400 × 788, Grafikstufe Hoch, Tiefenschatten an, Demo ohne SPS).
+// Seitenleiste nur bei den Bildern in MIT_LEISTE offen, sonst zeigt das Bild die ganze 3D-Ansicht.
 //   node tools/doku-bilder.mjs [name ...] [--ohne-tiefenschatten]   ohne Namen: alle; z. B. 03-schaltschrank 11-umrichter
 // Läuft mit sichtbarem Chrome-Fenster: nur so rendert die Stufe Hoch (Schatten, Schrankleuchte) mit der echten Grafikkarte.
 import { chromium } from 'playwright-core';
@@ -11,19 +12,21 @@ const wahl = process.argv.slice(2).filter(a => !a.startsWith('--'));
 const tiefenschatten = !process.argv.includes('--ohne-tiefenschatten');
 const browser = await chromium.launch({ headless: false, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--allow-file-access-from-files', '--window-size=1420,900'] });
 const fehler = [];
+const MIT_LEISTE = ['08-signalmonitor', '09-weg-zeit-diagramm', '13-vorort-pruefband', '14-kuehlwassertank'];
 
-async function seite() {
+async function seite(name) {
   const p = await browser.newPage({ viewport: { width: 1400, height: 788 } });
   p.on('pageerror', (e) => fehler.push(e.message));
   await p.addInitScript((ts) => { try { localStorage.setItem('zinnbad-grafik', 'hoch'); localStorage.setItem('zinnbad-tiefenschatten', ts ? '1' : '0'); } catch {} }, tiefenschatten);
   await p.goto(pathToFileURL(path.join(dir, 'index.html')).href);
   await p.waitForFunction(() => window.__zwilling, null, { timeout: 30000 });
   await p.waitForTimeout(2500);
-  // Hilfe zu, alle vier Förderer am Umrichter
-  await p.evaluate(() => {
+  // Hilfe zu, Seitenleiste je nach Bild, alle vier Förderer am Umrichter
+  await p.evaluate((leiste) => {
     document.getElementById('legende-zu')?.click();
+    if (!leiste) document.getElementById('side-zu').click();
     for (const b of document.querySelectorAll('[data-art=fu]')) b.click();
-  });
+  }, MIT_LEISTE.includes(name));
   return p;
 }
 const ansicht = async (p, key) => { await p.selectOption('#ansicht-wahl', key); await p.waitForTimeout(1600); };
@@ -58,7 +61,13 @@ const BILDER = {
     await p.waitForTimeout(1600);
   },
   // Schaltschrank offen: S7-1500, Schütze, Klemmen, unten die Umrichter −TA2…−TA5
-  '03-schaltschrank': async (p) => { await p.waitForTimeout(8000); await p.click('#btn-schrank'); await p.waitForTimeout(3500); },
+  // Kamera gerade vor den Schrank: der Knopf allein zeigt ohne Seitenleiste Bedienpult und Lichtvorhangsäule davor
+  '03-schaltschrank': async (p) => {
+    await p.waitForTimeout(8000);
+    await p.click('#btn-schrank'); await p.waitForTimeout(3500);
+    await p.evaluate(([a, b]) => window.__zwilling.cam(...a, ...b), [await welt(p, -1300, 1150, 2300), await welt(p, -1385, 1000, -230)]);
+    await p.waitForTimeout(1600);
+  },
   '06-pruefstation': async (p) => { await p.waitForTimeout(30000); await ansicht(p, 'pruefung'); },
   // Fenster „Umrichter“ mit Rampen: −TA2 nach einigen Fahrten des Bandmoduls
   '11-umrichter': async (p) => {
@@ -101,7 +110,7 @@ const BILDER = {
 
 for (const [name, vorbereiten] of Object.entries(BILDER)) {
   if (wahl.length && !wahl.includes(name)) continue;
-  const p = await seite();
+  const p = await seite(name);
   await vorbereiten(p);
   await speichern(p, name);
   console.log('geschrieben:', name + '.jpg');
