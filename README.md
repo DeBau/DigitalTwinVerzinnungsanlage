@@ -226,3 +226,7 @@ Der Zwilling verwendet [three.js](https://threejs.org) und
 Keyence, Festo, Rittal, Interroll und ifm sind Marken der jeweiligen Hersteller. Dieses Projekt
 steht in keiner Verbindung zu diesen Unternehmen – die Betriebsmittel sind nachgebildet, damit die
 Anlage aussieht und sich verhält wie eine reale Maschine.
+
+Das Übungshandbuch nennt die TIA-Portal-Hilfe und die SCE-Lehrunterlagen der Siemens AG als Quellen
+und verlinkt die öffentliche Online-Hilfe. Es enthält keine Texte oder Bilder daraus; alle
+Erklärungen sind eigene Formulierungen.

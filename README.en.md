@@ -229,3 +229,7 @@ The twin uses [three.js](https://threejs.org) and
 Keyence, Festo, Rittal, Interroll and ifm are trademarks of their respective manufacturers. This project
 is not affiliated with these companies. The equipment is replicated so that the
 plant looks and behaves like a real machine.
+
+The exercise handbook cites the TIA Portal help and the SCE training documents of Siemens AG as
+sources and links to the public online help. It contains no text or images from them; all
+explanations are written in its own words.
