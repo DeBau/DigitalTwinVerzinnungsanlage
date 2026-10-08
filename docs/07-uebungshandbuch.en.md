@@ -290,8 +290,8 @@ the teaching approach for instructors.
 ## For developers
 
 The source code lives in `web/tools/uebungshandbuch/`: the page and the editor as ES modules under
-`src/`, the exercises in `uebungen.js`, the detailed texts in `texte/`, the quick checks in
-`quiz.js`. `node web/tools/uebungshandbuch/build.mjs` bundles everything together with
+`src/`, each exercise in its own folder `uebungen/L01/` to `uebungen/L37/` (master data
+`uebung.js`, detailed texts `texte.json`, quick checks `quiz.js`). `node web/tools/uebungshandbuch/build.mjs` bundles everything together with
 `signale.csv` into `docs/uebungshandbuch.html` and reports content issues as warnings.
 
 [◀ Back to overview](../README.en.md)

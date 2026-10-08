@@ -1,5 +1,5 @@
 /* ---------- Vorlagen: Daten und Speicherschlüssel ---------- */
-// Grundfunktionen der Vorlagen zum Ausfüllen (Feld tpls in uebungen.js): Zeilen, Spalten, Schlüssel, Fortschreibungen.
+// Grundfunktionen der Vorlagen zum Ausfüllen (Feld tpls in uebungen/Lxx/uebung.js): Zeilen, Spalten, Schlüssel, Fortschreibungen.
 // Darstellung: uebung.js (Tabelle), vorlage-stand.js (Karte), vorlage-popup.js (Popup).
 import { SHEETS } from './daten.js';
 import { BY, S, chips, esc, qt, sheetPos } from './basis.js';

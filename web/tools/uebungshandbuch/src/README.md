@@ -135,7 +135,7 @@ importiert nie aus einer Vorlage.
 | `schaltplan/*.js` | Schaltplan der Anlage (Route `#/schaltplan/<Seite>`, Daten `schaltplan.json`, Platzhalter `__PLAN__`); eigene Modulkarte in `schaltplan/README.md`. Schaltzeichen aus `symbole/` wie der Editor |
 | **Seiteneffekte** | `app/tooltip.js`, `app/router.js`, `app/ereignisse.js`, `editor/ereignisse.js` (Listener des Editor-Dialogs, `AKTIONEN`) |
 
-Daten bleiben außerhalb von `src/`: `uebungen.js`, `quiz.js`, `stil.js`, `texte/Lxx.json`, `signale.csv`.
+Daten bleiben außerhalb von `src/`: je Übung ein Ordner `uebungen/Lxx/` (`uebung.js`, `texte.json`, `quiz.js`), dazu `stil.js` und `signale.csv`.
 
 ## 2. Werkzeuge
 

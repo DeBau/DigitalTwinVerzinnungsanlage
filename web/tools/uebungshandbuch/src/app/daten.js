@@ -14,13 +14,13 @@ export const STUFEN = [null,
   {n:"Experte", c:"var(--s4)", sub:"Stetige Regelung, Antriebe und die ganze Anlage."}];
 export const T = (head, rows) => ({head, rows});
 export const SHEETS = __SHEETS__;
-export const TEXTE = __TEXTE__;   // ausführliche Aufgabenbeschreibung und Fachwissen je Übung (texte/Lxx.json)
+export const TEXTE = __TEXTE__;   // ausführliche Aufgabenbeschreibung und Fachwissen je Übung (uebungen/Lxx/texte.json)
 SHEETS.forEach(s => Object.assign(s, TEXTE[s.id] || {}));
 // UE je Stufe und gesamt aus den Übungen berechnet (keine festen Zahlen)
 STUFEN.forEach((st, n) => { if (st) st.ue = SHEETS.filter(s => s.st === n).reduce((a, s) => a + (+s.ue || 0), 0); });
 export const UE_GESAMT = SHEETS.reduce((a, s) => a + (+s.ue || 0), 0);
 
-export const QUIZ = __QUIZ__;   // Kurz-Checks je Übung (quiz.js): {Lxx:{ein:[…], aus:[…]}}
+export const QUIZ = __QUIZ__;   // Kurz-Checks je Übung (uebungen/Lxx/quiz.js): {Lxx:{ein:[…], aus:[…]}}
 
 // Skizzenvorlagen je Übung (Nummerierung mit 37 Übungen). Eine einmal angebotene Vorlage bleibt stehen, damit gespeicherte
 // Skizzen erreichbar bleiben. Ergänzt nach vorlagen-skizzen.md, soweit es den Vorlagentyp schon gibt.

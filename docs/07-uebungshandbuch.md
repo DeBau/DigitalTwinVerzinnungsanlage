@@ -286,8 +286,8 @@ didaktischen Aufbau für Lehrkräfte.
 ## Für Entwickler
 
 Der Quelltext liegt in `web/tools/uebungshandbuch/`: die Seite und der Editor als ES-Module unter
-`src/`, die Übungen in `uebungen.js`, die ausführlichen Texte in `texte/`, die Kurz-Checks in
-`quiz.js`. `node web/tools/uebungshandbuch/build.mjs` bündelt alles mit `signale.csv` zu
+`src/`, die Übungen in je einem eigenen Ordner `uebungen/L01/` bis `uebungen/L37/` (Stammdaten
+`uebung.js`, ausführliche Texte `texte.json`, Kurz-Checks `quiz.js`). `node web/tools/uebungshandbuch/build.mjs` bündelt alles mit `signale.csv` zu
 `docs/uebungshandbuch.html` und meldet inhaltliche Auffälligkeiten als Warnung.
 
 [◀ Zurück zur Übersicht](../README.md)

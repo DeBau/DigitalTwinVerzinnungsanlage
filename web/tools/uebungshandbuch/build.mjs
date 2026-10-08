@@ -1,4 +1,4 @@
-// Erzeugt docs/uebungshandbuch.html aus src/ (Seite, Styles, ES-Module ab src/main.js), uebungen.js, quiz.js, stil.js, texte/*.json und signale.csv.
+// Erzeugt docs/uebungshandbuch.html aus src/ (Seite, Styles, ES-Module ab src/main.js), uebungen/Lxx/ (je Übung ein Ordner), stil.js und signale.csv.
 //   node web/tools/uebungshandbuch/build.mjs
 // Prüft dabei die Inhalte und meldet Auffälligkeiten als Warnung (der Build bricht nicht ab).
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
@@ -40,28 +40,40 @@ const auswerten = (datei, text, ...arg) => {   // JS-Datenausdruck auswerten, Fe
   catch (e) { warn('Datei nicht lesbar', datei, e.message); return null; }
 };
 
-// Übungen
-const uebungen = ohneKopf(readFileSync(path.join(hier, 'uebungen.js'), 'utf8'));
-const SHEETS = auswerten('uebungen.js', uebungen, ['T', (head, rows) => ({ head, rows })]) || [];
+// Übungen: je Übung ein Ordner uebungen/Lxx mit
+//   uebung.js   Stammdaten (JS-Datenausdruck, darf T(head, rows) nutzen)
+//   quiz.js     Kurz-Checks {ein:[…], aus:[…]} (JS-Datenausdruck, optional)
+//   texte.json  ausführliche Aufgabenbeschreibung und Fachwissen (optional)
+// uebung.js und quiz.js kommen als Quelltext in die Seite, texte.json als JSON.
+const udir = path.join(hier, 'uebungen');
+const datei = (id, name) => `uebungen/${id}/${name}`;
+const liesUebung = (id, name) => {   // Datei eines Übungsordners ohne Kopfkommentar; fehlt sie: null
+  const p = path.join(udir, id, name);
+  return existsSync(p) ? ohneKopf(readFileSync(p, 'utf8')) : null;
+};
+const SHEETS = [], QUIZ = {}, texte = {}, sheetQuellen = [], quizQuellen = [];
+for (const id of readdirSync(udir).filter((n) => /^L\d\d$/.test(n)).sort()) {
+  const u = liesUebung(id, 'uebung.js');
+  const sheet = u && auswerten(datei(id, 'uebung.js'), u, ['T', (head, rows) => ({ head, rows })]);
+  if (!u) warn('Datei fehlt', datei(id, 'uebung.js'), 'jeder Übungsordner braucht Stammdaten');
+  if (sheet) { SHEETS.push(sheet); sheetQuellen.push(u); }
+  if (sheet && sheet.id !== id) warn('Datenformat', datei(id, 'uebung.js'), `id „${sheet.id}“ passt nicht zum Ordner`);
 
-// Kurz-Checks: quiz.js (fehlt die Datei, bleibt QUIZ leer)
-const qdatei = path.join(hier, 'quiz.js');
-let quiz = existsSync(qdatei) ? ohneKopf(readFileSync(qdatei, 'utf8')).replace(/;\s*$/, '') : '({})';
-const QUIZ = auswerten('quiz.js', quiz);
-if (!QUIZ) quiz = '({})';
+  const q = liesUebung(id, 'quiz.js'), checks = q && auswerten(datei(id, 'quiz.js'), q);
+  if (checks) { QUIZ[id] = checks; quizQuellen.push(` ${id}:${q}`); }
+
+  const t = liesUebung(id, 'texte.json');
+  if (t) try { texte[id] = JSON.parse(t); }
+  catch (e) { warn('Datei nicht lesbar', datei(id, 'texte.json'), `JSON-Fehler: ${e.message}`); }
+}
+const uebungen = '[\n' + sheetQuellen.join(',\n\n') + '\n]';
+const quiz = '({\n' + quizQuellen.join(',\n') + '\n})';
 
 // Programmierrichtlinien einzeln mit Übung, ab der sie gelten: stil.js (fehlt die Datei, bleibt STIL leer)
 const sdatei = path.join(hier, 'stil.js');
 let stil = existsSync(sdatei) ? ohneKopf(readFileSync(sdatei, 'utf8')).replace(/;\s*$/, '') : '[]';
 const STIL = auswerten('stil.js', stil);
 if (!STIL) stil = '[]';
-
-// Ausführliche Aufgabenbeschreibung und Fachwissen: je Übung eine Datei texte/Lxx.json
-const tdir = path.join(hier, 'texte'), texte = {};
-if (existsSync(tdir)) for (const f of readdirSync(tdir)) if (/^L\d\d\.json$/.test(f)) {
-  try { texte[f.slice(0, 3)] = JSON.parse(readFileSync(path.join(tdir, f), 'utf8')); }
-  catch (e) { warn('Datei nicht lesbar', `texte/${f}`, `JSON-Fehler: ${e.message}`); }
-}
 
 /* ---------- Prüfungen ---------- */
 const EXTRA = auswerten('src/app/daten.js (EXTRA)', (lies('app', 'daten.js').match(/\nexport const EXTRA = (\{[\s\S]*?\n\});/) || [, '{}'])[1]) || {};
@@ -106,16 +118,17 @@ for (const s of SHEETS) {
   (s.ergebnis || []).forEach((e, i) => { if (!e || !e.n || !ART.includes(e.a)) warn('Datenformat', `${id} ergebnis[${i}]`, 'n fehlt oder a nicht in ' + ART.join(', ')); });
 }
 for (const [id, t] of Object.entries(texte)) {
-  if (!IDS.has(id)) warn('Verweis auf fehlende Übung', `texte/${id}.json`, 'keine Übung mit dieser id');
-  walk(`texte/${id}.json`, t);
+  const wo = datei(id, 'texte.json');
+  if (!IDS.has(id)) warn('Verweis auf fehlende Übung', wo, 'keine Übung mit dieser id');
+  walk(wo, t);
   (t.wissen || []).forEach((w, i) => {
-    if (!w.q || !String(w.q).trim()) warn('Wissenskarte ohne Siemens-Quelle', `texte/${id}.json wissen[${i}]`, `„${w.t}“ ohne q`);
-    else if (!/siemens\.(cloud|com)/.test(w.q)) warn('Wissenskarte ohne Siemens-Quelle', `texte/${id}.json wissen[${i}]`, `„${w.t}“: q ohne Link auf siemens.cloud oder siemens.com`);
+    if (!w.q || !String(w.q).trim()) warn('Wissenskarte ohne Siemens-Quelle', `${wo} wissen[${i}]`, `„${w.t}“ ohne q`);
+    else if (!/siemens\.(cloud|com)/.test(w.q)) warn('Wissenskarte ohne Siemens-Quelle', `${wo} wissen[${i}]`, `„${w.t}“: q ohne Link auf siemens.cloud oder siemens.com`);
   });
 }
-for (const [id, q] of Object.entries(QUIZ || {})) {
-  if (!IDS.has(id)) warn('Verweis auf fehlende Übung', `quiz.js ${id}`, 'keine Übung mit dieser id');
-  walk(`quiz.js ${id}`, q);
+for (const [id, q] of Object.entries(QUIZ)) {
+  if (!IDS.has(id)) warn('Verweis auf fehlende Übung', datei(id, 'quiz.js'), 'keine Übung mit dieser id');
+  walk(datei(id, 'quiz.js'), q);
 }
 (Array.isArray(STIL) ? STIL : []).forEach((r, i) => {
   if (!r || !IDS.has(r.ab)) warn('Datenformat', `stil.js [${i}]`, `ab „${r && r.ab}“ ist keine Übung`);

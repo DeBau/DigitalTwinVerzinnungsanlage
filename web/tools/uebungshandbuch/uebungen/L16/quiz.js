@@ -1,0 +1,9 @@
+// Kurz-Checks der Übung L16: ein = Eingangs-Check in Phase 1 (nur Vorwissen aus den vor-Übungen), aus = Abschluss-Check in Phase 6.
+// Frage: [Frage, [Antwort 0, Antwort 1, Antwort 2], Index der richtigen Antwort, Begründung]
+{ein:[
+   ["Woran erkennst du in der Querverweisliste, dass ein Ausgang an einer Stelle geschrieben wird?",["an der Zugriffsart „schreibend“","am Kommentar des Netzwerks","am Datentyp des Ausgangs"],0,"Die Querverweisliste zeigt je Verwendungsstelle, ob gelesen oder geschrieben wird."],
+   ["Was gibt ModeSelect aus L15 an die anderen Bausteine weiter?",["die Ausgänge modeManual und modeAuto","seine statischen Variablen #statModeManual und #statModeAuto","den Schalter −SA3 unverändert"],0,"Daten fließen nur über die Schnittstelle. Statische Variablen bleiben im Baustein."]],
+  aus:[
+   ["Derselbe Ausgang wird im Handbetrieb und in der Schrittkette zugewiesen. Was passiert?",["TIA meldet beim Übersetzen einen Fehler.","Die letzte Zuweisung im Zyklus gewinnt, die andere ist wirkungslos.","Beide werden ODER-verknüpft."],1,"Die CPU bearbeitet das Programm von oben nach unten. Am Ende des Programmdurchlaufs steht im Prozessabbild der zuletzt geschriebene Wert, und nur der wird an die Ausgangsbaugruppe übertragen."],
+   ["Wo gehört die Verriegelung „−MM3 nur mit angehobenem Korb“ hin?",["in die Befehlsausgabe, dann gilt sie für HAND und AUTO","nur in den Handbetrieb","in jeden Schritt der Kette"],0,"An einer Stelle gepflegt, wirkt sie für jede Betriebsart und jede Befehlsquelle."],
+   ["Wo steht nach dem Umbau der Schreibzugriff auf %Q0.2 (−MB3) in der Querverweisliste?",["beim Aufruf von InstCommandOutput im OB1","in einem Netzwerk von Manual","in der Beobachtungstabelle"],0,"CommandOutput gibt das Ventil über seinen Ausgang aus. Mit %Q0.2 verschaltet ist er beim Aufruf im OB1."]]}

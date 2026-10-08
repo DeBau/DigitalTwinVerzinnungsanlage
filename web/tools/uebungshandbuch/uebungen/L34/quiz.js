@@ -1,0 +1,4 @@
+// Kurz-Checks der Übung L34: ein = Eingangs-Check in Phase 1 (nur Vorwissen aus den vor-Übungen), aus = Abschluss-Check in Phase 6.
+// Frage: [Frage, [Antwort 0, Antwort 1, Antwort 2], Index der richtigen Antwort, Begründung]
+{ein:[["Wie lange braucht ein Teil für 200 mm bei 100 mm/s?",["2 s","0,5 s","20 s"],0,"t = s / v = 200 mm / 100 mm/s."],["Welcher Telegrammwert entspricht 100 % der Bezugsdrehzahl?",["16#4000","16#7FFF","27648"],0,"Das kennst du aus L32 und L33. 27648 ist dagegen 100 % bei Analogwerten."]],
+ aus:[["Das Poti −SF47 steht auf 27648. Welcher NSOLL_A?",["16#2000","16#4000","27648"],1,"27648 = 100 %, und 100 % sind beim Telegramm 16#4000 = 16384."],["Warum NIST_A für die Ausblaszeit?",["Die tatsächliche Geschwindigkeit bestimmt die Laufzeit, auch während der Rampen.","NSOLL_A ist nicht lesbar.","NIST_A ist genauer skaliert."],0,"Sollwert und Istwert unterscheiden sich beim Hoch- und Rücklauf."]]}

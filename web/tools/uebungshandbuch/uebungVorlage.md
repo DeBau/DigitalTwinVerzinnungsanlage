@@ -20,12 +20,17 @@ wie es aussieht. Die Vorlage wächst mit jeder neuen Idee. Was hier steht, ist b
 
 ## 1. Wo die Daten liegen
 
+Jede Übung hat einen eigenen Ordner `uebungen/Lxx/`. Alles, was zu einer Übung gehört, steht dort.
+
 | Datei | Inhalt |
 | --- | --- |
-| `uebungen.js` | Je Übung ein Objekt: Kopfdaten, Lernziele, Signale, Situation, Planung, Aufgabenschritte, Hilfen, Leitfragen, Prüfprotokoll, Ergebnisse, Vorlagen |
-| `texte/Lxx.json` | Aufgabenbeschreibung `beschr` und Fachwissen `wissen` der Übung |
-| `quiz.js` | Eingangs-Check und Abschluss-Quiz |
-| `stil.js` | Programmierregeln nach Siemens, ab welcher Übung sie gelten |
+| `uebungen/Lxx/uebung.js` | Stammdaten der Übung als ein Objekt: Kopfdaten, Lernziele, Signale, Situation, Planung, Aufgabenschritte, Hilfen, Leitfragen, Prüfprotokoll, Ergebnisse, Vorlagen |
+| `uebungen/Lxx/texte.json` | Aufgabenbeschreibung `beschr` und Fachwissen `wissen` der Übung |
+| `uebungen/Lxx/quiz.js` | Eingangs-Check `ein` und Abschluss-Quiz `aus` |
+| `stil.js` | Programmierregeln nach Siemens, ab welcher Übung sie gelten (gilt für alle Übungen) |
+
+Eine neue Übung legst du an, indem du einen neuen Ordner `uebungen/Lxx/` mit diesen drei Dateien anlegst. Der Build
+liest alle Ordner in der Reihenfolge ihrer Nummer. Die `id` in `uebung.js` muss zum Ordnernamen passen.
 
 Nach jeder Änderung: `node web/tools/uebungshandbuch/build.mjs`. Das baut `docs/uebungshandbuch.html` und prüft die
 Daten. Es dürfen keine neuen Warnungen entstehen.
@@ -74,7 +79,7 @@ beantwortet:
 
 Muster: L01, Thema „Die Wertetabelle: was sie ist und warum du sie ausfüllst“.
 
-Ein Thema in `texte/Lxx.json`, Feld `wissen`, sieht so aus: `{t: "Titel", h: "HTML-Text", q: "Quellen"}`.
+Ein Thema in `uebungen/Lxx/texte.json`, Feld `wissen`, sieht so aus: `{t: "Titel", h: "HTML-Text", q: "Quellen"}`.
 
 - **Ein Thema, eine Frage.** Der Titel sagt, worum es geht, zum Beispiel „Lampentest“ oder „Flanken: R_TRIG und
   F_TRIG“. Ein Thema erklärt eine Sache und nicht drei.
@@ -83,7 +88,7 @@ Ein Thema in `texte/Lxx.json`, Feld `wissen`, sieht so aus: `{t: "Titel", h: "HT
 - **Erklärniveau:** Was ist es, wie funktioniert es, was macht es, warum brauchst du es, wo findest du es in TIA.
   Keine schwierige Mathematik.
 - **Neue Stilregeln** bekommen ein eigenes Thema mit dem Titel „Neue Stilregel: …“.
-- **Die Reihenfolge der Themen nicht ändern**, ohne `fw` in `uebungen.js` anzupassen. `fw` zählt die Themen ab 0.
+- **Die Reihenfolge der Themen nicht ändern**, ohne `fw` in `uebung.js` anzupassen. `fw` zählt die Themen ab 0.
 
 ## 5. Aufgabenschritte (Ausführen)
 
@@ -232,7 +237,7 @@ Alles wird strukturiert, wartbar, einfach und nach Best Practice gebaut.
 - **Kurze Funktionen** mit genau einer Aufgabe und sprechenden deutschen Namen.
 - **Keine überlangen Einzeiler**, keine verschachtelten Ternaries. Lieber zwei Zeilen mehr.
 - **Tabellen statt if- oder switch-Ketten** (z. B. `AKTION`, `WAHL`, `TASTE` in `vorlage-popup.js`).
-- **Daten gehören in die Daten:** Inhalte stehen in `uebungen.js` und `texte/`, nie im Code.
+- **Daten gehören in die Daten:** Inhalte stehen im Übungsordner `uebungen/Lxx/`, nie im Code.
 - **Jede Datei hat einen Kopfkommentar**, der sagt, was sie tut.
 - **Keine Abstraktion auf Vorrat.**
 

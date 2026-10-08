@@ -1,0 +1,14 @@
+// Kurz-Checks der Übung L09: ein = Eingangs-Check in Phase 1 (nur Vorwissen aus den vor-Übungen), aus = Abschluss-Check in Phase 6.
+// Frage: [Frage, [Antwort 0, Antwort 1, Antwort 2], Index der richtigen Antwort, Begründung]
+{ein:[
+  ["Welche Hex-Zahl zeigt TIA für die Int-Zahl 37?",["16#0025","16#0037","16#0073"],0,"37 = 2 × 16 + 5. In L06 hast du so umgerechnet."],
+  ["Was meldet eine CONV-Box mit ENO = 0, wenn EN = 1 ist?",["Die Umwandlung ist gescheitert, z. B. weil der Wert nicht in den Zieltyp passt.","Die Box ist fertig.","Der Wert ist 0."],0,"Das hast du in L07 mit DInt nach Int ausprobiert. Bei EN = 0 ist ENO immer 0, auch ohne Fehler."],
+  ["Welches Byte ist im Wort %IW12 das höherwertige (Bit 15 bis 8)?",["%IB12","%IB13","Das hängt vom Datentyp ab."],0,"Das Byte mit der kleineren Nummer steht im Wort vorn (L06)."]],
+ aus:[
+  ["Der Tageszähler steht auf 37. Was zeigt die BCD16-Variable im Anzeigeformat Hex?",["16#0025","16#0037","16#3700"],1,"In BCD bekommt jede Dezimalziffer vier Bits: 3 = 0011, 7 = 0111. Die Hex-Anzeige zeigt deshalb die Ziffern direkt."],
+  ["Warum ist 16#001A kein gültiger BCD-Wert?",["Weil A keine Dezimalziffer ist; in BCD gibt es je Tetrade nur 0 bis 9.","Weil BCD-Werte immer mit 16#1 beginnen.","Weil 16#001A größer als 999 ist."],0,"Die Tetraden 1010 bis 1111 sind in BCD ungültig. CONVERT BCD16 nach Int meldet dann ENO = 0."],
+  ["Der Tageszähler steht auf 1000. Was gilt für CONVERT Int nach BCD16?",["Ergebnis 16#1000","ENO = 0, weil nur −999 bis +999 umgewandelt werden","Ergebnis 16#0999 automatisch"],1,"Den Ersatzwert, z. B. 16#0999, legst du selbst fest und gibst ihn bei ENO = 0 aus."],
+  ["Warum endet BCD16 bei 999, obwohl ein Word vier Tetraden hat?",["Die oberste Tetrade ist das Vorzeichen: 0000 positiv, 1111 negativ.","Die oberste Tetrade ist immer ungültig.","TIA lässt in einem Word nur 12 Bit zu."],0,"Laut TIA-Hilfe (ITB) sind Bit 12 bis 15 das Vorzeichen: alle 0 positiv, alle 1 negativ. −123 wird also zu 16#F123."],
+  ["Du legst eine CONV-Box in FUP an und findest keinen ENO-Ausgang zum Abfragen. Warum?",["Der EN-/ENO-Mechanismus ist in der Voreinstellung aus. Rechtsklick auf die Box, ENO generieren.","CONV hat nie einen ENO.","ENO gibt es nur in SCL."],0,"Siemens schaltet ENO in KOP und FUP für eine schnellere CPU zunächst aus. Brauchst du ENO, schaltest du es je Box ein."],
+  ["−SF48 steht auf 015. Was erhält dein Programm, wenn es %IW12 ohne CONVERT als Int benutzt?",["15","21","0"],1,"16#0015 ist als Int 1 × 16 + 5 = 21. Zwischen BCD und Int steht immer CONVERT."],
+  ["Im SCL-Netzwerk steht versehentlich INT_TO_WORD(#basketCount) statt INT_TO_BCD16. Was zeigt −PG1 bei 37 Körben?",["037","025","nichts"],1,"INT_TO_WORD kopiert nur die Bits: 37 = 16#0025, und die Anzeige liest jede Tetrade als Ziffer."]]}
