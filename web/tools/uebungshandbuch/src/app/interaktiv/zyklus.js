@@ -99,7 +99,7 @@ function verlaufHTML(z){
   const marken = [];
   if (m.start !== null) for (let t = m.start, n = 1; t <= bis; t += m.T, n++) marken.push({t, text: `Zyklus ${n} · ${ms(t)}`});
   const spuren = [["k", "Klemme"], ["e", "PAE"], ["a", "PAA"], ["q", "Ausgang"]].map(([k, name]) => ({name, wechsel: m.spuren[k]}));
-  return zeitverlaufSVG({spuren, von, bis, marken, punkte: m.lesungen.map(t => ({zeile: 1, t})), breit: z.breit});
+  return zeitverlaufSVG({spuren, von, bis, marken, punkte: m.lesungen.map(t => ({zeile: 1, t})), breit: z.breit, jetzt: m.t});
 }
 
 /* ---------- Steuerung ---------- */

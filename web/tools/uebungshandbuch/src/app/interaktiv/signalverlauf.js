@@ -40,7 +40,8 @@ export function signalverlaufSVG(spuren, beschriftung = "Schritt", breit = false
 /* ---------- Zeitdiagramm über echter Zeit (ms) ---------- */
 // spuren: [{name, wechsel: [[t, wert], …]}], Fenster von … bis (ms).
 // marken: senkrechte Linien mit Text (z. B. Zyklusanfang), punkte: [{zeile, t}] Dreiecke an einer Spur (z. B. Einlesen).
-// Die Zeitachse ist breite Einheiten lang (svMass: 480 im Text, 1000 im Popup).
+// Die Zeitachse ist breite Einheiten lang (svMass: 480 im Text, 1000 im Popup). jetzt: aktuelle Zeit; die Spuren enden
+// dort und laufen nicht mit dem aktuellen Wert bis zum Ende der Achse weiter (das sähe aus wie die Zukunft).
 function zvWert(wechsel, t){
   let w = 0;
   for (const [tw, v] of wechsel) { if (tw > t) break; w = v; }
@@ -66,12 +67,12 @@ function zvMarke(m, x, hoehe, breite){
 }
 const zvPunkt = (p, x) => { const y = 10 + p.zeile * SV_ZEILE + SV_HUB + 3, px = x(p.t); return `<path d="M${px} ${y} l-4 7 h8 z" class="sv-punkt"/>`; };
 
-export function zeitverlaufSVG({spuren, von, bis, marken = [], punkte = [], breit = false}){
-  const breite = svMass(breit).zeit, x = t => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1);
+export function zeitverlaufSVG({spuren, von, bis, marken = [], punkte = [], breit = false, jetzt = Infinity}){
+  const breite = svMass(breit).zeit, x = t => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1), ende = Math.min(bis, jetzt);
   const hoehe = 34 + spuren.length * SV_ZEILE;
   const sicht = t => t >= von && t <= bis;
   const inhalt = marken.filter(m => sicht(m.t)).map(m => zvMarke(m, x, hoehe, breite)).join("")
-    + spuren.map((s, i) => zvSpur(s, i, von, bis, x, breite)).join("") + punkte.filter(p => sicht(p.t)).map(p => zvPunkt(p, x)).join("");
+    + spuren.map((s, i) => zvSpur(s, i, von, ende, x, breite)).join("") + punkte.filter(p => sicht(p.t)).map(p => zvPunkt(p, x)).join("");
   return iaSvg(SV_LINKS + breite + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
 }
 
@@ -108,11 +109,11 @@ function zwAchse(von, bis, x, y0, teilung, breite){
   }
   return svg;
 }
-export function zeitverlaufWertSVG({spuren, wert, von, bis, marken = [], teilung = 1000, breit = false}){
-  const breite = svMass(breit).zeit, x = t => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1);
+export function zeitverlaufWertSVG({spuren, wert, von, bis, marken = [], teilung = 1000, breit = false, jetzt = Infinity}){
+  const breite = svMass(breit).zeit, x = t => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1), ende = Math.min(bis, jetzt);
   const yWert = 10 + spuren.length * SV_ZEILE + 8, yAchse = yWert + ZW_HOEHE + 8, hoehe = yAchse + 36;
   const inhalt = marken.filter(m => m.t >= von && m.t <= bis).map(m => zvMarke(m, x, hoehe, breite)).join("")
-    + spuren.map((s, i) => zvSpur(s, i, von, bis, x, breite)).join("") + zwSpur(wert, yWert, von, bis, x, breite)
+    + spuren.map((s, i) => zvSpur(s, i, von, ende, x, breite)).join("") + zwSpur(wert, yWert, von, ende, x, breite)
     + zwAchse(von, bis, x, yAchse, teilung, breite);
   return iaSvg(SV_LINKS + breite + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
 }

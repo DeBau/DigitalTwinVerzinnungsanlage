@@ -2,7 +2,6 @@
 :is(.ia-zahl,.ia-bitmuster,.ia-rechnen) .ia-kopf .ia-tabs{flex-wrap:wrap;max-width:100%}
 :is(.ia-zahl,.ia-bitmuster,.ia-rechnen) > *{min-width:0}
 .zf-zusatz{flex:1 1 300px;min-width:0}
-.zf-zusatz .ia-scl{white-space:pre-wrap}
 :is(.ia-zahl,.ia-bitmuster,.ia-rechnen) .ia-kopf .ia-tabs + .ia-tabs{margin-left:0}
 .zf-als{font:13px var(--sans);padding:3px 9px;border-radius:7px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);margin:2px 4px 2px 0;display:inline-block}
 button.zf-als{cursor:pointer}

@@ -29,7 +29,7 @@
 .ia-satz{padding:10px 14px;border-radius:9px;background:var(--sunk);border-left:4px solid var(--blue)}
 .ia-satz.warn{border-left-color:var(--yellow);background:var(--yellow-soft)}
 .ia-satz.an{border-left-color:var(--ok);background:var(--ok-soft)}
-.ia-scl{margin:0;padding:14px 16px;border-radius:9px;background:var(--sunk);font:15px var(--mono);overflow-x:auto}
+.ia-scl{margin:0;padding:14px 16px;border-radius:9px;background:var(--sunk);font:15px var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}   /* lange Zeilen brechen um, kein Scrollbalken */
 .ia-scl-wrap{display:grid;gap:10px}
 .ia-scl-status{justify-self:start}
 .ia-scl-status{border-collapse:collapse;font:13px var(--mono)}

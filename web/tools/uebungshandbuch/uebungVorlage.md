@@ -209,8 +209,13 @@ Im Text steht davon nur eine **Vorschau**, ausprobiert wird im **Popup** (siehe 
 - **Klick öffnet das Popup** (`#iadlg`, `popup.js`), dort ist die Erklärung bedienbar. Vorschau und Popup teilen sich den
   Zustand. Beim Schließen hält eine Animation an, und die Vorschau zeigt den letzten Stand.
 - **Popup über Popup:** Ab Schritt 2 liegt das Erklärungs-Popup über dem Fachwissen-Popup, darüber kann ein drittes liegen
-  (`#iadlg2`, Speicheraufbau groß). Jedes hat oben links **„← Zurück“** und oben rechts **„×“**; beides und Esc schließen
-  nur das oberste. Danach steht man wieder genau im Fachwissen.
+  (`#iadlg2`, Speicheraufbau groß). Jedes Erklärungs-Popup hat oben links **„← Zurück“** und oben rechts **„×“**; beides
+  und Esc schließen nur das oberste. Danach steht man wieder genau im Fachwissen. Das Fachwissen-Popup selbst hat „×“ und
+  „Schließen“, aber kein „← Zurück“, denn dahinter liegt kein weiteres Popup.
+- **Zeitdiagramme enden bei der aktuellen Zeit** (`jetzt` in `zeitverlaufSVG`, `zeitverlaufWertSVG`), sonst sieht der
+  Rest der Achse aus wie die Zukunft.
+- **Zahlenstrahl:** Beschriftungen setzt `rechnen-bild.js` selbst in Reihen, sodass sich nichts überdeckt. Gleiche Werte
+  teilen sich eine Beschriftung, der Überlauf-Bogen läuft unter allen Beschriftungen.
 - **Popup ohne Scrollleiste von Anfang an**, auch bei hoher Windows-Skalierung (geprüft bei 1536 × 740): so hoch wie der
   Inhalt, höchstens bis zum Fensterrand. Reicht die Höhe nicht, verkleinert `puEinpassen` (`popup.js`) den Inhalt beim
   Öffnen bis höchstens 70 %. Erst wenn man etwas aufklappt (z. B. „Begriffe“), darf die Scrollleiste erscheinen.

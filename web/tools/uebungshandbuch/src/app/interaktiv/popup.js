@@ -16,6 +16,7 @@ function puAnmelden(d){
   if (d.dataset.bereit) return;
   d.dataset.bereit = "1";
   d.addEventListener("close", () => puSchliessen(d));
+  for (const art of ["pointerdown", "input", "keydown"]) d.addEventListener(art, () => puRuheFrei(d));
 }
 export function puOeffnen(auswahl, titel, inhalt, zu){
   const d = $(auswahl); if (!d) return;
@@ -29,15 +30,17 @@ export function puOeffnen(auswahl, titel, inhalt, zu){
   puRuhigHalten(d);
 }
 
-/* ---------- Ruhig: das Popup wird nie kleiner, solange es offen ist ---------- */
+/* ---------- Ruhig: das Popup wird beim Abspielen nicht kleiner ---------- */
 // Kommt beim Abspielen eine Textzeile und geht wieder, würde das mittig sitzende Popup pulsieren. Darum merkt sich der
 // Inhaltsbereich seine größte Höhe (höchstens bis zum Fensterrand) und wird nicht wieder kleiner. ResizeObserver meldet
-// vor dem Zeichnen, das Kleinerwerden ist also nie zu sehen.
+// vor dem Zeichnen, das Kleinerwerden ist also nie zu sehen. Bedient man selbst etwas (Klick, Eingabe, Taste, z. B. von
+// CMP auf IN_RANGE oder Begriffe zuklappen), darf es sich der neuen Höhe anpassen (puRuheFrei).
 const PU_RUHE = new Map();
 function puRuheMessen(d, ruhe){
   const body = d.querySelector(".iadlg-body"), inhalt = body.firstElementChild;
   const frei = innerHeight - 24 - d.querySelector(".iadlg-kopf").offsetHeight;
   const bedarf = Math.ceil(inhalt.getBoundingClientRect().height) + 24;   // 24: Innenabstand oben und unten
+  if (ruhe.frei) { ruhe.hoechste = 0; ruhe.frei = false; }
   ruhe.hoechste = Math.max(ruhe.hoechste, Math.min(bedarf, frei));
   body.style.minHeight = ruhe.hoechste + "px";
 }
@@ -47,6 +50,13 @@ function puRuhigHalten(d){
   ruhe.wache = new ResizeObserver(() => puRuheMessen(d, ruhe));
   ruhe.wache.observe(inhalt);
   PU_RUHE.set(d, ruhe);
+}
+// Nur die Änderung direkt nach der Bedienung darf das Popup kleiner machen (bis zum übernächsten Bild), nicht die
+// späteren Schritte einer Animation, die mit dem Klick gestartet wurde.
+function puRuheFrei(d){
+  const ruhe = PU_RUHE.get(d); if (!ruhe) return;
+  ruhe.frei = true;
+  requestAnimationFrame(() => requestAnimationFrame(() => { ruhe.frei = false; }));
 }
 function puRuheEnde(d){
   const ruhe = PU_RUHE.get(d); PU_RUHE.delete(d);

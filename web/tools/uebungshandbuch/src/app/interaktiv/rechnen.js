@@ -91,21 +91,31 @@ const RE_SCL = {
   vergleich: z => `${z.scl.q} := ${z.scl.a} ${RE_SCL_VGL[z.vgl]} ${z.scl.b};`,
   bereich: z => `${z.scl.q} := ${z.scl.min} <= ${z.scl.a} AND ${z.scl.a} <= ${z.scl.max};`,
 };
-function reSclHTML(z, r){
+// Status-Tabelle: Konstanten (z. B. 1) bekommen keine Zeile. Liest und schreibt die Anweisung dieselbe Variable
+// (#count := #count + 1), stehen ihr Wert vorher und nachher in zwei Zeilen.
+const reKonstante = name => /^[-+]?[\d.]/.test(name);
+function reStatus(z, r){
   const bool = typeof r.out === "boolean" ? r.out : null;
-  const status = [[z.scl.q, reOutText(r), bool], ...RE_FELDER[reArt(z)].map(([k]) => [z.scl[k], reZahl(z, k), null])];
+  const ein = RE_FELDER[reArt(z)].map(([k]) => z.scl[k]), auchEin = ein.includes(z.scl.q);
+  const zeile = (name, wert, an, wann) => [auchEin && name === z.scl.q ? `${name} (${wann})` : name, wert, an];
+  const eingaenge = RE_FELDER[reArt(z)].filter(([k]) => !reKonstante(z.scl[k])).map(([k]) => zeile(z.scl[k], reZahl(z, k), null, "vorher"));
+  return [zeile(z.scl.q, reOutText(r), bool, "nachher"), ...eingaenge];
+}
+function reSclHTML(z, r){
+  const status = reStatus(z, r);
   return bxSclHTML(RE_SCL[reArt(z)](z), status) + `<p class="small muted">${RE_SCL_HINWEIS[reArt(z)]}</p>`;
 }
 function reBereich(werte){
   const lo = Math.min(...werte), hi = Math.max(...werte), rand = (hi - lo) * 0.15 || Math.max(1, Math.abs(lo) * 0.5);
   return {von: lo - rand, bis: hi + rand};
 }
-// Ausschnitt des Strahls: beim Runden die Ganzzahlen rund um den Wert, sonst alle Werte und die 0
+// Ausschnitt des Strahls: beim Runden die Ganzzahlen rund um den Wert, beim Rechnen alle Werte und die 0, beim
+// Vergleichen nur die Werte (sonst rücken z. B. 80, 87 und 100 neben der 0 eng zusammen)
 const RE_STRAHL = {
   runden: werte => ({von: Math.floor(Math.min(...werte)) - 1, bis: Math.ceil(Math.max(...werte)) + 1}),
   rechnen: werte => reBereich([0, ...werte]),
-  vergleich: werte => reBereich([0, ...werte]),
-  bereich: werte => reBereich([0, ...werte]),
+  vergleich: werte => reBereich(werte),
+  bereich: werte => reBereich(werte),
 };
 // Teilstriche: höchstens 12 Ganzzahlen, sonst Anfang, 0 und Ende
 function reStriche(d, genau){
@@ -116,13 +126,13 @@ function reStriche(d, genau){
 }
 function reStrahlDaten(z, r){
   const t = RE_TYPEN[z.typ], art = reArt(z), zahl = typeof r.out === "number" && Number.isFinite(r.out);
-  const marken = RE_FELDER[art].map(([k, pin], i) => ({v: z.w[k], text: `${pin} ${reZahl(z, k)}`, oben: true, reihe: i % 2}));
-  if (zahl && art !== "vergleich") marken.push({v: r.out, text: `OUT ${reOutText(r)}`, oben: false, reihe: 0, klasse: r.eno === false ? "warn" : "ok"});
+  const marken = RE_FELDER[art].map(([k, pin]) => ({v: z.w[k], text: `${pin} ${reZahl(z, k)}`, oben: true}));
+  if (zahl && art !== "vergleich") marken.push({v: r.out, text: `OUT ${reOutText(r)}`, oben: false, klasse: r.eno === false ? "warn" : "ok"});
   const ganzBereich = art === "rechnen" && t.ganz;
   const d = ganzBereich ? {von: t.min, bis: t.max} : RE_STRAHL[art](marken.map(m => m.v));
   d.striche = reStriche(d, ganzBereich);
   if (r.fall === "ueberlauf" && r.exakt !== null && t.ganz) {
-    marken.push({v: +r.exakt, text: `richtig ${r.exakt}`, oben: false, reihe: 1, klasse: "warn"});
+    marken.push({v: +r.exakt, text: `richtig ${r.exakt}`, oben: false, klasse: "warn"});
     if (zahl) d.bogen = {von: +r.exakt, nach: r.out};
   }
   if (art === "bereich") d.band = {von: z.w.min, bis: z.w.max};

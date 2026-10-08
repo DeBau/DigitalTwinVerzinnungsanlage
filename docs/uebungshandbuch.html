@@ -643,7 +643,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
 .ia-satz{padding:10px 14px;border-radius:9px;background:var(--sunk);border-left:4px solid var(--blue)}
 .ia-satz.warn{border-left-color:var(--yellow);background:var(--yellow-soft)}
 .ia-satz.an{border-left-color:var(--ok);background:var(--ok-soft)}
-.ia-scl{margin:0;padding:14px 16px;border-radius:9px;background:var(--sunk);font:15px var(--mono);overflow-x:auto}
+.ia-scl{margin:0;padding:14px 16px;border-radius:9px;background:var(--sunk);font:15px var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}   /* lange Zeilen brechen um, kein Scrollbalken */
 .ia-scl-wrap{display:grid;gap:10px}
 .ia-scl-status{justify-self:start}
 .ia-scl-status{border-collapse:collapse;font:13px var(--mono)}
@@ -802,7 +802,6 @@ dialog.iadlg{max-width:min(1240px,calc(100vw - 24px));max-height:calc(100vh - 24
 :is(.ia-zahl,.ia-bitmuster,.ia-rechnen) .ia-kopf .ia-tabs{flex-wrap:wrap;max-width:100%}
 :is(.ia-zahl,.ia-bitmuster,.ia-rechnen) > *{min-width:0}
 .zf-zusatz{flex:1 1 300px;min-width:0}
-.zf-zusatz .ia-scl{white-space:pre-wrap}
 :is(.ia-zahl,.ia-bitmuster,.ia-rechnen) .ia-kopf .ia-tabs + .ia-tabs{margin-left:0}
 .zf-als{font:13px var(--sans);padding:3px 9px;border-radius:7px;border:1px solid var(--line);background:var(--sunk);color:var(--ink);margin:2px 4px 2px 0;display:inline-block}
 button.zf-als{cursor:pointer}
@@ -3658,6 +3657,7 @@ button.bm-bit{cursor:pointer}
     if (d.dataset.bereit) return;
     d.dataset.bereit = "1";
     d.addEventListener("close", () => puSchliessen(d));
+    for (const art2 of ["pointerdown", "input", "keydown"]) d.addEventListener(art2, () => puRuheFrei(d));
   }
   function puOeffnen(auswahl, titel, inhalt, zu) {
     const d = $(auswahl);
@@ -3675,6 +3675,10 @@ button.bm-bit{cursor:pointer}
     const body = d.querySelector(".iadlg-body"), inhalt = body.firstElementChild;
     const frei = innerHeight - 24 - d.querySelector(".iadlg-kopf").offsetHeight;
     const bedarf = Math.ceil(inhalt.getBoundingClientRect().height) + 24;
+    if (ruhe.frei) {
+      ruhe.hoechste = 0;
+      ruhe.frei = false;
+    }
     ruhe.hoechste = Math.max(ruhe.hoechste, Math.min(bedarf, frei));
     body.style.minHeight = ruhe.hoechste + "px";
   }
@@ -3685,6 +3689,14 @@ button.bm-bit{cursor:pointer}
     ruhe.wache = new ResizeObserver(() => puRuheMessen(d, ruhe));
     ruhe.wache.observe(inhalt);
     PU_RUHE.set(d, ruhe);
+  }
+  function puRuheFrei(d) {
+    const ruhe = PU_RUHE.get(d);
+    if (!ruhe) return;
+    ruhe.frei = true;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      ruhe.frei = false;
+    }));
   }
   function puRuheEnde(d) {
     const ruhe = PU_RUHE.get(d);
@@ -3928,11 +3940,11 @@ button.bm-bit{cursor:pointer}
     const y = 10 + p.zeile * SV_ZEILE + SV_HUB + 3, px = x(p.t);
     return `<path d="M${px} ${y} l-4 7 h8 z" class="sv-punkt"/>`;
   };
-  function zeitverlaufSVG({ spuren, von, bis, marken = [], punkte = [], breit = false }) {
-    const breite = svMass(breit).zeit, x = (t) => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1);
+  function zeitverlaufSVG({ spuren, von, bis, marken = [], punkte = [], breit = false, jetzt = Infinity }) {
+    const breite = svMass(breit).zeit, x = (t) => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1), ende2 = Math.min(bis, jetzt);
     const hoehe = 34 + spuren.length * SV_ZEILE;
     const sicht = (t) => t >= von && t <= bis;
-    const inhalt = marken.filter((m) => sicht(m.t)).map((m) => zvMarke(m, x, hoehe, breite)).join("") + spuren.map((s, i) => zvSpur(s, i, von, bis, x, breite)).join("") + punkte.filter((p) => sicht(p.t)).map((p) => zvPunkt(p, x)).join("");
+    const inhalt = marken.filter((m) => sicht(m.t)).map((m) => zvMarke(m, x, hoehe, breite)).join("") + spuren.map((s, i) => zvSpur(s, i, von, ende2, x, breite)).join("") + punkte.filter((p) => sicht(p.t)).map((p) => zvPunkt(p, x)).join("");
     return iaSvg(SV_LINKS + breite + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
   }
   var ZW_HOEHE = 56;
@@ -3964,10 +3976,10 @@ button.bm-bit{cursor:pointer}
     }
     return svg;
   }
-  function zeitverlaufWertSVG({ spuren, wert, von, bis, marken = [], teilung: teilung2 = 1e3, breit = false }) {
-    const breite = svMass(breit).zeit, x = (t) => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1);
+  function zeitverlaufWertSVG({ spuren, wert, von, bis, marken = [], teilung: teilung2 = 1e3, breit = false, jetzt = Infinity }) {
+    const breite = svMass(breit).zeit, x = (t) => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1), ende2 = Math.min(bis, jetzt);
     const yWert = 10 + spuren.length * SV_ZEILE + 8, yAchse = yWert + ZW_HOEHE + 8, hoehe = yAchse + 36;
-    const inhalt = marken.filter((m) => m.t >= von && m.t <= bis).map((m) => zvMarke(m, x, hoehe, breite)).join("") + spuren.map((s, i) => zvSpur(s, i, von, bis, x, breite)).join("") + zwSpur(wert, yWert, von, bis, x, breite) + zwAchse(von, bis, x, yAchse, teilung2, breite);
+    const inhalt = marken.filter((m) => m.t >= von && m.t <= bis).map((m) => zvMarke(m, x, hoehe, breite)).join("") + spuren.map((s, i) => zvSpur(s, i, von, ende2, x, breite)).join("") + zwSpur(wert, yWert, von, ende2, x, breite) + zwAchse(von, bis, x, yAchse, teilung2, breite);
     return iaSvg(SV_LINKS + breite + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
   }
   function szZeile(zahlen, y, max) {
@@ -4843,7 +4855,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     const marken = [];
     if (m.start !== null) for (let t = m.start, n = 1; t <= bis; t += m.T, n++) marken.push({ t, text: `Zyklus ${n} · ${ms(t)}` });
     const spuren = [["k", "Klemme"], ["e", "PAE"], ["a", "PAA"], ["q", "Ausgang"]].map(([k, name2]) => ({ name: name2, wechsel: m.spuren[k] }));
-    return zeitverlaufSVG({ spuren, von, bis, marken, punkte: m.lesungen.map((t) => ({ zeile: 1, t })), breit: z.breit });
+    return zeitverlaufSVG({ spuren, von, bis, marken, punkte: m.lesungen.map((t) => ({ zeile: 1, t })), breit: z.breit, jetzt: m.t });
   }
   var zyKnopf = (akt, t, prim, an) => `<button type="button" class="btn small${prim ? " primary" : ""}" data-ia-akt="${akt}"${an === void 0 ? "" : ` aria-pressed="${an}"`}>${t}</button>`;
   function steuerHTML(z) {
@@ -5222,7 +5234,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     const m = z.m, fenster = ztFenster(m), bis = Math.max(fenster, m.t), von = bis - fenster;
     const spuren = ["in", ...m.art === "TONR" ? ["r"] : [], "q"].map((k) => ({ name: k.toUpperCase(), wechsel: m.spuren[k] }));
     const wert = { name: "ET", punkte: zeEtVerlauf(m), max: m.pt, linie: { v: m.pt, text: "PT" } };
-    return zeitverlaufWertSVG({ spuren, wert, von, bis, marken: m.marken, teilung: fenster > 12e3 ? 2e3 : 1e3, breit: z.breit }) + `<p class="small muted">Die Rampe zeigt ET. Die gestrichelte Linie ist PT. Senkrechte Linien: Die Zeitmessung startet oder ET erreicht PT.</p>`;
+    return zeitverlaufWertSVG({ spuren, wert, von, bis, marken: m.marken, teilung: fenster > 12e3 ? 2e3 : 1e3, breit: z.breit, jetzt: m.t }) + `<p class="small muted">Die Rampe zeigt ET. Die gestrichelte Linie ist PT. Senkrechte Linien: Die Zeitmessung startet oder ET erreicht PT.</p>`;
   }
   var ZT_BEGRIFFE = [
     ["IEC-Zeit", "Eine Zeitfunktion der S7-1500: TP, TON, TOF oder TONR. Jedem Aufruf ist eine eigene IEC-Zeit zugeordnet, in der sie ihre Daten speichert (Instanz)."],
@@ -6766,39 +6778,83 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
   ];
 
   // web/tools/uebungshandbuch/src/app/interaktiv/rechnen-bild.js
-  var RS_LINKS = 46, RS_RECHTS = 434, RS_Y = 74, RS_AUSSEN = 40;
+  var RS_LINKS = 46, RS_RECHTS = 434, RS_AUSSEN = 40, RS_BREITE = RS_RECHTS + RS_AUSSEN + 10;
+  var RS_REIHE = 15, RS_ZEICHEN = 7.2, RS_LUFT = 6, RS_MAX_REIHEN = 6;
   function rsX(d, v) {
     if (v > d.bis) return RS_RECHTS + RS_AUSSEN;
     if (v < d.von) return RS_LINKS - RS_AUSSEN;
     return RS_LINKS + (v - d.von) / (d.bis - d.von) * (RS_RECHTS - RS_LINKS);
   }
-  function rsStrich(d, s) {
-    const x = rsX(d, s.v).toFixed(1);
-    return `<line x1="${x}" y1="${RS_Y - 5}" x2="${x}" y2="${RS_Y + 5}" class="rs-strich"/>` + iaText(+x, RS_Y + 19, s.text, "rs-zahl");
+  var rsTextBreite = (text2) => String(text2).length * RS_ZEICHEN;
+  function rsZusammen(marken) {
+    const gruppen = /* @__PURE__ */ new Map();
+    for (const m of marken) {
+      const schluessel = `${m.oben}|${m.v}`, g = gruppen.get(schluessel);
+      if (g) {
+        g.text += ` · ${m.text}`;
+        g.klasse = g.klasse || m.klasse;
+      } else gruppen.set(schluessel, { ...m });
+    }
+    return [...gruppen.values()];
   }
-  function rsMarke(d, m) {
-    const x = rsX(d, m.v), y = m.oben ? RS_Y - 8 : RS_Y + 8, richtung2 = m.oben ? -1 : 1;
-    const ty = m.oben ? RS_Y - 16 - m.reihe * 15 : RS_Y + 36 + m.reihe * 15;
-    const spitze = `<path d="M${x.toFixed(1)} ${RS_Y + richtung2 * 2} l-5 ${richtung2 * 8} h10 z" class="rs-marke ${m.klasse || ""}"/>`;
-    const anker = x > RS_RECHTS ? "end" : x < RS_LINKS ? "start" : "middle";
-    const tx = { end: x + 8, start: x - 8, middle: x }[anker];
-    return spitze + iaText(tx, ty, m.text, `rs-text ${m.klasse || ""}`, anker) + `<line x1="${x.toFixed(1)}" y1="${y}" x2="${x.toFixed(1)}" y2="${ty + (m.oben ? 3 : -11)}" class="rs-faden"/>`;
+  var RS_ANKER = { middle: (x, b) => [x - b / 2, x + b / 2], end: (x, b) => [x - 4 - b, x - 4], start: (x, b) => [x + 4, x + 4 + b] };
+  var rsUeber = ([a, b], [c, e]) => a < e + RS_LUFT && c < b + RS_LUFT;
+  var rsIn = (x, [a, b]) => x > a - 2 && x < b + 2;
+  function rsStoesst(k, gesetzt, boegen) {
+    return boegen.some((x) => rsIn(x, k.raum)) || k.raum[0] < 2 || k.raum[1] > RS_BREITE - 2 || gesetzt.some((g) => g.reihe === k.reihe && rsUeber(g.raum, k.raum) || g.reihe < k.reihe && rsIn(k.x, g.raum) || g.reihe > k.reihe && rsIn(g.x, k.raum));
   }
-  function rsBand(d) {
+  function rsSetzen(m, gesetzt, boegen) {
+    const breite = rsTextBreite(m.text);
+    for (let reihe = 0; reihe < RS_MAX_REIHEN; reihe++) for (const anker of Object.keys(RS_ANKER)) {
+      const k = { ...m, reihe, anker, raum: RS_ANKER[anker](m.x, breite) };
+      if (!rsStoesst(k, gesetzt, boegen)) return k;
+    }
+    return { ...m, reihe: RS_MAX_REIHEN, anker: "middle", raum: RS_ANKER.middle(m.x, breite) };
+  }
+  function rsReihen(marken, boegen) {
+    const gesetzt = [];
+    for (const m of [...marken].sort((a, b) => a.x - b.x)) gesetzt.push(rsSetzen(m, gesetzt, boegen));
+    return gesetzt;
+  }
+  var rsAnzahl = (gesetzt) => gesetzt.length ? Math.max(...gesetzt.map((g) => g.reihe)) + 1 : 0;
+  function rsLage(oben, unten, bogen) {
+    const y = oben ? 34 + (oben - 1) * RS_REIHE : 20, reiheUnten = (r) => y + 36 + r * RS_REIHE;
+    const yBogen = reiheUnten(unten) - 4, hoehe = bogen ? yBogen + 24 : unten ? reiheUnten(unten - 1) + 8 : y + 28;
+    return { y, reiheUnten, yBogen, hoehe };
+  }
+  function rsStrich(d, s, l, frei) {
+    const x = rsX(d, s.v), zahl3 = frei(x, rsTextBreite(s.text)) ? iaText(x, l.y + 19, s.text, "rs-zahl") : "";
+    return `<line x1="${x.toFixed(1)}" y1="${l.y - 5}" x2="${x.toFixed(1)}" y2="${l.y + 5}" class="rs-strich"/>` + zahl3;
+  }
+  function rsMarke(m, l) {
+    const r = m.oben ? -1 : 1, ty = m.oben ? l.y - 16 - m.reihe * RS_REIHE : l.reiheUnten(m.reihe), x = m.x.toFixed(1);
+    const tx = { middle: m.x, end: m.x - 4, start: m.x + 4 }[m.anker];
+    const spitze = `<path d="M${x} ${l.y + r * 2} l-5 ${r * 8} h10 z" class="rs-marke ${m.klasse || ""}"/>`;
+    const faden = `<line x1="${x}" y1="${l.y + r * 10}" x2="${x}" y2="${ty + (m.oben ? 3 : -11)}" class="rs-faden"/>`;
+    return spitze + faden + iaText(tx, ty, m.text, `rs-text ${m.klasse || ""}`, m.anker);
+  }
+  function rsBand(d, l) {
     if (!d.band) return "";
     const x1 = rsX(d, d.band.von), x2 = rsX(d, d.band.bis);
-    return `<rect x="${x1.toFixed(1)}" y="${RS_Y - 6}" width="${Math.max(2, x2 - x1).toFixed(1)}" height="12" rx="3" class="rs-band"/>`;
+    return `<rect x="${x1.toFixed(1)}" y="${l.y - 6}" width="${Math.max(2, x2 - x1).toFixed(1)}" height="12" rx="3" class="rs-band"/>`;
   }
-  function rsBogen(d) {
+  function rsBogen(d, l) {
     if (!d.bogen) return "";
-    const x1 = rsX(d, d.bogen.von), x2 = rsX(d, d.bogen.nach), unten = RS_Y + 66;
-    return `<path d="M${x1.toFixed(1)} ${RS_Y + 6} C${x1.toFixed(1)} ${unten} ${x2.toFixed(1)} ${unten} ${x2.toFixed(1)} ${RS_Y + 12}" class="rs-bogen"/><path d="M${x2.toFixed(1)} ${RS_Y + 10} l-5 9 h10 z" class="rs-spitze"/>` + iaText((x1 + x2) / 2, unten - 2, "Überlauf: Das Bitmuster läuft herum", "rs-text warn");
+    const x1 = rsX(d, d.bogen.von), x2 = rsX(d, d.bogen.nach), s = Math.sign(x2 - x1) || 1, yb = l.yBogen;
+    const pfad = `M${x1.toFixed(1)} ${l.y + 6} V${yb - 8} Q${x1.toFixed(1)} ${yb} ${(x1 + 8 * s).toFixed(1)} ${yb} H${(x2 - 8 * s).toFixed(1)} Q${x2.toFixed(1)} ${yb} ${x2.toFixed(1)} ${yb - 8} V${l.y + 16}`;
+    return `<path d="${pfad}" class="rs-bogen"/><path d="M${x2.toFixed(1)} ${l.y + 10} l-5 9 h10 z" class="rs-spitze"/>` + iaText((x1 + x2) / 2, yb + 16, "Überlauf: Das Bitmuster läuft herum", "rs-text warn");
   }
   function reStrahlSVG(d) {
-    const aussen = `<line x1="${RS_LINKS - RS_AUSSEN}" y1="${RS_Y}" x2="${RS_RECHTS + RS_AUSSEN}" y2="${RS_Y}" class="rs-aussen"/>`;
-    const strahl = `<line x1="${RS_LINKS}" y1="${RS_Y}" x2="${RS_RECHTS}" y2="${RS_Y}" class="rs-linie"/>`;
-    const inhalt = aussen + rsBand(d) + strahl + d.striche.map((s) => rsStrich(d, s)).join("") + rsBogen(d) + d.marken.map((m) => rsMarke(d, m)).join("");
-    return iaSvg(RS_RECHTS + RS_AUSSEN + 10, d.bogen ? 160 : 136, inhalt, "Zahlenstrahl");
+    const boegen = d.bogen ? [rsX(d, d.bogen.von), rsX(d, d.bogen.nach)] : [];
+    const marken = rsZusammen(d.marken).map((m) => ({ ...m, x: rsX(d, m.v) }));
+    const oben = rsReihen(marken.filter((m) => m.oben), []), unten = rsReihen(marken.filter((m) => !m.oben), boegen);
+    const l = rsLage(rsAnzahl(oben), rsAnzahl(unten), !!d.bogen);
+    const senkrecht2 = [...boegen, ...unten.map((m) => m.x)];
+    const frei = (x, b) => !senkrecht2.some((s) => rsIn(s, [x - b / 2, x + b / 2]));
+    const aussen = `<line x1="${RS_LINKS - RS_AUSSEN}" y1="${l.y}" x2="${RS_RECHTS + RS_AUSSEN}" y2="${l.y}" class="rs-aussen"/>`;
+    const strahl = `<line x1="${RS_LINKS}" y1="${l.y}" x2="${RS_RECHTS}" y2="${l.y}" class="rs-linie"/>`;
+    const inhalt = aussen + rsBand(d, l) + strahl + d.striche.map((s) => rsStrich(d, s, l, frei)).join("") + rsBogen(d, l) + [...oben, ...unten].map((m) => rsMarke(m, l)).join("");
+    return iaSvg(RS_BREITE, l.hoehe, inhalt, "Zahlenstrahl");
   }
 
   // web/tools/uebungshandbuch/src/app/interaktiv/rechnen.js
@@ -6903,9 +6959,16 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     vergleich: (z) => `${z.scl.q} := ${z.scl.a} ${RE_SCL_VGL[z.vgl]} ${z.scl.b};`,
     bereich: (z) => `${z.scl.q} := ${z.scl.min} <= ${z.scl.a} AND ${z.scl.a} <= ${z.scl.max};`
   };
-  function reSclHTML(z, r) {
+  var reKonstante = (name2) => /^[-+]?[\d.]/.test(name2);
+  function reStatus(z, r) {
     const bool = typeof r.out === "boolean" ? r.out : null;
-    const status2 = [[z.scl.q, reOutText(r), bool], ...RE_FELDER[reArt(z)].map(([k]) => [z.scl[k], reZahl(z, k), null])];
+    const ein = RE_FELDER[reArt(z)].map(([k]) => z.scl[k]), auchEin = ein.includes(z.scl.q);
+    const zeile2 = (name2, wert, an, wann) => [auchEin && name2 === z.scl.q ? `${name2} (${wann})` : name2, wert, an];
+    const eingaenge = RE_FELDER[reArt(z)].filter(([k]) => !reKonstante(z.scl[k])).map(([k]) => zeile2(z.scl[k], reZahl(z, k), null, "vorher"));
+    return [zeile2(z.scl.q, reOutText(r), bool, "nachher"), ...eingaenge];
+  }
+  function reSclHTML(z, r) {
+    const status2 = reStatus(z, r);
     return bxSclHTML(RE_SCL[reArt(z)](z), status2) + `<p class="small muted">${RE_SCL_HINWEIS[reArt(z)]}</p>`;
   }
   function reBereich(werte) {
@@ -6915,8 +6978,8 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
   var RE_STRAHL = {
     runden: (werte) => ({ von: Math.floor(Math.min(...werte)) - 1, bis: Math.ceil(Math.max(...werte)) + 1 }),
     rechnen: (werte) => reBereich([0, ...werte]),
-    vergleich: (werte) => reBereich([0, ...werte]),
-    bereich: (werte) => reBereich([0, ...werte])
+    vergleich: (werte) => reBereich(werte),
+    bereich: (werte) => reBereich(werte)
   };
   function reStriche(d, genau) {
     const anzahl = Math.floor(d.bis) - Math.ceil(d.von) + 1;
@@ -6925,13 +6988,13 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
   }
   function reStrahlDaten(z, r) {
     const t = RE_TYPEN[z.typ], art2 = reArt(z), zahl3 = typeof r.out === "number" && Number.isFinite(r.out);
-    const marken = RE_FELDER[art2].map(([k, pin], i) => ({ v: z.w[k], text: `${pin} ${reZahl(z, k)}`, oben: true, reihe: i % 2 }));
-    if (zahl3 && art2 !== "vergleich") marken.push({ v: r.out, text: `OUT ${reOutText(r)}`, oben: false, reihe: 0, klasse: r.eno === false ? "warn" : "ok" });
+    const marken = RE_FELDER[art2].map(([k, pin]) => ({ v: z.w[k], text: `${pin} ${reZahl(z, k)}`, oben: true }));
+    if (zahl3 && art2 !== "vergleich") marken.push({ v: r.out, text: `OUT ${reOutText(r)}`, oben: false, klasse: r.eno === false ? "warn" : "ok" });
     const ganzBereich = art2 === "rechnen" && t.ganz;
     const d = ganzBereich ? { von: t.min, bis: t.max } : RE_STRAHL[art2](marken.map((m) => m.v));
     d.striche = reStriche(d, ganzBereich);
     if (r.fall === "ueberlauf" && r.exakt !== null && t.ganz) {
-      marken.push({ v: +r.exakt, text: `richtig ${r.exakt}`, oben: false, reihe: 1, klasse: "warn" });
+      marken.push({ v: +r.exakt, text: `richtig ${r.exakt}`, oben: false, klasse: "warn" });
       if (zahl3) d.bogen = { von: +r.exakt, nach: r.out };
     }
     if (art2 === "bereich") d.band = { von: z.w.min, bis: z.w.max };
