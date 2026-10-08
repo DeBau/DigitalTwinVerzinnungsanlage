@@ -8,6 +8,31 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.17.3 – 2026-10-08
+
+Feinschliff an den interaktiven Erklärungen des Übungshandbuchs und neue Doku mit Bildern. Zwilling und Bridge ändern
+nur die Versionsnummer.
+
+**Warum**
+Beim Fotografieren für die Doku fielen überlappende Beschriftungen am Zahlenstrahl, abgeschnittene SCL-Zeilen, eine
+doppelte Zeile in der Status-Tabelle und Zeitdiagramme auf, die scheinbar in die Zukunft zeichneten.
+
+**Geändert**
+- Zahlenstrahl (Rechnen): Beschriftungen ordnen sich selbst in Reihen, nichts überdeckt sich mehr; gleiche Werte teilen
+  sich eine Beschriftung, der Überlauf-Bogen läuft unter allen Beschriftungen. Bei Vergleich und IN_RANGE zeigt der
+  Strahl nur den Bereich der Werte, ohne die 0 zu erzwingen.
+- Status-Tabelle beim Rechnen: keine Zeile für Konstanten; liest und schreibt die Anweisung dieselbe Variable, steht ihr
+  Wert „vorher“ und „nachher“ da.
+- Lange SCL-Zeilen brechen um, statt abgeschnitten zu werden.
+- Impulsdiagramm (Zeiten) und Signalverlauf (Zyklus) enden bei der aktuellen Zeit.
+- Popups passen sich nach eigener Bedienung der Höhe an (z. B. CMP → IN_RANGE, Begriffe zuklappen) und bleiben beim
+  Abspielen trotzdem ruhig.
+
+**Doku**
+- `docs/07-uebungshandbuch.md`: neuer Abschnitt „Interaktive Erklärungen“ mit acht Bildern (`docs/bilder/30` bis `37`);
+  README nennt die interaktiven Erklärungen. Die englische Fassung folgt später.
+- `uebungVorlage.md`: Regeln zu Zeitdiagramm, Zahlenstrahl und „← Zurück“.
+
 ## 1.17.2 – 2026-10-08
 
 Die interaktiven Erklärungen im Übungshandbuch (L01 bis L10) stehen im Text nur noch als kleine Vorschau und werden

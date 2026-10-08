@@ -8,6 +8,31 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.17.3 – 2026-10-08
+
+Polish of the interactive explanations in the exercise handbook and new documentation with images. Twin and bridge
+only change the version number.
+
+**Why**
+While taking pictures for the documentation, overlapping labels on the number line, clipped SCL lines, a duplicated
+row in the status table and timing diagrams that seemed to draw into the future showed up.
+
+**Changed**
+- Number line (arithmetic): labels arrange themselves in rows, nothing overlaps any more; equal values share one label,
+  the overflow arc runs below all labels. For comparison and IN_RANGE the line only shows the range of the values,
+  without forcing 0.
+- Status table for arithmetic: no row for constants; if the instruction reads and writes the same variable, its value is
+  shown "before" and "after".
+- Long SCL lines wrap instead of being clipped.
+- Timing diagram (timers) and signal trace (cycle) end at the current time.
+- Popups adapt their height after your own input (e.g. CMP → IN_RANGE, collapsing the terms) and still stay calm while
+  an animation plays.
+
+**Docs**
+- `docs/07-uebungshandbuch.md` (German): new section "Interaktive Erklärungen" with eight images (`docs/bilder/30` to
+  `37`); the README mentions the interactive explanations. The English version follows later.
+- `uebungVorlage.md`: rules for timing diagram, number line and "← Zurück" (back).
+
 ## 1.17.2 – 2026-10-08
 
 The interactive explanations in the exercise handbook (L01 to L10) now appear in the text only as a small preview and

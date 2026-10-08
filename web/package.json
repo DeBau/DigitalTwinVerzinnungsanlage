@@ -1,7 +1,7 @@
 {
   "name": "zwilling-zinnbad",
   "private": true,
-  "version": "1.17.2",
+  "version": "1.17.3",
   "description": "Digitaler Zwilling Zinnbad – baut src/ zu einer einzigen index.html",
   "scripts": {
     "build": "node build.mjs",
