@@ -1,0 +1,34 @@
+/* ---------- Interaktive Erklärung: Analogwert (src/app/interaktiv/analog.js) ---------- */
+.ia-analog .re-felder .ia-tabs{margin-left:0;flex-wrap:wrap}
+.an-bild{display:grid;gap:10px}
+.an-bild .ia-svg{max-width:640px}
+.an-spalte{display:grid;gap:12px;align-content:start}
+.an-spalte .ia-svg{max-width:600px}
+.an-lampen{display:flex;gap:10px;flex-wrap:wrap}
+.an-lampen .ze-q{gap:10px}
+.an-schritte{justify-self:start}
+.an-schritte tbody tr{cursor:default}
+.an-schritte tbody tr:hover td{background:none}
+.an-schritte tr.warn td{background:var(--bad-soft)}
+.ia-svg .an-kasten{fill:var(--panel);stroke:var(--ink);stroke-width:2}
+.ia-svg text.an-titel{font:600 13px var(--sans)}
+.ia-svg text.an-klein{font:11.5px var(--sans);fill:var(--ink2)}
+.ia-svg .an-draht{stroke:var(--ok);stroke-width:2.5}
+.ia-svg .an-spitze{fill:var(--ok);stroke:none}
+.ia-svg .an-bruch{stroke:var(--bad);stroke-width:2.5;stroke-dasharray:6 5}
+.ia-svg text.an-bruch-text{font:700 18px var(--sans);fill:var(--bad)}
+.ia-svg .an-nenn{fill:var(--ok-soft);stroke:var(--ok);stroke-width:1.5}
+.ia-svg .an-rand{fill:var(--yellow-soft);stroke:var(--yellow);stroke-width:1.5}
+.ia-svg .an-fehler{fill:var(--bad-soft);stroke:var(--bad);stroke-width:1.5}
+.ia-svg rect.aktiv{stroke-width:3.5}
+.ia-svg .an-marke{fill:var(--blue);stroke:none}
+.ia-svg .an-achse{stroke:var(--ink);stroke-width:1.5}
+.ia-svg .an-nennflaeche{fill:var(--ok-soft);stroke:none}
+.ia-svg .an-gerade{stroke:var(--blue);stroke-width:3}
+.ia-svg .an-gerade-rand{stroke:var(--blue);stroke-width:2;stroke-dasharray:6 5}
+.ia-svg .an-hilfe{stroke:var(--ink2);stroke-width:1;stroke-dasharray:3 3}
+.ia-svg .an-punkt{fill:var(--ok);stroke:var(--panel);stroke-width:2}
+.ia-svg .an-punkt.warn{fill:var(--bad)}
+.ia-svg .an-zeiger{stroke:var(--blue);stroke-width:4}
+.an-boxen{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.an-boxen .ia-svg{max-width:380px}

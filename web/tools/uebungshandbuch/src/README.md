@@ -62,6 +62,7 @@ importiert nie aus einer Vorlage.
 | `app/interaktiv/zahl-gross.js` | Speicheraufbau groß im zweiten Popup `#iadlg2` (`zgOeffnen`); beim Schließen übernimmt die Zahl-Erklärung die Bytes |
 | `app/interaktiv/bitmuster-modell.js`, `bitmuster.js` | AND, OR, XOR mit Maske, SHL, SHR, ROL, ROR mit N (Wanderung animiert), Lauflicht −PF1 bis −PF4, SCL mit Slice-Zugriff |
 | `app/interaktiv/rechnen-modell.js`, `rechnen-text.js`, `rechnen-bild.js`, `rechnen.js` | Rechnen wie die S7-1500: ADD bis MOD (Überlauf, Division durch 0), ROUND, TRUNC, CEIL, FLOOR, CMP, IN_RANGE; FUP-Box, SCL, Zahlenstrahl (`reStrahlSVG`), Satz |
+| `app/interaktiv/analog-modell.js`, `analog-text.js`, `analog-bild.js`, `analog.js` | Analogwert: Weg Sensor, Messumformer 4 bis 20 mA, Baugruppe, Rohwert mit Bereichen (Nennbereich bis Überlauf, Drahtbruch), Umrechnen in Real gegen Int, NORM_X und SCALE_X, Testumschaltung mit Gültigkeit und Grenzwerten; Kette, Skala, Kennlinie (`anKetteSVG`, `anSkalaSVG`, `anKennlinieSVG`) |
 | `app/nachschlagen.js` | Kasten „Nachschlagen“, Fachwissen je Aufgabenschritt (`fw`), Popups für Aufgabe und Fachwissen |
 | **Schaltzeichen** (gemeinsam mit dem Schaltplan) | |
 | `symbole/grund.js` | Zeichen-Grundlagen `linie`, `wirklinie`, `kreis`, `kasten`, `punkt`, `text`, `nummer` |

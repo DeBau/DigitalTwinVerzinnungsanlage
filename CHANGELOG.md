@@ -8,6 +8,34 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.17.4 – 2026-10-08
+
+Neue Bilder der Anlage in README und Doku, wieder freie Sicht in vier festen Ansichten und eine neue interaktive
+Erklärung „Analogwert“ im Übungshandbuch mit überarbeiteter Übung L11. Die Bridge ändert nur die Versionsnummer.
+
+**Warum**
+Die Bilder in README und Doku zeigten noch den Stand vor Tiefenschatten, Spiegelungen, Schutzzaun und Lichtvorhang.
+Beim neuen Aufnehmen fiel auf, dass vier feste Ansichten seit dem Umbau auf Zaun, Pult oder durch die Strahlen des
+Lichtvorhangs blickten statt auf ihre Baugruppe.
+
+**Neu**
+- Übungshandbuch: interaktive Erklärung `analog` mit vier Ansichten. „Vom Sensor zur Zahl“ zeigt den Weg über Sensor,
+  Messumformer 4 bis 20 mA und Analogeingabebaugruppe bis zum Rohwert mit seinen Bereichen (Nennbereich 0 bis 27648,
+  Übersteuerung, Überlauf, Drahtbruch 32767). „Umrechnen“ rechnet in Real und zeigt, warum Int falsch rechnet.
+  „NORM_X und SCALE_X“ zeigt dieselbe Umrechnung mit den Siemens-Anweisungen. „Prüfen im FB“ zeigt Testumschaltung,
+  Gültigkeit und Grenzwerte wie im FB BathMonitor.
+
+**Geändert**
+- Feste Ansichten Bedienpult, Rollenkurve, Sprühkühlung und Prüfstation neu gesetzt: Das Bedienpult wird wieder
+  angezeigt, die übrigen blicken von oben über den Lichtvorhang −BG20 auf ihre Baugruppe.
+- L11 „Analogwert einlesen“: Einstellen der Analogeingabebaugruppe (Strom 4 bis 20 mA, Diagnose Drahtbruch),
+  Rohwerttabelle mit Strom, Fachwissen mit den neuen Erklärungen, Vorlagen zum Ausfüllen, neue Quizfrage zum
+  Drahtbruch an −BL1.
+
+**Doku**
+- Die 14 Anlagenbilder in `docs/bilder` (01 bis 14) neu aufgenommen, reine 3D-Bilder ohne Seitenleiste.
+- `web/tools/doku-bilder.mjs` öffnet die Seitenleiste nur noch bei Bildern, die sie zeigen sollen.
+
 ## 1.17.3 – 2026-10-08
 
 Feinschliff an den interaktiven Erklärungen des Übungshandbuchs und neue Doku mit Bildern. Zwilling und Bridge ändern

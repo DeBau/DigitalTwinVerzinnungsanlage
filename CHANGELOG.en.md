@@ -8,6 +8,35 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.17.4 – 2026-10-08
+
+New images of the plant in the README and the docs, a clear view again in four fixed views and a new interactive
+explanation "Analogwert" (analog value) in the exercise handbook with a revised exercise L11. The bridge only changes its
+version number.
+
+**Why**
+The images in the README and the docs still showed the state before depth shadows, reflections, safety fence and light
+curtain. While taking new ones, four fixed views turned out to look at the fence, the operator panel or through the
+light curtain beams instead of their assembly since the rebuild.
+
+**New**
+- Exercise handbook: interactive explanation `analog` with four views. "Vom Sensor zur Zahl" shows the path through the
+  sensor, the 4 to 20 mA transmitter and the analog input module to the raw value with its ranges (rated range 0 to
+  27648, overrange, overflow, wire break 32767). "Umrechnen" converts in Real and shows why Int calculates wrongly.
+  "NORM_X und SCALE_X" shows the same conversion with the Siemens instructions. "Prüfen im FB" shows the test switch,
+  validity and limits as in FB BathMonitor.
+
+**Changed**
+- Fixed views operator panel, roller curve, spray cooling and inspection station repositioned: the operator panel is
+  shown again, the others look from above over light curtain −BG20 at their assembly.
+- L11 "Analogwert einlesen": setting up the analog input module (current 4 to 20 mA, wire break diagnostics), raw value
+  table with current, background knowledge with the new explanations, fill-in templates, new quiz question on a wire
+  break at −BL1.
+
+**Docs**
+- The 14 plant images in `docs/bilder` (01 to 14) taken again, pure 3D images without the sidebar.
+- `web/tools/doku-bilder.mjs` only opens the sidebar for images that are meant to show it.
+
 ## 1.17.3 – 2026-10-08
 
 Polish of the interactive explanations in the exercise handbook and new documentation with images. Twin and bridge

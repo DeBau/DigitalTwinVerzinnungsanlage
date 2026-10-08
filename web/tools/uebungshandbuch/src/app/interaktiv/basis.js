@@ -130,7 +130,8 @@ export const iaText = (x, y, t, klasse = "", anker = "middle") => `<text x="${x}
 // Schrift der Texte im SVG je Klasse: [Größe in px, Zeichenbreite in em] wie in src/styles/12 bis 15, sonst 13px Sans
 const IA_SCHRIFT = {"": [13, .56], "ia-op": [12.5, .6], "ia-sym": [17, .6], "bx-pin": [12, .6], "bx-status": [12, .6], "bx-titel": [15, .6],
   "bx-typ": [12, .56], "rs-text": [12, .6], "rs-zahl": [11, .6], "sp-pin": [11.5, .6], "sp-titel": [13, .6], "sv-fuss": [11, .56],
-  "sv-name": [12, .6], "sv-zahl": [11.5, .6], "zy-modus": [16, .5], "zy-nr": [12, .56]};
+  "sv-name": [12, .6], "sv-zahl": [11.5, .6], "zy-modus": [16, .5], "zy-nr": [12, .56], "an-titel": [13, .58], "an-klein": [11.5, .56],
+  "an-bruch-text": [18, .6]};
 const IA_ANKER = {start: 0, middle: .5, end: 1};
 const IA_TEXT = /<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)" class="([^"]*)">([^<]*)<\/text>/g;
 // Rahmen um alle Texte (aus iaText), geschätzt aus Zeichenzahl und Schrift

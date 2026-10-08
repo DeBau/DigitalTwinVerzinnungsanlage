@@ -52,6 +52,10 @@ import './app/interaktiv/rechnen-modell.js';
 import './app/interaktiv/rechnen-text.js';
 import './app/interaktiv/rechnen-bild.js';
 import './app/interaktiv/rechnen.js';
+import './app/interaktiv/analog-modell.js';
+import './app/interaktiv/analog-text.js';
+import './app/interaktiv/analog-bild.js';
+import './app/interaktiv/analog.js';
 // init steht hier: Eine zweite Importzeile weiter unten würde die Ladereihenfolge (Schicht) verschieben
 import { init as init_app_nachschlagen } from './app/nachschlagen.js';
 import './app/vorlage-stand.js';
