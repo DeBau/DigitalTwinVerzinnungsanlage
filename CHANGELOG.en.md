@@ -8,6 +8,37 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.17.2 – 2026-10-08
+
+The interactive explanations in the exercise handbook (L01 to L10) now appear in the text only as a small preview and
+open in a popup to try them out. Twin and bridge only change the version number.
+
+**Why**
+The explanations were too cramped in the text column and in the background-knowledge popup: the 32-bit memory layout
+was cut off, there were horizontal and vertical scroll bars, long operands such as `#stopperPlausible` were clipped,
+and with high Windows scaling the cycle popup did not fit on the screen.
+
+**New**
+- In the text, each explanation is a small, static preview. A click opens it large in a popup where it can be used.
+  From step 2 on, the popup lies above the background knowledge; "← Zurück" (back) returns there.
+- All popups (background knowledge, task, my data, print, image zoom, explanations) have a "×" at the top right.
+- Numbers: double word, words, bytes and bits are aligned one below the other, each field labelled high-order or
+  low-order; as an overview in the text, large in the "memory layout" popup.
+- The exercise header stays at the top while scrolling and becomes slim.
+
+**Changed**
+- Clicking next to a popup no longer closes it.
+- Popups adapt to the height and shrink their content if needed so that no scroll bar is needed from the start; they
+  no longer grow or pulse while an animation plays.
+- Signal trace and timing diagram use the full width in the popup (longer time axis at the same font size).
+- No text in the diagrams is clipped any more.
+- "Begriffe" (terms) can be expanded and collapsed while an animation is running.
+- Cycle: explanation texts side by side, "why 1 to 2 cycle times?" collapsible, no wobbling while playing.
+
+**Docs**
+- `uebungVorlage.md`, section 6a "Vorschau und Popup" and checklist: rules for all future exercises.
+- `src/README.md`: new module `interaktiv/popup.js`.
+
 ## 1.17.1 – 2026-10-08
 
 Only the source of the exercise handbook is reorganised. Handbook, twin and bridge behave as in 1.17.0; in the twin

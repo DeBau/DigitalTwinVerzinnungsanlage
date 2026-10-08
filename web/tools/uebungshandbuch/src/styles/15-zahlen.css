@@ -83,17 +83,14 @@ button.zf-als:hover{border-color:var(--blue)}
 .zs-bit .zf-bit{width:24px;height:30px;font-size:15px}
 .zs-bit .zf-tag{writing-mode:vertical-rl;transform:rotate(180deg)}
 .zs-bit .zf-tag .sig{padding:2px 0}
+.zs-kurz-bits{display:grid;justify-items:center;gap:2px;margin:0 2px;padding:4px;border-radius:8px;background:var(--sunk);text-align:center}
+.zs-kurz-bits code{font:700 14px var(--mono)}
+.zs-kurz-bits span{font:10.5px var(--mono);color:var(--ink2)}
 .zs-detail{display:grid;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
 .zs-detail-kopf b{font:700 15px var(--mono)}
 .zs-detail p{margin:0}
 
-/* ---------- Großes Popup (zahl-gross.js) und Datentyp-Tabellen ---------- */
-dialog.iadlg{max-width:min(1240px,calc(100vw - 24px));height:min(900px,calc(100vh - 24px))}
-.iadlg-in{display:flex;flex-direction:column;height:100%}
-.iadlg-kopf{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid var(--line)}
-.iadlg-kopf h2{font-size:20px;margin:0}
-.iadlg-body{flex:1;overflow:auto;padding:16px 22px}
-.iadlg-body .ia{margin:0}
+/* ---------- Datentyp-Tabellen (zahl-typen.js) ---------- */
 .zf-gross-tabs{margin-left:0}
 .dt-rollen{overflow-x:auto}
 .dt-tab{border-collapse:collapse;font-size:13.5px;width:100%}

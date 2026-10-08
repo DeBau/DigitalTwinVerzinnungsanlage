@@ -3,6 +3,13 @@ import { EXTRA, QUIZ, SHEETS, SIG, STIL, bewKey, critOf } from './daten.js';
 
 export const $ = (s, r=document) => r.querySelector(s);
 export const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+// Popup öffnen, oben rechts mit „×“ zum Schließen. Ein Klick neben das Popup schließt es nicht (nur ×, Knöpfe, Esc).
+export const DLG_X = `<button type="button" class="dlg-x" aria-label="Schließen" title="Schließen (Esc)">×</button>`;
+export function dlgZeigen(d){
+  if (!d.querySelector(":scope > .dlg-x")) d.insertAdjacentHTML("afterbegin", DLG_X);
+  d.querySelector(":scope > .dlg-x").onclick = () => d.close();
+  d.showModal();
+}
 export const BY = Object.fromEntries(SHEETS.map(s => [s.id, s]));
 // Position einer Übung in SHEETS. Eine vorläufige ID ohne Übung (z. B. L06B) steht hinter der letzten Übung mit gleicher
 // oder kleinerer Nummer, ihre Regel greift also erst in der nächsten vorhandenen Übung.

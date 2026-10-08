@@ -85,8 +85,9 @@ function reaktionHTML(z){
   const gemessen = r && r.wert !== null
     ? `<b>Gemessen: ${ms(r.wert)}</b> = ${(r.wert / T).toLocaleString("de-DE", {maximumFractionDigits: 2})} × Zykluszeit.`
     : r ? "Gemessen wird gerade: Warte, bis der Ausgang schaltet." : "Schalte im Betrieb den Sensor um, dann misst die Erklärung die Reaktionszeit.";
-  return `<div class="zy-info"><b>Reaktionszeit</b> (Klemme bis Ausgang): ${gemessen}<br>`
-    + `<span class="small">Sie liegt zwischen etwa 1 und 2 Zykluszeiten, hier ${ms(T)} bis ${ms(2 * T)}. Wechselt das Signal kurz <i>vor</i> dem Einlesen, bearbeitet der OB1 es sofort, und am Ende desselben Zyklus schaltet der Ausgang: etwa 1 × Zykluszeit. Wechselt es kurz <i>nach</i> dem Einlesen, wartet es fast einen ganzen Zyklus auf das nächste Einlesen, und der Ausgang schaltet erst am Ende des folgenden Zyklus: fast 2 × Zykluszeit.</span></div>`;
+  return `<div class="zy-info"><b>Reaktionszeit</b> (Klemme bis Ausgang): ${gemessen}`
+    + `<details class="ia-begriffe"><summary>Warum 1 bis 2 Zykluszeiten (hier ${ms(T)} bis ${ms(2 * T)})?</summary>`
+    + `<p class="small">Wechselt das Signal kurz <i>vor</i> dem Einlesen, bearbeitet der OB1 es sofort, und am Ende desselben Zyklus schaltet der Ausgang: etwa 1 × Zykluszeit. Wechselt es kurz <i>nach</i> dem Einlesen, wartet es fast einen ganzen Zyklus auf das nächste Einlesen, und der Ausgang schaltet erst am Ende des folgenden Zyklus: fast 2 × Zykluszeit.</p></details></div>`;
 }
 function impulsHTML(z){
   if (!z.m.verpasst && !(z.m.impulsGesehen && z.m.impulsEnde === null && z.letzterImpuls)) return "";
@@ -98,8 +99,7 @@ function verlaufHTML(z){
   const marken = [];
   if (m.start !== null) for (let t = m.start, n = 1; t <= bis; t += m.T, n++) marken.push({t, text: `Zyklus ${n} · ${ms(t)}`});
   const spuren = [["k", "Klemme"], ["e", "PAE"], ["a", "PAA"], ["q", "Ausgang"]].map(([k, name]) => ({name, wechsel: m.spuren[k]}));
-  return zeitverlaufSVG({spuren, von, bis, marken, punkte: m.lesungen.map(t => ({zeile: 1, t}))})
-    + `<p class="small muted">Senkrechte Linien: Zyklusanfang. Dreiecke: Hier liest die CPU die Eingänge ins PAE.</p>`;
+  return zeitverlaufSVG({spuren, von, bis, marken, punkte: m.lesungen.map(t => ({zeile: 1, t})), breit: z.breit});
 }
 
 /* ---------- Steuerung ---------- */
@@ -121,8 +121,10 @@ function zyklusHTML(z){
   return `<div class="ia-kopf"><b>Probier es aus:</b> Schalte ein, schalte den Sensor und miss, wann der Ausgang reagiert. Gib dann kurze Impulse.</div>`
     + `<div class="zy-oben"><div class="zy-ring">${ringSVG(z)}</div><div class="zy-mitte">${phasenHTML(z)}${strasseHTML(z)}</div></div>`
     + `<div class="zy-steuer"><div class="zy-sensor">${sensorHTML(z)}</div><div class="zy-knoepfe">${steuerHTML(z)}</div></div>`
-    + impulsHTML(z) + textHTML(z) + reaktionHTML(z)
-    + `<div class="ia-verlauf"><div class="ia-verlauf-kopf"><b>Signalverlauf über der Zeit</b></div>${verlaufHTML(z)}</div>` + zyBegriffeHTML();
+    + `<div class="zy-texte">${textHTML(z)}<div class="zy-saetze">${reaktionHTML(z)}${impulsHTML(z)}</div></div>`
+    + `<div class="ia-verlauf"><div class="ia-verlauf-kopf"><b>Signalverlauf über der Zeit</b>`
+    + `<span class="small muted">Senkrechte Linien: Zyklusanfang. Dreiecke: Hier liest die CPU die Eingänge ins PAE.</span></div>`
+    + `${verlaufHTML(z)}</div>` + zyBegriffeHTML();
 }
 
 /* ---------- Bedienen ---------- */
@@ -137,6 +139,8 @@ const ZY_AKTION = {
   impuls: (z, anteil) => { z.letzterImpuls = +anteil * z.m.T; zyImpuls(z.m, z.letzterImpuls); },
 };
 iaRegistrieren("zyklus", {
+  titel: "Anlauf, SPS-Zyklus und Reaktionszeit",
+  anhalten: anhalten,
   neu: zyklusNeu,
   html: zyklusHTML,
   aktion: (z, akt) => { const [name, wert] = akt.split(":"); ZY_AKTION[name](z, wert); },

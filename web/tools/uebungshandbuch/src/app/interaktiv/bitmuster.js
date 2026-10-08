@@ -150,6 +150,8 @@ const BM_AKTION = {
   pause: bmAnhalten,
 };
 iaRegistrieren("bitmuster", {
+  titel: "Bitmuster",
+  anhalten: bmAnhalten,
   neu: bitmusterNeu,
   html: bitmusterHTML,
   aktion: (z, akt) => { const [name, wert] = akt.split(":"); BM_AKTION[name](z, wert); },

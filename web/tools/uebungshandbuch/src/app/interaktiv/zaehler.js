@@ -103,7 +103,7 @@ function zzVerlaufHTML(z){
   const m = z.m, a = zlAusgaenge(m);
   const keys = [...ZZ_PINS[m.art].ein, ...Object.keys(a)];
   const spuren = keys.map(k => ({name: k.toUpperCase(), werte: m.verlauf.map(s => s[k])}));
-  return signalverlaufZahlenSVG(spuren, {name: "CV", werte: m.verlauf.map(s => zzZahl(s.cv))}, "Aufrufe")
+  return signalverlaufZahlenSVG(spuren, {name: "CV", werte: m.verlauf.map(s => zzZahl(s.cv))}, "Aufrufe", z.breit)
     + `<p class="small muted">Jede Spalte ist ein Aufruf des Zählers (ein Zyklus). Halte CU auf 1 und klicke auf <i>Nächster Zyklus</i>: CV ändert sich nicht.</p>`;
 }
 
@@ -142,6 +142,7 @@ const ZZ_AKTION = {
   ansicht: (z, w) => { z.ansicht = w; },
 };
 iaRegistrieren("zaehler", {
+  titel: "Zähler",
   neu: zaehlerNeu,
   html: zaehlerHTML,
   aktion: (z, akt) => { const [name, wert] = akt.split(":"); ZZ_AKTION[name](z, wert); },

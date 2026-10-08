@@ -71,7 +71,7 @@ function tabelleHTML(z){
 function logikVerlaufHTML(z){
   const spur = (k, name) => ({name, werte: z.verlauf.map(s => s[k])});
   const spuren = [spur("a", z.namen.a), ...(zweiEin(z) ? [spur("b", z.namen.b)] : []), spur("q", z.namen.q)];
-  return signalverlaufSVG(spuren, "Klicks");
+  return signalverlaufSVG(spuren, "Klicks", z.breit);
 }
 function erklaerungHTML(z){
   const q = ergebnis(z);
@@ -104,6 +104,7 @@ function logikAktion(z, akt){
   LOGIK_AKTION[name](z, wert);
 }
 iaRegistrieren("logik", {
+  titel: "Verknüpfung",
   neu: at => { const z = logikNeu(at); schritt(z); return z; },
   html: logikHTML,
   aktion: logikAktion,

@@ -184,7 +184,7 @@ function flSteuerHTML(z){
 }
 function flVerlaufHTML(z){
   const spur = (k, name) => ({name, werte: z.verlauf.map(v => v[k])});
-  const svg = signalverlaufSVG([spur("e", spSpurName(z.namen.e, "E")), spur("m", flDef(z).typ === "hand" ? spSpurName(z.scl.m, "Merker") : "Merker"), spur("q", spSpurName(z.namen.q, "Q"))], "Zyklen");
+  const svg = signalverlaufSVG([spur("e", spSpurName(z.namen.e, "E")), spur("m", flDef(z).typ === "hand" ? spSpurName(z.scl.m, "Merker") : "Merker"), spur("q", spSpurName(z.namen.q, "Q"))], "Zyklen", z.breit);
   return svg + `<p class="small muted">Spur Merker: was beim Vergleich im Flankenmerker stand, also der Eingang aus dem vorigen Zyklus. Q ist genau einen Zyklus lang 1.</p>`;
 }
 function flWissenHTML(){
@@ -213,6 +213,8 @@ const FL_AKTION = {
   leeren: z => { z.verlauf = []; },
 };
 iaRegistrieren("flanke", {
+  titel: "Flanken",
+  anhalten: flAnhalten,
   neu: flankeNeu,
   html: flankeHTML,
   aktion: (z, akt) => { const [name, wert] = akt.split(":"); FL_AKTION[name](z, wert); },

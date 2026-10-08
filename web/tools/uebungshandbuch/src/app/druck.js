@@ -1,6 +1,6 @@
 /* ================= Drucken ================= */
 import { EXVORL, STUFEN, TYPN, critMax, critOf, gradeOf } from './daten.js';
-import { $, $$, ART, BY, IC, S, bewPunkte, bewSumme, chips, esc, hilfeLevel, hilfeText, listOf, mitbringen, qt, quelle, sigEntries, stilFor, stilKey, tableHTML, typOf, zielTag } from './basis.js';
+import { $, $$, ART, BY, IC, S, bewPunkte, bewSumme, chips, dlgZeigen, esc, hilfeLevel, hilfeText, listOf, mitbringen, qt, quelle, sigEntries, stilFor, stilKey, tableHTML, typOf, zielTag } from './basis.js';
 import { VORL } from '../editor/registry.js';
 import { pageCount } from '../editor/zeichnen.js';
 import { ladeSkizze, skMeta, sketchSVG } from '../editor/blaetter.js';
@@ -111,6 +111,6 @@ export function openPrintDialog(id){
     const html = sel.map(v => v === "sheet" ? sheetPage(ex, f) : v === "check" ? checkPage(ex, f) : v === "wissen" ? `<section class="pp">${pageHead(ex, "Fachwissen")}${ex.wissen.map(w => `<h2>${w.t}</h2>${chips(w.h)}${quelle(w)}`).join("")}</section>` : v === "vars" ? varsPage(ex, f) : v === "rate" ? ratePage(ex, f) : v === "bew" ? bewPage(ex) : sketchPage(id, v.slice(3), f)).join("");
     $("#dlg").close(); if (html) doPrint(html);
   };
-  $("#dlg").showModal();
+  dlgZeigen($("#dlg"));
 }
 

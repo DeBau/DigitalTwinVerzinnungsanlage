@@ -60,6 +60,24 @@ function zsGitterHTML(sp, op){
   return `<div class="zs-rollen"><div class="zs-gitter">${zeilen.join("")}<div class="zs-zeile zs-bits" style="--n:${8 * n}">${bits}</div></div></div>`;
 }
 
+/* ---------- Kleine Übersicht im Text (ohne Bedienung) ---------- */
+// Je Byte eine Spalte, darüber die Ebenen, darunter die Bits des Bytes als Text. Passt ohne seitliches Scrollen in die
+// Textspalte. Bits schalten, Werte eingeben und Überlappung gibt es im großen Popup.
+function zsKurzFeldHTML(sp, f, op){
+  const m = zsLesen(sp, f.adr, f.bits), [klasse, rolle] = zsRolle(sp, f, sp.wahl);
+  const opText = op && zsGleich(f, op) ? `<span class="zs-op">dein Operand</span>` : "";
+  return `<div class="zs-feld ${klasse}" style="grid-column:${f.spalte + 1} / span ${f.bits / 8}"><b>${zsName(sp, f)}</b>${opText}`
+    + `<span class="zs-wert"><code>${zfHex(m, f.bits)}</code> <code>${m}</code></span><span class="zs-rolle">${rolle || "&nbsp;"}</span></div>`;
+}
+const zsKurzBitsHTML = (sp, adr) => `<div class="zs-kurz-bits"><code>${zfBinaer(zsByte(sp, adr), 8).slice(2).replace("_", " ")}</code>`
+  + `<span>%${sp.bereich}${adr}.7 bis ${adr}.0</span></div>`;
+export function zsUebersichtHTML(sp, op, hinweis = ""){
+  const n = zsFensterBytes(sp), zeile = inhalt => `<div class="zs-zeile" style="--n:${n}">${inhalt}</div>`;
+  const ebenen = zsZeilen(sp).filter(e => !e.versatz).map(e => zeile(e.felder.map(f => zsKurzFeldHTML(sp, f, op)).join("")));
+  const bits = zeile(Array.from({length: n}, (_, k) => zsKurzBitsHTML(sp, sp.start + k)).join(""));
+  return `${hinweis}<div class="zs-gitter zs-kurz">${ebenen.join("")}${bits}</div>`;
+}
+
 /* ---------- Werkzeugleiste ---------- */
 const ZS_BREITE_NAME = {2: "Wort", 4: "Doppelwort", 8: "LWord"};
 function zsLeisteHTML(sp){

@@ -1,6 +1,10 @@
 /* ---------- Dialoge ---------- */
 dialog{border:0;border-radius:14px;padding:0;background:var(--panel);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35);max-width:min(720px,calc(100vw - 32px));width:100%}
 dialog::backdrop{background:rgba(10,20,30,.55)}
+/* „×“ oben rechts (dlgZeigen in app/basis.js): bleibt beim Scrollen stehen, Text fließt daneben */
+.dlg-x{position:sticky;top:10px;float:right;z-index:5;margin:10px 10px -50px 0;width:40px;height:40px;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--ink);font:400 26px/1 var(--sans);cursor:pointer}
+.dlg-x:hover{border-color:var(--blue);color:var(--blue)}
+.iadlg-kopf .dlg-x{position:static;float:none;margin:0 0 0 auto}
 .dlg{padding:24px 28px}
 .dlg h2{font-size:22px;margin-bottom:6px}
 .dlg .opts{display:grid;gap:8px;margin:16px 0}

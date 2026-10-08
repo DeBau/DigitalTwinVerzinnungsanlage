@@ -23,6 +23,7 @@ import './app/skizzen-kacheln.js';
 import './app/variablen.js';
 import './app/vorlagen-basis.js';
 // Interaktive Erklärungen: Grundlagen, dann die Arten (melden sich in der Registry an)
+import './app/interaktiv/popup.js';
 import { init as init_app_interaktiv } from './app/interaktiv/basis.js';
 import './app/interaktiv/signalverlauf.js';
 import './app/interaktiv/logik-bild.js';

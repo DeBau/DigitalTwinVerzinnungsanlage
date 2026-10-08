@@ -8,6 +8,37 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.17.2 – 2026-10-08
+
+Die interaktiven Erklärungen im Übungshandbuch (L01 bis L10) stehen im Text nur noch als kleine Vorschau und werden
+zum Ausprobieren im Popup geöffnet. Zwilling und Bridge ändern nur die Versionsnummer.
+
+**Warum**
+Die Erklärungen waren in der Textspalte und im Fachwissen-Popup zu eng: Bei 32 Bit war der Speicheraufbau
+abgeschnitten, es gab waagerechte und senkrechte Scrollleisten, lange Operanden wie `#stopperPlausible` wurden
+abgeschnitten, und bei hoher Windows-Skalierung passte das Zyklus-Popup nicht auf den Bildschirm.
+
+**Neu**
+- Im Text steht jede Erklärung als kleine, ruhige Vorschau. Ein Klick öffnet sie groß im Popup, dort ist sie bedienbar.
+  Ab Schritt 2 liegt das Popup über dem Fachwissen, „← Zurück“ führt dorthin zurück.
+- Alle Popups (Fachwissen, Aufgabe, Meine Daten, Drucken, Bild-Zoom, Erklärungen) haben oben rechts ein „×“.
+- Zahlen: Doppelwort, Wörter, Bytes und Bits stehen bündig untereinander, jedes Feld mit „höherwertig“ bzw.
+  „niederwertig“; im Text als Übersicht, groß im Popup „Speicheraufbau“.
+- Der Übungskopf bleibt beim Scrollen oben stehen und wird dabei schmal.
+
+**Geändert**
+- Ein Klick neben ein Popup schließt es nicht mehr.
+- Popups passen sich der Höhe an und verkleinern ihren Inhalt bei Bedarf, damit von Anfang an keine Scrollleiste nötig
+  ist; beim Abspielen wachsen oder pulsieren sie nicht mehr.
+- Signalverlauf und Impulsdiagramm gehen im Popup über die ganze Breite (mehr Zeitachse bei gleicher Schriftgröße).
+- Kein Text in den Bildern wird mehr abgeschnitten.
+- „Begriffe“ lässt sich auch bei laufender Animation auf- und zuklappen.
+- Zyklus: Erklärtexte nebeneinander, „Warum 1 bis 2 Zykluszeiten?“ aufklappbar, kein Wackeln beim Abspielen.
+
+**Doku**
+- `uebungVorlage.md`, Abschnitt 6a „Vorschau und Popup“ und Prüfliste: Regeln für alle künftigen Übungen.
+- `src/README.md`: neues Modul `interaktiv/popup.js`.
+
 ## 1.17.1 – 2026-10-08
 
 Nur der Quelltext des Übungshandbuchs ist neu geordnet. Handbuch, Zwilling und Bridge verhalten sich wie in 1.17.0,

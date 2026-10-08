@@ -3,7 +3,7 @@
    Querverweis springt, auf ein Kennzeichen zeigt alle Fundstellen. Drucken auf A3 oder A4 quer.
    Der Plan wird beim ersten Aufruf einmal gezeichnet. */
 import { SIG } from '../app/daten.js';
-import { $, $$, esc } from '../app/basis.js';
+import { $, $$, dlgZeigen, esc } from '../app/basis.js';
 import { app, setNav } from '../app/start.js';
 import { doPrint } from '../app/druck.js';
 import { SPALTE, X0, KOPF, FUSS } from './blatt.js';
@@ -125,7 +125,7 @@ function druckDialog(){
     const d = new FormData(form), von = +d.get("von") || 1, bis = +d.get("bis") || gesamt;
     drucke(d.get("format"), Math.min(von, bis), Math.max(von, bis));
   });
-  $("#dlg").showModal();
+  dlgZeigen($("#dlg"));
 }
 
 function drucke(format, von, bis){

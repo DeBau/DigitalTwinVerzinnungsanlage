@@ -1,7 +1,7 @@
 /* ---------- Nachschlagen: Aufgabe und Fachwissen als Popup ---------- */
 // Ab Schritt 2 steht in der Seitenleiste der Kasten „Nachschlagen“, unter jedem Aufgabenschritt das passende Fachwissen (fw).
 // Ein Popup zeigt die Aufgabe oder genau ein Fachwissen-Thema (uebungVorlage.md, Abschnitt 3).
-import { $, BY, chips, esc, quelle, tableHTML } from './basis.js';
+import { $, BY, chips, dlgZeigen, esc, quelle, tableHTML } from './basis.js';
 import { iaEinsetzen } from './interaktiv/basis.js';
 
 const hatWissen = s => !!(s.wissen && s.wissen.length);
@@ -39,7 +39,7 @@ export function nachschlagenHTML(s){
 function zeige(titel, unter, inhalt){
   const schliessen = `<div class="row"><button class="btn primary" value="ok">Schließen</button></div>`;
   $("#dlg").innerHTML = `<form class="dlg nsdlg" method="dialog"><h2>${titel}</h2><p class="muted">${unter}</p>${inhalt}${schliessen}</form>`;
-  $("#dlg").showModal();
+  dlgZeigen($("#dlg"));
 }
 const NS_AKTION = {
   "ns-aufgabe": s => zeige(`Aufgabe ${s.id}`, esc(s.t), aufgabeHTML(s)),

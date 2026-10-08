@@ -43,6 +43,10 @@
 .zy-impulse{display:flex;gap:6px;flex-wrap:wrap}
 .zy-knoepfe .btn[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:var(--onblue)}
 .zy-info{padding:10px 14px;border-radius:9px;border:1px solid var(--line)}
+/* Erklärtexte: im Text untereinander, im breiten Popup nebeneinander (spart Höhe) */
+.zy-texte{display:grid;gap:14px;align-items:start}
+.zy-saetze{display:grid;gap:14px}
+.iadlg-body .zy-texte{grid-template-columns:1fr 1fr;min-height:150px;align-items:stretch}   /* Platz für den längsten Text (ANLAUF, Impuls); der Kasten füllt ihn immer ganz, sonst wackelt er beim Abspielen */
 .ia-svg .sv-marke{stroke:var(--ink2);stroke-width:1}
 .ia-svg .sv-punkt{fill:var(--blue)}
 .ia-verlauf{border-top:1px solid var(--line);padding-top:10px}
@@ -89,3 +93,21 @@ span.zy-modus.aktiv{background:var(--blue);border-color:var(--blue);color:var(--
 .zy-knoepfe{display:flex;gap:8px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){.zy-st.aktiv{animation:none}}
 @media screen and (max-width:860px){.ia-reihe,.zy-oben{grid-template-columns:minmax(0,1fr)}.ia-knoepfe{flex-direction:row;flex-wrap:wrap}}
+
+/* ---------- Vorschau im Text (basis.js): nicht bedienbar, Klick öffnet das Popup (popup.js) ---------- */
+/* Klein: verkleinert (zoom), höchstens etwa 200 px hoch, unten ausgeblendet. Ganz zu sehen ist es im Popup. */
+.ia-vorschau{display:grid;margin:14px 0;border-radius:12px;cursor:zoom-in}
+.ia-vorschau > .ia{margin:0;pointer-events:none;overflow:hidden;border-bottom-left-radius:0;border-bottom-right-radius:0;zoom:.65;max-height:300px;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)}
+.ia-vorschau-fuss{padding:7px 14px;border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;background:var(--blue-soft);color:var(--blue);font:600 13.5px var(--sans)}
+.ia-vorschau:hover > .ia,.ia-vorschau:hover > .ia-vorschau-fuss{border-color:var(--blue)}
+.ia-vorschau:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.ia-vorschau .ia-scl{white-space:pre-wrap;overflow:hidden}
+
+/* ---------- Popups zum Ausprobieren (popup.js): #iadlg, darüber #iadlg2 ---------- */
+/* So hoch wie der Inhalt, höchstens bis zum Fensterrand; dann scrollt nur der Inhalt unter dem Kopf */
+dialog.iadlg{max-width:min(1240px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:hidden}
+.iadlg-in{display:flex;flex-direction:column;max-height:calc(100vh - 24px)}
+.iadlg-kopf{display:flex;gap:16px;align-items:center;justify-content:flex-start;padding:10px 18px;border-bottom:1px solid var(--line)}
+.iadlg-kopf h2{font-size:20px;margin:0}
+.iadlg-body{flex:1;min-height:0;overflow:auto;padding:12px 18px}
+.iadlg-body .ia{margin:0;gap:10px;padding:12px 16px}

@@ -138,7 +138,7 @@ function ztVerlaufHTML(z){
   // Spuren heißen wie die Pins der Box, wie im Impulsdiagramm der TIA-Hilfe
   const spuren = ["in", ...(m.art === "TONR" ? ["r"] : []), "q"].map(k => ({name: k.toUpperCase(), wechsel: m.spuren[k]}));
   const wert = {name: "ET", punkte: zeEtVerlauf(m), max: m.pt, linie: {v: m.pt, text: "PT"}};
-  return zeitverlaufWertSVG({spuren, wert, von, bis, marken: m.marken, teilung: fenster > 12000 ? 2000 : 1000})
+  return zeitverlaufWertSVG({spuren, wert, von, bis, marken: m.marken, teilung: fenster > 12000 ? 2000 : 1000, breit: z.breit})
     + `<p class="small muted">Die Rampe zeigt ET. Die gestrichelte Linie ist PT. Senkrechte Linien: Die Zeitmessung startet oder ET erreicht PT.</p>`;
 }
 
@@ -180,6 +180,8 @@ const ZT_AKTION = {
   ansicht: (z, w) => { z.ansicht = w; },
 };
 iaRegistrieren("zeit", {
+  titel: "Zeiten",
+  anhalten: ztAnhalten,
   neu: zeitNeu,
   html: zeitHTML,
   aktion: (z, akt) => { const [name, wert] = akt.split(":"); ZT_AKTION[name](z, wert); },

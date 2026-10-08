@@ -210,6 +210,7 @@ const RE_AKTION = {
   bsp: reBeispiel,
 };
 iaRegistrieren("rechnen", {
+  titel: "Rechnen",
   neu: rechnenNeu,
   html: rechnenHTML,
   aktion: (z, akt, el) => {

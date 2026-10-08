@@ -152,7 +152,8 @@ dritte sie beschreibt. Daraus entsteht die Zeilenliste. Vorlagen, die ein frühe
 ## 6a. Interaktive Erklärungen
 
 Was man ausprobieren kann, wird nicht nur beschrieben, sondern **zum Anklicken** gezeigt. Ein Fachwissen-Thema bekommt
-dafür einen Platzhalter im Text (`h`). Die App macht daraus eine interaktive Erklärung, im Popup und in Schritt 1.
+dafür einen Platzhalter im Text (`h`). Die App macht daraus eine interaktive Erklärung, im Fachwissen-Popup und in Schritt 1.
+Im Text steht davon nur eine **Vorschau**, ausprobiert wird im **Popup** (siehe „Vorschau und Popup“ unten).
 
 | Art | Platzhalter | Zeigt |
 | --- | --- | --- |
@@ -161,7 +162,7 @@ dafür einen Platzhalter im Text (`h`). Die App macht daraus eine interaktive Er
 | `flanke` | `<div data-interaktiv="flanke" data-art="P,N,PSPULE,NSPULE,P_TRIG,N_TRIG,R_TRIG,F_TRIG" data-e="SF1" data-q="startPulse" data-m="edgeMemStart" data-i="instStartTrig" data-se="#start" data-sq="#startPulse" data-sm="#statEdgeMem"></div>` | Alle Flankenanweisungen der S7-1500 mit Symbol und Namen nach TIA-Hilfe (-\|P\|-, -\|N\|-, -(P)-, -(N)-, P=, N=, P_TRIG, N_TRIG, R_TRIG, F_TRIG). Eingang anklicken, dann „Nächster Zyklus“ oder Abspielen: Q ist genau einen Zyklus lang 1. KOP, FUP, SCL (R_TRIG/F_TRIG als Multi- oder Einzelinstanz, Flanke von Hand mit statischer Variable), Stand Eingang, Flankenmerker vorher, Q, Signalverlauf über Zyklen, Wissen zu Flankenmerker, Bit- und Instanz-Flanke, Multiinstanz |
 | `zyklus` | `<div data-interaktiv="zyklus" data-e="BG40" data-a="PF4"></div>` | STOP, ANLAUF und RUN, den Zyklus „Eingänge ins PAE, OB1 bearbeiten, am Zyklusende PAA an die Ausgänge“ (wie SCE 032-200) animiert, Zykluszeit, Reaktionszeit, kurze Impulse, Sensor und kurzen Impuls zum Anklicken, Signalverlauf, Begriffe |
 | `zeit` | `<div data-interaktiv="zeit" data-art="TON,TOF,TP,TONR" data-in="BG40" data-q="statBathReady" data-pt="2000" data-sin="#levelOk" data-sq="#statBathReady" data-inst="#instBathReadyDelay" data-et="#statElapsed"></div>` | IEC-Zeiten nach TIA-Hilfe: IN anklicken oder kurz antippen, die Zeit läuft in echter Zeit (Abspielen, Anhalten, PT wählbar), Box in FUP und KOP im Programmstatus, SCL-Aufruf der Multiinstanz mit Status, ET als Balken und als Rampe im Impulsdiagramm, PT gestrichelt, Satz zum Verhalten (Abbruch beim TON, kein Nachtriggern beim TP, Wiedereinschalten beim TOF, TONR behält ET bis R), Begriffe IEC-Zeit, IN, PT, Q, ET, R, Instanz, Time und T# |
-| `zahl` | `<div data-interaktiv="zahl" data-typ="Byte,Word,Int,DInt,Real,BCD16" data-wert="16#00FF" data-adresse="IW0" data-name="DI-Bytes BG1 bis BG16"></div>` | Bits anklicken (Bit 0 rechts), Zahl eingeben (dezimal, 16#…, 2#…), +1/−1. Binär, hexadezimal, dezimal, dasselbe Bitmuster in anderen Datentypen gleicher Breite (z. B. Word, UInt, Int, BCD16), Tetraden mit Hex-Ziffer, bei BCD16 gültig/ungültig und CONVERT. Mit `data-adresse` (IB, IW, ID, QB, QW, MW …) die Bytes nach Big Endian (höherwertig zuerst), jedes Bit mit Adresse und Gerät aus der Signalliste. Überlauf beim +1, Zweierkomplement, Real und LReal mit Vorzeichen, Exponent, Mantisse und gespeichertem Wert, Steckbrief des Typs (Breite, Wertebereich, Werteingaben, Kürzel, CPU-Familien). Knopf „Speicheraufbau groß ansehen“ öffnet ein großes Popup mit Speicheraufbau, Tabelle der Datentypen und Zeiten (TIME eingeben). Typen: Byte, Word, DWord, LWord, USInt, SInt, UInt, Int, UDInt, DInt, ULInt, LInt, Real, LReal, BCD16. Optional `data-ansicht="speicher"`. In `data-name` Kennzeichen ohne „−“ |
+| `zahl` | `<div data-interaktiv="zahl" data-typ="Byte,Word,Int,DInt,Real,BCD16" data-wert="16#00FF" data-adresse="IW0" data-name="DI-Bytes BG1 bis BG16"></div>` | Bits anklicken (Bit 0 rechts), Zahl eingeben (dezimal, 16#…, 2#…), +1/−1. Binär, hexadezimal, dezimal, dasselbe Bitmuster in anderen Datentypen gleicher Breite (z. B. Word, UInt, Int, BCD16), Tetraden mit Hex-Ziffer, bei BCD16 gültig/ungültig und CONVERT. Mit `data-adresse` (IB, IW, ID, QB, QW, MW …) die Bytes nach Big Endian (höherwertig zuerst), jedes Bit mit Adresse und Gerät aus der Signalliste. Überlauf beim +1, Zweierkomplement, Real und LReal mit Vorzeichen, Exponent, Mantisse und gespeichertem Wert, Steckbrief des Typs (Breite, Wertebereich, Werteingaben, Kürzel, CPU-Familien). Knopf „Speicheraufbau groß ansehen“ öffnet ein zweites Popup mit Speicheraufbau, Tabelle der Datentypen und Zeiten (TIME eingeben). Typen: Byte, Word, DWord, LWord, USInt, SInt, UInt, Int, UDInt, DInt, ULInt, LInt, Real, LReal, BCD16. Optional `data-ansicht="speicher"`. In `data-name` Kennzeichen ohne „−“ |
 | `bitmuster` | `<div data-interaktiv="bitmuster" data-op="AND,OR,XOR,SHL,SHR,ROL,ROR" data-typ="Byte,Word" data-wert="16#0F" data-maske="16#F0" data-n="1" data-sa="#value" data-sq="#out"></div>` | Wert und Maske anklicken, geänderte Bits markiert; Schieben und Rotieren mit N (auch N größer als die Bitbreite), Bits wandern animiert, herausgefallene und nachgeschobene Bits, Lauflicht −PF1 bis −PF4 aus den Ergebnis-Bits 0 bis 3 (Übernehmen, Abspielen), SCL mit Status und Slice-Zugriff `.%X0`, `.%B0`, Begriffe |
 | `rechnen` | `<div data-interaktiv="rechnen" data-op="ADD,SUB,MUL,DIV,MOD,ROUND,TRUNC,CEIL,FLOOR,CMP,IN_RANGE" data-typ="Int,DInt,Real" data-a="3600" data-b="45" data-name-a="Sekunden je Stunde" data-name-b="Taktzeit in s" data-name-q="Körbe pro Stunde"></div>` | Operanden eingeben oder mit Knöpfen ändern (Max für die Grenze), EN umschalten, Beispiele aus der Anlage. FUP-Box mit EN/ENO im Programmstatus, SCL mit Status, Zahlenstrahl mit Wertebereich und Überlauf, Satz in Worten. Regeln nach TIA-Hilfe: Ganzzahldivision schneidet ab, MOD-Rest, Überlauf ENO = FALSE, DIV durch 0 ENO = TRUE (Int: OUT 0, Real: NaN), Real mit 7 Stellen, ROUND bei .5 zur geraden Zahl, CMP-Tabelle, IN_RANGE mit `data-min`, `data-max`. Optional `data-sa`, `data-sb`, `data-sq` (SCL-Namen). `name-…` gelten nur für die erste Anweisung |
 | `zaehler` | `<div data-interaktiv="zaehler" data-art="CTU,CTD,CTUD" data-cu="BG13" data-cd="BG22" data-r="SF4" data-ld="SF5" data-pv="5" data-q="statFull" data-cv="#statCount"></div>` | IEC-Zähler nach TIA-Hilfe (Int): CU, CD, R und LD zum Anklicken und Halten, Zähleingang kurz antippen, „Nächster Zyklus“ (Halten zählt nur einmal), PV ändern, Zählerstand groß, Box in FUP und KOP, SCL mit Status, Satz zu Flanke, Rücksetzen, Laden, Grenze von Int, Signalverlauf mit CV je Aufruf, Begriffe CV, PV, Q, Flanke, Rücksetzen, Laden, Remanenz |
@@ -175,7 +176,10 @@ dafür einen Platzhalter im Text (`h`). Die App macht daraus eine interaktive Er
   (bzw. `data-et`), entfällt `Q =>` (bzw. `ET =>`) im Aufruf, und die Status-Tabelle zeigt `#inst….Q` (bzw. `.ET`),
   so wie man den Ausgang im Programm direkt an der Instanz liest. Das Anzeigefeld zeigt Q mit dem Operanden aus `data-q`.
 - `zahl`: `data-ansicht="speicher"` zeigt statt des Bitfelds gleich den Speicheraufbau: oben der Operand (z. B. %ID0 oder
-  %IW2), darunter Wörter, Bytes und Bits mit Bitadresse und Gerät. Wählbar sind Wort, Doppelwort oder LWord, die
+  %IW2), darunter Wörter, Bytes und Bits, alles **bündig untereinander in einer Reihe**, damit man höherwertig und
+  niederwertig sofort sieht (jedes Feld ist so beschriftet, z. B. „höherwertiges Byte · Bit 31 bis 24“). Im Text ist das
+  eine ruhige Übersicht (je Byte eine Spalte, die Bits als Text wie `1001 1010`), die ohne Scrollbalken in die Spalte
+  passt. Ein Klick öffnet gleich den Speicheraufbau groß mit Bitadresse und Gerät je Bit. Dort wählbar sind Wort, Doppelwort oder LWord, die
   Startadresse (Überlappung wie %IW1 = %IB1 + %IB2) und überlappende Wörter. Klick auf eine Ebene markiert ihre Bits und
   Teile (höherwertig, niederwertig, Bit hi bis lo), Klick auf ein Bit schaltet es. Big Endian nach TIA-Hilfe „L: Laden“
   und Programmierleitfaden 2.6.3. Ohne `data-adresse` liegt die Zahl als Beispiel ab %MB0. Daten der Typen: TIA-Hilfe V21,
@@ -195,6 +199,44 @@ dafür einen Platzhalter im Text (`h`). Die App macht daraus eine interaktive Er
   data-sm="#statStartSclOld"></div>`.
 - Jede Verknüpfung, jede Zeitfunktion und jeder Ablauf, den die Übung neu einführt, bekommt eine interaktive Erklärung.
   Fehlt eine passende Art, wird sie als eigene Datei in `src/app/interaktiv/` gebaut und hier eingetragen.
+
+**Vorschau und Popup** (Wunsch des Auftraggebers, gilt für alle interaktiven Erklärungen ab L01):
+
+- **Im Text nur eine kleine Vorschau:** nicht bedienbar, nicht animiert, verkleinert (65 %), höchstens etwa 230 px hoch
+  und unten ausgeblendet; darunter der Hinweis „Anklicken, um es groß zu öffnen und auszuprobieren“. Sie muss nicht alles
+  zeigen, nur neugierig machen. Sie muss **ohne Scrollbalken** in die Textspalte passen, auch ins schmale Fachwissen-Popup
+  ab Schritt 2 (lange SCL-Zeilen brechen in der Vorschau um).
+- **Klick öffnet das Popup** (`#iadlg`, `popup.js`), dort ist die Erklärung bedienbar. Vorschau und Popup teilen sich den
+  Zustand. Beim Schließen hält eine Animation an, und die Vorschau zeigt den letzten Stand.
+- **Popup über Popup:** Ab Schritt 2 liegt das Erklärungs-Popup über dem Fachwissen-Popup, darüber kann ein drittes liegen
+  (`#iadlg2`, Speicheraufbau groß). Jedes hat oben links **„← Zurück“** und oben rechts **„×“**; beides und Esc schließen
+  nur das oberste. Danach steht man wieder genau im Fachwissen.
+- **Popup ohne Scrollleiste von Anfang an**, auch bei hoher Windows-Skalierung (geprüft bei 1536 × 740): so hoch wie der
+  Inhalt, höchstens bis zum Fensterrand. Reicht die Höhe nicht, verkleinert `puEinpassen` (`popup.js`) den Inhalt beim
+  Öffnen bis höchstens 70 %. Erst wenn man etwas aufklappt (z. B. „Begriffe“), darf die Scrollleiste erscheinen.
+  Kompakt bauen: Breite nutzen (Erklärtexte nebeneinander), lange Erklärungen in ein aufklappbares `<details>`, Hinweise
+  zum Diagramm in dessen Kopfzeile. Wechselt ein Text beim Abspielen seine Länge (z. B. ANLAUF, Impuls-Meldung), bekommt
+  sein Bereich im Popup eine feste Mindesthöhe, sonst wächst das Popup während der Animation.
+- **Bilder nicht aufblasen:** Im Popup zeichnet eine Erklärung mehr Inhalt bei gleicher Schriftgröße, statt das Bild zu
+  vergrößern. `html(zustand)` bekommt dafür `zustand.breit` (true im Popup, false in der Vorschau); Signalverlauf und
+  Impulsdiagramm gehen im Popup über die ganze Breite (32 statt 16 Schritte, längere Zeitachse).
+- **Kein Text wird abgeschnitten:** Texte im SVG nur mit `iaText`, Bilder nur mit `iaSvg`. `iaSvg` macht das Bild so
+  breit, wie die Texte es brauchen (lange Operanden wie `#stopperPlausible`). Eine neue Textklasse im CSS gehört mit
+  Schriftgröße auch in `IA_SCHRIFT` in `interaktiv/basis.js`.
+- **Aufklappen geht immer:** Beim Neuzeichnen (auch während einer Animation) bleiben `<details>` wie „Begriffe“
+  aufgeklappt. Sie schalten schon beim Drücken um (wie die Knöpfe), denn eine laufende Animation tauscht das Element
+  zwischen Drücken und Loslassen aus, ein normaler Klick käme dann nie an. Im Browser mit langsamem Klick (150 ms) prüfen.
+- **Flüssig:** Gezeichnet wird nur das offene Popup, nicht die Vorschau dahinter. Ein Klick soll nur wenige ms brauchen.
+- **Neue Art:** in `iaRegistrieren` zusätzlich `titel` (Kopf des Popups), bei Animationen `anhalten(zustand)`, bei Bedarf
+  `oeffnen(zustand)` (eigenes Popup statt des normalen).
+
+**Alle Popups der App** (Fachwissen, Aufgabe, Meine Daten, Drucken, Bild-Zoom, Erklärungen) haben oben rechts ein „×“
+(`dlgZeigen` in `src/app/basis.js` bzw. `DLG_X`). **Ein Klick neben das Popup schließt es nicht.** Geschlossen wird nur
+über „×“, „Zurück“, „Fertig“, „Schließen“ oder Esc. **Popups pulsieren nie:** Solange ein Popup offen ist, wird es
+nicht kleiner (`puRuhigHalten` in `popup.js`), auch wenn beim Abspielen eine Textzeile kommt und geht.
+
+**Übungskopf** (Kennung, Titel, Arbeitszeit, Drucken) bleibt beim Scrollen unter der oberen Leiste stehen und wird dabei
+schmal (`kopfAnpassen` in `ereignisse.js`, Klasse `klein`).
 
 **Programmiersprachen und SCL:** Ab L02 steht zu jedem Netzwerk, das die Azubis in FUP oder KOP bauen, auch die
 SCL-Zeile. SCL wird so von Anfang an mitgelernt (die Ansicht „SCL“ der interaktiven Erklärung zeigt sie). Wann man
@@ -252,6 +294,9 @@ Alles wird strukturiert, wartbar, einfach und nach Best Practice gebaut.
 - [ ] In Schritt 1 sind alle Fachwissen-Themen zugeklappt.
 - [ ] Jede neue Verknüpfung, Zeitfunktion und jeder neue Ablauf hat eine interaktive Erklärung (6a); zu jedem
       FUP-Netzwerk steht die SCL-Zeile.
+- [ ] Jede interaktive Erklärung im Browser geprüft: Vorschau ohne Scrollbalken, Popup öffnet, ist bedienbar, „Zurück“ und
+      „×“ schließen, bei 1600 × 1000 und 1536 × 740 keine senkrechte Scrollleiste (auch nicht während des Abspielens),
+      kein abgeschnittener Text, Begriffe lassen sich beim Abspielen mit langsamem Klick auf- und zuklappen.
 - [ ] Jede Vorlage hat `felder` mit passenden Typen, wo sinnvoll 0/1 oder ja/nein statt Text.
 - [ ] Jede Aufgabe ist in TIA Portal und am Zwilling machbar.
 - [ ] Du-Form, keine Gedankenstriche, keine unerklärten und keine erfundenen Begriffe.

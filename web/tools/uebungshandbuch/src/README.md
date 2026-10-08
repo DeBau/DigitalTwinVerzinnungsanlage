@@ -41,12 +41,13 @@ importiert nie aus einer Vorlage.
 | `main.js` | Einstieg: lädt alle Module, startet danach die Seiteneffekte über `init()` |
 | **App-Grundlagen** | |
 | `app/daten.js` | Platzhalter `__SIG__`, `__SHEETS__`, `__TEXTE__`, `__QUIZ__`, `__STIL__`, Stammdaten (EXTRA, STUFEN, EXVORL, CYL, PHASES, STIL, CRIT, critOf, TYPN, gradeOf) |
-| `app/basis.js` | `$`, `$$`, `BY`, Speicher `S`, `esc`, Chips, Hilfestufen, Icons `IC`, Signalliste |
+| `app/basis.js` | `$`, `$$`, `BY`, Speicher `S`, `esc`, Chips, Hilfestufen, Icons `IC`, Signalliste, `dlgZeigen` (Popup mit „×“ oben rechts) |
 | `app/fortschritt.js` | Phasen erledigt, Prüfpunkte |
 | `app/vorlagen-basis.js` | Vorlagen zum Ausfüllen: `tplsOf`, `tplKey`, `tplRows`, `tplNIn`, `tplHead`, `tplFind`, `tplTeile`, `tplHasData`, `prViewHTML` |
 | `app/vorlage-stand.js` | Felder (`felder`), Fortschritt einer Vorlage, Karte im Schritt (`tplKarteHTML`) |
-| `app/interaktiv/basis.js` | Interaktive Erklärungen: Platzhalter `data-interaktiv` ersetzen (`iaEinsetzen`), Registry, Klicks (`data-ia-akt`), Eingabefelder (`data-ia-eingabe`, Fokus bleibt beim Neuzeichnen), SVG-Bausteine |
-| `app/interaktiv/signalverlauf.js` | Zeitdiagramm `signalverlaufSVG` |
+| `app/interaktiv/basis.js` | Interaktive Erklärungen: Platzhalter `data-interaktiv` ersetzen (`iaEinsetzen`, im Text als Vorschau, Klick öffnet `iaGrossOeffnen`), Registry (`titel`, `anhalten`, `oeffnen`), Klicks (`data-ia-akt`), Eingabefelder (`data-ia-eingabe`, Fokus und aufgeklappte Bereiche bleiben beim Neuzeichnen), SVG-Bausteine (`iaSvg` passt die Breite an die Texte an) |
+| `app/interaktiv/popup.js` | Popups zum Ausprobieren `#iadlg` und darüber `#iadlg2` (`puOeffnen`): „← Zurück“, „×“, Esc; Klick daneben schließt nicht |
+| `app/interaktiv/signalverlauf.js` | Zeitdiagramme `signalverlaufSVG`, `zeitverlaufSVG`, `zeitverlaufWertSVG`, `signalverlaufZahlenSVG`; mit `breit` (Popup) mehr Schritte bzw. längere Zeitachse |
 | `app/interaktiv/logik-bild.js`, `logik.js` | Verknüpfung UND, ODER, NICHT, XOR: FUP, KOP, SCL, Funktionstabelle |
 | `app/interaktiv/speicher-bild.js`, `speicher.js` | Speichern: SR-Box, RS-Box, KOP-Selbsthaltung, Spulen ( S ) und ( R ) in FUP, KOP, SCL (IF), Funktionstabelle mit Q alt; Bausteine `spBox`, `spPin`, `spSpule`, `spZuweisung`, `spSchiene`, `spSpurName` auch für Flanken |
 | `app/interaktiv/flanke-bild.js`, `flanke.js` | Flanken P, N, P=/(P), N=/(N), P_TRIG, N_TRIG, R_TRIG, F_TRIG und Flanke von Hand (HAND) über Zyklen: KOP, FUP, SCL (Instanzaufruf, Flanke von Hand), Abspielen |
@@ -58,7 +59,7 @@ importiert nie aus einer Vorlage.
 | `app/interaktiv/zahl-typen.js` | Steckbrief und Tabellen der Datentypen und Zeiten (`DT_TYPEN`, `DT_ZEITEN`): Breite, Wertebereich, Werteingaben, Kürzel (spshaus), CPU-Familien, Abweichungen spshaus zur TIA-Hilfe |
 | `app/interaktiv/zahl-zeit.js` | TIME eingeben (`zdParsen`, T#1s_200ms → ms und DInt-Bitmuster) |
 | `app/interaktiv/zahl-speicher-modell.js`, `zahl-speicher.js` | Speicheraufbau: LWord, Doppelwort, Wörter, überlappende Wörter, Bytes, Bits mit Bitadresse und Gerät; Ebene wählen, Bits schalten, Wert der Ebene eingeben, höherwertig/niederwertig nach Big Endian (`zs…`) |
-| `app/interaktiv/zahl-gross.js` | Großes Popup `#iadlg` (`zgOeffnen`), kann über `#dlg` liegen; beim Schließen übernimmt die kleine Erklärung die Bytes |
+| `app/interaktiv/zahl-gross.js` | Speicheraufbau groß im zweiten Popup `#iadlg2` (`zgOeffnen`); beim Schließen übernimmt die Zahl-Erklärung die Bytes |
 | `app/interaktiv/bitmuster-modell.js`, `bitmuster.js` | AND, OR, XOR mit Maske, SHL, SHR, ROL, ROR mit N (Wanderung animiert), Lauflicht −PF1 bis −PF4, SCL mit Slice-Zugriff |
 | `app/interaktiv/rechnen-modell.js`, `rechnen-text.js`, `rechnen-bild.js`, `rechnen.js` | Rechnen wie die S7-1500: ADD bis MOD (Überlauf, Division durch 0), ROUND, TRUNC, CEIL, FLOOR, CMP, IN_RANGE; FUP-Box, SCL, Zahlenstrahl (`reStrahlSVG`), Satz |
 | `app/nachschlagen.js` | Kasten „Nachschlagen“, Fachwissen je Aufgabenschritt (`fw`), Popups für Aufgabe und Fachwissen |

@@ -131,7 +131,7 @@ function spErklaerungHTML(z){
 export const spSpurName = (name, kurz) => name.length > 11 ? kurz : iaKurz(name);
 function spVerlaufHTML(z){
   const spur = (k, kurz) => ({name: spSpurName(z.namen[k], kurz), werte: z.verlauf.map(v => v[k])});
-  return signalverlaufSVG([spur("s", "S"), spur("r", "R"), spur("q", "Q")], "Klicks");
+  return signalverlaufSVG([spur("s", "S"), spur("r", "R"), spur("q", "Q")], "Klicks", z.breit);
 }
 function spKnoepfeHTML(z){
   const tippen = (sig, name) => `<button type="button" class="btn small" data-ia-akt="tippen:${sig}">${iaName(name)} kurz 1</button>`;
@@ -165,6 +165,7 @@ const SP_AKTION = {
   leeren: z => { z.verlauf = []; spMerken(z); },
 };
 iaRegistrieren("speicher", {
+  titel: "Setzen und Rücksetzen",
   neu: speicherNeu,
   html: speicherHTML,
   aktion: (z, akt) => { const [name, wert] = akt.split(":"); SP_AKTION[name](z, wert); },

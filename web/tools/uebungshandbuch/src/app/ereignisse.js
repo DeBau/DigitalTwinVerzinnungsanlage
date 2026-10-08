@@ -1,4 +1,4 @@
-import { $, $$, BY, S, chips, hilfeLevel, listOf, quizKey, quizSet, sigEntries } from './basis.js';
+import { $, $$, BY, S, dlgZeigen, chips, hilfeLevel, listOf, quizKey, quizSet, sigEntries } from './basis.js';
 import { paintVars, typeOf } from './variablen.js';
 import { autoGrow, hilfeInner, quizHTML, refreshStatus, restoreInputs, toggleTimer } from './uebung.js';
 import { openEditor } from '../editor/oeffnen.js';
@@ -18,7 +18,7 @@ export function openDataDialog(){
     const l = document.createElement("a"); l.href = URL.createObjectURL(blob); l.download = `uebungshandbuch_${(S.get("name")||"eingaben").replace(/[^\wäöüÄÖÜß-]+/g,"_")}.json`; l.click(); setTimeout(() => URL.revokeObjectURL(l.href), 1000); };
   $("#dimp").onchange = e => { const f = e.target.files[0]; if (!f) return; f.text().then(t => { const d = sauberImport(altDatei(sauberImport(JSON.parse(t).eingaben || {}))); Object.entries(d).forEach(([k, v]) => S.set(k, v)); S.set("ver", Math.max(3, +S.get("ver") || 0)); S.set("_v", UMNUM_V); migriere(); $("#dlg").close(); route(); }).catch(() => alert("Diese Datei enthält keine gesicherten Eingaben des Übungshandbuchs.")); };
   $("#dclr").onclick = () => { if (confirm("Alle Eingaben, Häkchen und Skizzen in diesem Browser löschen?")) { Object.keys(S.all()).forEach(k => S.set(k, null)); S.set("ver", 3); S.set("_v", UMNUM_V); $("#dlg").close(); route(); } };
-  $("#dlg").showModal();
+  dlgZeigen($("#dlg"));
 }
 
 // Seiteneffekte: Listener, Migrationen, Start. main.js ruft init() in der ursprünglichen Reihenfolge auf.
@@ -57,7 +57,7 @@ document.addEventListener("click", e => {
   if (act === "var-import") { const rows = listOf(S.get(id+":vars", [])); const have = new Set(rows.map(r => r.n)); sigEntries(BY[id]).forEach(e => { if (!have.has(e.n)) rows.push({n:e.n, t:typeOf(e.a), a:e.a, k:e.k}); }); S.set(id+":vars", rows); paintVars(BY[id]); }
   if (act === "finish") { S.set(id+":fertig", true); refreshStatus(); }
   if (act === "unfinish") { S.set(id+":fertig", null); refreshStatus(); }
-  if (act === "zoom") { $("#lb").innerHTML = `<form method="dialog"><img src="${a.dataset.src}" alt=""><p>${chips(a.dataset.cap)} <button class="btn small" style="float:right">Schließen</button></p></form>`; $("#lb").showModal(); }
+  if (act === "zoom") { $("#lb").innerHTML = `<form method="dialog"><img src="${a.dataset.src}" alt=""><p>${chips(a.dataset.cap)} <button class="btn small" style="float:right">Schließen</button></p></form>`; dlgZeigen($("#lb")); }
   if (act === "form") doPrint(formPage(a.dataset.f));
   if (act === "bew-print") doPrint(bewPage(BY[a.dataset.id]));
   if (act === "data") openDataDialog();
@@ -72,5 +72,21 @@ document.addEventListener("keydown", e => {
 });
 document.addEventListener("toggle", e => $$("textarea.auto", e.target).forEach(autoGrow), true);
 addEventListener("resize", () => $$("textarea.auto").forEach(autoGrow));
-$("#lb").addEventListener("click", e => { if (e.target === $("#lb")) $("#lb").close(); });
+addEventListener("scroll", kopfAnpassen, {passive: true});
+}
+// Übungskopf: bleibt oben stehen und wird schmal, sobald er oben ankommt (sonst verdeckt er die Schrittleiste).
+// Der schmale Kopf behält seinen alten Platz im Seitenfluss (margin-bottom = eingesparte Höhe). Sonst rückt der Inhalt
+// nach oben, der Browser korrigiert die Scrollposition, und der Kopf springt zwischen groß und schmal hin und her.
+const KOPF_KLEIN_AB = 24, KOPF_GROSS_BIS = 4;
+function kopfKlein(kopf, klein){
+  if (kopf.classList.contains("klein") === klein) return;
+  const vorher = kopf.offsetHeight;
+  kopf.style.marginBottom = "";
+  kopf.classList.toggle("klein", klein);
+  if (klein) kopf.style.marginBottom = (vorher - kopf.offsetHeight) + "px";
+}
+function kopfAnpassen(){
+  const kopf = $(".exhead"); if (!kopf) return;
+  if (scrollY > KOPF_KLEIN_AB) kopfKlein(kopf, true);
+  else if (scrollY < KOPF_GROSS_BIS) kopfKlein(kopf, false);
 }

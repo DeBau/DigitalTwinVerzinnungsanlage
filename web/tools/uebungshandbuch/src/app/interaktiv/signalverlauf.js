@@ -1,9 +1,12 @@
 /* ---------- Interaktive Erklärungen: Signalverlauf ---------- */
 // Zeichnet ein Zeitdiagramm: je Spur eine Zeile, je Schritt eine Spalte, 1 oben, 0 unten.
-// spuren: [{name, werte: [0/1 je Schritt]}]. Gezeigt werden die letzten SV_MAX Schritte.
+// spuren: [{name, werte: [0/1 je Schritt]}]. Gezeigt werden die letzten Schritte (svMass: im Text 16, im Popup 32).
+// breit (Popup): mehr Schritte bzw. mehr Zeitachse bei gleicher Schriftgröße, statt das Bild nur zu vergrößern.
 import { iaSvg, iaText } from './basis.js';
 
-const SV_MAX = 16, SV_LINKS = 92, SV_SPALTE = 30, SV_ZEILE = 38, SV_HUB = 20;
+const SV_LINKS = 92, SV_SPALTE = 30, SV_ZEILE = 38, SV_HUB = 20;
+const SV_SCHMAL = {max: 16, zeit: 480}, SV_BREIT = {max: 32, zeit: 1000};
+const svMass = breit => breit ? SV_BREIT : SV_SCHMAL;
 
 function svPfad(werte, y0){
   const y = w => y0 + (w ? 0 : SV_HUB);
@@ -15,9 +18,9 @@ function svPfad(werte, y0){
   });
   return `<path d="${d}" class="sv-kurve"/>`;
 }
-function svSpur(spur, zeile){
+function svSpur(spur, zeile, max){
   const y0 = 10 + zeile * SV_ZEILE;
-  const grund = `<line x1="${SV_LINKS}" y1="${y0 + SV_HUB}" x2="${SV_LINKS + SV_MAX * SV_SPALTE}" y2="${y0 + SV_HUB}" class="sv-null"/>`;
+  const grund = `<line x1="${SV_LINKS}" y1="${y0 + SV_HUB}" x2="${SV_LINKS + max * SV_SPALTE}" y2="${y0 + SV_HUB}" class="sv-null"/>`;
   return iaText(SV_LINKS - 10, y0 + 15, spur.name, "sv-name", "end") + grund + (spur.werte.length ? svPfad(spur.werte, y0) : "");
 }
 function svRaster(n, hoehe){
@@ -26,18 +29,18 @@ function svRaster(n, hoehe){
     return `<line x1="${x}" y1="4" x2="${x}" y2="${hoehe - 16}" class="sv-raster"/>`;
   }).join("");
 }
-export function signalverlaufSVG(spuren, beschriftung = "Schritt"){
-  const kurz = spuren.map(s => ({...s, werte: s.werte.slice(-SV_MAX)}));
+export function signalverlaufSVG(spuren, beschriftung = "Schritt", breit = false){
+  const {max} = svMass(breit), kurz = spuren.map(s => ({...s, werte: s.werte.slice(-max)}));
   const n = Math.max(1, ...kurz.map(s => s.werte.length)), hoehe = 26 + spuren.length * SV_ZEILE;
   const fuss = iaText(SV_LINKS + n * SV_SPALTE / 2, hoehe - 2, `${beschriftung} → Zeit`, "sv-fuss");
-  const inhalt = svRaster(n, hoehe) + kurz.map(svSpur).join("") + fuss;
-  return iaSvg(SV_LINKS + SV_MAX * SV_SPALTE + 10, hoehe, inhalt, "Signalverlauf");
+  const inhalt = svRaster(n, hoehe) + kurz.map((s, i) => svSpur(s, i, max)).join("") + fuss;
+  return iaSvg(SV_LINKS + max * SV_SPALTE + 10, hoehe, inhalt, "Signalverlauf");
 }
 
 /* ---------- Zeitdiagramm über echter Zeit (ms) ---------- */
 // spuren: [{name, wechsel: [[t, wert], …]}], Fenster von … bis (ms).
 // marken: senkrechte Linien mit Text (z. B. Zyklusanfang), punkte: [{zeile, t}] Dreiecke an einer Spur (z. B. Einlesen).
-const ZV_BREITE = 480;
+// Die Zeitachse ist breite Einheiten lang (svMass: 480 im Text, 1000 im Popup).
 function zvWert(wechsel, t){
   let w = 0;
   for (const [tw, v] of wechsel) { if (tw > t) break; w = v; }
@@ -52,24 +55,24 @@ function zvPfad(wechsel, von, bis, x, y0){
   }
   return `<path d="${d} L${x(bis)} ${y(w)}" class="sv-kurve"/>`;
 }
-function zvSpur(spur, zeile, von, bis, x){
+function zvSpur(spur, zeile, von, bis, x, breite){
   const y0 = 10 + zeile * SV_ZEILE;
-  const grund = `<line x1="${SV_LINKS}" y1="${y0 + SV_HUB}" x2="${SV_LINKS + ZV_BREITE}" y2="${y0 + SV_HUB}" class="sv-null"/>`;
+  const grund = `<line x1="${SV_LINKS}" y1="${y0 + SV_HUB}" x2="${SV_LINKS + breite}" y2="${y0 + SV_HUB}" class="sv-null"/>`;
   return iaText(SV_LINKS - 10, y0 + 15, spur.name, "sv-name", "end") + grund + zvPfad(spur.wechsel, von, bis, x, y0);
 }
-function zvMarke(m, x, hoehe){
-  const platz = SV_LINKS + ZV_BREITE - x(m.t) > 90;   // Text nur, wenn er bis zum rechten Rand passt
+function zvMarke(m, x, hoehe, breite){
+  const platz = SV_LINKS + breite - x(m.t) > 90;   // Text nur, wenn er bis zum rechten Rand passt
   return `<line x1="${x(m.t)}" y1="4" x2="${x(m.t)}" y2="${hoehe - 18}" class="sv-marke"/>` + (platz ? iaText(x(m.t) + 3, hoehe - 6, m.text, "sv-fuss", "start") : "");
 }
 const zvPunkt = (p, x) => { const y = 10 + p.zeile * SV_ZEILE + SV_HUB + 3, px = x(p.t); return `<path d="M${px} ${y} l-4 7 h8 z" class="sv-punkt"/>`; };
 
-export function zeitverlaufSVG({spuren, von, bis, marken = [], punkte = []}){
-  const x = t => (SV_LINKS + (t - von) / (bis - von) * ZV_BREITE).toFixed(1);
+export function zeitverlaufSVG({spuren, von, bis, marken = [], punkte = [], breit = false}){
+  const breite = svMass(breit).zeit, x = t => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1);
   const hoehe = 34 + spuren.length * SV_ZEILE;
   const sicht = t => t >= von && t <= bis;
-  const inhalt = marken.filter(m => sicht(m.t)).map(m => zvMarke(m, x, hoehe)).join("")
-    + spuren.map((s, i) => zvSpur(s, i, von, bis, x)).join("") + punkte.filter(p => sicht(p.t)).map(p => zvPunkt(p, x)).join("");
-  return iaSvg(SV_LINKS + ZV_BREITE + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
+  const inhalt = marken.filter(m => sicht(m.t)).map(m => zvMarke(m, x, hoehe, breite)).join("")
+    + spuren.map((s, i) => zvSpur(s, i, von, bis, x, breite)).join("") + punkte.filter(p => sicht(p.t)).map(p => zvPunkt(p, x)).join("");
+  return iaSvg(SV_LINKS + breite + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
 }
 
 /* ---------- Zeitdiagramm mit einer Wertespur (Rampe) und Zeitachse ---------- */
@@ -90,43 +93,44 @@ function zwKurve(wert, von, bis, x, y){
   const liste = [[von, zwWertBei(wert.punkte, von)], ...innen, [bis, zwWertBei(wert.punkte, bis)]];
   return `<path d="${liste.map(([t, v], i) => `${i ? "L" : "M"}${x(t)} ${y(v)}`).join(" ")}" class="sv-rampe"/>`;
 }
-function zwSpur(wert, y0, von, bis, x){
-  const y = v => (y0 + ZW_HOEHE - v / wert.max * ZW_HOEHE).toFixed(1), rechts = SV_LINKS + ZV_BREITE;
+function zwSpur(wert, y0, von, bis, x, breite){
+  const y = v => (y0 + ZW_HOEHE - v / wert.max * ZW_HOEHE).toFixed(1), rechts = SV_LINKS + breite;
   const grund = `<line x1="${SV_LINKS}" y1="${y(0)}" x2="${rechts}" y2="${y(0)}" class="sv-null"/>`;
   const l = wert.linie;
   const linie = l ? `<line x1="${SV_LINKS}" y1="${y(l.v)}" x2="${rechts}" y2="${y(l.v)}" class="sv-grenze"/>` + iaText(SV_LINKS - 10, +y(l.v) + 4, l.text, "sv-fuss", "end") : "";
   return iaText(SV_LINKS - 10, y0 + ZW_HOEHE, wert.name, "sv-name", "end") + grund + linie + zwKurve(wert, von, bis, x, y);
 }
-function zwAchse(von, bis, x, y0, teilung){
-  let svg = `<line x1="${SV_LINKS}" y1="${y0}" x2="${SV_LINKS + ZV_BREITE}" y2="${y0}" class="sv-achse"/>`;
+function zwAchse(von, bis, x, y0, teilung, breite){
+  let svg = `<line x1="${SV_LINKS}" y1="${y0}" x2="${SV_LINKS + breite}" y2="${y0}" class="sv-achse"/>`;
   for (let t = Math.ceil(von / teilung) * teilung; t <= bis; t += teilung) {
     const s = (t / 1000).toLocaleString("de-DE");
     svg += `<line x1="${x(t)}" y1="${y0}" x2="${x(t)}" y2="${y0 + 4}" class="sv-achse"/>` + iaText(x(t), y0 + 15, `${s} s`, "sv-fuss");
   }
   return svg;
 }
-export function zeitverlaufWertSVG({spuren, wert, von, bis, marken = [], teilung = 1000}){
-  const x = t => (SV_LINKS + (t - von) / (bis - von) * ZV_BREITE).toFixed(1);
+export function zeitverlaufWertSVG({spuren, wert, von, bis, marken = [], teilung = 1000, breit = false}){
+  const breite = svMass(breit).zeit, x = t => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1);
   const yWert = 10 + spuren.length * SV_ZEILE + 8, yAchse = yWert + ZW_HOEHE + 8, hoehe = yAchse + 36;
-  const inhalt = marken.filter(m => m.t >= von && m.t <= bis).map(m => zvMarke(m, x, hoehe)).join("")
-    + spuren.map((s, i) => zvSpur(s, i, von, bis, x)).join("") + zwSpur(wert, yWert, von, bis, x) + zwAchse(von, bis, x, yAchse, teilung);
-  return iaSvg(SV_LINKS + ZV_BREITE + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
+  const inhalt = marken.filter(m => m.t >= von && m.t <= bis).map(m => zvMarke(m, x, hoehe, breite)).join("")
+    + spuren.map((s, i) => zvSpur(s, i, von, bis, x, breite)).join("") + zwSpur(wert, yWert, von, bis, x, breite)
+    + zwAchse(von, bis, x, yAchse, teilung, breite);
+  return iaSvg(SV_LINKS + breite + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
 }
 
 /* ---------- Signalverlauf je Schritt mit einer Zahlenzeile ---------- */
 // Wie signalverlaufSVG, darunter eine Zeile mit einer Zahl je Schritt (z. B. Zählerstand CV). zahlen: {name, werte: [Zahl je Schritt]}
-function szZeile(zahlen, y){
-  const werte = zahlen.werte.slice(-SV_MAX);
+function szZeile(zahlen, y, max){
+  const werte = zahlen.werte.slice(-max);
   const felder = werte.map((w, i) => {
     const neu = i && w !== werte[i - 1] ? " neu" : "";
     return iaText(SV_LINKS + i * SV_SPALTE + SV_SPALTE / 2, y, String(w), `sv-zahl${neu}`);
   }).join("");
   return iaText(SV_LINKS - 10, y, zahlen.name, "sv-name", "end") + felder;
 }
-export function signalverlaufZahlenSVG(spuren, zahlen, beschriftung = "Schritt"){
-  const kurz = spuren.map(s => ({...s, werte: s.werte.slice(-SV_MAX)}));
-  const n = Math.max(1, zahlen.werte.slice(-SV_MAX).length), yZahl = 10 + spuren.length * SV_ZEILE + 14, hoehe = yZahl + 26;
+export function signalverlaufZahlenSVG(spuren, zahlen, beschriftung = "Schritt", breit = false){
+  const {max} = svMass(breit), kurz = spuren.map(s => ({...s, werte: s.werte.slice(-max)}));
+  const n = Math.max(1, zahlen.werte.slice(-max).length), yZahl = 10 + spuren.length * SV_ZEILE + 14, hoehe = yZahl + 26;
   const fuss = iaText(SV_LINKS + n * SV_SPALTE / 2, hoehe - 2, `${beschriftung} → Zeit`, "sv-fuss");
-  const inhalt = svRaster(n, hoehe) + kurz.map(svSpur).join("") + szZeile(zahlen, yZahl) + fuss;
-  return iaSvg(SV_LINKS + SV_MAX * SV_SPALTE + 10, hoehe, inhalt, "Signalverlauf mit Zählerstand");
+  const inhalt = svRaster(n, hoehe) + kurz.map((s, i) => svSpur(s, i, max)).join("") + szZeile(zahlen, yZahl, max) + fuss;
+  return iaSvg(SV_LINKS + max * SV_SPALTE + 10, hoehe, inhalt, "Signalverlauf mit Zählerstand");
 }

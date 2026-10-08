@@ -122,13 +122,21 @@ main{max-width:1380px;margin:0 auto;padding:24px 20px 80px}
 .exhead .meta{display:flex;gap:18px;flex-wrap:wrap;font-size:13.5px;color:var(--ink2);margin-top:8px}
 .exhead .meta b{color:var(--ink);font-weight:500}
 .exhead .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+/* Der Kopf bleibt unter der oberen Leiste stehen; beim Scrollen wird er schmal (Klasse klein, ereignisse.js) */
+.exhead{position:sticky;top:54px;z-index:20}   /* 54px: Höhe der oberen Leiste .top */
+/* Ohne Scroll-Anchoring: Sonst korrigiert der Browser beim Umschalten groß/schmal die Scrollposition, und die Seite springt */
+html:has(.exhead){overflow-anchor:none}
+.exhead.klein{padding:7px 18px;gap:14px;border-radius:0 0 12px 12px;box-shadow:0 6px 14px rgba(0,0,0,.08)}
+.exhead.klein .code{font-size:26px}
+.exhead.klein h1{font-size:18px}
+.exhead.klein :is(.sub,.meta){display:none}
 .timer{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:7px;padding:4px 6px 4px 12px;font-size:13.5px}
 .timer .tv{font:500 15px var(--mono);min-width:64px}
 .timer .plan{color:var(--ink2);font-size:12.5px}
 
 .exgrid{display:grid;grid-template-columns:230px minmax(0,1fr) 290px;gap:20px;margin-top:20px;align-items:start}
 .exgrid>*{min-width:0}
-.stepper{position:sticky;top:76px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stepper{position:sticky;top:132px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
 .stepper ol{list-style:none;margin:0;padding:0}
 .stepper a{display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;text-decoration:none;color:var(--ink);position:relative}
 .stepper li:not(:last-child) a::after{content:"";position:absolute;left:24px;top:38px;height:14px;width:2px;background:var(--line)}
@@ -148,7 +156,7 @@ main{max-width:1380px;margin:0 auto;padding:24px 20px 80px}
 .work h3{font-size:18px;margin:26px 0 10px}
 .work .prose{max-width:72ch}
 .pager{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line2);margin-top:30px;padding-top:18px}
-.ctx{position:sticky;top:76px;display:flex;flex-direction:column;gap:14px}
+.ctx{position:sticky;top:132px;display:flex;flex-direction:column;gap:14px}
 .ctx .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
 .ctx h4{font-size:14px;color:var(--ink2);margin-bottom:8px}
 .ctx figure{margin:0}
@@ -360,6 +368,10 @@ dialog.tpd{max-width:min(1180px,calc(100vw - 24px));height:min(860px,calc(100vh 
 /* ---------- Dialoge ---------- */
 dialog{border:0;border-radius:14px;padding:0;background:var(--panel);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.35);max-width:min(720px,calc(100vw - 32px));width:100%}
 dialog::backdrop{background:rgba(10,20,30,.55)}
+/* „×“ oben rechts (dlgZeigen in app/basis.js): bleibt beim Scrollen stehen, Text fließt daneben */
+.dlg-x{position:sticky;top:10px;float:right;z-index:5;margin:10px 10px -50px 0;width:40px;height:40px;display:grid;place-items:center;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--panel);color:var(--ink);font:400 26px/1 var(--sans);cursor:pointer}
+.dlg-x:hover{border-color:var(--blue);color:var(--blue)}
+.iadlg-kopf .dlg-x{position:static;float:none;margin:0 0 0 auto}
 .dlg{padding:24px 28px}
 .dlg h2{font-size:22px;margin-bottom:6px}
 .dlg .opts{display:grid;gap:8px;margin:16px 0}
@@ -645,6 +657,10 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
 .zy-impulse{display:flex;gap:6px;flex-wrap:wrap}
 .zy-knoepfe .btn[aria-pressed=true]{background:var(--blue);border-color:var(--blue);color:var(--onblue)}
 .zy-info{padding:10px 14px;border-radius:9px;border:1px solid var(--line)}
+/* Erklärtexte: im Text untereinander, im breiten Popup nebeneinander (spart Höhe) */
+.zy-texte{display:grid;gap:14px;align-items:start}
+.zy-saetze{display:grid;gap:14px}
+.iadlg-body .zy-texte{grid-template-columns:1fr 1fr;min-height:150px;align-items:stretch}   /* Platz für den längsten Text (ANLAUF, Impuls); der Kasten füllt ihn immer ganz, sonst wackelt er beim Abspielen */
 .ia-svg .sv-marke{stroke:var(--ink2);stroke-width:1}
 .ia-svg .sv-punkt{fill:var(--blue)}
 .ia-verlauf{border-top:1px solid var(--line);padding-top:10px}
@@ -691,6 +707,24 @@ span.zy-modus.aktiv{background:var(--blue);border-color:var(--blue);color:var(--
 .zy-knoepfe{display:flex;gap:8px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){.zy-st.aktiv{animation:none}}
 @media screen and (max-width:860px){.ia-reihe,.zy-oben{grid-template-columns:minmax(0,1fr)}.ia-knoepfe{flex-direction:row;flex-wrap:wrap}}
+
+/* ---------- Vorschau im Text (basis.js): nicht bedienbar, Klick öffnet das Popup (popup.js) ---------- */
+/* Klein: verkleinert (zoom), höchstens etwa 200 px hoch, unten ausgeblendet. Ganz zu sehen ist es im Popup. */
+.ia-vorschau{display:grid;margin:14px 0;border-radius:12px;cursor:zoom-in}
+.ia-vorschau > .ia{margin:0;pointer-events:none;overflow:hidden;border-bottom-left-radius:0;border-bottom-right-radius:0;zoom:.65;max-height:300px;-webkit-mask-image:linear-gradient(to bottom,#000 70%,transparent);mask-image:linear-gradient(to bottom,#000 70%,transparent)}
+.ia-vorschau-fuss{padding:7px 14px;border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px;background:var(--blue-soft);color:var(--blue);font:600 13.5px var(--sans)}
+.ia-vorschau:hover > .ia,.ia-vorschau:hover > .ia-vorschau-fuss{border-color:var(--blue)}
+.ia-vorschau:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.ia-vorschau .ia-scl{white-space:pre-wrap;overflow:hidden}
+
+/* ---------- Popups zum Ausprobieren (popup.js): #iadlg, darüber #iadlg2 ---------- */
+/* So hoch wie der Inhalt, höchstens bis zum Fensterrand; dann scrollt nur der Inhalt unter dem Kopf */
+dialog.iadlg{max-width:min(1240px,calc(100vw - 24px));max-height:calc(100vh - 24px);overflow:hidden}
+.iadlg-in{display:flex;flex-direction:column;max-height:calc(100vh - 24px)}
+.iadlg-kopf{display:flex;gap:16px;align-items:center;justify-content:flex-start;padding:10px 18px;border-bottom:1px solid var(--line)}
+.iadlg-kopf h2{font-size:20px;margin:0}
+.iadlg-body{flex:1;min-height:0;overflow:auto;padding:12px 18px}
+.iadlg-body .ia{margin:0;gap:10px;padding:12px 16px}
 /* ---------- Interaktive Erklärungen: Speicher (speicher.js) und Flanken (flanke.js) ---------- */
 .ia-svg text.sp-titel{font:700 13px var(--mono)}
 .ia-svg text.sp-pin{font:600 11.5px var(--mono);fill:var(--ink2)}
@@ -849,17 +883,14 @@ button.zf-als:hover{border-color:var(--blue)}
 .zs-bit .zf-bit{width:24px;height:30px;font-size:15px}
 .zs-bit .zf-tag{writing-mode:vertical-rl;transform:rotate(180deg)}
 .zs-bit .zf-tag .sig{padding:2px 0}
+.zs-kurz-bits{display:grid;justify-items:center;gap:2px;margin:0 2px;padding:4px;border-radius:8px;background:var(--sunk);text-align:center}
+.zs-kurz-bits code{font:700 14px var(--mono)}
+.zs-kurz-bits span{font:10.5px var(--mono);color:var(--ink2)}
 .zs-detail{display:grid;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
 .zs-detail-kopf b{font:700 15px var(--mono)}
 .zs-detail p{margin:0}
 
-/* ---------- Großes Popup (zahl-gross.js) und Datentyp-Tabellen ---------- */
-dialog.iadlg{max-width:min(1240px,calc(100vw - 24px));height:min(900px,calc(100vh - 24px))}
-.iadlg-in{display:flex;flex-direction:column;height:100%}
-.iadlg-kopf{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:14px 22px;border-bottom:1px solid var(--line)}
-.iadlg-kopf h2{font-size:20px;margin:0}
-.iadlg-body{flex:1;overflow:auto;padding:16px 22px}
-.iadlg-body .ia{margin:0}
+/* ---------- Datentyp-Tabellen (zahl-typen.js) ---------- */
 .zf-gross-tabs{margin-left:0}
 .dt-rollen{overflow-x:auto}
 .dt-tab{border-collapse:collapse;font-size:13.5px;width:100%}
@@ -955,6 +986,7 @@ button.bm-bit{cursor:pointer}
 <dialog id="lb" class="lb"></dialog>
 <dialog id="tpd" class="tpd"></dialog>
 <dialog id="iadlg" class="iadlg"></dialog>
+<dialog id="iadlg2" class="iadlg"></dialog>
 <div id="print"></div>
 
 <script>
@@ -2348,6 +2380,12 @@ button.bm-bit{cursor:pointer}
   // web/tools/uebungshandbuch/src/app/basis.js
   var $ = (s, r = document) => r.querySelector(s);
   var $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  var DLG_X = `<button type="button" class="dlg-x" aria-label="Schließen" title="Schließen (Esc)">×</button>`;
+  function dlgZeigen(d) {
+    if (!d.querySelector(":scope > .dlg-x")) d.insertAdjacentHTML("afterbegin", DLG_X);
+    d.querySelector(":scope > .dlg-x").onclick = () => d.close();
+    d.showModal();
+  }
   var BY = Object.fromEntries(SHEETS.map((s) => [s.id, s]));
   var sheetPos = (id) => {
     const i = SHEETS.findIndex((s) => s.id === id);
@@ -3607,6 +3645,72 @@ button.bm-bit{cursor:pointer}
   var tplHead = (ex, d) => d.head || ((tplFind(d.erweitert) || {}).d || {}).head || [];
   var tplHasData = (id, d) => tplRows(d).some((r, ri) => Array.from({ length: tplNIn(d, r, tplHead(BY[id], d)) }, (_, ci) => S.get(tplKey(id, d, ri, ci))).some((v) => String(v ?? "").trim()));
 
+  // web/tools/uebungshandbuch/src/app/interaktiv/popup.js
+  var PU_ZU = /* @__PURE__ */ new Map();
+  function puSchliessen(d) {
+    const zu = PU_ZU.get(d);
+    PU_ZU.delete(d);
+    puRuheEnde(d);
+    d.innerHTML = "";
+    if (zu) zu();
+  }
+  function puAnmelden(d) {
+    if (d.dataset.bereit) return;
+    d.dataset.bereit = "1";
+    d.addEventListener("close", () => puSchliessen(d));
+  }
+  function puOeffnen(auswahl, titel, inhalt, zu) {
+    const d = $(auswahl);
+    if (!d) return;
+    puAnmelden(d);
+    PU_ZU.set(d, zu);
+    d.innerHTML = `<div class="iadlg-in"><header class="iadlg-kopf"><form method="dialog"><button class="btn" value="zurueck">← Zurück</button></form><h2>${titel}</h2>${DLG_X}</header><div class="iadlg-body">${inhalt}</div></div>`;
+    d.querySelector(".dlg-x").onclick = () => d.close();
+    d.showModal();
+    puEinpassen(d);
+    puRuhigHalten(d);
+  }
+  var PU_RUHE = /* @__PURE__ */ new Map();
+  function puRuheMessen(d, ruhe) {
+    const body = d.querySelector(".iadlg-body"), inhalt = body.firstElementChild;
+    const frei = innerHeight - 24 - d.querySelector(".iadlg-kopf").offsetHeight;
+    const bedarf = Math.ceil(inhalt.getBoundingClientRect().height) + 24;
+    ruhe.hoechste = Math.max(ruhe.hoechste, Math.min(bedarf, frei));
+    body.style.minHeight = ruhe.hoechste + "px";
+  }
+  function puRuhigHalten(d) {
+    const inhalt = d.querySelector(".iadlg-body > *");
+    if (!inhalt) return;
+    const ruhe = { hoechste: 0 };
+    ruhe.wache = new ResizeObserver(() => puRuheMessen(d, ruhe));
+    ruhe.wache.observe(inhalt);
+    PU_RUHE.set(d, ruhe);
+  }
+  function puRuheEnde(d) {
+    const ruhe = PU_RUHE.get(d);
+    PU_RUHE.delete(d);
+    if (ruhe) ruhe.wache.disconnect();
+  }
+  function puNeuEinpassen(d) {
+    const ruhe = PU_RUHE.get(d), body = d.querySelector(".iadlg-body");
+    if (ruhe) ruhe.hoechste = 0;
+    if (body) body.style.minHeight = "";
+    puEinpassen(d);
+    if (ruhe) puRuheMessen(d, ruhe);
+  }
+  var PU_MIN = 0.7, PU_RUNDEN = 5;
+  function puEinpassen(d) {
+    const body = d.querySelector(".iadlg-body"), inhalt = body && body.firstElementChild;
+    if (!inhalt) return;
+    inhalt.style.zoom = "";
+    let faktor = 1;
+    for (let i = 0; i < PU_RUNDEN && body.scrollHeight > body.clientHeight && faktor > PU_MIN; i++) {
+      faktor = Math.max(PU_MIN, faktor * body.clientHeight / body.scrollHeight - 0.01);
+      inhalt.style.zoom = faktor;
+    }
+  }
+  addEventListener("resize", () => document.querySelectorAll("dialog.iadlg[open]").forEach(puNeuEinpassen));
+
   // web/tools/uebungshandbuch/src/app/interaktiv/basis.js
   var IA_ARTEN = {};
   var IA_ZUSTAND = /* @__PURE__ */ new Map();
@@ -3622,28 +3726,58 @@ button.bm-bit{cursor:pointer}
     for (const m of text2.matchAll(/data-([a-z-]+)="([^"]*)"/g)) a[m[1]] = m[2];
     return a;
   }
-  function iaInhalt(id) {
+  function iaInhalt(id, breit) {
     const z = IA_ZUSTAND.get(id);
+    z.breit = breit;
     return IA_ARTEN[z.art].html(z);
   }
-  function iaEinsetzen(html) {
+  var iaBedienbarHTML = (z) => `<div class="ia ia-${z.art}" data-ia="${z.id}">${iaInhalt(z.id, true)}</div>`;
+  function iaVorschauHTML(z) {
+    const titel = esc(IA_ARTEN[z.art].titel || "Erklärung");
+    return `<div class="ia-vorschau" data-ia-oeffnen="${z.id}" role="button" tabindex="0" aria-label="${titel}: groß öffnen und ausprobieren"><div class="ia ia-${z.art}" data-ia="${z.id}" data-ia-vorschau inert>${iaInhalt(z.id, false)}</div><div class="ia-vorschau-fuss">🔍 Anklicken, um es groß zu öffnen und auszuprobieren</div></div>`;
+  }
+  function iaEinsetzen(html, { bedienbar = false } = {}) {
     return String(html).replace(/<div data-interaktiv="([a-z]+)"([^>]*)><\/div>/g, (ganz, art2, rest) => {
       if (!IA_ARTEN[art2]) return "";
       const id = "ia" + ++iaZaehler, z = { ...IA_ARTEN[art2].neu(iaAttribute(rest)), art: art2, id };
       IA_ZUSTAND.set(id, z);
-      return `<div class="ia ia-${art2}" data-ia="${id}">${iaInhalt(id)}</div>`;
+      return bedienbar ? iaBedienbarHTML(z) : iaVorschauHTML(z);
     });
   }
-  function iaZeichnen(id) {
-    const el = document.querySelector(`[data-ia="${id}"]`);
-    if (!el) {
-      IA_ZUSTAND.delete(id);
-      return false;
-    }
+  function iaFeldZeichnen(el, id) {
     const feld2 = el.contains(document.activeElement) && document.activeElement.dataset.iaEingabe ? document.activeElement : null;
-    el.innerHTML = iaInhalt(id);
+    const offen = [...el.querySelectorAll("details")].map((d) => d.open);
+    el.innerHTML = iaInhalt(id, true);
+    el.querySelectorAll("details").forEach((d, i) => {
+      if (offen[i]) d.open = true;
+    });
     if (feld2) iaFokusZurueck(el, feld2);
-    return true;
+  }
+  function iaZeichnen(id) {
+    const els = [...document.querySelectorAll(`[data-ia="${id}"]`)], bedienbar = els.filter((el) => !el.hasAttribute("data-ia-vorschau"));
+    if (!els.length) IA_ZUSTAND.delete(id);
+    bedienbar.forEach((el) => iaFeldZeichnen(el, id));
+    return bedienbar.length > 0;
+  }
+  function iaVorschauZeichnen(id) {
+    document.querySelectorAll(`[data-ia="${id}"][data-ia-vorschau]`).forEach((el) => {
+      el.innerHTML = iaInhalt(id, false);
+    });
+  }
+  function iaGrossOeffnen(z) {
+    const art2 = IA_ARTEN[z.art];
+    puOeffnen("#iadlg", esc(art2.titel || "Erklärung"), iaBedienbarHTML(z), () => {
+      if (art2.anhalten) art2.anhalten(z);
+      iaVorschauZeichnen(z.id);
+    });
+  }
+  function iaOeffnen(e) {
+    const v = e.target.closest && e.target.closest("[data-ia-oeffnen]");
+    if (!v) return;
+    const z = IA_ZUSTAND.get(v.dataset.iaOeffnen);
+    if (!z) return;
+    e.preventDefault();
+    (IA_ARTEN[z.art].oeffnen || iaGrossOeffnen)(z);
   }
   function iaFokusZurueck(el, alt) {
     const neu = el.querySelector(`[data-ia-eingabe="${alt.dataset.iaEingabe}"]`);
@@ -3668,23 +3802,73 @@ button.bm-bit{cursor:pointer}
     IA_ARTEN[z.art].aktion(z, knopf3.dataset.iaAkt, knopf3);
     iaZeichnen(z.id);
   }
+  var iaSummary = (e) => e.target.closest && e.target.closest("[data-ia] summary");
+  function iaAufklappen(e) {
+    const s = iaSummary(e);
+    if (!s) return;
+    e.preventDefault();
+    s.parentElement.open = !s.parentElement.open;
+  }
   function init() {
     document.addEventListener("pointerdown", (e) => {
-      if (e.button === 0) iaBedienen(e);
+      if (e.button === 0) {
+        iaBedienen(e);
+        iaAufklappen(e);
+      }
     });
     document.addEventListener("click", (e) => {
       if (e.detail === 0) iaBedienen(e);
+      else if (iaSummary(e)) e.preventDefault();
     });
     document.addEventListener("input", iaEingeben);
+    document.addEventListener("click", iaOeffnen);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") iaOeffnen(e);
+    });
   }
   var iaStrich = (an) => an ? `class="ia-an"` : `class="ia-aus"`;
   var iaLinie = (x1, y1, x2, y2, an) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" ${iaStrich(an)}/>`;
   var iaText = (x, y, t, klasse = "", anker = "middle") => `<text x="${x}" y="${y}" text-anchor="${anker}" class="${klasse}">${esc(t)}</text>`;
-  var iaSvg = (b, h, inhalt, label) => `<svg class="ia-svg" viewBox="0 0 ${b} ${h}" role="img" aria-label="${esc(label)}">${inhalt}</svg>`;
+  var IA_SCHRIFT = {
+    "": [13, 0.56],
+    "ia-op": [12.5, 0.6],
+    "ia-sym": [17, 0.6],
+    "bx-pin": [12, 0.6],
+    "bx-status": [12, 0.6],
+    "bx-titel": [15, 0.6],
+    "bx-typ": [12, 0.56],
+    "rs-text": [12, 0.6],
+    "rs-zahl": [11, 0.6],
+    "sp-pin": [11.5, 0.6],
+    "sp-titel": [13, 0.6],
+    "sv-fuss": [11, 0.56],
+    "sv-name": [12, 0.6],
+    "sv-zahl": [11.5, 0.6],
+    "zy-modus": [16, 0.5],
+    "zy-nr": [12, 0.56]
+  };
+  var IA_ANKER = { start: 0, middle: 0.5, end: 1 };
+  var IA_TEXT = /<text x="([-\d.]+)" y="([-\d.]+)" text-anchor="(\w+)" class="([^"]*)">([^<]*)<\/text>/g;
+  function iaTextRahmen(inhalt) {
+    const r = { x0: 0, y0: 0, x1: 0, y1: 0 };
+    for (const [, x, y, anker, klasse, text2] of inhalt.matchAll(IA_TEXT)) {
+      const [px, em] = IA_SCHRIFT[klasse.split(" ")[0]] || IA_SCHRIFT[""];
+      const breite = text2.replace(/&[^;]+;/g, "x").length * px * em, links = +x - breite * IA_ANKER[anker];
+      Object.assign(r, { x0: Math.min(r.x0, links - 3), x1: Math.max(r.x1, links + breite + 3), y0: Math.min(r.y0, +y - px - 2), y1: Math.max(r.y1, +y + px * 0.35) });
+    }
+    return r;
+  }
+  function iaSvg(b, h, inhalt, label) {
+    const t = iaTextRahmen(inhalt), x0 = Math.floor(t.x0), y0 = Math.floor(t.y0);
+    const breite = Math.ceil(Math.max(b, t.x1)) - x0, hoehe = Math.ceil(Math.max(h, t.y1)) - y0;
+    return `<svg class="ia-svg" viewBox="${x0} ${y0} ${breite} ${hoehe}" role="img" aria-label="${esc(label)}">${inhalt}</svg>`;
+  }
   var iaSignalKnopf = (akt, name2, wert, extra = "") => `<button type="button" class="ia-sig${wert ? " an" : ""}" data-ia-akt="${akt}" ${extra}><span class="n">${iaName(name2)}</span><b>${wert ? 1 : 0}</b></button>`;
 
   // web/tools/uebungshandbuch/src/app/interaktiv/signalverlauf.js
-  var SV_MAX = 16, SV_LINKS = 92, SV_SPALTE = 30, SV_ZEILE = 38, SV_HUB = 20;
+  var SV_LINKS = 92, SV_SPALTE = 30, SV_ZEILE = 38, SV_HUB = 20;
+  var SV_SCHMAL = { max: 16, zeit: 480 }, SV_BREIT = { max: 32, zeit: 1e3 };
+  var svMass = (breit) => breit ? SV_BREIT : SV_SCHMAL;
   function svPfad(werte, y0) {
     const y = (w) => y0 + (w ? 0 : SV_HUB);
     let d = `M${SV_LINKS} ${y(werte[0])}`;
@@ -3695,9 +3879,9 @@ button.bm-bit{cursor:pointer}
     });
     return `<path d="${d}" class="sv-kurve"/>`;
   }
-  function svSpur(spur, zeile2) {
+  function svSpur(spur, zeile2, max) {
     const y0 = 10 + zeile2 * SV_ZEILE;
-    const grund = `<line x1="${SV_LINKS}" y1="${y0 + SV_HUB}" x2="${SV_LINKS + SV_MAX * SV_SPALTE}" y2="${y0 + SV_HUB}" class="sv-null"/>`;
+    const grund = `<line x1="${SV_LINKS}" y1="${y0 + SV_HUB}" x2="${SV_LINKS + max * SV_SPALTE}" y2="${y0 + SV_HUB}" class="sv-null"/>`;
     return iaText(SV_LINKS - 10, y0 + 15, spur.name, "sv-name", "end") + grund + (spur.werte.length ? svPfad(spur.werte, y0) : "");
   }
   function svRaster(n, hoehe) {
@@ -3706,14 +3890,13 @@ button.bm-bit{cursor:pointer}
       return `<line x1="${x}" y1="4" x2="${x}" y2="${hoehe - 16}" class="sv-raster"/>`;
     }).join("");
   }
-  function signalverlaufSVG(spuren, beschriftung2 = "Schritt") {
-    const kurz = spuren.map((s) => ({ ...s, werte: s.werte.slice(-SV_MAX) }));
+  function signalverlaufSVG(spuren, beschriftung2 = "Schritt", breit = false) {
+    const { max } = svMass(breit), kurz = spuren.map((s) => ({ ...s, werte: s.werte.slice(-max) }));
     const n = Math.max(1, ...kurz.map((s) => s.werte.length)), hoehe = 26 + spuren.length * SV_ZEILE;
     const fuss = iaText(SV_LINKS + n * SV_SPALTE / 2, hoehe - 2, `${beschriftung2} → Zeit`, "sv-fuss");
-    const inhalt = svRaster(n, hoehe) + kurz.map(svSpur).join("") + fuss;
-    return iaSvg(SV_LINKS + SV_MAX * SV_SPALTE + 10, hoehe, inhalt, "Signalverlauf");
+    const inhalt = svRaster(n, hoehe) + kurz.map((s, i) => svSpur(s, i, max)).join("") + fuss;
+    return iaSvg(SV_LINKS + max * SV_SPALTE + 10, hoehe, inhalt, "Signalverlauf");
   }
-  var ZV_BREITE = 480;
   function zvWert(wechsel, t) {
     let w = 0;
     for (const [tw2, v] of wechsel) {
@@ -3732,25 +3915,25 @@ button.bm-bit{cursor:pointer}
     }
     return `<path d="${d} L${x(bis)} ${y(w)}" class="sv-kurve"/>`;
   }
-  function zvSpur(spur, zeile2, von, bis, x) {
+  function zvSpur(spur, zeile2, von, bis, x, breite) {
     const y0 = 10 + zeile2 * SV_ZEILE;
-    const grund = `<line x1="${SV_LINKS}" y1="${y0 + SV_HUB}" x2="${SV_LINKS + ZV_BREITE}" y2="${y0 + SV_HUB}" class="sv-null"/>`;
+    const grund = `<line x1="${SV_LINKS}" y1="${y0 + SV_HUB}" x2="${SV_LINKS + breite}" y2="${y0 + SV_HUB}" class="sv-null"/>`;
     return iaText(SV_LINKS - 10, y0 + 15, spur.name, "sv-name", "end") + grund + zvPfad(spur.wechsel, von, bis, x, y0);
   }
-  function zvMarke(m, x, hoehe) {
-    const platz = SV_LINKS + ZV_BREITE - x(m.t) > 90;
+  function zvMarke(m, x, hoehe, breite) {
+    const platz = SV_LINKS + breite - x(m.t) > 90;
     return `<line x1="${x(m.t)}" y1="4" x2="${x(m.t)}" y2="${hoehe - 18}" class="sv-marke"/>` + (platz ? iaText(x(m.t) + 3, hoehe - 6, m.text, "sv-fuss", "start") : "");
   }
   var zvPunkt = (p, x) => {
     const y = 10 + p.zeile * SV_ZEILE + SV_HUB + 3, px = x(p.t);
     return `<path d="M${px} ${y} l-4 7 h8 z" class="sv-punkt"/>`;
   };
-  function zeitverlaufSVG({ spuren, von, bis, marken = [], punkte = [] }) {
-    const x = (t) => (SV_LINKS + (t - von) / (bis - von) * ZV_BREITE).toFixed(1);
+  function zeitverlaufSVG({ spuren, von, bis, marken = [], punkte = [], breit = false }) {
+    const breite = svMass(breit).zeit, x = (t) => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1);
     const hoehe = 34 + spuren.length * SV_ZEILE;
     const sicht = (t) => t >= von && t <= bis;
-    const inhalt = marken.filter((m) => sicht(m.t)).map((m) => zvMarke(m, x, hoehe)).join("") + spuren.map((s, i) => zvSpur(s, i, von, bis, x)).join("") + punkte.filter((p) => sicht(p.t)).map((p) => zvPunkt(p, x)).join("");
-    return iaSvg(SV_LINKS + ZV_BREITE + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
+    const inhalt = marken.filter((m) => sicht(m.t)).map((m) => zvMarke(m, x, hoehe, breite)).join("") + spuren.map((s, i) => zvSpur(s, i, von, bis, x, breite)).join("") + punkte.filter((p) => sicht(p.t)).map((p) => zvPunkt(p, x)).join("");
+    return iaSvg(SV_LINKS + breite + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
   }
   var ZW_HOEHE = 56;
   function zwWertBei(punkte, t) {
@@ -3766,41 +3949,41 @@ button.bm-bit{cursor:pointer}
     const liste2 = [[von, zwWertBei(wert.punkte, von)], ...innen, [bis, zwWertBei(wert.punkte, bis)]];
     return `<path d="${liste2.map(([t, v], i) => `${i ? "L" : "M"}${x(t)} ${y(v)}`).join(" ")}" class="sv-rampe"/>`;
   }
-  function zwSpur(wert, y0, von, bis, x) {
-    const y = (v) => (y0 + ZW_HOEHE - v / wert.max * ZW_HOEHE).toFixed(1), rechts = SV_LINKS + ZV_BREITE;
+  function zwSpur(wert, y0, von, bis, x, breite) {
+    const y = (v) => (y0 + ZW_HOEHE - v / wert.max * ZW_HOEHE).toFixed(1), rechts = SV_LINKS + breite;
     const grund = `<line x1="${SV_LINKS}" y1="${y(0)}" x2="${rechts}" y2="${y(0)}" class="sv-null"/>`;
     const l = wert.linie;
     const linie2 = l ? `<line x1="${SV_LINKS}" y1="${y(l.v)}" x2="${rechts}" y2="${y(l.v)}" class="sv-grenze"/>` + iaText(SV_LINKS - 10, +y(l.v) + 4, l.text, "sv-fuss", "end") : "";
     return iaText(SV_LINKS - 10, y0 + ZW_HOEHE, wert.name, "sv-name", "end") + grund + linie2 + zwKurve(wert, von, bis, x, y);
   }
-  function zwAchse(von, bis, x, y0, teilung2) {
-    let svg = `<line x1="${SV_LINKS}" y1="${y0}" x2="${SV_LINKS + ZV_BREITE}" y2="${y0}" class="sv-achse"/>`;
+  function zwAchse(von, bis, x, y0, teilung2, breite) {
+    let svg = `<line x1="${SV_LINKS}" y1="${y0}" x2="${SV_LINKS + breite}" y2="${y0}" class="sv-achse"/>`;
     for (let t = Math.ceil(von / teilung2) * teilung2; t <= bis; t += teilung2) {
       const s = (t / 1e3).toLocaleString("de-DE");
       svg += `<line x1="${x(t)}" y1="${y0}" x2="${x(t)}" y2="${y0 + 4}" class="sv-achse"/>` + iaText(x(t), y0 + 15, `${s} s`, "sv-fuss");
     }
     return svg;
   }
-  function zeitverlaufWertSVG({ spuren, wert, von, bis, marken = [], teilung: teilung2 = 1e3 }) {
-    const x = (t) => (SV_LINKS + (t - von) / (bis - von) * ZV_BREITE).toFixed(1);
+  function zeitverlaufWertSVG({ spuren, wert, von, bis, marken = [], teilung: teilung2 = 1e3, breit = false }) {
+    const breite = svMass(breit).zeit, x = (t) => (SV_LINKS + (t - von) / (bis - von) * breite).toFixed(1);
     const yWert = 10 + spuren.length * SV_ZEILE + 8, yAchse = yWert + ZW_HOEHE + 8, hoehe = yAchse + 36;
-    const inhalt = marken.filter((m) => m.t >= von && m.t <= bis).map((m) => zvMarke(m, x, hoehe)).join("") + spuren.map((s, i) => zvSpur(s, i, von, bis, x)).join("") + zwSpur(wert, yWert, von, bis, x) + zwAchse(von, bis, x, yAchse, teilung2);
-    return iaSvg(SV_LINKS + ZV_BREITE + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
+    const inhalt = marken.filter((m) => m.t >= von && m.t <= bis).map((m) => zvMarke(m, x, hoehe, breite)).join("") + spuren.map((s, i) => zvSpur(s, i, von, bis, x, breite)).join("") + zwSpur(wert, yWert, von, bis, x, breite) + zwAchse(von, bis, x, yAchse, teilung2, breite);
+    return iaSvg(SV_LINKS + breite + 10, hoehe, inhalt, "Signalverlauf über der Zeit");
   }
-  function szZeile(zahlen, y) {
-    const werte = zahlen.werte.slice(-SV_MAX);
+  function szZeile(zahlen, y, max) {
+    const werte = zahlen.werte.slice(-max);
     const felder = werte.map((w, i) => {
       const neu = i && w !== werte[i - 1] ? " neu" : "";
       return iaText(SV_LINKS + i * SV_SPALTE + SV_SPALTE / 2, y, String(w), `sv-zahl${neu}`);
     }).join("");
     return iaText(SV_LINKS - 10, y, zahlen.name, "sv-name", "end") + felder;
   }
-  function signalverlaufZahlenSVG(spuren, zahlen, beschriftung2 = "Schritt") {
-    const kurz = spuren.map((s) => ({ ...s, werte: s.werte.slice(-SV_MAX) }));
-    const n = Math.max(1, zahlen.werte.slice(-SV_MAX).length), yZahl = 10 + spuren.length * SV_ZEILE + 14, hoehe = yZahl + 26;
+  function signalverlaufZahlenSVG(spuren, zahlen, beschriftung2 = "Schritt", breit = false) {
+    const { max } = svMass(breit), kurz = spuren.map((s) => ({ ...s, werte: s.werte.slice(-max) }));
+    const n = Math.max(1, zahlen.werte.slice(-max).length), yZahl = 10 + spuren.length * SV_ZEILE + 14, hoehe = yZahl + 26;
     const fuss = iaText(SV_LINKS + n * SV_SPALTE / 2, hoehe - 2, `${beschriftung2} → Zeit`, "sv-fuss");
-    const inhalt = svRaster(n, hoehe) + kurz.map(svSpur).join("") + szZeile(zahlen, yZahl) + fuss;
-    return iaSvg(SV_LINKS + SV_MAX * SV_SPALTE + 10, hoehe, inhalt, "Signalverlauf mit Zählerstand");
+    const inhalt = svRaster(n, hoehe) + kurz.map((s, i) => svSpur(s, i, max)).join("") + szZeile(zahlen, yZahl, max) + fuss;
+    return iaSvg(SV_LINKS + max * SV_SPALTE + 10, hoehe, inhalt, "Signalverlauf mit Zählerstand");
   }
 
   // web/tools/uebungshandbuch/src/app/interaktiv/logik-bild.js
@@ -3903,7 +4086,7 @@ button.bm-bit{cursor:pointer}
   function logikVerlaufHTML(z) {
     const spur = (k, name2) => ({ name: name2, werte: z.verlauf.map((s) => s[k]) });
     const spuren = [spur("a", z.namen.a), ...zweiEin(z) ? [spur("b", z.namen.b)] : [], spur("q", z.namen.q)];
-    return signalverlaufSVG(spuren, "Klicks");
+    return signalverlaufSVG(spuren, "Klicks", z.breit);
   }
   function erklaerungHTML(z) {
     const q = ergebnis(z);
@@ -3949,6 +4132,7 @@ button.bm-bit{cursor:pointer}
     LOGIK_AKTION[name2](z, wert);
   }
   iaRegistrieren("logik", {
+    titel: "Verknüpfung",
     neu: (at) => {
       const z = logikNeu(at);
       schritt(z);
@@ -4149,7 +4333,7 @@ button.bm-bit{cursor:pointer}
   var spSpurName = (name2, kurz) => name2.length > 11 ? kurz : iaKurz(name2);
   function spVerlaufHTML(z) {
     const spur = (k, kurz) => ({ name: spSpurName(z.namen[k], kurz), werte: z.verlauf.map((v) => v[k]) });
-    return signalverlaufSVG([spur("s", "S"), spur("r", "R"), spur("q", "Q")], "Klicks");
+    return signalverlaufSVG([spur("s", "S"), spur("r", "R"), spur("q", "Q")], "Klicks", z.breit);
   }
   function spKnoepfeHTML(z) {
     const tippen = (sig, name2) => `<button type="button" class="btn small" data-ia-akt="tippen:${sig}">${iaName(name2)} kurz 1</button>`;
@@ -4199,6 +4383,7 @@ button.bm-bit{cursor:pointer}
     }
   };
   iaRegistrieren("speicher", {
+    titel: "Setzen und Rücksetzen",
     neu: speicherNeu,
     html: speicherHTML,
     aktion: (z, akt) => {
@@ -4410,7 +4595,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
   }
   function flVerlaufHTML(z) {
     const spur = (k, name2) => ({ name: name2, werte: z.verlauf.map((v) => v[k]) });
-    const svg = signalverlaufSVG([spur("e", spSpurName(z.namen.e, "E")), spur("m", flDef(z).typ === "hand" ? spSpurName(z.scl.m, "Merker") : "Merker"), spur("q", spSpurName(z.namen.q, "Q"))], "Zyklen");
+    const svg = signalverlaufSVG([spur("e", spSpurName(z.namen.e, "E")), spur("m", flDef(z).typ === "hand" ? spSpurName(z.scl.m, "Merker") : "Merker"), spur("q", spSpurName(z.namen.q, "Q"))], "Zyklen", z.breit);
     return svg + `<p class="small muted">Spur Merker: was beim Vergleich im Flankenmerker stand, also der Eingang aus dem vorigen Zyklus. Q ist genau einen Zyklus lang 1.</p>`;
   }
   function flWissenHTML() {
@@ -4445,6 +4630,8 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     }
   };
   iaRegistrieren("flanke", {
+    titel: "Flanken",
+    anhalten: flAnhalten,
     neu: flankeNeu,
     html: flankeHTML,
     aktion: (z, akt) => {
@@ -4644,7 +4831,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
   function reaktionHTML(z) {
     const r = z.m.reaktion, T2 = z.m.T;
     const gemessen = r && r.wert !== null ? `<b>Gemessen: ${ms(r.wert)}</b> = ${(r.wert / T2).toLocaleString("de-DE", { maximumFractionDigits: 2 })} × Zykluszeit.` : r ? "Gemessen wird gerade: Warte, bis der Ausgang schaltet." : "Schalte im Betrieb den Sensor um, dann misst die Erklärung die Reaktionszeit.";
-    return `<div class="zy-info"><b>Reaktionszeit</b> (Klemme bis Ausgang): ${gemessen}<br><span class="small">Sie liegt zwischen etwa 1 und 2 Zykluszeiten, hier ${ms(T2)} bis ${ms(2 * T2)}. Wechselt das Signal kurz <i>vor</i> dem Einlesen, bearbeitet der OB1 es sofort, und am Ende desselben Zyklus schaltet der Ausgang: etwa 1 × Zykluszeit. Wechselt es kurz <i>nach</i> dem Einlesen, wartet es fast einen ganzen Zyklus auf das nächste Einlesen, und der Ausgang schaltet erst am Ende des folgenden Zyklus: fast 2 × Zykluszeit.</span></div>`;
+    return `<div class="zy-info"><b>Reaktionszeit</b> (Klemme bis Ausgang): ${gemessen}<details class="ia-begriffe"><summary>Warum 1 bis 2 Zykluszeiten (hier ${ms(T2)} bis ${ms(2 * T2)})?</summary><p class="small">Wechselt das Signal kurz <i>vor</i> dem Einlesen, bearbeitet der OB1 es sofort, und am Ende desselben Zyklus schaltet der Ausgang: etwa 1 × Zykluszeit. Wechselt es kurz <i>nach</i> dem Einlesen, wartet es fast einen ganzen Zyklus auf das nächste Einlesen, und der Ausgang schaltet erst am Ende des folgenden Zyklus: fast 2 × Zykluszeit.</p></details></div>`;
   }
   function impulsHTML(z) {
     if (!z.m.verpasst && !(z.m.impulsGesehen && z.m.impulsEnde === null && z.letzterImpuls)) return "";
@@ -4656,7 +4843,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     const marken = [];
     if (m.start !== null) for (let t = m.start, n = 1; t <= bis; t += m.T, n++) marken.push({ t, text: `Zyklus ${n} · ${ms(t)}` });
     const spuren = [["k", "Klemme"], ["e", "PAE"], ["a", "PAA"], ["q", "Ausgang"]].map(([k, name2]) => ({ name: name2, wechsel: m.spuren[k] }));
-    return zeitverlaufSVG({ spuren, von, bis, marken, punkte: m.lesungen.map((t) => ({ zeile: 1, t })) }) + `<p class="small muted">Senkrechte Linien: Zyklusanfang. Dreiecke: Hier liest die CPU die Eingänge ins PAE.</p>`;
+    return zeitverlaufSVG({ spuren, von, bis, marken, punkte: m.lesungen.map((t) => ({ zeile: 1, t })), breit: z.breit });
   }
   var zyKnopf = (akt, t, prim, an) => `<button type="button" class="btn small${prim ? " primary" : ""}" data-ia-akt="${akt}"${an === void 0 ? "" : ` aria-pressed="${an}"`}>${t}</button>`;
   function steuerHTML(z) {
@@ -4672,7 +4859,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     return `<details class="ia-begriffe"><summary>Begriffe: Betriebszustand, Anlauf-OB, PAE, PAA, Zykluskontrollpunkt, Zykluszeit, Reaktionszeit</summary><dl>` + ZY_BEGRIFFE.map(([t, d]) => `<div><dt>${t}</dt><dd>${d}</dd></div>`).join("") + `</dl></details>`;
   }
   function zyklusHTML(z) {
-    return `<div class="ia-kopf"><b>Probier es aus:</b> Schalte ein, schalte den Sensor und miss, wann der Ausgang reagiert. Gib dann kurze Impulse.</div><div class="zy-oben"><div class="zy-ring">${ringSVG(z)}</div><div class="zy-mitte">${phasenHTML(z)}${strasseHTML(z)}</div></div><div class="zy-steuer"><div class="zy-sensor">${sensorHTML(z)}</div><div class="zy-knoepfe">${steuerHTML(z)}</div></div>` + impulsHTML(z) + textHTML(z) + reaktionHTML(z) + `<div class="ia-verlauf"><div class="ia-verlauf-kopf"><b>Signalverlauf über der Zeit</b></div>${verlaufHTML(z)}</div>` + zyBegriffeHTML();
+    return `<div class="ia-kopf"><b>Probier es aus:</b> Schalte ein, schalte den Sensor und miss, wann der Ausgang reagiert. Gib dann kurze Impulse.</div><div class="zy-oben"><div class="zy-ring">${ringSVG(z)}</div><div class="zy-mitte">${phasenHTML(z)}${strasseHTML(z)}</div></div><div class="zy-steuer"><div class="zy-sensor">${sensorHTML(z)}</div><div class="zy-knoepfe">${steuerHTML(z)}</div></div><div class="zy-texte">${textHTML(z)}<div class="zy-saetze">${reaktionHTML(z)}${impulsHTML(z)}</div></div><div class="ia-verlauf"><div class="ia-verlauf-kopf"><b>Signalverlauf über der Zeit</b><span class="small muted">Senkrechte Linien: Zyklusanfang. Dreiecke: Hier liest die CPU die Eingänge ins PAE.</span></div>${verlaufHTML(z)}</div>` + zyBegriffeHTML();
   }
   var ZY_AKTION = {
     zeit: (z, T2) => {
@@ -4693,6 +4880,8 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     }
   };
   iaRegistrieren("zyklus", {
+    titel: "Anlauf, SPS-Zyklus und Reaktionszeit",
+    anhalten,
     neu: zyklusNeu,
     html: zyklusHTML,
     aktion: (z, akt) => {
@@ -5033,7 +5222,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     const m = z.m, fenster = ztFenster(m), bis = Math.max(fenster, m.t), von = bis - fenster;
     const spuren = ["in", ...m.art === "TONR" ? ["r"] : [], "q"].map((k) => ({ name: k.toUpperCase(), wechsel: m.spuren[k] }));
     const wert = { name: "ET", punkte: zeEtVerlauf(m), max: m.pt, linie: { v: m.pt, text: "PT" } };
-    return zeitverlaufWertSVG({ spuren, wert, von, bis, marken: m.marken, teilung: fenster > 12e3 ? 2e3 : 1e3 }) + `<p class="small muted">Die Rampe zeigt ET. Die gestrichelte Linie ist PT. Senkrechte Linien: Die Zeitmessung startet oder ET erreicht PT.</p>`;
+    return zeitverlaufWertSVG({ spuren, wert, von, bis, marken: m.marken, teilung: fenster > 12e3 ? 2e3 : 1e3, breit: z.breit }) + `<p class="small muted">Die Rampe zeigt ET. Die gestrichelte Linie ist PT. Senkrechte Linien: Die Zeitmessung startet oder ET erreicht PT.</p>`;
   }
   var ZT_BEGRIFFE = [
     ["IEC-Zeit", "Eine Zeitfunktion der S7-1500: TP, TON, TOF oder TONR. Jedem Aufruf ist eine eigene IEC-Zeit zugeordnet, in der sie ihre Daten speichert (Instanz)."],
@@ -5083,6 +5272,8 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     }
   };
   iaRegistrieren("zeit", {
+    titel: "Zeiten",
+    anhalten: ztAnhalten,
     neu: zeitNeu,
     html: zeitHTML,
     aktion: (z, akt) => {
@@ -5260,7 +5451,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     const m = z.m, a = zlAusgaenge(m);
     const keys = [...ZZ_PINS[m.art].ein, ...Object.keys(a)];
     const spuren = keys.map((k) => ({ name: k.toUpperCase(), werte: m.verlauf.map((s) => s[k]) }));
-    return signalverlaufZahlenSVG(spuren, { name: "CV", werte: m.verlauf.map((s) => zzZahl(s.cv)) }, "Aufrufe") + `<p class="small muted">Jede Spalte ist ein Aufruf des Zählers (ein Zyklus). Halte CU auf 1 und klicke auf <i>Nächster Zyklus</i>: CV ändert sich nicht.</p>`;
+    return signalverlaufZahlenSVG(spuren, { name: "CV", werte: m.verlauf.map((s) => zzZahl(s.cv)) }, "Aufrufe", z.breit) + `<p class="small muted">Jede Spalte ist ein Aufruf des Zählers (ein Zyklus). Halte CU auf 1 und klicke auf <i>Nächster Zyklus</i>: CV ändert sich nicht.</p>`;
   }
   var ZZ_BEGRIFFE = [
     ["CV", "Aktueller Zählwert, hier Datentyp Int (−32768 bis 32767). An der Grenze bleibt CV stehen, der Zähler läuft nicht über."],
@@ -5296,6 +5487,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     }
   };
   iaRegistrieren("zaehler", {
+    titel: "Zähler",
     neu: zaehlerNeu,
     html: zaehlerHTML,
     aktion: (z, akt) => {
@@ -5845,6 +6037,18 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     const bits = Array.from({ length: n }, (_, k) => [7, 6, 5, 4, 3, 2, 1, 0].map((j) => zsBitHTML(sp, sp.start + k, j)).join("")).join("");
     return `<div class="zs-rollen"><div class="zs-gitter">${zeilen2.join("")}<div class="zs-zeile zs-bits" style="--n:${8 * n}">${bits}</div></div></div>`;
   }
+  function zsKurzFeldHTML(sp, f, op) {
+    const m = zsLesen(sp, f.adr, f.bits), [klasse, rolle] = zsRolle(sp, f, sp.wahl);
+    const opText = op && zsGleich(f, op) ? `<span class="zs-op">dein Operand</span>` : "";
+    return `<div class="zs-feld ${klasse}" style="grid-column:${f.spalte + 1} / span ${f.bits / 8}"><b>${zsName(sp, f)}</b>${opText}<span class="zs-wert"><code>${zfHex(m, f.bits)}</code> <code>${m}</code></span><span class="zs-rolle">${rolle || "&nbsp;"}</span></div>`;
+  }
+  var zsKurzBitsHTML = (sp, adr) => `<div class="zs-kurz-bits"><code>${zfBinaer(zsByte(sp, adr), 8).slice(2).replace("_", " ")}</code><span>%${sp.bereich}${adr}.7 bis ${adr}.0</span></div>`;
+  function zsUebersichtHTML(sp, op, hinweis2 = "") {
+    const n = zsFensterBytes(sp), zeile2 = (inhalt) => `<div class="zs-zeile" style="--n:${n}">${inhalt}</div>`;
+    const ebenen = zsZeilen(sp).filter((e) => !e.versatz).map((e) => zeile2(e.felder.map((f) => zsKurzFeldHTML(sp, f, op)).join("")));
+    const bits = zeile2(Array.from({ length: n }, (_, k) => zsKurzBitsHTML(sp, sp.start + k)).join(""));
+    return `${hinweis2}<div class="zs-gitter zs-kurz">${ebenen.join("")}${bits}</div>`;
+  }
   var ZS_BREITE_NAME = { 2: "Wort", 4: "Doppelwort", 8: "LWord" };
   function zsLeisteHTML(sp) {
     const tabs = (liste2, akt, aktiv, text2) => `<div class="ia-tabs">${liste2.map((w) => `<button type="button" data-ia-akt="${akt}:${w}" aria-pressed="${w === aktiv}">${text2(w)}</button>`).join("")}</div>`;
@@ -5919,28 +6123,8 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
   };
 
   // web/tools/uebungshandbuch/src/app/interaktiv/zahl-gross.js
-  var zgZu = null;
-  function zgSchliessen() {
-    const zu = zgZu;
-    zgZu = null;
-    if (zu) zu();
-    $("#iadlg").innerHTML = "";
-  }
-  function zgAnmelden(d) {
-    if (d.dataset.bereit) return;
-    d.dataset.bereit = "1";
-    d.addEventListener("close", zgSchliessen);
-    d.addEventListener("click", (e) => {
-      if (e.target === d) d.close();
-    });
-  }
   function zgOeffnen(titel, platzhalter2, zu) {
-    const d = $("#iadlg");
-    if (!d) return;
-    zgAnmelden(d);
-    zgZu = zu;
-    d.innerHTML = `<div class="iadlg-in"><header class="iadlg-kopf"><h2>${titel}</h2><form method="dialog"><button class="btn primary" value="ok">Fertig</button></form></header><div class="iadlg-body">${iaEinsetzen(platzhalter2)}</div></div>`;
-    d.showModal();
+    puOeffnen("#iadlg2", titel, iaEinsetzen(platzhalter2, { bedienbar: true }), zu);
   }
 
   // web/tools/uebungshandbuch/src/app/interaktiv/zahl.js
@@ -6147,7 +6331,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     return zfKopfHTML(z, "Klicke auf die Bits oder gib eine Zahl ein.") + zfTitelHTML(z) + zfBitfeldHTML(z) + zfEingabeHTML(z) + zfMeldungHTML(z) + dtSteckbriefHTML(z.typ) + `<div class="zf-unten">${zfTabelleHTML(z)}<div class="zf-zusatz">${zfZusatzHTML(z)}</div></div>` + zfSatzHTML(z) + zfBegriffeHTML();
   }
   function zahlSpeicherHTML(z) {
-    return zfKopfHTML(z, "Klicke auf eine Ebene oder auf die Bits.") + zfTitelHTML(z) + zfSpeicherHTML(z) + `<div class="zf-eingabe"><button type="button" class="btn small" data-ia-akt="gross">Speicheraufbau groß ansehen</button></div>` + dtSteckbriefHTML(z.typ) + zfBegriffeHTML();
+    return zfKopfHTML(z, "So liegen die Bytes im Speicher.") + zfTitelHTML(z) + zsUebersichtHTML(z.sp, zfOperand(z), zfOhneAdresse(z)) + dtSteckbriefHTML(z.typ) + zfBegriffeHTML();
   }
   var ZF_GROSS_TABS = { speicher: "Speicheraufbau", typen: "Datentypen", zeiten: "Zeiten" };
   var ZF_GROSS_INHALT = {
@@ -6196,7 +6380,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     q.sp.bytes = g.sp.bytes;
     q.grossZustand = null;
     zfAusSpeicher(q);
-    iaZeichnen(q.id);
+    if (!iaZeichnen(q.id)) iaVorschauZeichnen(q.id);
   }
   var ZF_SPEICHER_AKTION = Object.fromEntries(Object.entries(ZS_AKTION).map(([k, f]) => [k, (z, w, el) => {
     f(z.sp, w, el);
@@ -6224,6 +6408,8 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     }
   };
   iaRegistrieren("zahl", {
+    titel: "Zahlenformate",
+    oeffnen: (z) => z.ansicht === "speicher" ? zfGrossOeffnen(z) : iaGrossOeffnen(z),
     neu: (at) => {
       const z = zahlNeu(at);
       if (z.quelle) z.quelle.grossZustand = z;
@@ -6430,6 +6616,8 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     pause: bmAnhalten
   };
   iaRegistrieren("bitmuster", {
+    titel: "Bitmuster",
+    anhalten: bmAnhalten,
     neu: bitmusterNeu,
     html: bitmusterHTML,
     aktion: (z, akt) => {
@@ -6830,6 +7018,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
     bsp: reBeispiel
   };
   iaRegistrieren("rechnen", {
+    titel: "Rechnen",
     neu: rechnenNeu,
     html: rechnenHTML,
     aktion: (z, akt, el) => {
@@ -6867,7 +7056,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
   function zeige(titel, unter, inhalt) {
     const schliessen = `<div class="row"><button class="btn primary" value="ok">Schließen</button></div>`;
     $("#dlg").innerHTML = `<form class="dlg nsdlg" method="dialog"><h2>${titel}</h2><p class="muted">${unter}</p>${inhalt}${schliessen}</form>`;
-    $("#dlg").showModal();
+    dlgZeigen($("#dlg"));
   }
   var NS_AKTION = {
     "ns-aufgabe": (s) => zeige(`Aufgabe ${s.id}`, esc(s.t), aufgabeHTML(s)),
@@ -8918,7 +9107,7 @@ ${" ".repeat(inst.length + 1)}Q => ${z.scl.q});`;
       $("#dlg").close();
       if (html) doPrint(html);
     };
-    $("#dlg").showModal();
+    dlgZeigen($("#dlg"));
   }
 
   // web/tools/uebungshandbuch/src/app/seiten.js
@@ -14872,7 +15061,7 @@ END_CASE;`)}
       const d = new FormData(form), von = +d.get("von") || 1, bis = +d.get("bis") || gesamt;
       drucke(d.get("format"), Math.min(von, bis), Math.max(von, bis));
     });
-    $("#dlg").showModal();
+    dlgZeigen($("#dlg"));
   }
   function drucke(format, von, bis) {
     const klasse = format === "a4" ? "land" : "sp-a3";
@@ -15165,7 +15354,7 @@ END_CASE;`)}
         route();
       }
     };
-    $("#dlg").showModal();
+    dlgZeigen($("#dlg"));
   }
   function init7() {
     document.addEventListener("input", (e) => {
@@ -15259,7 +15448,7 @@ END_CASE;`)}
       }
       if (act === "zoom") {
         $("#lb").innerHTML = `<form method="dialog"><img src="${a.dataset.src}" alt=""><p>${chips(a.dataset.cap)} <button class="btn small" style="float:right">Schließen</button></p></form>`;
-        $("#lb").showModal();
+        dlgZeigen($("#lb"));
       }
       if (act === "form") doPrint(formPage(a.dataset.f));
       if (act === "bew-print") doPrint(bewPage(BY[a.dataset.id]));
@@ -15279,9 +15468,21 @@ END_CASE;`)}
     });
     document.addEventListener("toggle", (e) => $$("textarea.auto", e.target).forEach(autoGrow), true);
     addEventListener("resize", () => $$("textarea.auto").forEach(autoGrow));
-    $("#lb").addEventListener("click", (e) => {
-      if (e.target === $("#lb")) $("#lb").close();
-    });
+    addEventListener("scroll", kopfAnpassen, { passive: true });
+  }
+  var KOPF_KLEIN_AB = 24, KOPF_GROSS_BIS = 4;
+  function kopfKlein(kopf3, klein) {
+    if (kopf3.classList.contains("klein") === klein) return;
+    const vorher = kopf3.offsetHeight;
+    kopf3.style.marginBottom = "";
+    kopf3.classList.toggle("klein", klein);
+    if (klein) kopf3.style.marginBottom = vorher - kopf3.offsetHeight + "px";
+  }
+  function kopfAnpassen() {
+    const kopf3 = $(".exhead");
+    if (!kopf3) return;
+    if (scrollY > KOPF_KLEIN_AB) kopfKlein(kopf3, true);
+    else if (scrollY < KOPF_GROSS_BIS) kopfKlein(kopf3, false);
   }
 
   // web/tools/uebungshandbuch/src/editor/ereignisse.js

@@ -4,20 +4,20 @@
 // typ: Datentypen zum Umschalten (Byte, Word, DWord, LWord, USInt … ULInt, SInt … LInt, Real, LReal, BCD16).
 // wert: Startwert (dezimal, 16#…, 2#…, auch W#16#…, INT#…). adresse: Byte, Wort oder Doppelwort (IB3, IW0, QD4, MW10).
 // name: Text dazu, Kennzeichen ohne „−“ (BG1 wird ein Chip). ansicht (optional): "speicher" zeigt statt des Bitfelds
-// gleich den Speicheraufbau (Doppelwort, Wörter, Bytes, Bits).
+// gleich den Speicheraufbau als Übersicht (Doppelwort, Wörter, Bytes, Bits); ausprobieren im großen Popup.
 // Bits anklicken, Zahl eingeben, +1/−1: binär, hexadezimal, dezimal, BCD, Bytes mit Adressen und Bits folgen.
 // „Speicheraufbau groß ansehen“ öffnet das große Popup (zahl-gross.js) mit Speicheraufbau, Datentypen und Zeiten.
 // Der Operand liegt zugleich im Speicher z.sp (zahl-speicher-modell.js); jede Änderung gleicht beide ab.
 import { chip, esc } from '../basis.js';
 import { SIG } from '../daten.js';
-import { iaRegistrieren, iaZeichnen } from './basis.js';
+import { iaGrossOeffnen, iaRegistrieren, iaVorschauZeichnen, iaZeichnen } from './basis.js';
 import { bxTabs } from './box-bild.js';
 import { ZF_GLEIT, ZF_TYPEN, zfAdresse, zfBcdTetraden, zfBinaer, zfBit, zfBytes, zfGenau, zfHex, zfKippen, zfKuerzen, zfLesen,
   zfMusterParsen, zfRealTeile, zfRolle, zfSchritt, zfZahlText } from './zahl-modell.js';
 import { DT_QUELLE, DT_TYPEN, DT_ZEITEN, dtSteckbriefHTML, dtTabelleHTML } from './zahl-typen.js';
 import { zdHTML } from './zahl-zeit.js';
 import { zsLesen, zsNeu, zsOperandZeigen, zsSchreiben } from './zahl-speicher-modell.js';
-import { ZS_AKTION, zsHTML, zsKennzeichen } from './zahl-speicher.js';
+import { ZS_AKTION, zsHTML, zsKennzeichen, zsUebersichtHTML } from './zahl-speicher.js';
 import { zgOeffnen } from './zahl-gross.js';
 
 const ZF_BEGRIFFE = [
@@ -231,9 +231,10 @@ function zahlNormalHTML(z){
     + zfTitelHTML(z) + zfBitfeldHTML(z) + zfEingabeHTML(z) + zfMeldungHTML(z) + dtSteckbriefHTML(z.typ)
     + `<div class="zf-unten">${zfTabelleHTML(z)}<div class="zf-zusatz">${zfZusatzHTML(z)}</div></div>` + zfSatzHTML(z) + zfBegriffeHTML();
 }
+// Nur als Vorschau im Text: die Übersicht. Ein Klick öffnet gleich den Speicheraufbau groß (oeffnen unten).
 function zahlSpeicherHTML(z){
-  return zfKopfHTML(z, "Klicke auf eine Ebene oder auf die Bits.") + zfTitelHTML(z) + zfSpeicherHTML(z)
-    + `<div class="zf-eingabe"><button type="button" class="btn small" data-ia-akt="gross">Speicheraufbau groß ansehen</button></div>`
+  return zfKopfHTML(z, "So liegen die Bytes im Speicher.") + zfTitelHTML(z)
+    + zsUebersichtHTML(z.sp, zfOperand(z), zfOhneAdresse(z))
     + dtSteckbriefHTML(z.typ) + zfBegriffeHTML();
 }
 const ZF_GROSS_TABS = {speicher: "Speicheraufbau", typen: "Datentypen", zeiten: "Zeiten"};
@@ -279,12 +280,12 @@ function zfGrossOeffnen(z){
   zgOeffnen("Speicheraufbau und Datentypen", `<div data-interaktiv="zahl" data-gross="1"></div>`, () => zfGrossZu(z));
   zfGrossQuelle = null;
 }
-// Popup zu: Bytes übernehmen, die kleine Erklärung neu zeichnen
+// Popup zu: Bytes übernehmen, die Erklärung neu zeichnen (im Popup darunter oder, wenn keins offen ist, die Vorschau)
 function zfGrossZu(q){
   const g = q.grossZustand; if (!g) return;
   q.sp.bytes = g.sp.bytes; q.grossZustand = null;
   zfAusSpeicher(q);
-  iaZeichnen(q.id);
+  if (!iaZeichnen(q.id)) iaVorschauZeichnen(q.id);
 }
 // Aktionen der Speicheransicht ändern z.sp; danach liest der Operand seinen Wert aus dem Speicher
 const ZF_SPEICHER_AKTION = Object.fromEntries(Object.entries(ZS_AKTION).map(([k, f]) => [k, (z, w, el) => { f(z.sp, w, el); zfAusSpeicher(z); }]));
@@ -303,6 +304,8 @@ const ZF_AKTION = {
   zeit: (z, _, feld) => { z.zeit.text = feld.value; },
 };
 iaRegistrieren("zahl", {
+  titel: "Zahlenformate",
+  oeffnen: z => z.ansicht === "speicher" ? zfGrossOeffnen(z) : iaGrossOeffnen(z),
   neu: at => {
     const z = zahlNeu(at);
     if (z.quelle) z.quelle.grossZustand = z;
