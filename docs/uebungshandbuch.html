@@ -601,7 +601,7 @@ svg.sp-svg text.sig:hover{fill:var(--blue);text-decoration:underline}
   .pp.sp-druck .sp-markiert{display:none}
 }
 /* ---------- Interaktive Erklärungen (src/app/interaktiv/) ---------- */
-.ia{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:16px 18px;margin:14px 0;display:grid;gap:14px}
+.ia{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:16px 18px;margin:14px 0;display:grid;grid-template-columns:minmax(0,1fr);gap:14px}
 .ia-kopf{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:14.5px}
 .ia-tabs{display:inline-flex;gap:4px;margin-left:auto}
 .ia-bild .ia-tabs{margin:0 0 8px}
@@ -690,13 +690,13 @@ span.zy-modus.aktiv{background:var(--blue);border-color:var(--blue);color:var(--
 .zy-steuer .ia-knoepfe{flex-direction:row;align-items:center}
 .zy-knoepfe{display:flex;gap:8px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){.zy-st.aktiv{animation:none}}
-@media screen and (max-width:860px){.ia-reihe,.zy-oben{grid-template-columns:1fr}.ia-knoepfe{flex-direction:row}}
+@media screen and (max-width:860px){.ia-reihe,.zy-oben{grid-template-columns:minmax(0,1fr)}.ia-knoepfe{flex-direction:row;flex-wrap:wrap}}
 /* ---------- Interaktive Erklärungen: Speicher (speicher.js) und Flanken (flanke.js) ---------- */
 .ia-svg text.sp-titel{font:700 13px var(--mono)}
 .ia-svg text.sp-pin{font:600 11.5px var(--mono);fill:var(--ink2)}
 .sp-name{font:600 13.5px var(--cond);color:var(--ink2);margin-bottom:6px}
 .sp-reihe{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
-.sp-tabelle{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap}
+.sp-tabelle{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;overflow-x:auto}
 .sp-tabelle .ia-tab{width:auto}
 .sp-tabelle p{margin:0;max-width:260px}
 .sp-scl code{display:block}

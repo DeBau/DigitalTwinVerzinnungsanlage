@@ -3,7 +3,7 @@
 .ia-svg text.sp-pin{font:600 11.5px var(--mono);fill:var(--ink2)}
 .sp-name{font:600 13.5px var(--cond);color:var(--ink2);margin-bottom:6px}
 .sp-reihe{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center}
-.sp-tabelle{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap}
+.sp-tabelle{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;overflow-x:auto}
 .sp-tabelle .ia-tab{width:auto}
 .sp-tabelle p{margin:0;max-width:260px}
 .sp-scl code{display:block}
