@@ -97,6 +97,8 @@ export default {
   'PLCSIM Advanced: Die Ventile und Leuchten schaltet dein TIA-Programm. Endlagen, BG9–BG11 und die Taster gehen in die Eingänge der virtuellen CPU.': 'PLCSIM Advanced: your TIA program switches the valves and lamps. End positions, BG9–BG11 and the pushbuttons go to the inputs of the virtual CPU.',
   'Demo: Eine Schrittkette im Browser steuert die Anlage. SA1 auf AUTO: START −SF1 fährt Zyklen, bis STOP −SF2. SA1 auf EINZEL: jedes START ein Zyklus. Handbetrieb über die Schaltschranktür.': 'Demo: a step sequence in the browser controls the line. SA1 on AUTO: START −SF1 runs cycles until STOP −SF2. SA1 on SINGLE: one cycle per START. Manual mode via the cabinet door.',
   'Bridge nicht erreichbar': 'Bridge not reachable',
+  'Bridge nicht verbunden (Demo)': 'Bridge not connected (demo)',
+  'Für PLCSIM Advanced: start.bat ausführen und oben „PLCSIM Advanced“ wählen.': 'For PLCSIM Advanced: run start.bat and select “PLCSIM Advanced” above.',
   'Bridge verbunden · nur Beobachten': 'Bridge connected · monitoring only',
   'Bridge verbunden': 'Bridge connected',
   'nicht verbunden': 'not connected',

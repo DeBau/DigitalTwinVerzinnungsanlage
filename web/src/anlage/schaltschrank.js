@@ -14,6 +14,7 @@ import { buendel, leitung, rohr } from '../bauteile/leitungen.js';
 import { BAND, BAND2, KURVE, LS_POS, STOPPER } from './baender.js';
 import { MULDE, ST } from './pruefstation.js';
 import { ZULEITUNG, dummy, rohrNeu } from './pneumatik.js';
+import { TRASSE } from './kabeltrasse.js';
 import { drucktaster, meldeleuchte, tafelText, wahlschalter } from './befehlsgeraete.js';
 import { koerbe } from './koerbe.js';
 import { ausgang, ausgangSps, eingang, ketteLaeuft, korbAmPyrometer } from '../logik/eingaenge.js';
@@ -35,6 +36,10 @@ export const SCHRANK = { g: null, tueren: [], uebergang: [], hmiTex: null, hmiTa
   // --- Gehäuse (Stahlblech RAL 7035, Sockel RAL 7022) ---
   box(W, 100, D, M.anthrazit, 0, 50, 0, g);
   box(W - 8, 4, D - 8, M.blech, 0, 102, 0, g);                                   // Bodenblech mit Kabeleinführung
+  // Kabeleinführung in der Sockelblende (Bürstenleiste): rechts die Querwanne der Kabeltrasse, hinten das Stapa-Rohr von −S10;
+  // im Sockel gehen die Leitungen von unten durch das Bodenblech
+  box(3, 70, TRASSE.B + 10, M.schwarz, W / 2 + 1.5, 50, TRASSE.zQuer + 280, g);
+  box(60, 40, 3, M.schwarz, 350, 30, -D / 2 - 1.5, g);
   box(W, 2000, 4, M.blech, 0, 1100, -198, g);
   for (const sx of [-1, 1]) box(4, 1992, D, M.blech, sx * 398, 1100, 0, g);
   box(W, 4, D, M.blech, 0, 2098, 0, g);

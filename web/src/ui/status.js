@@ -29,11 +29,14 @@ export function modusSetzen(m, manuell) {
 export function statusAnzeigen() {
   const nurSehen = st.bridgeOffen && !st.steuernd;
   $('dot-bridge').className = 'dot ' + (!st.bridgeOffen ? 'bad' : nurSehen ? 'warn' : 'ok');
-  $('txt-bridge').textContent = t(!st.bridgeOffen ? 'Bridge nicht erreichbar'
+  const demoOhneBridge = st.modus === 'demo' && !st.bridgeOffen;
+  $('dot-bridge').className = 'dot ' + (demoOhneBridge ? 'aus' : !st.bridgeOffen ? 'bad' : nurSehen ? 'warn' : 'ok');
+  $('txt-bridge').textContent = t(demoOhneBridge ? 'Bridge nicht verbunden (Demo)' : !st.bridgeOffen ? 'Bridge nicht erreichbar'
     : nurSehen ? 'Bridge verbunden · nur Beobachten' : 'Bridge verbunden');
   $('dot-plc').className = 'dot ' + (!st.plcVerbunden ? 'bad' : st.plcZustand === 'Run' ? 'ok' : 'warn');
   $('txt-plc').textContent = 'PLCSIM Advanced: ' + t(st.plcVerbunden ? st.plcZustand : 'nicht verbunden');
-  $('txt-plc-detail').textContent = st.bridgeOffen ? bridgeText(st.plcText || '') : t('start.bat ausführen, dann verbindet sich die Seite automatisch.');
+  $('txt-plc-detail').textContent = st.bridgeOffen ? bridgeText(st.plcText || '')
+    : t(st.modus === 'demo' ? 'Für PLCSIM Advanced: start.bat ausführen und oben „PLCSIM Advanced“ wählen.' : 'start.bat ausführen, dann verbindet sich die Seite automatisch.');
   $('offline-banner').hidden = !(st.modus === 'sps' && (nurSehen || !(st.bridgeOffen && st.plcVerbunden)));
   $('offline-text').textContent = !st.bridgeOffen
     ? t('Bridge nicht erreichbar. Ausgänge bleiben auf dem letzten Stand.')

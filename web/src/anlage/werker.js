@@ -16,7 +16,7 @@ function abstandStrecke(x, z, [ax, az], [bx, bz]) {
 export const PERSON = { g: null, zustand: 'weg', z: 1900, x: 1150, mixer: null, walk: null, idle: null, t: 0 };
 // Person geht hinein, bleibt stehen, geht wieder hinaus. Unterbrochen ist das Schutzfeld nur, solange der Körper
 // einen Schenkel des Schutzfelds (Umhausung.js, LV) durchquert. −KF2 bleibt bis zum Quittieren aus (Wiederanlaufsperre).
-// Laufweg von links (neben dem Schaltschrank) über die Kabelbrücke durch den linken Schenkel des Schutzfelds,
+// Laufweg von links (neben dem Schaltschrank) über das Stapa-Rohr der Pultleitung durch den linken Schenkel des Schutzfelds,
 // links an Band 1 vorbei in die Umhausung.
 export function personStarten() {
   if (!PERSON.mixer || PERSON.zustand !== 'weg') return;

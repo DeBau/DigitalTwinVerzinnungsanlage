@@ -15,12 +15,17 @@ const WS_URL = (location.protocol.startsWith('http') && /^(localhost|127\.0\.0\.
 let ws = null;
 let letzteEingaenge = '';
 let gemeldeterModus = null;
+// Nur im Modus PLCSIM wird die Bridge gesucht (alle 2 s, bis sie läuft). Im Demo-Modus gibt es keine Verbindung,
+// sonst meldet der Browser jeden Fehlversuch in der Konsole.
+const suchen = () => st.modus === 'sps';
 export function verbinden() {
+  if (!suchen() || ws) return;
   // Die Betriebsart geht schon beim Verbinden mit: Steuern darf nur eine Registerkarte im Modus PLCSIM
-  try { ws = new WebSocket(WS_URL + '?modus=' + st.modus); } catch { setTimeout(verbinden, 3000); return; }
+  try { ws = new WebSocket(WS_URL + '?modus=' + st.modus); } catch { ws = null; setTimeout(verbinden, 2000); return; }
   gemeldeterModus = st.modus;
   ws.onopen = () => { st.bridgeOffen = true; letzteEingaenge = ''; statusAnzeigen(); };
   ws.onclose = () => {
+    ws = null;
     st.bridgeOffen = false; st.plcVerbunden = false; st.plcZustand = 'getrennt'; st.steuernd = true;
     statusAnzeigen();
     setTimeout(verbinden, 2000);
@@ -58,6 +63,12 @@ export function verbinden() {
       statusAnzeigen();
     }
   };
+}
+// Betriebsart umschalten (Knöpfe PLCSIM Advanced / Demo): PLCSIM verbindet mit der Bridge, Demo trennt
+export function betriebsartWaehlen(m) {
+  modusSetzen(m, true);
+  if (suchen()) verbinden();
+  else ws?.close();
 }
 export function eingaengeSenden(erzwingen) {
   if (!ws || ws.readyState !== 1) return;

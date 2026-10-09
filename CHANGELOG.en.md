@@ -8,6 +8,42 @@ major and minor version (e.g. 1.4.x); otherwise the twin reports it in the event
 
 [◀ Back to overview](README.en.md)
 
+## 1.19.0 – 2026-10-09
+
+The floor cable bridge is gone. All cables now run in perforated cable trays to the control cabinet, the control
+stations in front of the plant join them in steel conduit on the floor. In demo mode the twin no longer looks for the
+bridge. The Bridge only changes its version number.
+
+**Why**
+A cable bridge across the operating area is a tripping hazard and is not built like this on a real machine. Cables
+belong in trays, neatly routed and without crossings.
+
+**New**
+- Cable route to the control cabinet (`anlage/kabeltrasse.js`): cable trays 100 × 60, straight horizontal and vertical
+  pieces only. From the inspection station (low, passing under the safety fence) via a vertical tray up to conveyor
+  height, behind Conveyor 2 to the conveyor start, vertically down, flat on the inside of the roller curve into the
+  tray between Conveyor 1 and tin bath, along it to the rear and behind the gantry column through a cross tray to the
+  left, entering the cabinet from the side through the plinth panel.
+- Fixed lane and layer for every cable: cables laid in farther from the cabinet lie at the bottom; motor cables behind
+  the divider. No cable crosses another.
+- At horizontal/vertical transitions the vertical tray stands offset by the bending radius on its own post, the cables
+  pass freely in a bend. Edge protection on every edge cables pass over (U-shaped up the side walls at tray ends).
+- Steel conduit (`bauteile/stapa.js`) with floor clamps for the control panel, −S10 to −S50 and the cables at the
+  roller curve: straight conduit pieces with grommets only, the cable passes freely in a bend at corners and ends.
+
+**Changed**
+- Cable duct of the inspection station replaced by a perforated tray; the cables to −XD5 leave the connectors in a
+  bend straight down into the tray.
+- Light barriers −BG21, −BG22, −BG24 on Conveyor 2 run in horizontal steel conduit with brackets across the gap into
+  the tray.
+- Tray on Conveyor 1 (operator side): cables run to the rear and drop into the cross tray.
+- −S10 no longer runs on the floor through the cabinet plinth but in steel conduit into the rear of the plinth.
+- In demo mode the twin no longer looks for the bridge (no WebSocket errors in the console); the connection starts
+  with the PLCSIM Advanced button.
+
+**Docs**
+- Plant description and operation (DE/EN): cable route, steel conduit, cables of the inspection station and of −S40.
+
 ## 1.18.0 – 2026-10-09
 
 The plant no longer looks factory new: signs of use on all surfaces and targeted wear on side guides, curve rollers and

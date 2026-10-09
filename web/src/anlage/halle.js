@@ -19,8 +19,8 @@ export const LV = { systeme: [[[-1000, 645], [-1000, 1790], [3820, 1790]]], y0: 
 // Zaun hinten (z = UMH.z0): Durchlass Band 1 mit Antrieb −MA1 (x von … bis, Pfostenmitten), Schutztür (Scharnier, Schließseite)
 // rechts: Zaunseite bei x = 2050 – Durchgang ≥ 600 mm neben dem Abstreifzylinder −MM4 (bis x ≈ 1400) in den vorderen Bereich
 // Schutztür an der Ecke (von hinten gesehen ganz links): Scharnier bei 1150, Schließseite am Eckpfosten
-// hinterBand2: Zaunlinie hinter Band 2 (Gang ≈ 650 mm bis zur Kabelbrücke), kamera: Abschlusselement bei x = ende
-// von der Zaunlinie bis vor den Kabelkanal der Prüfstation (z 1220) neben dem Kamerastativ – dort bleibt nur der Durchlass
+// hinterBand2: Zaunlinie hinter Band 2 (Gang bis zur Kabelwanne hinter Band 2), kamera: Abschlusselement bei x = ende
+// von der Zaunlinie bis vor die Kabelwanne der Prüfstation (z 1155, sie läuft unter dem Gitter hindurch) neben dem Kamerastativ – dort bleibt nur der Durchlass
 // für Vibrorinne und Prüfband
 export const ZAUN = { durchlass: [-230, 330], tuer: [1150, 2050], rechts: 2050, hinterBand2: 300, ende: 3820, kamera: 1190 };
 // Industriehalle: Betonsockel, Sandwichpaneele, HEB-Stützen, Fachwerkbinder, LED-Hallenstrahler, Lichtband

@@ -10,7 +10,8 @@ import { schlauch } from '../bauteile/leitungen.js';
 import { B1, BAND, BAND_Y, LS_POS, STOPPER } from './baender.js';
 import { getriebemotor, gurtband, inkrementalgeber } from '../bauteile/foerderer.js';
 import { lichtschranke } from '../bauteile/lichtschranke.js';
-import { kabelrinne } from '../bauteile/kabelrinne.js';
+import { kabelrinne, kantenschutz } from '../bauteile/kabelrinne.js';
+import { TRASSE } from './kabeltrasse.js';
 
 // --- Band 1 ---
 const b1g = new THREE.Group(); b1g.position.z = B1.zm; anlage.add(b1g);
@@ -133,20 +134,28 @@ for (const zs of [-801]) {
   for (const sx of [-1, 1]) { box(57.5, 10, 6, M.edelstahl, sx * 103.75, BAND_Y + 40, zs); box(4, 70, 30, M.anthrazit, sx * 134.5, BAND_Y + 10, zs - s * 6); }   // Lasche endet am Winkel
   box(146, 30, 4, new THREE.MeshStandardMaterial({ color: 0x2a2e33, roughness: 0.8 }), 0, BAND_Y + 24, zs - s * 4);
 }
-// Kabelrinne gelocht 50 × 35 am Bandgestell (Bedienerseite −x), hinten mit Endstück. Vorn biegt sie nach unten ab:
-// senkrechte Rinne gleicher Größe, Boden in Verlängerung des Rinnenbodens (Ebene z1), offen nach vorn; darin gehen die
-// Leitungen hinunter und unten heraus in die Kabelbrücke. Oberkante 227,5: unter Flanschlager, Lagerschrauben und Geberwelle der Kopftrommel
-// (Achse 261) hindurch. Je Leitung eine Lage x auf dem Rinnenboden.
-export const KANAL1 = { x: -170, boden: 192.5, oben: 227.5, z0: -790, z1: 905, unten: 30,
-  lage: { BG12_Bandanfang: -186, BG11_Korb: -179, BG13_Bandende: -172, geber: -163 } };
+// Kabelrinne gelocht 50 × 35 am Bandgestell (Bedienerseite −x), hinten mit Endstück, vorn Kantenschutz. Davor (um den
+// Biegeradius rBogen versetzt) eine senkrechte Rinne gleicher Größe (Boden in der Ebene z1, offen nach vorn): darin kommen
+// die Leitungen der Steuerstellen vorn aus ihren Stapa-Rohren herauf und gehen im Bogen über die Kante in die Rinne. Oberkante 227,5: unter Flanschlager, Lagerschrauben
+// und Geberwelle der Kopftrommel (Achse 261) hindurch. Über der Querwanne zum Schaltschrank (kabeltrasse.js) ist die
+// Rinne offen (luecke): dort fallen alle Leitungen hinein, −BG12 von hinten, die übrigen von vorn.
+// Je Leitung eine Lage x auf dem Rinnenboden; −BG11 liegt auf −BG35, −BG12 (hinten) in der Lage der Pultleitung (vorn).
+export const KANAL1 = { x: -170, boden: 192.5, oben: 227.5, z0: -790, z1: 905, unten: 30, rBogen: 60,
+  luecke: [TRASSE.zQuer - TRASSE.B / 2, TRASSE.zQuer + TRASSE.B / 2],
+  lage: { BG12_Bandanfang: -189, pult: -189, BG11_Korb: -180, BG35_Kurve_Anfang: -180, BG13_Bandende: -172, geber: -164, S30: -156 } };
 {
-  const { x, boden, oben, z0, z1, unten } = KANAL1;
-  kabelrinne(V(x, boden, z0), -Math.PI / 2, { L: z1 - z0, B: 50, H: oben - boden, enden: [0] });
-  const fall = kabelrinne(V(x, boden, z1), 0, { L: boden - unten, B: 50, H: oben - boden });
+  const { x, boden, oben, z0, z1, unten, luecke, rBogen: R } = KANAL1;
+  kabelrinne(V(x, boden, z0), -Math.PI / 2, { L: luecke[0] - z0, B: 50, H: oben - boden, enden: [0] });
+  kabelrinne(V(x, boden, luecke[1]), -Math.PI / 2, { L: z1 - R - luecke[1], B: 50, H: oben - boden });
+  const fall = kabelrinne(V(x, boden - R, z1), 0, { L: boden - R - unten, B: 50, H: oben - boden });
   fall.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(V(0, -1, 0), V(0, 0, 1), V(-1, 0, 0)));   // Achse nach unten, offen nach vorn
   fall.updateMatrixWorld(true);
-  for (const z of [-600, -250, 250, 600, 850]) box(11, 30, 20, M.verzinkt, -139.5, boden + 15, z);   // Haltewinkel am Gestell
-  for (const y of [70, 150]) box(11, 20, 20, M.verzinkt, -139.5, y, z1 + (oben - boden) / 2);           // an der senkrechten Rinne
+  // Kantenschutz überall, wo Leitungen über eine Blechkante gehen: vorderes Rinnenende, beide Enden der senkrechten
+  // Rinne, die offenen Enden über der Querwanne
+  for (const z of [z1 - R, luecke[0], luecke[1]]) kantenschutz(x, boden, z, 'x', 50, [0, 1, 0], oben - boden);
+  for (const y of [boden - R, unten]) kantenschutz(x, y, z1, 'x', 50, [0, 0, 1], oben - boden);
+  for (const z of [-600, -250, 250, 600, 800]) box(11, 30, 20, M.verzinkt, -139.5, boden + 15, z);   // Haltewinkel am Gestell
+  for (const y of [60, 110]) box(11, 20, 20, M.verzinkt, -139.5, y, z1 + (oben - boden) / 2);           // an der senkrechten Rinne
 }
 // Ventilinsel Band −QM2 (2 x 5/2-Wegeventil monostabil) für Anschlag −MB9 und Vereinzeler −MB10
 export const QM2 = { z: 300, leds: [] };                   // vorn: von der Umhausungsfront aus frei zugänglich

@@ -67,7 +67,7 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   box(292, 2, L + 72, wasser, 0, BAND_Y - 140, zc, b2g);
   zyl(18, 120, M.edelstahl, 120, BAND_Y - 160, zc - 200, 'x', b2g, 12);
   // Tank mit Umwälzpumpe −MA3 hinter dem Band, Leitung über Sprühventil −MB13 zum Verteilerrohr
-  // Tank 160 tief direkt hinter dem Band (lokal x 180…340 = Welt z 1180…1340): weiter hinten stünde er auf der Kabelbrücke (bis z = 1170)
+  // Tank 160 tief direkt hinter dem Band (lokal x 180…340 = Welt z 1180…1340): weiter hinten stünde er in der Kabelwanne (bis z = 1155)
   const tz = zc + 60;
   box(160, 300, 360, M.edelstahl, 260, 160, tz, b2g);
   box(164, 6, 364, M.edelstahl, 260, 313, tz, b2g);
@@ -136,7 +136,7 @@ export const KUEHL = { x0: 1000, x1: 1600, kegel: [], luftschleier: null, dampfT
   leitung([V(XP + 40, BAND_Y + 100, lz + 22), V(XP + 40, BAND_Y + 100, lz + 80), V(XP + 40, BAND_Y - 40, lz + 80), V(140, BAND_Y - 40, lz + 80), V(140, BAND_Y - 40, lz)], luft, 4, 25, b2g);
   zyl(9, 12, M.stahl, 136, BAND_Y - 40, lz, 'x', b2g, 6);                                             // Schottverschraubung
   // Ventilkabel aus dem Gerätestecker nach hinten in die Kabelwanne hinter Band 2
-  inWanneB2(0, 1, [V(XP + 40, BAND_Y + 158, lz - 27), V(XP + 40, BAND_Y + 158, lz - 50)]);
+  inWanneB2([V(XP + 40, BAND_Y + 158, lz - 27), V(XP + 40, BAND_Y + 158, lz - 50)]);
   KUEHL.luftschleier = new THREE.Mesh(new THREE.PlaneGeometry(240, 180), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.12, depthWrite: false, side: THREE.DoubleSide }));
   KUEHL.luftschleier.position.set(0, BAND_Y + 95, lz - 40); KUEHL.luftschleier.rotation.x = 0.5; KUEHL.luftschleier.visible = false; b2g.add(KUEHL.luftschleier);
   label('Luftmesser −MB14', b2g, 0, YO + 60, lz, 'klein');
@@ -218,25 +218,25 @@ function tankAusruestung(tz) {
   const mb18 = new THREE.Group(); mb18.position.set(fx, 600, fz); b2g.add(mb18);
   regelventilSiemens(mb18);
   label('Frischwasser', b2g, fx, 1330, fz, 'klein');
-  // Leitungen in die Kabelwanne hinter Band 2 (wanne-band2.js): Spur/Lage nach Einlegestelle, siehe dort
+  // Leitungen in die Kabelwanne hinter Band 2 (wanne-band2.js): Spur und Lage vergibt die Trasse (kabeltrasse.js)
   const PX = 265, PZ = tz - 125;                                                                   // Pumpenlage wie oben
   // Liquiphant −BG38/−BG39: Stecker nach unten, im engen Bogen unter dem Gerät zur Wand, an der Wand (Schellen) hoch und
-  // von oben in die Wanne. Nur 15 mm unter den Stecker: −BG38 sitzt über der Kabelbrücke (Oberkante 28 mm)
-  [[bg38, 3], [bg39, 2]].forEach(([sn, spur]) => {
+  // von oben in die Wanne. Nur 15 mm unter den Stecker: −BG38 sitzt tief an der Tankwand
+  [bg38, bg39].forEach((sn) => {
     const a2 = sn.a, yu = a2.y - 15, zw = a2.z + 21;                                               // neben dem Sechskant des Sensors
-    inWanneB2(spur, 0, [a2, V(a2.x, yu, a2.z), V(a2.x, yu, zw), V(352, yu, zw), V(352, 360, zw)], M.kabelGrau, 2.2);
+    inWanneB2([a2, V(a2.x, yu, a2.z), V(a2.x, yu, zw), V(352, yu, zw), V(352, 385, zw)], M.kabelGrau, 2.2);
     for (let y = yu + 40; y < 290; y += 120) box(10, 8, 12, M.kunststoff, 350, y, zw, b2g);       // Kabelschellen an der Tankwand
   });
   // −MA3: Klemmenkasten unten, über den Deckel nach hinten in die Wanne
-  inWanneB2(4, 1, [V(PX, 437, PZ + 66), V(PX, 400, PZ + 66)], M.kabel, 3.5);
+  inWanneB2([V(PX, 437, PZ + 66), V(PX, 400, PZ + 66)], M.kabel, 3.5, 'leistung');
   // −MB13: Gerätestecker der Spule (Seite +z), unter der Motorleitung neben der Pumpe vorbei
-  inWanneB2(5, 0, [V(175, 389, PZ + 60), V(175, 380, PZ + 60), V(175, 380, PZ + 52)]);
+  inWanneB2([V(175, 389, PZ + 60), V(175, 380, PZ + 60), V(175, 380, PZ + 52)]);
   // −BL2: Winkelstecker oben, direkt nach hinten
-  inWanneB2(1, 1, [bl2, V(bl2.x + 14, bl2.y, uz)]);
+  inWanneB2([bl2, V(bl2.x + 14, bl2.y, uz)]);
   // −MB18: aus M16 unten am Stellantrieb
-  inWanneB2(1, 0, [V(fx + 12, 550, fz + 92), V(fx + 12, 500, fz + 92)]);
+  inWanneB2([V(fx + 12, 550, fz + 92), V(fx + 12, 500, fz + 92)]);
   // −MB17: Gerätestecker nach vorn, neben der Fallleitung hinunter (Rohrschellen mit Kabelhalter)
-  inWanneB2(2, 1, [V(fx, 974, fz + 73), V(fx, 974, fz + 92), V(330, 974, fz + 92), V(330, 974, fz + 20), V(330, 420, fz + 20)]);
+  inWanneB2([V(fx, 974, fz + 73), V(fx, 974, fz + 92), V(330, 974, fz + 92), V(330, 974, fz + 20), V(330, 420, fz + 20)]);
   for (const y of [880, 760, 470]) box(32, 8, 24, M.kunststoff, fx + 18, y, fz + 12, b2g);
 }
 

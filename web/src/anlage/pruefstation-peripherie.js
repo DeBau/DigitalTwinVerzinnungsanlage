@@ -1,19 +1,20 @@
 import * as THREE from 'three';
 import { anlage } from '../core/szene.js';
-import { TEX } from '../core/texturen.js';
 import { M } from '../core/materialien.js';
-import { V, box, mesh, zyl } from '../core/geometrie.js';
+import { V, box, zyl } from '../core/geometrie.js';
 import { label, platte, tafel } from '../core/beschriftung.js';
 import { t as tr } from '../core/sprache.js';
 import { sensorLed } from '../core/leds.js';
-import { BRUECKE, lage } from './kabelbruecke.js';
+import { PRUEF_SPUR, TRASSE, zurTrasse } from './kabeltrasse.js';
+import { stapa } from '../bauteile/stapa.js';
 import { profil } from '../bauteile/aluprofil.js';
 import { halter, leitung, schlauch } from '../bauteile/leitungen.js';
+import { kantenschutz } from '../bauteile/kabelrinne.js';
 import { stecker, steckerWinkel } from '../bauteile/stecker.js';
 import { steckverschraubung } from '../bauteile/zylinder.js';
 import { SENSOR_AUSTRITT } from '../bauteile/nutsensor.js';
 import { VENTIL_LEDS, inAnlage, rohrNeu } from './pneumatik.js';
-import { FELD_LEDS, feldverteiler, kabel, zumPort } from './verdrahtung.js';
+import { FELD_LEDS, feldverteiler, kabel } from './verdrahtung.js';
 import { KIPPER_NACHFUEHREN, MM8, ST } from './pruefstation.js';
 import { S40_FUSS, S50_FUSS } from './befehlsgeraete.js';
 import { KLICK, PULT_TASTER } from './register.js';
@@ -28,50 +29,16 @@ import { KLICK, PULT_TASTER } from './register.js';
 //    X0 −BG30, X1 −BG31 (Nutsensoren, Schleppbogen am schwenkenden Zylinder), X2 −BG33 (auf der Mulde,
 //    Schleppschleife an der Kippachse), X3 −BG32, X4 −BG34, X5 −QM4 (−MB15 Pin 4 / −MB16 Pin 2),
 //    X6 −BG37 (Lichtschranke Einlauf Mulde, schwenkt mit, eigene Schleppschleife neben −BG33).
-//  Kabelkanal 60x40 auf Ständern vor der Station, an seinem Anfang über eine Kabelbrücke in die
-//  vorhandene Kabelbrücke zum Schaltschrank: Sammelleitung −XD5, Muldenantrieb −MA7 (−QA12/−QA13), Steuergerät −MA4,
-//  Motor −MA5, Kameraleitung −KF10 und die Steuerleitung der Vor-Ort-Steuerstelle −S40 (am Boden unter dem Prüfband).
+//  Kabelwanne 100 × 60 hinter der Station (wanne-band2.js, Teil der Kabeltrasse zum Schaltschrank): vorn darin die
+//  Leitungen vor Ort zu −XD5 und der Schlauch zur Düse (hinten), sonst die Leitungen zum Schrank: Sammelleitung −XD5,
+//  Muldenantrieb −MA7 (−QA12/−QA13), Steuergerät −MA4, Motor −MA5, Kameraleitung −KF10 und die Steuerleitungen der
+//  Vor-Ort-Steuerstellen −S40/−S50 (im Stapa-Rohr am Boden unter dem Prüfband).
 //  Bewegte Leitungen werden nur neu berechnet, wenn sich der Kippwinkel ändert (KIPPER_NACHFUEHREN).
 // ----------------------------------------------------------------------------
 const z = ST.z, A = ST.ans;
-const KX0 = 2880, KX1 = 4600, KZ = z - 270, KY = 150, KI = KZ + 12;   // Kabelkanal, Leitungsebene im Kanal
+const KZ = z - 270;                                                    // Flucht der Gerätesäulen (−XD5, Steuergerät −MA4) bei KZ + 55
+const T = TRASSE, Y_UEBER = 175, Z_VOR = T.z + T.B / 2 + 30;           // Höhe über der Wanne, Steigstelle vor ihrer Vorderwand
 anlage.updateMatrixWorld(true);
-
-// --- Kabelkanal auf Ständern, Kabelbrücke zur vorhandenen Brücke ---
-box(KX1 - KX0, 40, 60, M.pvc, (KX0 + KX1) / 2, KY, KZ);
-box(KX1 - KX0 + 4, 3, 64, M.pvcHell, (KX0 + KX1) / 2, KY + 21.5, KZ);
-for (const x of [2930, 3380, 3760, 4250, 4560]) {
-  profil(45, 45, 124, 'y', x, 62, KZ + 50); box(80, 6, 80, M.anthrazit, x, 3, KZ + 50);     // Ständer endet unter dem Halter
-  box(20, 50, 6, M.anthrazit, x, KY - 5, KZ + 33); box(20, 6, 62, M.anthrazit, x, KY - 23, KZ - 1);   // Kanalhalter (Schenkel stoßen aneinander)
-}
-label('Kabelkanal Prüfstation', anlage, 3600, KY + 50, KZ - 40, 'klein');
-{
-  const prof = [[-110, 0], [110, 0], [60, 28], [-60, 28]];
-  const weg = [[2750, 1060], [KX0 + 10, 1060], [KX0 + 10, KZ - 10]];                 // stößt am Ende der Kabelbrücke (x = 2750) an
-  const pos = [], uv = [], idx = [];
-  let lauf = 0;
-  weg.forEach((p, i) => {
-    const d0 = i > 0 ? new THREE.Vector2(p[0] - weg[i - 1][0], p[1] - weg[i - 1][1]).normalize() : null;
-    const d1 = i < weg.length - 1 ? new THREE.Vector2(weg[i + 1][0] - p[0], weg[i + 1][1] - p[1]).normalize() : null;
-    const t = (d0 && d1) ? d0.clone().add(d1).normalize() : (d0 || d1), n = new THREE.Vector2(t.y, -t.x);
-    const k = (d0 && d1) ? 1 / Math.max(0.3, n.dot(new THREE.Vector2(d1.y, -d1.x))) : 1;
-    if (i) lauf += Math.hypot(p[0] - weg[i - 1][0], p[1] - weg[i - 1][1]);
-    for (const [u, v] of prof) { pos.push(p[0] + n.x * u * k, v + 0.5, p[1] + n.y * u * k); uv.push((lauf + u * 0.6) / 110, 0.5); }
-  });
-  for (let i = 0; i < weg.length - 1; i++) for (let j = 0; j < 4; j++) { const a = i * 4 + j, b = i * 4 + (j + 1) % 4; idx.push(a, a + 4, b, b, a + 4, b + 4); }
-  idx.push(8, 9, 10, 8, 10, 11);
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  geo.setIndex(idx); geo.computeVertexNormals();
-  const mat = M.warn.clone(); mat.map = TEX.warnband.clone(); mat.map.needsUpdate = true; mat.side = THREE.DoubleSide;
-  mesh(geo, mat, anlage, false);
-}
-// Leitung aus dem Kanal (Abgang am Kanalanfang) in die Kabelbrücke bis zum Schaltschrank
-let nSchrank = 0;
-function zumSchrank(weg, mat, r) {
-  const i = nSchrank++, x = KX0 + 8 + i * 6, d = lage();
-  kabel([...weg, V(x, KY, KI), V(x, 14, KI), V(x, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)], anlage, mat, r, 20, false);
-}
 
 // --- Druckluft: Fallleitung, Wartungseinheit −AZ2, Ventilinsel −QM4 auf Montageplatte am vorderen Lagerbock ---
 const druck = new THREE.MeshStandardMaterial({ color: 0x2f7fd0, roughness: 0.45 });
@@ -148,10 +115,12 @@ QP.MB15_Kippen.forEach((p, i) => {
 });
 for (const x of [2700, 2850, 2960]) halter(x, 90, 1784, 'y');
 for (const zz of [1450, 1600, 1720]) halter(3037, 90, zz, 'y');
-// Schlauch Ø6 zur Ausblasdüse im Kabelkanal
+// Schlauch Ø6 zur Ausblasdüse: über die Leitungen in der Wanne nach hinten in seine eigene Spur (Wannenboden hinter dem
+// Trennsteg, dort liegen an der Prüfstation keine Leitungen), darin bis unter die Düse und hinauf
 {
-  const p = QP.MB16_Ausblasen[0], d = A.duese;
-  leitung([p, V(p.x, 205, p.z), V(p.x, 205, KI - 10), V(p.x, KY, KI - 10), V(d.x, KY, KI - 10), V(d.x, 205, KI - 10), V(d.x, 205, d.z - 80), V(d.x, d.y, d.z - 30), d], matD, 2.6, 16);
+  const p = QP.MB16_Ausblasen[0], d = A.duese, zS = T.z + PRUEF_SPUR.schlauch, yS = T.yPruef + 2.6;
+  for (const x of [p.x, d.x]) kantenschutz(x, T.yPruef + T.H, T.z + T.B / 2, 'x', 40);
+  leitung([p, V(p.x, 150, p.z), V(p.x, 150, zS), V(p.x, yS, zS), V(d.x, yS, zS), V(d.x, 205, zS), V(d.x, 205, d.z - 80), V(d.x, d.y, d.z - 30), d], matD, 2.6, 16);
 }
 
 // --- Bewegte Leitungen (Schleppbögen) ---
@@ -189,26 +158,33 @@ for (const x of [3300, 3450]) { profil(45, 45, 420, 'y', x, 210, KZ + 55); box(9
 const XD5 = feldverteiler(3450, 330, KZ + 32.5, Math.PI, '−XD5 Feldverteiler Prüfstation', [
   ['BG30_MM8_unten'], ['BG31_MM8_gekippt'], ['BG33_Kipper_Korb'], ['BG32_Teil_Pruefplatz'], ['BG34_KLT_voll'], ['MB15_Kippen', 'MB16_Ausblasen'], ['BG37_Kipper_Einlauf'], null]);
 for (let i = FELD_LEDS.length - 1; i >= 0; i--) if (/^MB1[56]_/.test(FELD_LEDS[i].signal)) VENTIL_LEDS.push(...FELD_LEDS.splice(i, 1));   // Ausgänge: LED folgt dem Ausgang
-// zuXD: im Kanal bis unter die Port-Spalte, dort schräg auf die Steigposition der eigenen Lage (vorn = äußere Lage)
-// und senkrecht aus dem Kanal; zumPort führt die Leitung dann in ihrer Lage vor dem Verteiler zum Port
-const zuXD = (weg, port) => {
-  const P = XD5.ports[port], x = P.p.x, zr = KI - (3 - P.zei) * 6, von = weg[weg.length - 1].x < x ? -1 : 1;
-  zumPort([...weg, V(x + von * 50, KY, KI), V(x, KY, zr), V(x, 215, zr)], P);
+// Leitungen vor Ort zu −XD5 in den vorderen Spuren der Wanne (PRUEF_SPUR.lokal, Index spur): vor der Wanne hinauf, über
+// die Vorderwand in die Spur, darin bis unter die Port-Spalte. Aus dem Stecker geht jede Leitung in einem Bogen senkrecht
+// hinunter in ihre Spur; der Radius ist so groß, dass sie genau über der Spur ankommt. Je Spalte liegt die Leitung des
+// oberen Ports in der äußeren Spur (größerer Bogen), so laufen die Bögen ineinander. Leitungen von links und rechts zu
+// verschiedenen Spalten haben getrennte Spuren.
+const zuXD = (weg, port, spur) => {
+  const P = XD5.ports[port].p, e = weg[weg.length - 1], zs = T.z + PRUEF_SPUR.lokal[spur], y = T.yPruef + 2.4, R = P.z - zs;
+  kantenschutz(e.x, T.yPruef + T.H, T.z + T.B / 2, 'x', 40);                             // über die Vorderwand
+  const bogen = [];
+  for (let k = 0; k <= 12; k++) { const a = k / 12 * Math.PI / 2; bogen.push(V(P.x, P.y - R + R * Math.sin(a), P.z - R * Math.cos(a))); }
+  kabel([...weg, V(e.x, e.y, zs), V(e.x, y, zs), V(P.x, y, zs), ...bogen], anlage, M.kabelGrau, 2.4);
 };
-const imKanal = (x) => [V(x, 75, KI), V(x, KY, KI)];
-// −BG30/−BG31: am hinteren Längsträger und am Querträger entlang nach vorn in den Kanal
-[['BG30_MM8_unten', 0], ['BG31_MM8_gekippt', 1]].forEach(([sig, port]) => {
-  const f = F3[sig], x = 2966 + port * 5;
-  zuXD([f, V(x, 75, f.z), ...imKanal(x)], port);
+const vorDerWanne = (x, y0) => [V(x, y0, Z_VOR), V(x, Y_UEBER, Z_VOR)];
+// −BG30/−BG31: am hinteren Längsträger und am Querträger entlang nach vorn bis vor die Wanne
+[['BG30_MM8_unten', 0, 5], ['BG31_MM8_gekippt', 1, 4]].forEach(([sig, port, spur]) => {
+  const f = F3[sig], x = 2970 + port * 10;
+  zuXD([f, V(x, 75, f.z), ...vorDerWanne(x, 75)], port, spur);
 });
-zuXD([FB, V(2958, 75, FB.z), ...imKanal(2958)], 2);                               // −BG33
-zuXD([FB37, V(2944, 75, FB37.z), ...imKanal(2944)], 6);                           // −BG37
-zuXD([A.bg32, V(A.bg32.x, 75, A.bg32.z), ...imKanal(A.bg32.x)], 3);
-zuXD([A.bg34, V(A.bg34.x, 510, A.bg34.z), V(A.bg34.x, 510, z - 255), V(4690, 510, z - 255), V(4690, KY, z - 255), V(4590, KY, KI)], 4);
+zuXD([FB, V(2950, 75, FB.z), ...vorDerWanne(2950, 75)], 2, 3);                      // −BG33
+zuXD([FB37, V(2940, 75, FB37.z), ...vorDerWanne(2940, 75)], 6, 0);                  // −BG37
+// −BG32: neben dem Zaunpfosten (x 3820) vorbei
+zuXD([A.bg32, V(A.bg32.x, 75, A.bg32.z), V(3760, 75, A.bg32.z), ...vorDerWanne(3760, 75)], 3, 1);
+zuXD([A.bg34, V(A.bg34.x, 510, A.bg34.z), V(A.bg34.x, 510, z - 255), V(4690, 510, z - 255), V(4690, Y_UEBER, z - 255)], 4, 2);
 for (const y of [300, 200]) halter(4690, y, z - 255, 'z');
-zuXD([MULTIPOL, V(MULTIPOL.x, KY + 50, MULTIPOL.z), V(MULTIPOL.x, KY + 50, KI), V(MULTIPOL.x, KY, KI)], 5);   // −QM4 Multipol
-// Sammelleitung −XD5, Steuergerät −MA4, Motoren, Kamera → Kanal → Kabelbrücke → Schaltschrank
-{ const s = XD5.sammel; zumSchrank([s, V(s.x, KY, s.z)], M.kabelGrau, 4); }
+zuXD([MULTIPOL, V(MULTIPOL.x, Y_UEBER, MULTIPOL.z)], 5, 1);                          // −QM4 Multipol
+// Sammelleitung −XD5, Steuergerät −MA4, Motoren, Kamera und Vor-Ort-Steuerstellen → Kabeltrasse → Schaltschrank
+{ const s = XD5.sammel; zurTrasse([s, V(s.x, Y_UEBER, s.z)], M.kabelGrau, 4); }
 {
   const gx2 = 3300, gz = KZ + 55 - 22.5 - 35;
   box(110, 150, 70, M.rittal, gx2, 335, gz);
@@ -217,15 +193,16 @@ zuXD([MULTIPOL, V(MULTIPOL.x, KY + 50, MULTIPOL.z), V(MULTIPOL.x, KY + 50, KI), 
   label('Steuergerät Vibrorinne −MA4', anlage, gx2, 440, gz, 'klein');
   stecker(anlage, A.ma4, '-z');
   kabel([V(A.ma4.x, 250, gz), V(A.ma4.x, 215, gz), V(A.ma4.x, 215, 1340), V(A.ma4.x, A.ma4.y, 1340), V(A.ma4.x, A.ma4.y, A.ma4.z - 32)], anlage, M.kabel, 3.5, 20, false);
-  zumSchrank([V(gx2 + 25, 250, gz), V(gx2 + 25, KY, gz)], M.kabel, 4);
+  zurTrasse([V(gx2 + 25, 250, gz), V(gx2 + 25, Y_UEBER, gz)], M.kabel, 4, { art: 'leistung' });
 }
-zumSchrank([FM, V(2962, 75, FM.z), ...imKanal(2962)], M.kabel, 3.5);                         // Muldenantrieb −MA7 (−QA12/−QA13, −FA8)
-zumSchrank([A.ma5, V(A.ma5.x + 30, A.ma5.y, A.ma5.z), V(A.ma5.x + 30, A.ma5.y - 60, A.ma5.z), V(A.ma5.x + 30, A.ma5.y - 60, KZ - 12), V(A.ma5.x + 30, KY, KZ - 12)], M.kabel, 4.5);   // seitlich aus dem Klemmenkasten, neben dem Motor zum Kanal
-zumSchrank([A.kf10, V(A.kf10.x, KY, A.kf10.z), V(A.kf10.x, KY, KI)], M.kabelGruen, 3.5);   // Keyence-Kabel an der Stativsäule nach unten zum Controller im Schrank
+zurTrasse([FM, V(2960, 75, FM.z), ...vorDerWanne(2960, 75)], M.kabel, 3.5, { art: 'leistung' });   // Muldenantrieb −MA7 (−QA12/−QA13, −FA8)
+zurTrasse([A.ma5, V(A.ma5.x + 30, A.ma5.y, A.ma5.z), V(A.ma5.x + 30, Y_UEBER, A.ma5.z)], M.kabel, 4.5, { art: 'leistung' });   // seitlich aus dem Klemmenkasten, neben dem Motor hinunter
+zurTrasse([A.kf10, V(A.kf10.x, Y_UEBER, A.kf10.z)], M.kabelGruen, 3.5);           // Keyence-Kabel an der Stativsäule nach unten zum Controller im Schrank
 for (const y of [200, 320]) halter(A.kf10.x, y, A.kf10.z + 4, 'y');
-// Vor-Ort-Steuerstellen −S40/−S50: aus dem Säulenfuß gerade nach hinten am Boden bis unter den Kanal, dort hoch hinein
-// (−S50 30 mm versetzt: am Stellfuß des Prüfbands bei x 4340 vorbei). Kabelschellen am Boden.
-for (const [f, x] of [[S40_FUSS, S40_FUSS.x], [S50_FUSS, S50_FUSS.x - 30]]) {
-  zumSchrank([f, V(x, 14, f.z), V(x, 14, KI), V(x, KY, KI)], M.kabelGrau, 3.5);
-  for (const zz of [1700, 1900]) if (zz < f.z - 40) box(24, 6, 30, M.kunststoff, x, 4, zz);
+// Vor-Ort-Steuerstellen −S40/−S50: aus dem Säulenfuß im Stapa-Rohr am Boden nach hinten bis vor die Wanne, dort hoch
+// und über die Vorderwand hinein (−S40 neben der Säule von −XD5 vorbei, −S50 am Stellfuß des Prüfbands bei x 4340 vorbei)
+for (const [f, x] of [[S40_FUSS, S40_FUSS.x + 40], [S50_FUSS, S50_FUSS.x - 30]]) {
+  const rohr = [V(f.x, 10, f.z), V(f.x, 10, 1600), V(x, 10, 1600), V(x, 10, Z_VOR)];
+  stapa(rohr, 10, 0, 50);                                              // Leitung steigt vor der Wanne frei auf
+  zurTrasse([f, ...rohr.slice(1), V(x, Y_UEBER, Z_VOR)], M.kabelGrau, 3.5);
 }

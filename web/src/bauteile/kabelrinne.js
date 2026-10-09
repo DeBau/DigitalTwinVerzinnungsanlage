@@ -33,8 +33,8 @@ function flaeche(w, h, mat, parent, rasterV) {
 }
 
 // abgang: [{ seite: ±1, von, bis }] Ausschnitt in der Seitenwand (lokal z = seite · B/2) für ein Anbau-T
-// enden: [0 | L] Stellen mit Endstück; trennsteg: lokal z des Trennstegs
-export function kabelrinne(pos, ry, { L, B = 100, H = 60, abgang = [], enden = [], trennsteg }) {
+// enden: [0 | L] Stellen mit Endstück; trennsteg: lokal z des Trennstegs, stegH: seine Höhe, stegVon … stegBis: Länge (lokal x)
+export function kabelrinne(pos, ry, { L, B = 100, H = 60, abgang = [], enden = [], trennsteg, stegH = H - 10, stegVon = 2, stegBis = L - 2 }) {
   const g = new THREE.Group(); g.position.copy(pos); g.rotation.y = ry; anlage.add(g);
   const boden = flaeche(L, B, M_BODEN, g, true);
   boden.rotation.x = -Math.PI / 2; boden.position.set(L / 2, 0, 0);
@@ -57,11 +57,27 @@ export function kabelrinne(pos, ry, { L, B = 100, H = 60, abgang = [], enden = [
     for (const s of [-1, 1]) zyl(3.5, 2, M.stahl, xe + (xe ? -1.5 : 1.5), H / 2, s * (B / 2 - 12), 'x', g, 6);
   }
   if (trennsteg !== undefined) {                                                  // Trennsteg mit Bodenklammern
-    const t = mesh(new THREE.PlaneGeometry(L - 4, H - 10), M_BLECH, g); t.position.set(L / 2, (H - 10) / 2, trennsteg);
-    for (let xk = 150; xk < L - 50; xk += 500) box(12, 6, 10, M.verzinkt, xk, 3, trennsteg, g);
+    const t = mesh(new THREE.PlaneGeometry(stegBis - stegVon, stegH), M_BLECH, g); t.position.set((stegBis + stegVon) / 2, stegH / 2, trennsteg);
+    for (let xk = stegVon + 150; xk < stegBis - 50; xk += 500) box(12, 6, 10, M.verzinkt, xk, 3, trennsteg, g);
   }
   g.updateMatrixWorld(true);
   return g;
+}
+
+// Kantenschutzprofil (Gummi, schwarz) auf einer Blechkante, über die Leitungen gehen: Kante mittig bei (x, y, z),
+// achse 'x' / 'z' = Richtung der Kante, L lang. Am Wannenende läuft es U-förmig an beiden Seitenwänden hoch:
+// hoch = Richtung der Wände ([dx, dy, dz], Seite der Leitungen), H = Wandhöhe. Ohne hoch nur das gerade Stück
+// (z. B. auf der Oberkante einer Seitenwand).
+export function kantenschutz(x, y, z, achse, L, hoch, H = 0) {
+  const leiste = (mx, my, mz, ax, l) => box(ax === 'x' ? l : 6, ax === 'y' ? l : 6, ax === 'z' ? l : 6, M.schwarz, mx, my, mz);
+  leiste(x, y, z, achse, L);
+  if (!hoch) return;
+  const ah = hoch[0] ? 'x' : hoch[1] ? 'y' : 'z';
+  for (const s of [-1, 1]) {
+    const w = [x, y, z], i = achse === 'x' ? 0 : 2;
+    w[i] += s * L / 2;
+    leiste(w[0] + hoch[0] * H / 2, w[1] + hoch[1] * H / 2, w[2] + hoch[2] * H / 2, ah, H);
+  }
 }
 
 // Anbau-T: Verbindungswinkel innen in beiden Ecken zwischen abgehender Rinne (Ende bei lokal x) und Hauptrinne
@@ -104,7 +120,7 @@ export function bodenstuetze(x, z, y, achse, l, kanten = []) {
 
 // Reduzierstück (einseitig) für eine Rinne in Richtung +z: Innenseite gerade bei x = xi, Außenseite schräg von xa0 (bei z0)
 // auf xa1 (bei z1); Boden gelocht, Seiten und Trennsteg (von steg0 auf steg1) mit Bördelrand bzw. glatt
-export function reduzierstueck({ y, xi, xa0, xa1, z0, z1, H = 60, steg0, steg1 }) {
+export function reduzierstueck({ y, xi, xa0, xa1, z0, z1, H = 60, steg0, steg1, stegH = H - 10 }) {
   const g = new THREE.Group(); g.position.y = y; anlage.add(g);
   const form = new THREE.Shape([new THREE.Vector2(xi, -z0), new THREE.Vector2(xa0, -z0), new THREE.Vector2(xa1, -z1), new THREE.Vector2(xi, -z1)]);
   const geo = new THREE.ShapeGeometry(form);
@@ -118,6 +134,6 @@ export function reduzierstueck({ y, xi, xa0, xa1, z0, z1, H = 60, steg0, steg1 }
   };
   wand(xi, z0, xi, z1, M_SEITE, H, true);
   wand(xa0, z0, xa1, z1, M_SEITE, H, true);
-  if (steg0 !== undefined) wand(steg0, z0, steg1, z1, M_BLECH, H - 10, false);
+  if (steg0 !== undefined) wand(steg0, z0, steg1, z1, M_BLECH, stegH, false);
   return g;
 }

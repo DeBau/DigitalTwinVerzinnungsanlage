@@ -13,6 +13,9 @@ import { box, mesh } from '../core/geometrie.js';
 // Querschnitt: gleichmäßig viele Seiten, Ringe nur dort, wo die Leitung sich biegt.
 // ----------------------------------------------------------------------------
 export const BIEGEFAKTOR = 5;
+// Sensorleitungen (PUR, M8/M12, graue Leitung bis Ø 6) sind hochflexibel: Biegeradius 2 × D statt BIEGEFAKTOR × D
+export const SENSOR_FAKTOR = 2;
+export const istSensor = (mat, r) => mat === M.kabelGrau && r <= 3;
 export const BIEGUNG_ZU_ENG = [];
 globalThis.__biegung = BIEGUNG_ZU_ENG;
 const BOGEN_SCHRITT = Math.PI / 14;              // höchstens ~13° je Ring im Bogen

@@ -17,8 +17,7 @@ import { rollenkurveZuruecksetzen } from '../logik/rollenkurve.js';
 import { wzFensterOeffnen, wzZuruecksetzen } from './diagramm.js';
 import { fuFensterOeffnen } from './umrichter.js';
 import { monitorAufbauen } from './signalmonitor.js';
-import { modusSetzen } from './status.js';
-import { eingaengeSenden } from './bridge.js';
+import { betriebsartWaehlen, eingaengeSenden } from './bridge.js';
 import { t } from '../core/sprache.js';
 
 const raycaster = new THREE.Raycaster();
@@ -276,7 +275,7 @@ $('p-speed').addEventListener('input', (e) => {
   $('o-speed').textContent = fmt0.format(st.speed * 100) + ' %';
 });
 
-$('mode-sps').onclick = () => modusSetzen('sps', true);
+$('mode-sps').onclick = () => betriebsartWaehlen('sps');
 $('btn-reset').onclick = () => anlageZuruecksetzen();
 
 // Anlage zurücksetzen: Grundstellung, frisches Zinnbad, ein Korb auf dem Band, Automatik aus.
@@ -326,5 +325,5 @@ function anlageZuruecksetzen() {
     ? 'Anlage in Grundstellung zurückgesetzt · das CPU-Programm läuft weiter, Ausgänge greifen sofort wieder'
     : 'Anlage in Grundstellung zurückgesetzt · SF1 startet die Automatik');
 }
-$('mode-demo').onclick = () => modusSetzen('demo', true);
+$('mode-demo').onclick = () => betriebsartWaehlen('demo');
 

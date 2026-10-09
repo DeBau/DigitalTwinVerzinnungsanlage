@@ -5,8 +5,10 @@ import { V, box, cached, mesh, zyl } from '../core/geometrie.js';
 import { label, platte, tafel } from '../core/beschriftung.js';
 import { profil } from '../bauteile/aluprofil.js';
 import { KLICK, KNEBEL, POTIS, PULT_LAMPEN, PULT_TASTER } from './register.js';
-import { kabel } from './verdrahtung.js';
-import { BRUECKE, lage } from './kabelbruecke.js';
+import { ausStapaInKanal1, kabel } from './verdrahtung.js';
+import { TRASSE, zurTrasse } from './kabeltrasse.js';
+import { stapa } from '../bauteile/stapa.js';
+import { KANAL1 } from './band1.js';
 import { daumenradschalter, ziffernanzeige } from './bcd-geraete.js';
 import { t as tr } from '../core/sprache.js';
 import { frontAbnutzen } from '../core/gebrauch.js';
@@ -93,7 +95,13 @@ export function meldeleuchte(parent, x, y, signal, farbe) {
   box(260, 12, 260, M.anthrazit, 0, 6, -40, g);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) zyl(7, 4, M.stahl, sx * 100, 14, -40 + sz * 100, null, g, 6);
   zyl(42, 30, M.anthrazit, 0, 25, -40, null, g, 32);                                    // Fußflansch
-  { const p = g.position; kabel(zurBruecke([V(p.x, 120, p.z - 40), V(p.x, 40, p.z - 40), V(p.x, 14, p.z - 76)]), anlage, M.kabel, 5); }   // Pultleitung unten aus dem Standrohr
+  // Pultleitung unten aus dem Standrohr, im Stapa-Rohr am Boden zur senkrechten Rinne am Anfang von Band 1, dort hinauf
+  // und in der Rinne nach hinten bis zur Querwanne
+  {
+    const p = g.position, rohr = [V(p.x, 10, p.z - 76), V(p.x, 10, 1060), V(-192, 10, 1060), V(-192, 10, 975)];
+    stapa(rohr, 10);
+    ausStapaInKanal1([V(p.x, 120, p.z - 40), V(p.x, 40, p.z - 40), ...rohr], KANAL1.lage.pult, 5, M.kabel, { spur: 44 });
+  }
   box(90, 60, 90, M.anthrazit, 0, 935, -40, g);                                         // Gelenkkupplung
   const kopf = new THREE.Group(); kopf.position.set(0, 1010, 0); kopf.rotation.x = -0.55; g.add(kopf);
   // Front 440 × 360: drei Felder, Beschriftung ≥ 9 mm unter den Frontringen, Überschriften zwischen den Trennlinien
@@ -133,12 +141,8 @@ export function meldeleuchte(parent, x, y, signal, farbe) {
 // k.ry: Drehung um die Hochachse (Front zeigt bei 0 nach +z)
 // k.zeilen: Tasterzeilen [{ key, x, farbe, text, bmk }] – ohne Angabe eine Zeile LINKS / HALT / RECHTS.
 //   Je weitere Zeile wird das Gehäuse 64 mm höher (Unterkante bleibt bei 1000 mm). k.W: Gehäusebreite (Standard 190).
-// k.leitung === false: Leitung wird woanders verlegt; Rückgabe: Fußpunkt der Säule (Leitungsaustritt) in Anlagenkoordinaten
-// Leitung vom Säulenfuß gerade nach hinten (−z) in die Kabelbrücke, darin zum Schaltschrank (eigene Lage je Leitung)
-function zurBruecke(weg) {
-  const f = weg[weg.length - 1], d = lage();
-  return [...weg, V(f.x, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)];
-}
+// Rückgabe: Fußpunkt der Säule (Leitungsaustritt) in Anlagenkoordinaten; von dort verlegt der Aufrufer die Leitung
+// (Stapa-Rohr am Boden zur nächsten Kabelwanne bzw. zum Schaltschrank)
 export function vorOrtStation(pos, bmk, k) {
   const g = new THREE.Group(); g.position.copy(pos); g.rotation.y = k.ry || 0; anlage.add(g);
   const W0 = (x, y, z) => V(x, y, z).applyAxisAngle(V(0, 1, 0), k.ry || 0).add(pos);   // lokal → anlage
@@ -188,23 +192,39 @@ export function vorOrtStation(pos, bmk, k) {
   }
   if (k.poti) potentiometer(f, 0, -H / 2 + 77, k.poti);
   label('Vor-Ort-Steuerstelle −' + bmk, g, 0, 1000 + H + 40, 0, 'klein');
-  // Leitung: innen durch die Säule, am Fuß hinten heraus und am Boden zum Schaltschrank
-  const fuss = W0(0, 14, -26), zBoden = fuss.z, saeule = [W0(0, 90, 0), W0(0, 40, 0), fuss];
-  if (k.leitung !== false && fuss.z > BRUECKE.z) kabel(zurBruecke(saeule), anlage, M.kabelGrau, 3.5);           // vor der Anlage: gerade nach hinten in die Kabelbrücke
-  else if (k.leitung !== false) kabel([...saeule, V(-1220 + k.dx, 14, zBoden), V(-1220 + k.dx, 14, -60)], anlage, M.kabelGrau, 3.5);
-  else kabel(saeule, anlage, M.kabelGrau, 3.5);
+  // Leitung: innen durch die Säule, am Fuß hinten heraus
+  const fuss = W0(0, 14, -26);
+  kabel([W0(0, 90, 0), W0(0, 40, 0), fuss], anlage, M.kabelGrau, 3.5);
   return fuss;
 }
 // −S10 hinten am Bandanfang beim Antrieb −MA1 (außerhalb der Umhausung), Front nach hinten zum Werker
 const VORORT = new THREE.Vector3(420, 0, -1080);
-vorOrtStation(VORORT, 'S10', { ry: Math.PI, sa: 'sa2', saT: 'SA2', pf: 'PF6_VorOrt', pfT: 'PF6', links: 'sf6', linksT: 'SF6', halt: 'sf7', haltT: 'SF7', rechts: 'sf5', rechtsT: 'SF5', nh: 'sf8', nhT: 'SF8', q: 'sf41', qT: 'SF41', pfQ: 'PF12_Quitt_S10', dx: 0 });
-vorOrtStation(new THREE.Vector3(2420, 0, 1980), 'S20', { sa: 'sa4', saT: 'SA4', pf: 'PF8_VorOrt2', pfT: 'PF8', links: 'sf24', linksT: 'SF24', halt: 'sf25', haltT: 'SF25', rechts: 'sf23', rechtsT: 'SF23', nh: 'sf9', nhT: 'SF9', q: 'sf42', qT: 'SF42', pfQ: 'PF13_Quitt_S20', dx: 6 });
-vorOrtStation(new THREE.Vector3(-150, 0, 2050), 'S30', { sa: 'sa5', saT: 'SA5', pf: 'PF9_VorOrt3', pfT: 'PF9', links: 'sf31', linksT: 'SF31', halt: 'sf32', haltT: 'SF32', rechts: 'sf30', rechtsT: 'SF30', nh: 'sf10', nhT: 'SF10', q: 'sf43', qT: 'SF43', pfQ: 'PF14_Quitt_S30', dx: 12 });
+const S10_FUSS = vorOrtStation(VORORT, 'S10', { ry: Math.PI, sa: 'sa2', saT: 'SA2', pf: 'PF6_VorOrt', pfT: 'PF6', links: 'sf6', linksT: 'SF6', halt: 'sf7', haltT: 'SF7', rechts: 'sf5', rechtsT: 'SF5', nh: 'sf8', nhT: 'SF8', q: 'sf41', qT: 'SF41', pfQ: 'PF12_Quitt_S10' });
+const S20_FUSS = vorOrtStation(new THREE.Vector3(2420, 0, 1980), 'S20', { sa: 'sa4', saT: 'SA4', pf: 'PF8_VorOrt2', pfT: 'PF8', links: 'sf24', linksT: 'SF24', halt: 'sf25', haltT: 'SF25', rechts: 'sf23', rechtsT: 'SF23', nh: 'sf9', nhT: 'SF9', q: 'sf42', qT: 'SF42', pfQ: 'PF13_Quitt_S20' });
+const S30_FUSS = vorOrtStation(new THREE.Vector3(-150, 0, 2050), 'S30', { sa: 'sa5', saT: 'SA5', pf: 'PF9_VorOrt3', pfT: 'PF9', links: 'sf31', linksT: 'SF31', halt: 'sf32', haltT: 'SF32', rechts: 'sf30', rechtsT: 'SF30', nh: 'sf10', nhT: 'SF10', q: 'sf43', qT: 'SF43', pfQ: 'PF14_Quitt_S30' });
+// Leitungen im Stapa-Rohr am Boden: −S10 hinter dem Zaun entlang bis an die Sockelblende hinten am Schaltschrank,
+// −S20 unter Band 2 hindurch bis vor die Kabelwanne (dort frei hinauf und über die Wand hinein),
+// −S30 zur senkrechten Rinne am Anfang von Band 1
+{
+  const f = S10_FUSS, x = -1150, rohr = [V(f.x, 10, f.z), V(x, 10, f.z), V(x, 10, -500)];
+  stapa(rohr, 10);
+  kabel([f, ...rohr.slice(1), V(x, 10, -420)], anlage, M.kabelGrau, 3.5, 35, false);          // endet im Sockel (Einführung von unten)
+}
+{
+  const f = S20_FUSS, zV = TRASSE.z + TRASSE.B / 2 + 30, rohr = [V(f.x, 10, f.z), V(f.x, 10, zV)];
+  stapa(rohr, 10, 0, 50);
+  zurTrasse([f, rohr[1], V(f.x, TRASSE.yHinten + 85, zV)], M.kabelGrau, 3.5);
+}
+{
+  const f = S30_FUSS, rohr = [V(f.x, 8, f.z), V(f.x, 8, 975)];
+  stapa(rohr, 8);
+  ausStapaInKanal1([f, ...rohr.slice(1)], KANAL1.lage.S30, 3.5, M.kabelGrau);
+}
 // −S40 an der Entleer- und Prüfstation: Bedienerseite (+z) zwischen Kipper und Ausschussbehälter, Blick auf Mulde, Rinne und Prüfband.
-// Leitung über den Kabelkanal der Prüfstation (pruefstation-peripherie.js)
+// Leitung im Stapa-Rohr zur Kabelwanne der Prüfstation (pruefstation-peripherie.js)
 export const S40_POS = new THREE.Vector3(3480, 0, 2000);
 export const S40_FUSS = vorOrtStation(S40_POS, 'S40', {
-  sa: 'sa6', saT: 'SA6', pf: 'PF11_VorOrt4', pfT: 'PF11', nh: 'sf33', nhT: 'SF33', q: 'sf44', qT: 'SF44', pfQ: 'PF15_Quitt_S40', leitung: false, W: 210,
+  sa: 'sa6', saT: 'SA6', pf: 'PF11_VorOrt4', pfT: 'PF11', nh: 'sf33', nhT: 'SF33', q: 'sf44', qT: 'SF44', pfQ: 'PF15_Quitt_S40', W: 210,
   zeilen: [
     [{ key: 'sf34', x: -50, farbe: 0x23a35a, sym: '|', text: 'PRÜFUNG EIN', bmk: 'SF34' }, { key: 'sf35', x: 50, farbe: 0xd42a1f, text: 'PRÜFUNG AUS', bmk: 'SF35' }],
     [{ key: 'sf37', x: -50, farbe: 0x23a35a, text: '◀ MULDE ZURÜCK', bmk: 'SF37' }, { key: 'sf36', x: 50, farbe: 0x23a35a, text: 'MULDE VOR ▶', bmk: 'SF36' }],
@@ -212,8 +232,8 @@ export const S40_FUSS = vorOrtStation(S40_POS, 'S40', {
   ],
 });
 // −S50 Vor-Ort Prüfband: neben dem Prüfband auf der Bedienerseite, EIN/AUS und Drehzahlpotentiometer (wirkt am Umrichter −TA5).
-// Not-Halt und Quittieren an −S40 daneben; eigene Leitung gerade nach hinten in den Kabelkanal der Prüfstation
+// Not-Halt und Quittieren an −S40 daneben; eigene Leitung im Stapa-Rohr zur Kabelwanne der Prüfstation
 export const S50_FUSS = vorOrtStation(new THREE.Vector3(4310, 0, 2080), 'S50', {
-  sa: 'sa7', saT: 'SA7', pf: 'PF16_VorOrt5', pfT: 'PF16', leitung: false, poti: 'pbPoti', potiT: 'SF47', potiText: 'DREHZAHL',
+  sa: 'sa7', saT: 'SA7', pf: 'PF16_VorOrt5', pfT: 'PF16', poti: 'pbPoti', potiT: 'SF47', potiText: 'DREHZAHL',
   zeilen: [[{ key: 'sf45', x: -45, farbe: 0x23a35a, sym: '|', text: 'PRÜFBAND EIN', bmk: 'SF45' }, { key: 'sf46', x: 45, farbe: 0xd42a1f, text: 'PRÜFBAND AUS', bmk: 'SF46' }]],
 });

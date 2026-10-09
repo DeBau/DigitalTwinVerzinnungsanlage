@@ -4,10 +4,11 @@ import { M } from '../core/materialien.js';
 import { V, box, cached, mesh, zyl } from '../core/geometrie.js';
 import { label, platte, tafel } from '../core/beschriftung.js';
 import { sensorLed } from '../core/leds.js';
-import { BRUECKE, lage } from './kabelbruecke.js';
+import { TRASSE, zurTrasse } from './kabeltrasse.js';
+import { stapa } from '../bauteile/stapa.js';
 import { SENSOR_AUSTRITT } from '../bauteile/nutsensor.js';
-import { leitung, schlauch } from '../bauteile/leitungen.js';
-import { anbauT, bodenstuetze, kabelrinne, reduzierstueck, wandausleger } from '../bauteile/kabelrinne.js';
+import { SENSOR_FAKTOR, istSensor, leitung, schlauch } from '../bauteile/leitungen.js';
+import { anbauT, bodenstuetze, kabelrinne, kantenschutz, reduzierstueck, wandausleger } from '../bauteile/kabelrinne.js';
 import { stecker, steckerWinkel } from '../bauteile/stecker.js';
 import { B2, BAND, BAND_Y, KURVE, LS_POS } from './baender.js';
 import { B1_MOTOR, KANAL1, QM2 } from './band1.js';
@@ -24,16 +25,13 @@ import { DRUCK_QM2, HK1, SPUR, WANNE, ZULEITUNG, amBoden, dummy, inAnlage, wanne
 // am passiven Feldverteiler (8 x M12, je Port zwei Status-LEDs für Pin 4 / Pin 2).
 //   −XD1 (linke Portalsäule): BG1/BG2 (Y-Verteiler am Haken), BG3, BG4, BG5, BG6
 //   −XD2 (rechte Portalsäule): BG7, BG8, BG9, BG10
-//   −BG11 (Lichtschranke Band) direkt über die Kabelbrücke zum Schaltschrank (−X5)
+//   −BG11 (Lichtschranke Band) direkt über die Kabeltrasse zum Schaltschrank (−X5)
 // Leitungen zu bewegten Teilen laufen durch die Energiekette bzw. als Spiralkabel.
 // ----------------------------------------------------------------------------
 export const FELD_LEDS = [];
 anlage.updateMatrixWorld(true);
 // Kabel mit Kabelbindern auf geraden Abschnitten
-// Sensorleitungen (PUR, M8/M12, graue Leitung bis Ø 6) sind hochflexibel: Biegeradius 2 × D statt BIEGEFAKTOR × D,
-// sie liegen damit eng an Steckern, Profilen und in der Rinne an
-export const SENSOR_FAKTOR = 2;
-const istSensor = (mat, r) => mat === M.kabelGrau && r <= 3;
+// Sensorleitungen liegen mit SENSOR_FAKTOR eng an Steckern, Profilen und in der Rinne an (leitungen.js)
 export function kabel(pts, parent = anlage, mat = M.kabelGrau, r = 2.4, R = 14, binder = true, faktor) {
   const P = pts.map(p => p.isVector3 ? p.clone() : V(...p));
   if (istSensor(mat, r)) { faktor = SENSOR_FAKTOR; R = SENSOR_FAKTOR * 2 * r; }
@@ -49,6 +47,16 @@ export function kabel(pts, parent = anlage, mat = M.kabelGrau, r = 2.4, R = 14, 
       m.quaternion.setFromUnitVectors(V(0, 1, 0), d);
     }
   }
+}
+// Leitung aus einem Stapa-Rohr vor der senkrechten Rinne am Bandanfang (weg endet an der Tülle, Rohr in −z): auf dem
+// Boden der senkrechten Rinne hinauf, konzentrisch durch den Bogen und in ihrer Lage x nach hinten bis über die Querwanne
+export function ausStapaInKanal1(weg, x, r, mat, opt) {
+  const { z1, boden, rBogen: R, luecke } = KANAL1, bogen = [];
+  for (let k = 0; k <= 8; k++) {
+    const a = k / 8 * Math.PI / 2;
+    bogen.push(V(x, boden - R + (R + r) * Math.sin(a), z1 - R + (R + r) * Math.cos(a)));
+  }
+  zurTrasse([...weg, V(x, weg[weg.length - 1].y, z1 + r), ...bogen, V(x, boden + r, luecke[1] + 15)], mat, r, opt);
 }
 // Austrittspunkt eines Nutsensors im Koordinatensystem von ziel (anlage, schlitten oder haken)
 export function austritt(signal, ziel = anlage) {
@@ -208,76 +216,101 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
   stecker(bad, V(k10.x, k10.y - 15, k10.z), '-y');
   zumPort([V(k10.x, k10.y - 47, k10.z), V(k10.x, 230, k10.z), V(580, 230, k10.z)], XD2.ports[3]);
 }
-// Lichtschranken −BG11…−BG13: Stecker hinten am Sensor, senkrecht in die Kabelrinne am Bandgestell (Weg bis auf den
-// Rinnenboden; weiter in die Kabelbrücke weiter unten, siehe „Leitungen aus der Rinne Band 1“)
+// Lichtschranken −BG11…−BG13 und Inkrementalgeber −BG18: Stecker am Sensor, senkrecht in ihre Lage der Kabelrinne am
+// Bandgestell (KANAL1), darin nach hinten bis über die Querwanne und hinein (kabeltrasse.js)
 {
-  const band1 = [];
-  const aufBoden = (x, r) => KANAL1.boden + r;
+  const [lHinten, lVorn] = KANAL1.luecke;
+  // feste Spuren in der Querwanne: −BG35 fällt vor −BG11 (liegt in der Rinne darunter), die Pultleitung (von vorn) vor −BG12 (von hinten)
+  const SPUR_K1 = { BG12_Bandanfang: -6, BG11_Korb: 24 };
   for (const sig of ['BG12_Bandanfang', 'BG11_Korb', 'BG13_Bandende']) {
-    const p = BAND.stecker[sig], x = KANAL1.lage[sig];
+    const p = BAND.stecker[sig], x = KANAL1.lage[sig], y = KANAL1.boden + (sig === 'BG11_Korb' ? 4.4 : 0) + 2.2;
     const a = steckerWinkel(anlage, p, '-x', '-y');                               // gewinkelt: Abgang direkt nach unten
-    band1.push({ x, r: 2.2, weg: [a, V(a.x, 285, p.z), V(x, 285, p.z), V(x, aufBoden(x, 2.2), p.z)] });
+    const ende = sig === 'BG12_Bandanfang' ? lHinten - 15 : lVorn + 15;
+    zurTrasse([a, V(a.x, 285, p.z), V(x, 285, p.z), V(x, y, p.z), V(x, y, ende)], M.kabelGrau, 2.2, { spur: SPUR_K1[sig] });
   }
   // Inkrementalgeber −BG18: Leitung nach oben, unter dem Band hindurch in die Rinne (direkt auf −X5, nicht über Feldverteiler)
-  { const g = BAND.geberStecker, a = steckerWinkel(anlage, g, '+y', '+x'), x = KANAL1.lage.geber; band1.push({ x, r: 2.8, weg: [a, V(x, a.y, g.z), V(x, aufBoden(x, 2.8), g.z)] }); }
-  // Band 2: Lichtschranken −BG21…−BG24 und Pyrometer −BT2 → Kabelwanne hinter Band 2 (wanne-band2.js) → Kabelbrücke
-  {
-    for (const [sig, spur, lage2] of [['BG21_B2_Anfang', 5, 1], ['BG22_B2_Kuehlung', 3, 1], ['BG24_B2_Ende', 0, 0]]) {
-      const a = inB2(steckerWinkel(anlage, BAND.stecker[sig], '-z', '+y'));
-      const weg = [a, V(a.x, 385, a.z)];
-      if (sig === 'BG22_B2_Kuehlung') {                                       // im Kühltunnel: versetzt, durch eine Kabelverschraubung in der Rückwand
-        weg.push(V(a.x, 385, a.z + 40));
-        box(14, 12, 12, M.kunststoff, 152, 385, a.z + 40, b2g);
-      }
-      inWanneB2(spur, lage2, weg);
+  { const g = BAND.geberStecker, a = steckerWinkel(anlage, g, '+y', '+x'), x = KANAL1.lage.geber, y = KANAL1.boden + 2.8;
+    zurTrasse([a, V(x, a.y, g.z), V(x, y, g.z), V(x, y, lVorn + 15)], M.kabelGrau, 2.8); }
+  // Band 2: Lichtschranken −BG21…−BG24 vom Winkelstecker im waagrechten Stapa-Rohr über die Lücke bis über die
+  // Kabelwanne hinter Band 2. Halter: Winkel an der Rückseite des Bandprofils neben dem Sensor (Arm unter dem Rohr,
+  // Bügel darüber) und Rohrschelle auf der Wannenwand; −BG22 (im Kühltunnel, versetzt) geht durch eine Kabelverschraubung
+  // in der Tunnelrückwand, die das Rohr dort hält.
+  const Y_LS = 385, Z_PROFIL = B2.z - 110 - 22.5, zEnde = TRASSE.z + 30, zWand = TRASSE.z + TRASSE.B / 2;
+  for (const sig of ['BG21_B2_Anfang', 'BG22_B2_Kuehlung', 'BG24_B2_Ende']) {
+    const a = steckerWinkel(anlage, BAND.stecker[sig], '-z', '+y'), tunnel = sig === 'BG22_B2_Kuehlung';
+    const x = tunnel ? a.x + 40 : a.x, z0 = tunnel ? B2.z - 160 : a.z - 12;
+    const weg = [a, V(a.x, Y_LS, a.z), ...(tunnel ? [V(x, Y_LS, a.z)] : []), V(x, Y_LS, zEnde)];
+    stapa([V(x, Y_LS, z0), V(x, Y_LS, zEnde)], 8);
+    box(16, 6, 10, M.verzinkt, x, Y_LS - 11, zWand);                            // Rohrschelle auf der Wannenwand
+    box(18, 2, 20, M.verzinkt, x, Y_LS + 9, zWand);
+    if (tunnel) box(14, 12, 12, M.kunststoff, 152, Y_LS, x - B2.xm, b2g);        // Kabelverschraubung in der Rückwand
+    else {
+      const xs = x + 28;                                                        // Winkel neben dem Sensor
+      box(20, Y_LS - 10 - 250, 4, M.verzinkt, xs, (Y_LS - 10 + 250) / 2, Z_PROFIL - 2);
+      box(34, 4, 22, M.verzinkt, x + 14, Y_LS - 10, Z_PROFIL - 13);
+      box(18, 2, 20, M.verzinkt, x, Y_LS + 9, Z_PROFIL - 13);
     }
-    const b = inB2(BAND.bt2Stecker);                                          // Pyrometer: hinter dem Pumpenkabel vorbei über den Tank
-    inWanneB2(4, 0, [b, V(250, b.y, b.z), V(250, b.y, b.z + 10.5), V(250, 420, b.z + 10.5)]);
-    const m = B2_MOTOR.abgang, mb = m[m.length - 1];
-    { const d = lage(); kabel([...m, V(mb.x, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)], anlage, M.kabel, 4.5, 30, false); }
-    const g2 = BAND.geber2Stecker;
-    const a2 = steckerWinkel(anlage, g2, '+y', '+x');
-    { const d = lage(); kabel([a2, V(g2.x + 70, a2.y, g2.z), V(g2.x + 70, 14, g2.z), V(g2.x + 70, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)], anlage, M.kabelGrau, 2.8, 14); }
+    zurTrasse(weg, M.kabelGrau, 2.6);
   }
-  // Rollenkurve −MA6: Lichtschranken −BG35/−BG36 (Stecker hinten am Sensor, radial nach außen) und Motorleitung
-  //   am Boden zur Kabelbrücke und direkt auf −X5 bzw. −X1
-  ['BG35_Kurve_Anfang', 'BG36_Kurve_Ende'].forEach((sig, i) => {
+  const b = inB2(BAND.bt2Stecker);                                            // Pyrometer: hinter dem Pumpenkabel vorbei über den Tank
+  inWanneB2([b, V(250, b.y, b.z), V(250, b.y, b.z + 10.5), V(250, 420, b.z + 10.5)]);
+  { const m = B2_MOTOR.abgang; zurTrasse([m[0], m[1], m[2], V(m[2].x, 450, m[2].z)], M.kabel, 4.5, { art: 'leistung' }); }
+  // Inkrementalgeber −BG27, Rollenkurve −MA6 und −BG36 (vorn, ohne Wanne in der Nähe): am Boden im Stapa-Rohr nach hinten
+  // bis vor die flache Wanne innen an der Rollenkurve, dort hoch und über die Wand hinein
+  const zurFlachenWanne = (weg, x, r, rr, mat, art) => {
+    const f = weg[weg.length - 1], zV = TRASSE.z + TRASSE.B / 2 + 30;
+    const boden = [V(f.x, rr, f.z), V(x, rr, f.z), V(x, rr, zV)];
+    stapa(boden, rr, 50, 50);                                          // Leitung fällt frei hinein und steigt frei heraus
+    zurTrasse([...weg, ...boden, V(x, 160, zV)], mat, r, { art });
+  };
+  { const g2 = BAND.geber2Stecker, a2 = steckerWinkel(anlage, g2, '+y', '+x');
+    zurFlachenWanne([a2, V(g2.x + 70, a2.y, g2.z)], 420, 2.8, 8, M.kabelGrau); }
+  { const m = KURVE.motor.abgang; zurFlachenWanne(m.slice(0, 3), m[2].x, 4.5, 10, M.kabel, 'leistung'); }
+  // Lichtschranken −BG35/−BG36 an der Rollenkurve: Stecker hinten am Sensor, radial nach außen, am Boden im Stapa-Rohr
+  // (−BG35 in die senkrechte Rinne am Bandanfang, −BG36 zur flachen Wanne)
+  ['BG35_Kurve_Anfang', 'BG36_Kurve_Ende'].forEach((sig) => {
     const p = BAND.stecker[sig], t = LS_POS[sig] / KURVE.R;
     const d = V(-Math.cos(t), 0, Math.sin(t));
     stecker(anlage, p, '+y', false).quaternion.setFromUnitVectors(V(0, 1, 0), d);
     const e = p.clone().addScaledVector(d, 31), f = e.clone().addScaledVector(d, 25);
-    const lg = lage();
-    // neben der Brücke auf den Boden (nicht auf ihre Schräge) und seitlich darunter in die Lage
-    const zf = Math.max(f.z, BRUECKE.z + 125);
-    kabel([e, ...(zf > f.z ? [] : [f]), V(f.x, f.y, zf), V(f.x, 2.2, zf), V(f.x, 14, BRUECKE.z + lg), V(BRUECKE.x + lg, 14, BRUECKE.z + lg), V(BRUECKE.x + lg, 14, -60)], anlage, M.kabelGrau, 2.2, 14, false);
+    if (sig === 'BG36_Kurve_Ende') { zurFlachenWanne([e, f], f.x, 2.2, 8, M.kabelGrau); return; }
+    const xr = -172, rohr = [V(xr, 8, f.z), V(xr, 8, KANAL1.z1 + 70)];                    // Rohr zwischen Pult- und −S30-Rohr
+    stapa(rohr, 8, 40);
+    ausStapaInKanal1([e, f, ...rohr],KANAL1.lage[sig], 2.2, M.kabelGrau, { spur: 34 });
   });
-  { const m = KURVE.motor.abgang, mb = m[m.length - 1], d = lage(); kabel([...m, V(mb.x, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)], anlage, M.kabel, 4.5, 30, false); }
-  // Eintritt in die Kabelbrücke: auf dem Boden von −z her seitlich unter die Schräge (Kante bei BRUECKE.z − 110),
-  // unter der Abdeckung auf die eigene Lage d und darin zum Schaltschrank
-  const unterBruecke = (x, r, weg) => { const d = lage(); return [...weg, V(x, r, BRUECKE.z - 75), V(x, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, BRUECKE.z + d), V(BRUECKE.x + d, 14, -60)]; };
   // Kabelrinne zwischen Band 1 und Zinnbad (gelocht, verzinkt) unten am Bandgestell entlang, von der Umhausungsrückwand
-  // bis vor die Kabelbrücke: neben dem Bad 100 × 60, davor (kein Bad mehr) über ein Reduzierstück 150 × 60.
+  // bis vor die Rollenkurve: neben dem Bad 100 × 60, davor (kein Bad mehr) über ein Reduzierstück 150 × 60.
+  // Unten liegt die Kabeltrasse (kabeltrasse.js): vorn kommt sie aus der flachen Wanne an der Rollenkurve, hinten geht
+  // sie in die Querwanne zum Schaltschrank. Der Trennsteg ist nur so hoch wie die Trasse und endet vor den Bögen.
+  // Darüber liegen die Leitungen vor Ort (Lagen x, Bandseite → Bad) neben dem Bad: Sensorleitungen −BG17, −BG16,
+  // −BG15, −BG14, −BG40 (155…179, je senkrecht unter ihrem Abgang), Druckluft (190), Schläuche −MB9 (200/206), −MB10 (212/218).
+  // Hinter −QM2 laufen die Sensorleitungen nach außen in die Lagen unter ihren Ports an −XD3 (215…239) und steigen dort
+  // senkrecht zum Stecker. Multipol −QM2 und Sammelleitung −XD3 gehen bandseitig hinunter in die Trasse.
   // Querrinne 60 × 60 unter dem Band zur Portalsäule (Druckluft). −QM2 und −XD3 sitzen vorn, frei zugänglich.
-  // Lagen (x, Bandseite → Bad) neben dem Bad: Sensorleitungen −BG17, −BG16, −BG15, −BG14, −BG40 (155…179, je senkrecht
-  // unter ihrem Abgang), Druckluft (190), Schläuche −MB9 (200/206), −MB10 (212/218), Trennsteg, −MA1.
-  // Hinter −QM2 laufen die Sensorleitungen auf dem Rinnenboden nach außen in die Lagen unter ihren Ports an −XD3
-  // (215…239) und steigen dort senkrecht zum Stecker; innen bleiben Multipol −QM2 und Sammelleitung −XD3.
   // Keine Leitung kreuzt eine andere in der Rinne.
-  const RI = { x: 193, y: 55, z0: -575, zr: 190, zw: 240, z1: 860, steg: 230, stegW: 278 };   // zr…zw: Reduzierstück
-  const QR = { x0: -640, z: -280 };                                                   // Querrinne bis zur Portalsäule
-  kabelrinne(V(RI.x, RI.y, RI.z0), -Math.PI / 2, { L: RI.zr - RI.z0, enden: [0], trennsteg: RI.x - RI.steg,
-    abgang: [{ seite: 1, von: QR.z - 30 - RI.z0, bis: QR.z + 30 - RI.z0 }] });          // lokal z = +50 ist die Bandseite (x 143)
-  reduzierstueck({ y: RI.y, xi: RI.x - 50, xa0: RI.x + 50, xa1: RI.x + 100, z0: RI.zr, z1: RI.zw, steg0: RI.steg, steg1: RI.stegW });
-  kabelrinne(V(RI.x + 25, RI.y, RI.zw), -Math.PI / 2, { L: RI.z1 - RI.zw, B: 150, trennsteg: RI.x + 25 - RI.stegW });
+  const RI = { x: TRASSE.xRI, y: TRASSE.yUnten, z0: -575, zr: 190, zw: 240, z1: TRASSE.z + TRASSE.B / 2, steg: TRASSE.xRI - TRASSE.steg };
+  const QR = { x0: -640, z: -280 }, QW = { z0: TRASSE.zQuer - TRASSE.B / 2, z1: TRASSE.zQuer + TRASSE.B / 2 };
+  const stegH = TRASSE.lokalRI - 2, zBogenHinten = TRASSE.zQuer + TRASSE.rEcke, zBogenVorn = TRASSE.z - TRASSE.rEcke;
+  kabelrinne(V(RI.x, RI.y, RI.z0), -Math.PI / 2, { L: RI.zr - RI.z0, enden: [0], trennsteg: RI.x - RI.steg, stegH, stegVon: zBogenHinten - RI.z0,
+    abgang: [{ seite: 1, von: QW.z0 - RI.z0, bis: QW.z1 - RI.z0 }, { seite: 1, von: QR.z - 30 - RI.z0, bis: QR.z + 30 - RI.z0 }] });   // lokal z = +50 ist die Bandseite (x 143)
+  reduzierstueck({ y: RI.y, xi: RI.x - 50, xa0: RI.x + 50, xa1: RI.x + 100, z0: RI.zr, z1: RI.zw, steg0: RI.steg, steg1: RI.steg, stegH });
+  kabelrinne(V(RI.x + 25, RI.y, RI.zw), -Math.PI / 2, { L: RI.z1 - RI.zw, B: 150, enden: [RI.z1 - RI.zw], trennsteg: RI.x + 25 - RI.steg, stegH,
+    stegBis: zBogenVorn - RI.zw, abgang: [{ seite: -1, von: TRASSE.z - 50 - RI.zw, bis: TRASSE.z + 50 - RI.zw }] });
   const qr = kabelrinne(V(QR.x0, RI.y, QR.z), 0, { L: RI.x - 50 - QR.x0, B: 60, enden: [0] });
   anbauT(qr, RI.x - 50 - QR.x0);
+  // Querwanne 100 × 60 hinter der Portalsäule unter Band 1 und dem Zaun hindurch bis an die Sockelblende des Schaltschranks
+  const LQ = RI.x - 50 - TRASSE.xSchrank;
+  const qw = kabelrinne(V(TRASSE.xSchrank, RI.y, TRASSE.zQuer), 0, { L: LQ, B: TRASSE.B, trennsteg: TRASSE.steg, stegBis: RI.x - TRASSE.rEcke - TRASSE.xSchrank });
+  anbauT(qw, LQ, TRASSE.B);
+  kantenschutz(TRASSE.xSchrank, RI.y, TRASSE.zQuer, 'z', TRASSE.B, [0, 1, 0], 60);                         // Wannenende an der Sockelblende
+  label('Querwanne zum Schaltschrank', anlage, -760, RI.y + 110, QW.z0, 'klein');
   wandausleger(132.5, RI.y, 0, 1, 110, [RI.x - 50, RI.x + 50]);                       // an den Bandstützen
   wandausleger(132.5, RI.y, 700, 1, 160, [RI.x - 50, RI.x + 100]);
-  bodenstuetze(RI.x, -480, RI.y, 'x', 112, [RI.x - 50, RI.x + 50]);                    // vor der Umhausungsrückwand: keine Bandstütze
+  bodenstuetze(RI.x, -520, RI.y, 'x', 112, [RI.x - 50, RI.x + 50]);                    // vor der Umhausungsrückwand: keine Bandstütze
+  bodenstuetze(RI.x + 25, 960, RI.y, 'x', 162, [RI.x - 50, RI.x + 100]);              // vor dem Bandende
   for (const x of [-560, -60]) bodenstuetze(x, QR.z, RI.y, 'z', 76, [QR.z - 30, QR.z + 30]);
-  const auf = (r) => RI.y + r;                                                         // Leitung liegt auf dem Rinnenboden
-  // aus dem offenen Rinnenende auf den Boden und seitlich unter der Schräge in die Kabelbrücke (Lage d), darin zum Schaltschrank
-  const zurBruecke = (x, r) => unterBruecke(x, r, [V(x, auf(r), RI.z1 - 60), V(x, auf(r), RI.z1 + 10), V(x, r, RI.z1 + 70)]);
+  for (const x of [-880, -480, -60]) bodenstuetze(x, TRASSE.zQuer, RI.y, 'z', 112, [QW.z0, QW.z1]);
+  const auf = (r) => RI.y + TRASSE.lokalRI + r;                                       // Leitung vor Ort liegt über der Trasse
 
   // Feldverteiler −XD3 ganz vorn am Bandgestell (+x): Endlagen −BG14…−BG17 der Schwenkantriebe, Korbabfrage −BG40
   const XD3 = feldverteiler(132.5, 250, 470, Math.PI / 2, '−XD3 Feldverteiler Band', [['BG14_MM5_zu'], ['BG15_MM5_offen'], ['BG16_MM6_zu'], ['BG17_MM6_offen'], ['BG40_Korb_am_Anschlag'], null, null, null]);
@@ -292,10 +325,9 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
     const anfang = ab ? [e, V(e.x, e.y - 26, e.z), V(xr, e.y - 56, e.z)] : [e];      // −BG40: von der Drehachse hinter der Konsole in die Lage
     kabel([...anfang, V(xr, auf(2.4), e.z), V(xr, auf(2.4), 330), V(xp, auf(2.4), 440), V(xp, auf(2.4), p.z), V(xp, p.y, p.z), p], anlage, M.kabelGrau, 2.4);
   }
-  // Sammelleitung −XD3 (M23) senkrecht in die Rinne; Multipolleitung −QM2 ebenso, vor −XD3 nach außen versetzt
-  const t = XD3.sammel;
-  kabel([t, V(t.x, auf(4), t.z), ...zurBruecke(t.x, 4)], anlage, M.kabelGrau, 4);
-  kabel([V(147, 189, QM2.z), V(147, auf(3.5), QM2.z), V(147, auf(3.5), 380), V(165, auf(3.5), 440), ...zurBruecke(165, 3.5)], anlage, M.kabel, 3.5);
+  // Sammelleitung −XD3 (M23) und Multipolleitung −QM2 senkrecht in die bandseitige Spur der Trasse (neben den Leitungen vor Ort)
+  zurTrasse([XD3.sammel], M.kabelGrau, 4, { spur: 44 });
+  zurTrasse([V(147, 189, QM2.z)], M.kabel, 3.5, { spur: 44 });
   // Ventilinsel −QM2: je Ventil 2/4 auf die beiden Kammern des Schwenkantriebs (QS-6 nach −z). Die Schläuche gehen vor
   // der Ventilinsel im Bogen hinunter in die Rinne, darin nach hinten und zwischen bzw. hinter den Antrieben hinauf,
   // dann von hinten in die Drosselrückschlagventile. −MB10 (weiter hinten) liegt außen.
@@ -307,19 +339,16 @@ KETTE_KABEL.forEach(({ dz, port }, k) => {
     });
   }
   // Druckluftversorgung −QM2 (PUN-8) vom Verteilerblock an der Portalsäule: an der Säule hinunter, durch die Querrinne
-  // unter dem Band hindurch, in der Rinne nach vorn und vor der Ventilinsel von unten an den Versorgungsanschluss
+  // unter dem Band hindurch, an der Rinne Band 1/Bad über die Trasse hinauf, darin nach vorn und vor der Ventilinsel von
+  // unten an den Versorgungsanschluss
   const xs = 190;
   const d = DRUCK_QM2;
-  leitung([d, V(d.x, 160, d.z), V(d.x, 160, QR.z + 15), V(d.x, auf(4), QR.z + 15), V(xs, auf(4), QR.z + 15), V(xs, auf(4), QM2.z - 70), V(xs, 120, QM2.z - 55)], druck, 4, 40);
+  leitung([d, V(d.x, 160, d.z), V(d.x, 160, QR.z + 15), V(d.x, RI.y + 4, QR.z + 15), V(90, RI.y + 4, QR.z + 15), V(138, auf(4), QR.z + 15),
+    V(xs, auf(4), QR.z + 15), V(xs, auf(4), QM2.z - 70), V(xs, 120, QM2.z - 55)], druck, 4, 40);
   schlauch([V(xs, 120, QM2.z - 55), V(xs, 145, QM2.z - 45), V(187, 175, QM2.z - 18), V(186, 186, QM2.z - 3), V(186, 192, QM2.z)], druck, 4);
-  // Leitungen aus der Rinne Band 1 (Lichtschranken −BG11…−BG13, Geber −BG18): in ihrer Lage über den Rinnenboden nach vorn,
-  // in der senkrechten Rinne hinunter und am Boden in die Kabelbrücke (seitlich unter die Abdeckung, nicht durch ihre Deckfläche)
-  for (const { x, r, weg } of band1) {
-    const z = KANAL1.z1 + 1 + r;                                                  // über die Kante auf den Boden der senkrechten Rinne
-    kabel(unterBruecke(x, r, [...weg, V(x, aufBoden(x, r), z), V(x, r, z)]), anlage, M.kabelGrau, r, 20, false);
-  }
-  // Bandmotor −MA1: aus dem Klemmenkasten über der Lüfterhaube zur Rinne, hinter dem Trennsteg zur Kabelbrücke
-  { const k = B1_MOTOR.abgang; kabel([k[0], k[1], V(237, k[1].y, -500), V(237, auf(4.5), -500), V(237, auf(4.5), RI.zr), V(287, auf(4.5), RI.zw), ...zurBruecke(287, 4.5)], anlage, M.kabel, 4.5, 30, false); }
+  // Bandmotor −MA1: aus dem Klemmenkasten über der Lüfterhaube zur Rinne, hinter dem Trennsteg hinunter und von hinten
+  // in die äußere Spur der Querwanne, oben auf die Motorleitungen der Trasse
+  { const k = B1_MOTOR.abgang; zurTrasse([k[0], k[1]], M.kabel, 4.5, { art: 'leistung', spur: -39, hinten: true }); }
 }
 // Energiekette (Kunststoff, Biegeradius R) zwischen Festpunkt xa und Mitnehmer am Schlitten
 const KETTEN_L = 2 * 540 - KETTE.xa - 490 + Math.PI * KETTE.R;

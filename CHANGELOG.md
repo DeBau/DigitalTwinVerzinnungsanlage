@@ -8,6 +8,42 @@ Haupt- und Nebenversion haben (z. B. 1.4.x), sonst meldet der Zwilling das in de
 
 [◀ Zurück zur Übersicht](README.md)
 
+## 1.19.0 – 2026-10-09
+
+Die Kabelbrücke am Boden ist weg. Alle Leitungen laufen jetzt in gelochten Kabelwannen zum Schaltschrank, die
+Steuerstellen vor der Anlage kommen im Stapa-Rohr am Boden dazu. Im Demo-Modus sucht der Zwilling die Bridge nicht mehr.
+Die Bridge ändert nur die Versionsnummer.
+
+**Warum**
+Eine Kabelbrücke quer durch den Bedienbereich ist eine Stolperstelle und wird an einer echten Anlage so nicht gebaut.
+Die Leitungen gehören in Wannen, sauber geführt und ohne Kreuzungen.
+
+**Neu**
+- Kabeltrasse zum Schaltschrank (`anlage/kabeltrasse.js`): Kabelwannen 100 × 60, nur gerade waagrechte und senkrechte
+  Stücke. Von der Prüfstation (tief, unter dem Schutzzaun hindurch) über eine senkrechte Wanne auf Bandhöhe, hinter
+  Band 2 bis zum Bandanfang, senkrecht hinunter, flach innen an der Rollenkurve vorbei in die Wanne zwischen Band 1 und
+  Zinnbad, darin nach hinten und hinter der Portalsäule in einer Querwanne nach links seitlich durch die Sockelblende in
+  den Schrank.
+- Feste Spur und Lage für jede Leitung: Was weiter vom Schrank entfernt eingelegt wird, liegt unten; Motorleitungen
+  hinter dem Trennsteg. Keine Leitung kreuzt eine andere.
+- An den Übergängen waagrecht/senkrecht steht die senkrechte Wanne um den Biegeradius versetzt auf einem eigenen
+  Steher, die Leitungen gehen frei im Bogen hinüber. Kantenschutz an allen Kanten, über die Leitungen gehen (an den
+  Wannenenden U-förmig die Flanken hoch).
+- Stapa-Rohr (`bauteile/stapa.js`) mit Bodenschellen für Bedienpult, −S10 bis −S50 und die Leitungen an der
+  Rollenkurve: nur gerade Rohrstücke mit Tüllen, die Leitung geht an Ecken und Enden frei im Bogen hinüber.
+
+**Geändert**
+- Kabelkanal der Prüfstation durch eine Lochblechwanne ersetzt; die Leitungen zu −XD5 gehen aus den Steckern im
+  Bogen senkrecht hinunter in die Wanne.
+- Lichtschranken −BG21, −BG22, −BG24 an Band 2 im waagrechten Stapa-Rohr mit Haltern über die Lücke in die Wanne.
+- Rinne an Band 1 (Bedienerseite): Leitungen laufen nach hinten und fallen über der Querwanne hinein.
+- −S10 geht nicht mehr am Boden durch den Schranksockel, sondern im Stapa-Rohr hinten in den Sockel.
+- Im Demo-Modus wird die Bridge nicht mehr gesucht (keine WebSocket-Fehler in der Konsole); die Verbindung startet
+  mit dem Knopf PLCSIM Advanced.
+
+**Doku**
+- Anlagenbeschreibung und Bedienung (DE/EN): Kabeltrasse, Stapa-Rohr, Leitungen der Prüfstation und von −S40.
+
 ## 1.18.0 – 2026-10-09
 
 Die Anlage sieht nicht mehr fabrikneu aus: Gebrauchsspuren auf allen Oberflächen, gezielte Abnutzung an Seitenführungen,
