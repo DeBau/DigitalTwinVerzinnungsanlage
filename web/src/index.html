@@ -1,0 +1,997 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zinnbad-Zwilling</title>
+<style>
+/* IBM Plex (SIL Open Font License, siehe lib/LICENSE-ibm-plex.txt), Zeichensatz Latin.
+   Lokal statt Google Fonts, damit der Zwilling ohne Internet gleich aussieht; build.mjs bettet die Dateien ein. */
+@font-face { font-family: "IBM Plex Sans"; font-weight: 400; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-weight: 500; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans"; font-weight: 600; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans Condensed"; font-weight: 400; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-condensed-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans Condensed"; font-weight: 500; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-condensed-latin-500-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Sans Condensed"; font-weight: 600; font-display: swap; src: url("./lib/fonts/ibm-plex-sans-condensed-latin-600-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 400; font-display: swap; src: url("./lib/fonts/ibm-plex-mono-latin-400-normal.woff2") format("woff2"); }
+@font-face { font-family: "IBM Plex Mono"; font-weight: 500; font-display: swap; src: url("./lib/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2"); }
+</style>
+<style>
+/* Layout: Leitstand – 3D-Anlage links, Bedienfeld/Prozess/Diagramm/Signale rechts (am Handy untereinander) */
+:root {
+  --bg: #eef1f4;
+  --panel: #ffffff;
+  --panel-2: #f5f7f9;
+  --line: #d6dce3;
+  --fg: #1b232c;
+  --muted: #5d6b79;
+  --accent: #1f6fb2;      /* Druckluft-Blau */
+  --led: #e39b00;         /* Signal-LED Bernstein */
+  --ok: #1f8a4c;
+  --fault: #c8312b;
+  --tin: #8b97a3;         /* Zinn */
+  --plate: #c9cdd2;       /* Bedienfeld-Frontplatte */
+  --plate-fg: #2a3038;
+  --viewport-top: #dfe5eb;
+  --viewport-bottom: #c9d2db;
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-label: "IBM Plex Sans Condensed", "Segoe UI", "Arial Narrow", sans-serif;
+  --font-data: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161c; --panel: #171e26; --panel-2: #1d2630; --line: #2a3541; --fg: #e3e9ef; --muted: #8d9cab;
+    --accent: #5aa7e6; --led: #ffb31a; --ok: #3cc277; --fault: #ff5d55; --tin: #a9b4bf;
+    --plate: #3a424b; --plate-fg: #e3e9ef;
+    --viewport-top: #1d2732; --viewport-bottom: #0f141a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161c; --panel: #171e26; --panel-2: #1d2630; --line: #2a3541; --fg: #e3e9ef; --muted: #8d9cab;
+  --accent: #5aa7e6; --led: #ffb31a; --ok: #3cc277; --fault: #ff5d55; --tin: #a9b4bf;
+  --plate: #3a424b; --plate-fg: #e3e9ef;
+  --viewport-top: #1d2732; --viewport-bottom: #0f141a; color-scheme: dark;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 var(--font-ui); }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+/* Die Seitenleiste liegt über der 3D-Ansicht: Die 3D-Fläche behält beim Ein- und Ausblenden ihre Größe, das Bild springt nicht.
+   Anzeigen und Knöpfe der Ansicht halten mit --seite Abstand zur Leiste. */
+.app { height: 100%; position: relative; --seite: 480px; }
+.app.seite-zu { --seite: 0px; }
+.stage { position: absolute; inset: 0; min-width: 0; background: linear-gradient(var(--viewport-top), var(--viewport-bottom)); overflow: hidden; }
+#viewport { position: absolute; inset: 0; isolation: isolate; }   /* z-index der 3D-Beschriftungen bleibt in der Ansicht */
+#viewport canvas { display: block; }
+
+.stage-head { position: absolute; top: 14px; left: 16px; right: calc(var(--seite) + 16px); display: flex; gap: 12px; align-items: flex-start; justify-content: flex-end; pointer-events: none; flex-wrap: wrap; }
+.readout { display: flex; gap: 6px; pointer-events: auto; flex-wrap: wrap; }
+.readout div { background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; min-width: 78px; }
+.readout span { display: block; font: 500 10px/1.2 var(--font-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.readout b { font: 500 15px/1.3 var(--font-data); font-variant-numeric: tabular-nums; }
+.readout b.warn, .gauge b.warn { color: var(--fault); }
+
+.stage-foot { position: absolute; left: 16px; bottom: 14px; right: calc(var(--seite) + 16px); display: flex; gap: 6px; flex-wrap: wrap; }
+.chip-btn { font: 500 12px var(--font-label); letter-spacing: .03em; color: var(--fg); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; cursor: pointer; }
+a.chip-btn { text-decoration: none; }
+.chip-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.chip-btn:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.chip-sel { display: inline-flex; align-items: center; gap: 6px; font: 500 12px var(--font-label); letter-spacing: .03em; color: var(--muted); background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line); border-radius: 999px; padding: 2px 4px 2px 11px; }
+.chip-sel select { font: 500 12px var(--font-label); color: var(--fg); background: transparent; border: 0; padding: 3px 4px; cursor: pointer; max-width: 160px; text-overflow: ellipsis; }
+.chip-sel select option, .chip-sel select optgroup { color: #1b232c; background: #fff; }
+.legende { position: absolute; left: 16px; bottom: 52px; background: color-mix(in srgb, var(--panel) 92%, transparent); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px 9px; font-size: 12px; box-shadow: 0 6px 24px rgba(0,0,0,.14); max-width: min(330px, calc(100% - 32px)); }
+.legende-kopf { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.legende-kopf b { font: 600 11px/1.2 var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.legende-kopf button { border: 0; background: none; color: var(--muted); font-size: 16px; line-height: 1; cursor: pointer; padding: 0 2px; }
+.legende dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; }
+.legende dt { font-weight: 500; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+.legende dd { margin: 0; color: var(--muted); }
+.legende kbd { font: 500 10.5px var(--font-data); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 3px; padding: 0 4px; }
+.maus { width: 11px; height: 15px; border: 1.5px solid currentColor; border-radius: 6px; position: relative; flex: none; opacity: .8; }
+.maus::before { content: ""; position: absolute; top: 0; height: 6px; width: 50%; background: var(--accent); }
+.maus.l::before { left: 0; border-radius: 4px 0 0 0; }
+.maus.r::before { right: 0; border-radius: 0 4px 0 0; }
+.maus.m::before { left: 50%; width: 2px; height: 4px; top: 2px; transform: translateX(-50%); border-radius: 1px; }
+@media (max-width: 700px) { .legende { display: none; } }
+.toast { position: absolute; left: 50%; top: 84px; transform: translateX(-50%); background: var(--panel); border: 1px solid var(--fault); border-radius: 8px; padding: 8px 14px; font-size: 13px; box-shadow: 0 6px 24px rgba(0,0,0,.18); max-width: min(440px, calc(100% - 32px)); }
+.toast b { color: var(--fault); font-family: var(--font-label); margin-right: 6px; }
+.offline-banner { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); background: var(--panel); border: 1px solid var(--fault); color: var(--fg); border-radius: 8px; padding: 12px 16px; max-width: 320px; text-align: center; box-shadow: 0 6px 24px rgba(0,0,0,.18); }
+.offline-banner b { color: var(--fault); display: block; font-family: var(--font-label); }
+.grafik-fehler { z-index: 20; max-width: min(400px, calc(100% - 32px)); }
+.grafik-fehler span { display: block; margin-top: 4px; }
+
+.tag3d { font: 500 11px/1 var(--font-label); letter-spacing: .04em; padding: 3px 6px; border-radius: 4px; background: color-mix(in srgb, var(--panel) 90%, transparent); border: 1px solid var(--line); color: var(--muted); white-space: nowrap; transition: border-color .15s, color .15s; }
+.tag3d.on { border-color: var(--led); color: var(--fg); box-shadow: 0 0 0 2px color-mix(in srgb, var(--led) 30%, transparent); }
+.tag3d.cyl { color: var(--fg); font-weight: 600; }
+.tag3d.klein { font-size: 10px; padding: 2px 5px; opacity: .6; }
+.tag3d.klein.on { opacity: 1; }
+.tag3d.weg { visibility: hidden; }
+
+/* Seitenspalte */
+.side { position: absolute; top: 0; right: 0; bottom: 0; z-index: 20; width: min(var(--seite), 100vw); background: var(--panel); border-left: 1px solid var(--line);
+  box-shadow: -10px 0 30px rgba(0,0,0,.12); overflow-y: auto; min-width: 0; display: flex; flex-direction: column; }
+.side[hidden] { display: none; }
+.side.abgeloest { position: static; width: auto; height: 100vh; box-shadow: none; border-left: 0; }   /* im eigenen Fenster */
+.side.abgeloest #side-zu { display: none; }
+.side-top { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 8px; padding: 9px 10px 9px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.side-top b { flex: 1; font: 600 11px/1.2 var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.side-top .version { font: 400 11px var(--font-data); color: var(--muted); white-space: nowrap; }
+.side-mini { font: 500 11px var(--font-label); color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px 9px; cursor: pointer; white-space: nowrap; }
+.side-mini:hover { color: var(--fg); border-color: var(--accent); }
+.side-mini.side-x { font-size: 15px; line-height: 1; padding: 2px 8px 4px; border-radius: 6px; }
+
+/* Aufklappbare Bereiche */
+.sec { border-bottom: 1px solid var(--line); }
+.sec > summary, .sub > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px; padding: 12px 16px; user-select: none; }
+.sec > summary::-webkit-details-marker, .sub > summary::-webkit-details-marker { display: none; }
+.sec > summary:hover h2, .sub > summary:hover h2 { color: var(--fg); }
+.sec > summary::after, .sub > summary::after { content: "▸"; margin-left: auto; color: var(--muted); font-size: 16px; line-height: 1; transition: transform .15s; }
+.sec[open] > summary::after, .sub[open] > summary::after { transform: rotate(90deg); }
+.sec > .inhalt { padding: 0 16px 14px; display: grid; gap: 10px; }
+.sec h2 { margin: 0; font: 600 11px/1.2 var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.sub { border: 1px solid var(--line); border-radius: 7px; background: var(--panel-2); }
+.sub + .sub { margin-top: 8px; }
+.sub > summary { padding: 8px 10px; }
+.sub h2 { font-size: 10.5px; letter-spacing: .08em; }
+.sub > .inhalt { padding: 0 10px 10px; display: grid; gap: 10px; }
+.conn { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; align-items: center; font-size: 13px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--line); }
+.dot.ok { background: var(--ok); } .dot.warn { background: var(--led); } .dot.bad { background: var(--fault); } .dot.aus { background: var(--muted, #9aa3ab); }
+.conn small { grid-column: 2; color: var(--muted); font-size: 12px; margin-top: -4px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+.seg button { font: 500 13px var(--font-ui); padding: 7px 8px; border: 0; background: var(--panel-2); color: var(--muted); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+.hint { margin: 0; color: var(--muted); font-size: 12px; }
+
+/* Bedienfeld wie im Arbeitsblatt */
+.plate { background: var(--plate); color: var(--plate-fg); border-radius: 6px; padding: 12px 12px 14px; display: grid; gap: 12px; border: 1px solid color-mix(in srgb, var(--plate-fg) 18%, transparent); box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 35%, transparent); }
+.plate h3 { margin: 0; text-align: center; font: 600 13px/1 var(--font-label); letter-spacing: .14em; text-transform: uppercase; }
+.plate .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; align-items: start; justify-items: center; }
+.plate .row.four { grid-template-columns: repeat(4, 1fr); }
+.op { display: grid; justify-items: center; gap: 5px; text-align: center; }
+.op small { font: 500 10.5px/1.15 var(--font-label); letter-spacing: .03em; }
+.op code { font: 400 10px var(--font-data); opacity: .7; }
+.bcd-anzeige { font: 700 22px/1 "Courier New", monospace; letter-spacing: .12em; color: #ff3b26; background: #160807; padding: 6px 8px; border-radius: 3px; min-width: 64px; }
+.daumenrad { display: flex; gap: 2px; background: #101214; padding: 3px; border-radius: 3px; }
+.daumenrad span { display: grid; justify-items: center; }
+.daumenrad b { font: 700 18px/1.2 "Courier New", monospace; color: #f2f4f6; background: #2a2e33; padding: 0 4px; }
+.daumenrad button { font: 600 11px/1 var(--font-label); width: 22px; height: 16px; padding: 0; cursor: pointer; background: #3a3f45; color: #f2f4f6; border: 0; }
+.pb { width: 46px; height: 46px; border-radius: 50%; cursor: pointer; border: 3px solid #1d2126; background: radial-gradient(circle at 40% 35%, #ffffff, #dfe3e7 60%, #b9c0c7); box-shadow: 0 3px 0 #1d2126; position: relative; }
+.pb::after { content: ""; position: absolute; left: 50%; top: 18%; bottom: 18%; width: 5px; transform: translateX(-50%); background: #1d2126; border-radius: 3px; }
+.pb.aus { border-color: #e9b800; background: radial-gradient(circle at 40% 35%, #ff7a6e, #d42a1f 60%, #9b170f); box-shadow: 0 3px 0 #8a6d00; }
+.pb.aus::after { display: none; }
+.pb.down, .pb:active { transform: translateY(3px); box-shadow: none; }
+.lamp { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #2a2f35; position: relative; background: var(--off, #6b6f73); }
+.lamp::before, .lamp::after { content: ""; position: absolute; left: 50%; top: 50%; width: 70%; height: 2px; background: rgba(0,0,0,.45); transform: translate(-50%, -50%) rotate(45deg); }
+.lamp::after { transform: translate(-50%, -50%) rotate(-45deg); }
+.lamp.on { background: var(--c); box-shadow: 0 0 12px var(--c), 0 0 2px #fff inset; }
+.lamp.white { --c: #f4f7fb; --off: #8d9296; }
+.lamp.amber { --c: #ffae1a; --off: #7a6436; }
+.lamp.red { --c: #ff3b2f; --off: #6e3632; }
+.lamp.green { --c: #3be27a; --off: #3c6a4c; }
+.opt { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.opt input { accent-color: var(--accent); margin: 0; }
+
+/* Not-Aus, Wahl- und Schlüsselschalter, Pfeiltaster */
+.notaus { width: 58px; height: 58px; border-radius: 50%; cursor: pointer; border: 0; position: relative; background: radial-gradient(circle, #f2c200 0 62%, #1d2126 63% 66%, #f2c200 67%); box-shadow: 0 2px 0 #8a6d00; }
+.notaus::after { content: ""; position: absolute; inset: 11px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #ff6b5e, #d0241a 60%, #8f150e); box-shadow: 0 4px 0 #6b0f09; transition: transform .1s, box-shadow .1s; }
+.notaus[aria-pressed="true"]::after { transform: translateY(3px) scale(.96); box-shadow: 0 1px 0 #6b0f09; }
+.pb.blau { border-color: #1d2126; background: radial-gradient(circle at 40% 35%, #b9dcff, #3d8de0 60%, #1d5ea8); }
+.pb.blau::after, .pb.gruen::after, .pb.rot::after { display: none; }
+.pb.blau.on { box-shadow: 0 3px 0 #1d2126, 0 0 14px #5fb0ff; background: radial-gradient(circle at 40% 35%, #e9f5ff, #7cc0ff 60%, #3d8de0); }
+.pb.gruen { background: radial-gradient(circle at 40% 35%, #8ef0b2, #23a35a 60%, #136b39); }
+.pb.schwarz { background: radial-gradient(circle at 40% 35%, #6b7178, #2b2f34 60%, #15181b); }
+.pb.schwarz::after { background: #e9ecef; }
+.pb.rot { border-color: #1d2126; background: radial-gradient(circle at 40% 35%, #ff7a6e, #d42a1f 60%, #9b170f); }
+.pb .pf { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font: 700 16px/1 var(--font-ui); text-shadow: 0 1px 1px rgba(0,0,0,.5); pointer-events: none; }
+.wahl { width: 52px; height: 52px; border-radius: 50%; border: 3px solid #1d2126; background: radial-gradient(circle at 40% 35%, #5a6068, #2a2e33 70%); cursor: pointer; position: relative; }
+.wahl::after { content: ""; position: absolute; left: 50%; top: 6px; bottom: 6px; width: 12px; margin-left: -6px; border-radius: 5px; background: linear-gradient(#e7eaed, #b8bec4); transform: rotate(-45deg); transition: transform .15s; }
+.wahl[aria-pressed="true"]::after { transform: rotate(45deg); }
+.wahl.schluessel { background: radial-gradient(circle at 40% 35%, #d9dde1, #9aa1a8 70%); }
+.wahl.schluessel::after { width: 6px; margin-left: -3px; top: 10px; bottom: 10px; background: linear-gradient(#6b5a24, #c9a54a); }
+/* Stellungsmarke am zeigenden (oberen) Ende - wie der Stahlwuerfel am 3D-Knebel */
+.wahl::before { content: ""; position: absolute; left: 50%; top: 2px; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 50%; background: #f2f5f8; box-shadow: 0 0 0 1px rgba(0,0,0,.55); transform-origin: 50% 21px; transform: rotate(-45deg); transition: transform .15s; z-index: 1; }
+.wahl[aria-pressed="true"]::before { transform: rotate(45deg); }
+.wahl.schluessel::before { background: #c9a54a; }
+/* Stellungstexte stehen ueber dem Schalter - genau wie auf dem echten Tableau */
+.stellung { order: -1; display: flex; justify-content: space-between; width: 64px; font: 600 9.5px var(--font-label); letter-spacing: .04em; }
+.plate.klein { padding: 10px; gap: 10px; }
+.op.poti { width: 100%; }
+.poti-tipp { position: fixed; z-index: 40; pointer-events: none; font: 600 12px var(--font-ui); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+.op.poti input { width: 90%; accent-color: var(--accent); }
+.plate .row.five { grid-template-columns: repeat(5, 1fr); }
+.betrieb { display: grid; gap: 4px; }
+.betrieb > span { font: 500 12.5px var(--font-ui); }
+.seg.klein button { font-size: 12px; padding: 5px 6px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Prozess */
+.proc { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gauge { border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; background: var(--panel-2); display: grid; gap: 6px; min-width: 0; }
+.gauge .top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.gauge span { font: 500 10.5px var(--font-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.gauge b { font: 500 15px var(--font-data); font-variant-numeric: tabular-nums; }
+.bar { height: 6px; border-radius: 3px; background: var(--line); position: relative; overflow: visible; }
+.bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--tin); }
+.bar i.hot { background: var(--led); }
+.bar i.wasser { background: var(--accent); }
+.proc .gauge:nth-child(3) { grid-column: 1 / -1; }
+.bar em { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--fg); opacity: .55; }
+.btnrow { display: flex; gap: 6px; flex-wrap: wrap; }
+.btn { font: 500 12.5px var(--font-ui); padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel); color: var(--fg); cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+.btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.btn-reset { justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
+.btn-reset::before { content: "↺"; font-size: 15px; line-height: 1; color: var(--accent); }
+.param { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; font-size: 13px; }
+.param input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); }
+.param output { font: 500 13px var(--font-data); font-variant-numeric: tabular-nums; }
+
+/* Diagramm */
+#wz { width: 100%; height: 290px; display: block; }
+.legend { display: flex; justify-content: space-between; font: 400 11px var(--font-data); color: var(--muted); }
+#btn-wz-gross { justify-self: start; }
+
+/* Grafikeinstellungen (über dem Knopf „Grafik“) */
+.grafik-fenster { position: fixed; z-index: 35; width: min(360px, calc(100vw - 16px)); padding-bottom: 12px; background: var(--panel); color: var(--fg);
+  border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 18px 60px rgba(0,0,0,.28); }
+.gf-kopf { display: flex; align-items: center; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); border-radius: 10px 10px 0 0; }
+.gf-kopf b { flex: 1; font: 600 13px var(--font-label); letter-spacing: .04em; }
+.gf-zu { border: 0; background: none; color: var(--muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 2px 6px; }
+.gf-zeile { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center; padding: 12px 14px 0; }
+label.gf-zeile { cursor: pointer; }
+.gf-name { font: 500 13px var(--font-label); }
+.gf-name small { display: block; margin-top: 2px; color: var(--muted); font: 400 11.5px var(--font-ui); }
+.gf-wahl { grid-column: 1 / -1; display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.gf-wahl button { flex: 1; border: 0; background: none; color: var(--fg); font: 500 12px var(--font-label); padding: 6px 0; cursor: pointer; }
+.gf-wahl button + button { border-left: 1px solid var(--line); }
+.gf-wahl button[aria-checked="true"] { background: var(--accent); color: #fff; }
+.gf-zeile input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--accent); cursor: pointer; }
+.gf-gpu { margin: 12px 14px 0; padding-top: 10px; border-top: 1px solid var(--line); font: 400 11.5px var(--font-ui); color: var(--muted); }
+.gf-gpu.warnung { color: var(--fault); }
+
+/* Fenster Weg-Zeit-Diagramm (verschiebbar, Größe am Rand unten rechts ziehbar) */
+.fenster { position: fixed; left: 24px; top: 24px; z-index: 30; width: min(980px, calc(100vw - 16px)); height: min(720px, calc(100vh - 16px));
+  min-width: 420px; min-height: 360px; max-width: calc(100vw - 8px); max-height: calc(100vh - 8px); resize: both; overflow: hidden;
+  display: flex; flex-direction: column; background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 10px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.28); }
+.fenster-kopf { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--line);
+  background: var(--panel-2); cursor: move; user-select: none; touch-action: none; }
+.fenster-kopf b { flex: 1; font: 600 13px var(--font-label); letter-spacing: .04em; }
+.fenster-kopf .btn, .fenster-kopf select, .fenster-kopf label { cursor: pointer; }
+.wzf-mess { margin: 0; padding: 6px 14px; min-height: 30px; font: 400 12.5px var(--font-data); font-variant-numeric: tabular-nums; color: var(--muted);
+  border-bottom: 1px solid var(--line); }
+.wzf-mess b { color: var(--fg); font-weight: 500; }
+#wzf-canvas { flex: 1 1 auto; min-height: 180px; width: 100%; display: block; cursor: crosshair; touch-action: none; }
+.drosseln { flex: 0 0 auto; border-top: 1px solid var(--line); max-height: 45%; display: flex; flex-direction: column; }
+.drosseln-kopf { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 7px 14px; }
+.drosseln-kopf b { font: 600 12px var(--font-label); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.drosseln-kopf .hint { flex: 1; margin: 0; }
+.drosseln-liste { overflow-y: auto; padding: 0 14px 10px; display: grid; gap: 2px; }
+.dr-zeile { display: grid; grid-template-columns: 150px 1fr 1fr; gap: 6px 18px; align-items: center; padding: 5px 6px; border-radius: 6px; }
+.dr-zeile.markiert { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.dr-name { font: 500 13px var(--font-label); }
+.dr-name small { display: block; color: var(--muted); font: 400 11.5px var(--font-ui); }
+.dr-rich { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; align-items: center; font-size: 12px; }
+.dr-rich span { color: var(--muted); }
+.dr-rich output { font: 500 12.5px var(--font-data); font-variant-numeric: tabular-nums; }
+.dr-rich input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); margin: 2px 0; }
+.dr-rich small { grid-column: 1 / -1; font: 400 11.5px var(--font-data); font-variant-numeric: tabular-nums; color: var(--muted); }
+.dr-rich small.zu { color: var(--fault); }
+@media (max-width: 700px) {
+  .fenster { left: 4px !important; top: 4px !important; width: calc(100vw - 8px); height: calc(100vh - 8px); min-width: 0; resize: none; }
+  .dr-zeile { grid-template-columns: 1fr; }
+}
+
+/* Fenster Umrichter −TA2 */
+.fu-fenster { width: min(1080px, calc(100vw - 16px)); height: min(900px, calc(100vh - 16px)); left: 48px; top: 24px; }
+.fu-wahl { display: flex; flex: 0 1 auto; }
+.fu-wahl button { padding: 5px 10px; }
+.antriebe { display: grid; grid-template-columns: auto 1fr; gap: 5px 10px; align-items: center; }
+.antriebe > span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.fu-verlauf { flex: 0 0 auto; border-top: 1px solid var(--line); padding: 8px 14px 12px; display: grid; gap: 6px; }
+.fu-verlauf-kopf { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.fu-verlauf-kopf b { font: 600 12px var(--font-label); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.fu-verlauf-kopf .chip-sel { margin-left: auto; }
+.fu-legende { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.fu-legende i { width: 18px; height: 0; border-top: 2px solid; }
+.fu-legende i.soll { border-color: var(--muted); border-top-style: dashed; }
+.fu-legende i.wirk { border-color: var(--led); }
+.fu-legende i.ist { border-color: #009999; border-top-width: 3px; }
+#fu-kurve { width: 100%; height: 190px; display: block; }
+.fu-inhalt { flex: 1 1 auto; min-height: 0; overflow: auto; display: grid; grid-template-columns: 230px 1fr; gap: 18px; padding: 14px; }
+.g120 { align-self: start; display: grid; gap: 0; width: 210px; justify-self: center; }
+.g120-cu { background: linear-gradient(90deg, #41474d, #50575e 50%, #41474d); border-radius: 6px 6px 2px 2px; padding: 10px 8px 8px;
+  display: grid; gap: 9px; box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 4px 10px rgba(0,0,0,.3); position: relative; z-index: 1; }
+.iop { background: linear-gradient(#202326, #141618); border-radius: 9px; padding: 8px 9px 11px; display: grid; gap: 9px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 3px 8px rgba(0,0,0,.45); }
+.iop-marke { font: 700 13px/1 Arial, "Helvetica Neue", sans-serif; letter-spacing: .03em; color: #fff; }
+.iop-display { width: 100%; aspect-ratio: 4 / 3; display: block; border-radius: 2px; border: 2px solid #08090a; background: #0d1114; }
+.iop-reihe { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.iop-reihe.unten { grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.iop-taste { font: 700 10px Arial, sans-serif; letter-spacing: .04em; color: #d6dadd; background: linear-gradient(#3b4045, #2b2f33); border: 1px solid #0b0c0d;
+  border-radius: 5px; height: 24px; cursor: pointer; box-shadow: inset 0 1px 0 rgba(255,255,255,.15), 0 2px 0 #000; padding: 0; }
+.iop-taste:active, .iop-taste.gedrueckt { transform: translateY(1px); box-shadow: inset 0 1px 2px rgba(0,0,0,.6); }
+.iop-taste.ein { background: linear-gradient(#26a957, #1a8043); color: #fff; font: 700 15px Arial; height: 28px; }
+.iop-taste.aus { background: linear-gradient(#d83a3a, #a82424); color: #fff; font: 700 15px Arial; height: 28px; }
+.iop-taste.hand { height: 28px; display: grid; place-items: center; }
+.iop-taste.hand svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.iop-taste.hand[aria-pressed="true"] { color: #ffb000; }
+.iop-rad { width: 62px; height: 62px; border-radius: 50%; border: 1px solid #000; cursor: pointer; padding: 0; position: relative;
+  background: repeating-conic-gradient(#2c3034 0 6deg, #3a3f44 6deg 12deg); box-shadow: 0 2px 4px rgba(0,0,0,.6), inset 0 0 0 3px #1b1d20; }
+.iop-ok { position: absolute; inset: 15px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #5d646b, #2f3438 70%);
+  font: 700 9px Arial; color: #c9cdd1; display: grid; place-items: center; box-shadow: 0 1px 2px rgba(0,0,0,.7); }
+.iop-rad:active .iop-ok { transform: scale(.96); }
+.g120-leds { display: flex; gap: 16px; padding: 0 4px; font: 700 9px Arial, sans-serif; letter-spacing: .05em; color: #d7dde2; }
+.g120-leds span, .g120-ports span { display: flex; align-items: center; gap: 5px; }
+.g120-klappe { border: 1px solid #2f3438; border-radius: 3px; padding: 8px 8px 22px; color: #d7dde2; display: grid; gap: 2px;
+  background: linear-gradient(#4b5258, #444a50); }
+.g120-klappe b { font: 700 11px Arial, sans-serif; letter-spacing: .06em; }
+.g120-klappe small { font: 500 9.5px Arial, sans-serif; }
+.g120-pm { background: linear-gradient(90deg, #32373b, #3f454a 50%, #32373b); margin: 0 3px; padding: 12px 10px 10px; color: #cfd6dc; display: grid; gap: 2px;
+  border-radius: 0 0 4px 4px; box-shadow: 0 6px 14px rgba(0,0,0,.3); }
+.g120-pm b { font: 700 10.5px Arial, sans-serif; }
+.g120-pm small { font: 500 9px Arial, sans-serif; color: #aab4bc; }
+.g120-pm .klemmen { margin-top: 6px; padding-top: 6px; border-top: 1px solid #262a2e; font-family: var(--font-data); }
+.g120-ports { display: flex; justify-content: center; gap: 18px; padding: 6px 0 0; font: 600 9.5px var(--font-data); color: var(--muted); }
+.g120-hinweis { margin: 8px 0 0; text-align: center; font-size: 11px; color: var(--muted); }
+.fu-led { width: 8px; height: 8px; border-radius: 50%; background: #6d757c; box-shadow: inset 0 1px 1px rgba(0,0,0,.5); flex: none; }
+.fu-led.gruen { background: #22c55e; box-shadow: 0 0 6px #22c55e; }
+.fu-led.rot { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+.fu-led.gelb { background: #facc15; box-shadow: 0 0 6px #facc15; }
+.fu-led.blinkt { animation: fu-blink 1s steps(1) infinite; }
+@keyframes fu-blink { 50% { background: #6d757c; box-shadow: none; } }
+.fu-telegramm { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.fu-zustaende { display: flex; flex-wrap: wrap; gap: 6px; }
+.fu-zustaende span { font: 500 11.5px var(--font-label); padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.fu-zustaende span.an { background: var(--accent); border-color: var(--accent); color: #fff; }
+.fu-zustaende span.stoerung.an { background: var(--fault); border-color: var(--fault); }
+.fu-woerter { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.fu-wort { display: grid; gap: 6px; align-content: start; min-width: 0; }
+.fu-wort-kopf { display: flex; align-items: baseline; gap: 8px; }
+.fu-wort-kopf b { font: 600 13px var(--font-label); }
+.fu-wort-kopf span { flex: 1; font-size: 11.5px; color: var(--muted); }
+.fu-wort-kopf code { font: 500 12.5px var(--font-data); }
+.fu-bits { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; font-size: 12px; }
+.fu-bits li { display: grid; grid-template-columns: 26px 12px 1fr; gap: 6px; align-items: center; padding: 2px 4px; border-radius: 4px; }
+.fu-bits li:nth-child(odd) { background: color-mix(in srgb, var(--line) 35%, transparent); }
+.fu-bits li b { font: 400 11px var(--font-data); color: var(--muted); text-align: right; }
+.fu-bits li .led { width: 10px; height: 10px; }
+.fu-bits li.aus { color: var(--muted); }
+.fu-zahl { margin: 0; font: 400 12.5px var(--font-data); font-variant-numeric: tabular-nums; }
+@media (max-width: 700px) {
+  .fu-inhalt, .fu-woerter { grid-template-columns: 1fr; }
+}
+
+/* Ereignisse */
+.events { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 180px; overflow-y: auto; font-size: 12.5px; }
+.events li { display: grid; grid-template-columns: auto 1fr; gap: 8px; padding: 3px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+.events time { font: 400 11.5px var(--font-data); color: var(--muted); font-variant-numeric: tabular-nums; }
+.events li.err span { color: var(--fault); }
+.events li.ok span::before { content: "✓ "; color: var(--ok); }
+.events li.empty { display: block; color: var(--muted); }
+
+/* Signalmonitor */
+.mon-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.mon-head input { font: 13px var(--font-ui); padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-2); color: var(--fg); width: 140px; }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th { text-align: left; font: 500 10.5px var(--font-label); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 4px; border-bottom: 1px solid var(--line); }
+td { padding: 5px 4px; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); vertical-align: middle; }
+td.adr { font-family: var(--font-data); color: var(--muted); white-space: nowrap; }
+td.name { font-family: var(--font-label); font-weight: 500; }
+td.name small { display: block; font-family: var(--font-ui); font-weight: 400; color: var(--muted); font-size: 11px; }
+tr.byte-row td.name { font-weight: 600; }
+tr.dir-row td { font: 600 10.5px var(--font-label); letter-spacing: .1em; text-transform: uppercase; color: var(--accent); padding-top: 10px; border-bottom: 0; }
+tr.forced td { background: color-mix(in srgb, var(--led) 12%, transparent); }
+.led { width: 11px; height: 11px; border-radius: 50%; background: var(--line); border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent); }
+.led.on { background: var(--led); box-shadow: 0 0 6px var(--led); }
+.force { display: inline-grid; grid-template-columns: repeat(3, auto); border: 1px solid var(--line); border-radius: 5px; overflow: hidden; }
+.force button { font: 500 11px var(--font-data); padding: 2px 6px; border: 0; background: var(--panel-2); color: var(--muted); cursor: pointer; }
+.force button + button { border-left: 1px solid var(--line); }
+.force button[aria-pressed="true"] { background: var(--fg); color: var(--panel); }
+.force button[data-f="1"][aria-pressed="true"], .force button[data-f="0"][aria-pressed="true"] { background: var(--led); color: #1b1300; }
+.src { font: 400 11px var(--font-data); color: var(--muted); }
+.wert { font: 500 11px var(--font-data); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 900px) {
+  .app { display: grid; grid-template-rows: 60vh auto; height: auto; --seite: 0px; }
+  .stage { position: relative; }
+  .side { position: static; width: auto; box-shadow: none; border-left: 0; border-top: 1px solid var(--line); overflow: visible; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+/* Ladebildschirm: bis die Shader übersetzt sind; Drehrad läuft per transform (auch wenn das Skript gerade rechnet) */
+.laden { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px; background: var(--bg); color: var(--fg); transition: opacity .4s; }
+.laden.weg { opacity: 0; pointer-events: none; }
+.laden-box { display: grid; justify-items: center; gap: 14px; max-width: 460px; text-align: center; }
+.laden-rad { width: 46px; height: 46px; border-radius: 50%; border: 4px solid var(--line); border-top-color: var(--accent); animation: laden-dreh 0.9s linear infinite; }
+@keyframes laden-dreh { to { transform: rotate(360deg); } }
+.laden-box b { font: 600 15px var(--font-label); letter-spacing: .04em; }
+.laden-text { min-height: 2.8em; margin: 0; font: 400 14px var(--font-ui); transition: opacity .25s; }
+.laden-text.wechsel { opacity: 0; }
+.laden-box small { color: var(--muted); font: 400 12px var(--font-ui); }
+@media (prefers-reduced-motion: reduce) { .laden-rad { animation-duration: 3s; } }
+</style>
+<script>
+// Startfehler sichtbar machen: bricht der Aufbau ab (kein WebGL, Treiberfehler, Fehler im Code),
+// bliebe sonst nur eine graue Fläche. Läuft als erstes Skript, also auch vor dem Zwilling selbst.
+window.zwillingFehler = (titel, text) => {
+  const el = document.getElementById('grafik-fehler');
+  if (!el) return;
+  document.getElementById('gf-titel').textContent = titel;
+  document.getElementById('gf-text').textContent = text;
+  el.hidden = !titel;
+  if (titel) window.zwillingGeladen?.();   // Ladebildschirm weg, sonst verdeckt er die Meldung
+};
+const startfehler = (grund) => {
+  if (window.__zwilling || !document.getElementById('grafik-fehler')?.hidden) return;   // läuft schon bzw. bereits gemeldet
+  let en; try { en = (localStorage.getItem('zinnbad-sprache') || (/^de\b/i.test(navigator.language) ? 'de' : 'en')) === 'en'; } catch { en = !/^de\b/i.test(navigator.language); }
+  window.zwillingFehler(en ? 'The twin could not start' : 'Zwilling konnte nicht starten',
+    (en ? 'Please reload the page (F5). If that does not help, use a current Chrome, Edge or Firefox. Error: '
+        : 'Bitte die Seite neu laden (F5). Hilft das nicht: aktuellen Chrome, Edge oder Firefox verwenden. Fehlermeldung: ') + grund);
+};
+addEventListener('error', (e) => startfehler(e.message || String(e.error)));
+addEventListener('unhandledrejection', (e) => startfehler(String(e.reason)));
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "./lib/three.module.min.js",
+  "three/addons/": "./lib/addons/"
+} }
+</script>
+</head>
+<body>
+<div class="laden" id="laden" role="status" aria-live="polite">
+  <div class="laden-box">
+    <div class="laden-rad" aria-hidden="true"></div>
+    <b id="laden-titel">Zwilling startet</b>
+    <p class="laden-text" id="laden-text">Anlage wird aufgebaut …</p>
+    <small id="laden-hinweis">Der erste Start dauert etwas – die Grafikkarte übersetzt gerade alle Shader.</small>
+  </div>
+</div>
+<script>
+// Wartetexte: wechseln zufällig, bis main.js window.zwillingGeladen() aufruft
+(() => {
+  let en; try { en = (localStorage.getItem('zinnbad-sprache') || (/^de\b/i.test(navigator.language) ? 'de' : 'en')) === 'en'; } catch { en = !/^de\b/i.test(navigator.language); }
+  const TEXTE = en ? [
+    'One moment please – we still have to start the generator …',
+    'Did the power just go out? No, all good. Probably.',
+    'Heating the tin to 250 °C …',
+    'Pumping up the compressed air … pffffft',
+    'The operator is still looking for their safety shoes.',
+    'PLC is booting … please do not pull the plug.',
+    'Tensioning the conveyor belts …',
+    'Polishing the slot sensors one by one.',
+    'Wiring the control cabinet – red to red, blue to blue …',
+    'Testing the emergency stop. Do not press!',
+    'Brewing coffee for the early shift …',
+    'The graphics card is sweating a little right now.',
+    'Counting baskets: 1, 2, 3 … lost count. Again.',
+    'Putting up the safety fence. Keep your distance!',
+    'Venting the valve terminal …',
+    'A fuse blew – the caretaker is on the way.',
+    'Moving cylinders to home position …',
+    'Maintenance is still on break …',
+    'Checking the maintenance interval … overdue. Never mind.',
+    'Looking for the right Allen key …',
+    'Asking the shift supervisor for approval …',
+  ] : [
+    'Moment bitte – wir müssen gerade noch den Generator starten …',
+    'Ist etwa der Strom ausgefallen? Nein, alles gut. Glaube ich.',
+    'Zinn wird auf 250 °C vorgeheizt …',
+    'Druckluft wird aufgepumpt … pfffffft',
+    'Der Werker sucht noch seine Sicherheitsschuhe.',
+    'SPS bootet … bitte nicht den Stecker ziehen.',
+    'Förderbänder werden gespannt …',
+    'Nutsensoren werden einzeln poliert.',
+    'Schaltschrank wird verdrahtet – rot an rot, blau an blau …',
+    'Not-Halt wird geprüft. Nicht drücken!',
+    'Kaffee für die Frühschicht wird gekocht …',
+    'Die Grafikkarte schwitzt gerade ein bisschen.',
+    'Körbe werden gezählt: 1, 2, 3 … verzählt. Nochmal.',
+    'Schutzzaun wird aufgestellt. Abstand halten!',
+    'Ventilinsel wird entlüftet …',
+    'Sicherung rausgeflogen – der Hausmeister ist unterwegs.',
+    'Zylinder fahren in Grundstellung …',
+    'Die Instandhaltung hat noch Pause …',
+    'Wartungsintervall wird geprüft … überfällig. Egal.',
+    'Der passende Inbusschlüssel wird gesucht …',
+    'Schichtleiter wird um Freigabe gebeten …',
+  ];
+  const feld = document.getElementById('laden-text');
+  if (en) {
+    document.getElementById('laden-titel').textContent = 'Twin is starting';
+    document.getElementById('laden-hinweis').textContent = 'The first start takes a moment – the graphics card is compiling all shaders.';
+  }
+  let rest = [];
+  const naechster = () => { if (!rest.length) rest = TEXTE.slice().sort(() => Math.random() - 0.5); return rest.pop(); };
+  feld.textContent = naechster();
+  const uhr = setInterval(() => {
+    feld.classList.add('wechsel');
+    setTimeout(() => { feld.textContent = naechster(); feld.classList.remove('wechsel'); }, 250);
+  }, 3200);
+  window.zwillingGeladen = () => {
+    clearInterval(uhr);
+    const el = document.getElementById('laden');
+    el.classList.add('weg');
+    setTimeout(() => el.remove(), 450);
+  };
+})();
+</script>
+<div class="app">
+  <section class="stage" aria-label="3D-Ansicht">
+    <div id="viewport"></div>
+    <div class="stage-head">
+      <div class="readout" aria-live="polite">
+        <div><span>Schritt</span><b id="ro-step">–</b></div>
+        <div><span>Zinn</span><b id="ro-temp">– °C</b></div>
+        <div><span>Füllhöhe</span><b id="ro-level">– %</b></div>
+        <div><span>Verzinnt</span><b id="ro-count">0</b></div>
+      </div>
+    </div>
+    <div class="toast" id="toast" hidden><b>Achtung</b><span id="toast-text"></span></div>
+    <div class="stage-foot">
+      <button class="chip-btn" id="btn-labels" aria-pressed="true" type="button">Beschriftung</button>
+      <button class="chip-btn" id="btn-grafik" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="grafik-fenster" title="Grafikeinstellungen">Grafik: Auto</button>
+      <button class="chip-btn" id="btn-cam" type="button">Ansicht zurücksetzen</button>
+      <label class="chip-sel"><span>Ansicht</span><select id="ansicht-wahl" aria-label="Feste Ansicht wählen"></select></label>
+      <button class="chip-btn" id="btn-hilfe" aria-pressed="true" type="button" title="Maussteuerung anzeigen">Steuerung</button>
+      <button class="chip-btn" id="btn-schrank" aria-pressed="false" type="button">Schaltschrank öffnen</button>
+      <button class="chip-btn" id="btn-side" aria-pressed="true" type="button" title="Seitenleiste ein- und ausblenden">Seitenleiste</button>
+    </div>
+    <div class="legende" id="legende" role="note" aria-label="Maussteuerung">
+      <div class="legende-kopf"><b>Steuerung</b><button type="button" id="legende-zu" aria-label="Legende ausblenden">×</button></div>
+      <dl>
+        <dt><span class="maus l"></span>Linke Taste ziehen</dt><dd>Drehen um den Drehpunkt</dd>
+        <dt><span class="maus r"></span>Rechte Taste ziehen</dt><dd id="legende-pan">Verschieben</dd>
+        <dt><span class="maus m"></span>Mausrad</dt><dd>Zoomen</dd>
+        <dt><span class="maus l"></span>Doppelklick</dt><dd>Drehpunkt auf Bauteil setzen</dd>
+        <dt><span class="maus l"></span>Klick auf Taster</dt><dd>Bedienen (Taster, Not-Halt, Schalter)</dd>
+        <dt><kbd>Shift</kbd> + Linke Taste</dt><dd>Verschieben (Touchpad)</dd>
+        <dt>Touch</dt><dd>1 Finger drehen · 2 Finger zoomen/schieben</dd>
+      </dl>
+    </div>
+    <div class="offline-banner" id="offline-banner" hidden>
+      <b>Keine Verbindung zur SPS</b>
+      <span id="offline-text">Bridge nicht erreichbar. Ausgänge bleiben auf dem letzten Stand.</span>
+    </div>
+    <div class="offline-banner grafik-fehler" id="grafik-fehler" role="alert" hidden><b id="gf-titel"></b><span id="gf-text"></span></div>
+  </section>
+
+  <aside class="side" id="side">
+    <div class="side-top">
+      <b>Bedienen &amp; Beobachten</b>
+      <small class="version" id="version" title="Version des Zwillings"></small>
+      <button type="button" class="side-mini" id="sprache" lang="en" title="Switch to English (reloads the page)">EN</button>
+      <button type="button" class="side-mini" id="side-alle" title="Alle Bereiche auf- oder zuklappen">Alle zuklappen</button>
+      <button type="button" class="side-mini" id="side-loesen" title="In eigenem Fenster öffnen, z. B. auf einem zweiten Bildschirm">Lösen</button>
+      <button type="button" class="side-mini side-x" id="side-zu" aria-label="Seitenleiste ausblenden" title="Seitenleiste ausblenden">×</button>
+    </div>
+
+    <details class="sec" id="sec-verbindung" open>
+      <summary><h2>Verbindung</h2></summary>
+      <div class="inhalt">
+        <div class="conn">
+          <span class="dot" id="dot-bridge"></span><span id="txt-bridge">Bridge: wird gesucht …</span>
+          <span class="dot" id="dot-plc"></span><span id="txt-plc">PLCSIM Advanced: –</span>
+          <small id="txt-plc-detail"></small>
+        </div>
+        <div class="seg" role="group" aria-label="Quelle der Ausgänge">
+          <button type="button" id="mode-sps" aria-pressed="false">PLCSIM&nbsp;Advanced</button>
+          <button type="button" id="mode-demo" aria-pressed="true">Demo ohne SPS</button>
+        </div>
+        <p class="hint" id="mode-hint"></p>
+        <button type="button" class="btn btn-reset" id="btn-reset">Anlage zurücksetzen</button>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-umfang">
+      <summary><h2>Übungsumfang</h2></summary>
+      <div class="inhalt">
+        <div class="betrieb">
+          <span>Verzinnen: Portal −MM1…−MM4</span>
+          <div class="seg klein" role="group" aria-label="Steuerung des Portals">
+            <button type="button" id="pt-auto" aria-pressed="false">Portal automatisch</button>
+            <button type="button" id="pt-sps" aria-pressed="true">SPS steuert</button>
+          </div>
+        </div>
+        <div class="betrieb">
+          <span>Band, Anschlag, Vereinzeler</span>
+          <div class="seg klein" role="group" aria-label="Steuerung des Bandes">
+            <button type="button" id="bm-auto" aria-pressed="true">Bandmodul automatisch</button>
+            <button type="button" id="bm-sps" aria-pressed="false">SPS steuert</button>
+          </div>
+        </div>
+        <div class="betrieb">
+          <span>Antriebe: Schütz oder Umrichter (SINAMICS G120, Telegramm 1)</span>
+          <div class="antriebe">
+            <span>Band 1 −MA1</span>
+            <div class="seg klein" role="group" aria-label="Antrieb Band 1 −MA1"><button type="button" data-antrieb="TA2" data-art="schuetz">Schütz −QA1/−QA2</button><button type="button" data-antrieb="TA2" data-art="fu">Umrichter −TA2</button></div>
+            <span>Band 2 −MA2</span>
+            <div class="seg klein" role="group" aria-label="Antrieb Band 2 −MA2"><button type="button" data-antrieb="TA3" data-art="schuetz">Schütz −QA5/−QA6</button><button type="button" data-antrieb="TA3" data-art="fu">Umrichter −TA3</button></div>
+            <span>Rollenkurve −MA6</span>
+            <div class="seg klein" role="group" aria-label="Antrieb Rollenkurve −MA6"><button type="button" data-antrieb="TA4" data-art="schuetz">Schütz −QA10/−QA11</button><button type="button" data-antrieb="TA4" data-art="fu">Umrichter −TA4</button></div>
+            <span>Prüfband −MA5</span>
+            <div class="seg klein" role="group" aria-label="Antrieb Prüfband −MA5"><button type="button" data-antrieb="TA5" data-art="schuetz">Schütz −QA9</button><button type="button" data-antrieb="TA5" data-art="fu">Umrichter −TA5</button></div>
+          </div>
+          <button type="button" class="btn" id="btn-fu">Umrichter und Telegramme öffnen</button>
+        </div>
+        <div class="betrieb">
+          <span>Zinnbad: Temperatur und Füllstand</span>
+          <div class="seg klein" role="group" aria-label="Regelung des Zinnbads">
+            <button type="button" id="zb-auto" aria-pressed="true">Regler automatisch</button>
+            <button type="button" id="zb-sps" aria-pressed="false">SPS regelt</button>
+          </div>
+        </div>
+        <div class="betrieb">
+          <span>Kühlwassertank: Nachspeisung</span>
+          <div class="seg klein" role="group" aria-label="Nachspeisung des Kühlwassertanks">
+            <button type="button" id="kw-auto" aria-pressed="true">Niveauregler automatisch</button>
+            <button type="button" id="kw-sps" aria-pressed="false">SPS regelt</button>
+          </div>
+        </div>
+        <p class="hint" id="betrieb-hint"></p>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-bedienfeld" open>
+      <summary><h2>Bedienfeld der Anlage</h2></summary>
+      <div class="inhalt">
+        <div class="plate">
+          <div class="row">
+            <div class="op"><button type="button" class="notaus" id="sf0" aria-pressed="false" aria-label="NOT-HALT (SF0)"></button><small>NOT-HALT</small><code>−SF0</code></div>
+            <div class="op"><button type="button" class="pb blau" id="sf4" aria-label="Quittieren (SF4)"></button><small>Quittieren</small><code>−SF4 / −PF5</code></div>
+            <div class="op"><button type="button" class="wahl" id="sa1" aria-pressed="true" aria-label="Wahlschalter Einzel/Automatik (SA1)"></button><span class="stellung"><span>EINZEL</span><span>AUTO</span></span><code>−SA1</code></div>
+          </div>
+          <h3>Betrieb</h3>
+          <div class="row">
+            <div class="op"><button type="button" class="pb gruen" id="sf1" aria-label="START (SF1)"></button><small>START</small><code>−SF1</code></div>
+            <div class="op"><button type="button" class="pb rot" id="sf2" aria-label="STOP (SF2)"></button><small>STOP</small><code>−SF2</code></div>
+            <div class="op"><span class="lamp white" id="pf1"></span><small>Anlage läuft</small><code>−PF1</code></div>
+          </div>
+          <h3>Meldungen</h3>
+          <div class="row">
+            <div class="op"><span class="lamp amber" id="pf2"></span><small>Zinnbad Betriebs­temperatur</small><code>−PF2</code></div>
+            <div class="op"><span class="lamp red" id="pf3"></span><small>Füllhöhe unter­schritten</small><code>−PF3</code></div>
+            <div class="op"><span class="lamp green" id="pf4"></span><small>Materialkorb vorhanden</small><code>−PF4</code></div>
+          </div>
+          <h3>BCD-Geräte</h3>
+          <div class="row">
+            <div class="op"><output class="bcd-anzeige" id="pg1">000</output><small>Körbe</small><code>−PG1</code></div>
+            <div class="op"><span class="daumenrad" id="sf48" role="group" aria-label="Daumenradschalter Tauchzeit −SF48"></span><small>Tauchzeit s</small><code>−SF48</code></div>
+          </div>
+        </div>
+        <button type="button" class="btn" id="btn-lv">Person durch den Lichtvorhang −BG20 gehen lassen</button>
+        <label class="opt" for="sf2-nc"><input type="checkbox" id="sf2-nc" checked> STOP −SF2 als Öffner verdrahtet (unbetätigt = 1)</label>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-vorort">
+      <summary><h2>Vor-Ort-Steuerstellen</h2></summary>
+      <div class="inhalt">
+        <details class="sub" id="sec-s10">
+          <summary><h2>Vor-Ort-Steuerstelle Band (−S10)</h2></summary>
+          <div class="inhalt">
+            <div class="plate klein">
+              <div class="row five">
+                <div class="op"><button type="button" class="wahl schluessel" id="sa2" aria-pressed="false" aria-label="Schlüsselschalter Vor-Ort (SA2)"></button><span class="stellung"><span>0</span><span>1</span></span><code>−SA2</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf6" aria-label="Band Linkslauf (SF6)"><span class="pf">◀</span></button><small>Links</small><code>−SF6</code></div>
+                <div class="op"><button type="button" class="pb rot" id="sf7" aria-label="Band Halt (SF7)"><span class="pf">0</span></button><small>Halt</small><code>−SF7</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf5" aria-label="Band Rechtslauf (SF5)"><span class="pf">▶</span></button><small>Rechts</small><code>−SF5</code></div>
+                <div class="op"><span class="lamp white" id="pf6"></span><small>Vor-Ort aktiv</small><code>−PF6</code></div>
+              </div>
+              <div class="row">
+                <div class="op"><button type="button" class="notaus" id="sf8" aria-pressed="false" aria-label="NOT-HALT Vor-Ort (SF8)"></button><small>NOT-HALT</small><code>−SF8</code></div>
+                <div class="op"><button type="button" class="pb blau" id="sf41" aria-label="Quittieren Vor-Ort S10 (SF41)"></button><small>Quittieren</small><code>−SF41 / −PF12</code></div>
+              </div>
+            </div>
+          </div>
+        </details>
+        <details class="sub" id="sec-s20">
+          <summary><h2>Vor-Ort-Steuerstelle Band 2 (−S20)</h2></summary>
+          <div class="inhalt">
+            <div class="plate klein">
+              <div class="row five">
+                <div class="op"><button type="button" class="wahl schluessel" id="sa4" aria-pressed="false" aria-label="Schlüsselschalter Vor-Ort Band 2 (SA4)"></button><span class="stellung"><span>0</span><span>1</span></span><code>−SA4</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf24" aria-label="Band 2 Linkslauf (SF24)"><span class="pf">◀</span></button><small>Links</small><code>−SF24</code></div>
+                <div class="op"><button type="button" class="pb rot" id="sf25" aria-label="Band 2 Halt (SF25)"><span class="pf">0</span></button><small>Halt</small><code>−SF25</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf23" aria-label="Band 2 Rechtslauf (SF23)"><span class="pf">▶</span></button><small>Rechts</small><code>−SF23</code></div>
+                <div class="op"><span class="lamp white" id="pf8"></span><small>Vor-Ort aktiv</small><code>−PF8</code></div>
+              </div>
+              <div class="row">
+                <div class="op"><button type="button" class="notaus" id="sf9" aria-pressed="false" aria-label="NOT-HALT Vor-Ort Band 2 (SF9)"></button><small>NOT-HALT</small><code>−SF9</code></div>
+                <div class="op"><button type="button" class="pb blau" id="sf42" aria-label="Quittieren Vor-Ort S20 (SF42)"></button><small>Quittieren</small><code>−SF42 / −PF13</code></div>
+              </div>
+            </div>
+          </div>
+        </details>
+        <details class="sub" id="sec-s30">
+          <summary><h2>Vor-Ort-Steuerstelle Rollenkurve (−S30)</h2></summary>
+          <div class="inhalt">
+            <div class="plate klein">
+              <div class="row five">
+                <div class="op"><button type="button" class="wahl schluessel" id="sa5" aria-pressed="false" aria-label="Schlüsselschalter Vor-Ort Rollenkurve (SA5)"></button><span class="stellung"><span>0</span><span>1</span></span><code>−SA5</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf31" aria-label="Rollenkurve Linkslauf (SF31)"><span class="pf">◀</span></button><small>Links</small><code>−SF31</code></div>
+                <div class="op"><button type="button" class="pb rot" id="sf32" aria-label="Rollenkurve Halt (SF32)"><span class="pf">0</span></button><small>Halt</small><code>−SF32</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf30" aria-label="Rollenkurve Rechtslauf (SF30)"><span class="pf">▶</span></button><small>Rechts</small><code>−SF30</code></div>
+                <div class="op"><span class="lamp white" id="pf9"></span><small>Vor-Ort aktiv</small><code>−PF9</code></div>
+              </div>
+              <div class="row">
+                <div class="op"><button type="button" class="notaus" id="sf10" aria-pressed="false" aria-label="NOT-HALT Vor-Ort Rollenkurve (SF10)"></button><small>NOT-HALT</small><code>−SF10</code></div>
+                <div class="op"><button type="button" class="pb blau" id="sf43" aria-label="Quittieren Vor-Ort S30 (SF43)"></button><small>Quittieren</small><code>−SF43 / −PF14</code></div>
+              </div>
+            </div>
+          </div>
+        </details>
+        <details class="sub" id="sec-s40">
+          <summary><h2>Vor-Ort-Steuerstelle Prüfstation (−S40)</h2></summary>
+          <div class="inhalt">
+            <div class="plate klein">
+              <div class="row four">
+                <div class="op"><button type="button" class="wahl schluessel" id="sa6" aria-pressed="false" aria-label="Schlüsselschalter Vor-Ort Prüfstation (SA6)"></button><span class="stellung"><span>0</span><span>1</span></span><code>−SA6</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf34" aria-label="Vibrorinne und Prüfband EIN (SF34)"><span class="pf">I</span></button><small>Prüfung EIN</small><code>−SF34</code></div>
+                <div class="op"><button type="button" class="pb rot" id="sf35" aria-label="Vibrorinne und Prüfband AUS (SF35)"><span class="pf">0</span></button><small>Prüfung AUS</small><code>−SF35</code></div>
+                <div class="op"><span class="lamp white" id="pf11"></span><small>Vor-Ort aktiv</small><code>−PF11</code></div>
+              </div>
+              <div class="row four">
+                <div class="op"><button type="button" class="pb gruen" id="sf37" aria-label="Muldenrollen zurück tippen (SF37)"><span class="pf">◀</span></button><small>Mulde zurück</small><code>−SF37</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf36" aria-label="Muldenrollen vor tippen (SF36)"><span class="pf">▶</span></button><small>Mulde vor</small><code>−SF36</code></div>
+                <div class="op"><button type="button" class="pb" id="sf38" aria-label="Kipper kippen (SF38)"></button><small>Kippen</small><code>−SF38</code></div>
+                <div class="op"><button type="button" class="pb schwarz" id="sf39" aria-label="Kipper zurück (SF39)"></button><small>Kipper zurück</small><code>−SF39</code></div>
+              </div>
+              <div class="row">
+                <div class="op"><button type="button" class="notaus" id="sf33" aria-pressed="false" aria-label="NOT-HALT Vor-Ort Prüfstation (SF33)"></button><small>NOT-HALT</small><code>−SF33</code></div>
+                <div class="op"><button type="button" class="pb blau" id="sf44" aria-label="Quittieren Vor-Ort S40 (SF44)"></button><small>Quittieren</small><code>−SF44 / −PF15</code></div>
+              </div>
+            </div>
+          </div>
+        </details>
+        <details class="sub" id="sec-s50">
+          <summary><h2>Vor-Ort-Steuerstelle Prüfband (−S50)</h2></summary>
+          <div class="inhalt">
+            <div class="plate klein">
+              <div class="row four">
+                <div class="op"><button type="button" class="wahl schluessel" id="sa7" aria-pressed="false" aria-label="Schlüsselschalter Vor-Ort Prüfband (SA7)"></button><span class="stellung"><span>0</span><span>1</span></span><code>−SA7</code></div>
+                <div class="op"><button type="button" class="pb gruen" id="sf45" aria-label="Prüfband EIN (SF45)"><span class="pf">I</span></button><small>Prüfband EIN</small><code>−SF45</code></div>
+                <div class="op"><button type="button" class="pb rot" id="sf46" aria-label="Prüfband AUS (SF46)"><span class="pf">0</span></button><small>Prüfband AUS</small><code>−SF46</code></div>
+                <div class="op"><span class="lamp white" id="pf16"></span><small>Vor-Ort aktiv</small><code>−PF16</code></div>
+              </div>
+              <div class="op poti">
+                <input type="range" id="sf47" min="0" max="100" step="1" value="100" aria-label="Drehzahl Prüfband (SF47)">
+                <small>Drehzahl <output id="o-sf47">100 %</output></small><code>−SF47</code>
+              </div>
+            </div>
+            <p class="hint">Hat Vorrang vor −S40. Die Drehzahl wirkt nur am Umrichter −TA5, am Schütz −QA9 läuft das Prüfband mit Nenngeschwindigkeit. Not-Halt und Quittieren an −S40.</p>
+          </div>
+        </details>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-schrank">
+      <summary><h2>Schaltschranktür −A1: Handbetrieb</h2></summary>
+      <div class="inhalt">
+        <div class="plate klein">
+          <div class="row">
+            <div class="op"><button type="button" class="wahl" id="sa3" aria-pressed="false" aria-label="Wahlschalter Auto/Hand (SA3)"></button><span class="stellung"><span>AUTO</span><span>HAND</span></span><code>−SA3</code></div>
+            <div class="op"><span class="lamp amber" id="pf7"></span><small>Hand aktiv</small><code>−PF7</code></div>
+          </div>
+          <div class="row four">
+            <div class="op"><button type="button" class="pb" id="sf11" aria-label="−MM1 einhängen"></button><small>−MM1 einhängen</small><code>−SF11</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf12" aria-label="−MM1 lösen"></button><small>−MM1 lösen</small><code>−SF12</code></div>
+            <div class="op"><button type="button" class="pb" id="sf13" aria-label="−MM2 senken"></button><small>−MM2 senken</small><code>−SF13</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf14" aria-label="−MM2 anheben"></button><small>−MM2 anheben</small><code>−SF14</code></div>
+            <div class="op"><button type="button" class="pb" id="sf15" aria-label="−MM3 zum Bad"></button><small>−MM3 zum Bad</small><code>−SF15</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf16" aria-label="−MM3 zum Band"></button><small>−MM3 zum Band</small><code>−SF16</code></div>
+            <div class="op"><button type="button" class="pb" id="sf17" aria-label="−MM4 Bad zu"></button><small>−MM4 Bad zu</small><code>−SF17</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf18" aria-label="−MM4 Bad auf"></button><small>−MM4 Bad auf</small><code>−SF18</code></div>
+            <div class="op"><button type="button" class="pb" id="sf19" aria-label="−MM5 Anschlag öffnen"></button><small>−MM5 Anschlag öffnen</small><code>−SF19</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf20" aria-label="−MM5 Anschlag schließen"></button><small>−MM5 Anschlag schließen</small><code>−SF20</code></div>
+            <div class="op"><button type="button" class="pb" id="sf21" aria-label="−MM6 Vereinzeler schließen"></button><small>−MM6 Vereinzeler schließen</small><code>−SF21</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf22" aria-label="−MM6 Vereinzeler öffnen"></button><small>−MM6 Vereinzeler öffnen</small><code>−SF22</code></div>
+            <div class="op"><button type="button" class="pb" id="sf28" aria-label="−MM8 Kipper kippen"></button><small>−MM8 Kipper kippen</small><code>−SF28</code></div>
+            <div class="op"><button type="button" class="pb schwarz" id="sf29" aria-label="−MM8 Kipper zurück"></button><small>−MM8 Kipper zurück</small><code>−SF29</code></div>
+          </div>
+        </div>
+        <p class="hint">Hand: MM1…MM4 im Tippbetrieb (Spule nur solange gedrückt, mit Verriegelungen). MM5, MM6 und MM8 hängen an monostabilen Ventilen: Selbsthaltung in der SPS („öffnen/kippen“ setzt, „zurück/schließen“ setzt zurück). Die Rollenkurve −MA6 wird nur über die Vor-Ort-Steuerstelle −S30 bedient. Taster-Eingänge %I3.0…%I3.7, %I5.0…%I5.3, %I8.2/%I8.3.</p>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-prozess" open>
+      <summary><h2>Prozess</h2></summary>
+      <div class="inhalt">
+        <div class="proc">
+          <div class="gauge">
+            <div class="top"><span>Zinn −BT1</span><b id="g-temp">– °C</b></div>
+            <div class="bar"><i class="hot" id="g-temp-bar"></i><em id="g-temp-mark"></em></div>
+          </div>
+          <div class="gauge">
+            <div class="top"><span>Füllhöhe −BL1</span><b id="g-level">– %</b></div>
+            <div class="bar"><i id="g-level-bar"></i><em id="g-level-mark"></em></div>
+          </div>
+          <div class="gauge">
+            <div class="top"><span>Kühlwasser −BL2</span><b id="g-wasser">– %</b></div>
+            <div class="bar"><i class="wasser" id="g-wasser-bar"></i><em id="g-wasser-min"></em><em id="g-wasser-max"></em></div>
+          </div>
+        </div>
+        <div class="btnrow">
+          <button type="button" class="btn" id="btn-heizung" aria-pressed="true">Heizung ein</button>
+          <button type="button" class="btn" id="btn-fuellen">Zinn nachfüllen</button>
+          <button type="button" class="btn" id="btn-korb">Korb auflegen</button>
+          <button type="button" class="btn" id="btn-zufuhr" aria-pressed="true">Körbe automatisch zuführen</button>
+          <button type="button" class="btn" id="btn-ablass" aria-pressed="false" title="Störgröße: Handventil am Kühlwassertank öffnen (ca. 1 %/s)">Ablasshahn Kühlwasser</button>
+        </div>
+        <div class="btnrow" id="motorschutz" title="Störgröße: Motorschutzschalter löst aus, sein Hilfskontakt meldet 0 und der Motor steht, bis du ihn zurücksetzt"></div>
+        <div class="btnrow" id="drahtbruch" title="Störgröße: Leitung zum Analogsensor unterbrochen, die Analogbaugruppe meldet 7FFF (32767) statt des Messwerts"></div>
+        <p class="hint" id="bad-info"></p>
+        <p class="hint" id="kw-info"></p>
+        <div class="param">
+          <label for="p-tauch">Tauchzeit (Rezept)</label><output id="o-tauch" for="p-tauch">10 s</output>
+          <input type="range" id="p-tauch" min="2" max="30" step="1" value="10">
+          <label for="p-tropf">Abtropfzeit (Rezept)</label><output id="o-tropf" for="p-tropf">10 s</output>
+          <input type="range" id="p-tropf" min="2" max="30" step="1" value="10">
+        </div>
+        <p class="hint">Die Demo-SPS und das Portal „automatisch“ tauchen und tropfen so lange. Steuert dein Programm das Portal, prüft der Zwilling, ob es die Zeiten einhält: Ist ein Korb kürzer getaucht oder abgetropft (0,5 s Toleranz), ist er mangelhaft.</p>
+        <div class="param">
+          <label for="p-speed">Geschwindigkeit aller Zylinder</label><output id="o-speed" for="p-speed">100 %</output>
+          <input type="range" id="p-speed" min="0.3" max="2" step="0.1" value="1">
+        </div>
+        <p class="hint">Jeden Zylinder einzeln stellen die Drosselrückschlagventile an seinen Anschlüssen: Klick auf ein Ventil in der 3D-Ansicht oder „Groß öffnen“ im Weg-Zeit-Diagramm.</p>
+        <p class="hint">Jedes Tauchen verbraucht Zinn. Unter 40&nbsp;% meldet −BG10 „Füllhöhe unterschritten“, unter 250&nbsp;°C fällt −BG9 ab. Temperatur (−BT1, 0…400&nbsp;°C) und Füllstand (−BL1, 0…100&nbsp;%) liegen zusätzlich als Analogwerte 0…27648 an.</p>
+        <p class="hint">Jedes Abschrecken verbraucht Kühlwasser, heiße Körbe verdampfen zusätzlich. Grenzschalter Liquiphant: −BG38 = 1, solange Wasser über Minimum (25&nbsp;%) steht, −BG39 = 1, solange Maximum (90&nbsp;%) nicht erreicht ist (Ruhestrom: Drahtbruch meldet wie leer bzw. voll); den Füllstand misst der Radar −BL2 stetig; unter 8&nbsp;% läuft die Pumpe −MA3 trocken. Der Ablasshahn ist eine Störgröße zum Testen der Regelung.</p>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-diagramm">
+      <summary><h2>Weg-Zeit-Diagramm (live, 60&nbsp;s)</h2></summary>
+      <div class="inhalt">
+        <canvas id="wz" aria-label="Weg-Zeit-Diagramm aller Zylinder"></canvas>
+        <div class="legend"><span>−60 s</span><span>Schrittnummern der Demo-SPS oben</span><span>jetzt</span></div>
+        <button type="button" class="btn" id="btn-wz-gross">Groß öffnen · Messlinien · Drosseln</button>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-ereignisse" open>
+      <summary><h2>Ereignisse</h2></summary>
+      <div class="inhalt">
+        <ul class="events" id="events"><li class="empty">Noch keine Ereignisse.</li></ul>
+      </div>
+    </details>
+
+    <details class="sec" id="sec-monitor">
+      <summary><h2>Signalmonitor</h2></summary>
+      <div class="inhalt">
+        <div class="mon-head">
+          <input type="search" id="mon-filter" placeholder="Filtern …" aria-label="Signale filtern">
+          <select id="mon-format" aria-label="Anzeigeformat für Byte und Wort" title="Anzeigeformat für Byte und Wort">
+            <option value="dez">Dez</option><option value="hex">Hex</option><option value="bin">Bin</option>
+          </select>
+          <label class="opt" for="mon-bytes"><input type="checkbox" id="mon-bytes"> Bytes zeigen</label>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th></th><th>Signal</th><th>Adresse</th><th>Forcen</th></tr></thead>
+            <tbody id="mon-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+  </aside>
+</div>
+<section class="fenster fu-fenster" id="fuf" role="dialog" aria-labelledby="fuf-titel" hidden>
+  <header class="fenster-kopf" id="fuf-kopf">
+    <b id="fuf-titel">Umrichter · SINAMICS G120 · Standardtelegramm 1</b>
+    <div class="seg klein fu-wahl" id="fu-wahl" role="group" aria-label="Umrichter wählen"></div>
+    <button type="button" class="btn" id="fu-ueberlast" title="Störung F30005 im Umrichter auslösen (sofort quittierbar)">Störung Überlast</button>
+    <button type="button" class="btn" id="fu-heiss" aria-pressed="false" title="Kaltleiter im Motor spricht an: F07011, quittierbar erst nach dem Abkühlen">Motor überhitzt</button>
+    <button type="button" class="side-mini side-x" id="fuf-zu" aria-label="Fenster schließen" title="Schließen (Esc)">×</button>
+  </header>
+  <div class="fu-inhalt">
+    <div class="g120" role="group" aria-label="Frontansicht Umrichter (SINAMICS G120)">
+      <div class="g120-cu">
+        <div class="iop">
+          <div class="iop-marke">SIEMENS</div>
+          <canvas class="iop-display" id="iop-display" width="320" height="240" aria-label="Display Bedienpanel IOP-2"></canvas>
+          <div class="iop-reihe">
+            <button type="button" class="iop-taste klein" data-taste="esc" title="ESC: zurück zur Statusanzeige">ESC</button>
+            <button type="button" class="iop-rad" id="iop-rad" title="Drehrad: Mausrad, Pfeiltasten oder Klick auf den linken/rechten Rand drehen, Mitte drücken = OK" aria-label="Drehrad"><span class="iop-ok">OK</span></button>
+            <button type="button" class="iop-taste klein" data-taste="info" title="INFO: Diagnose (Störungen und Warnungen)">INFO</button>
+          </div>
+          <div class="iop-reihe unten">
+            <button type="button" class="iop-taste ein" data-taste="ein" title="EIN (nur in HAND)" aria-label="EIN">I</button>
+            <button type="button" class="iop-taste hand" data-taste="handAuto" id="iop-hand" title="Umschalten HAND / AUTO" aria-label="HAND/AUTO" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-6.5V4a1.5 1.5 0 0 1 3 0v7m0-6a1.5 1.5 0 0 1 3 0v6m0-3.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1.2a6 6 0 0 1-4.6-2.2L3.3 15.4a1.6 1.6 0 0 1 2.4-2.1L8 15.5"/></svg>
+            </button>
+            <button type="button" class="iop-taste aus" data-taste="aus" title="AUS (AUS1, nur in HAND)" aria-label="AUS">O</button>
+          </div>
+        </div>
+        <div class="g120-leds">
+          <span><i class="fu-led" id="fu-led-rdy"></i>RDY</span>
+          <span><i class="fu-led" id="fu-led-bf"></i>BF</span>
+          <span><i class="fu-led" id="fu-led-safe"></i>SAFE</span>
+        </div>
+        <div class="g120-klappe"><b>SINAMICS</b><small>CU240E-2 PN</small></div>
+      </div>
+      <div class="g120-pm"><b>PM240-2</b><small>FSA · 0,37 kW · 3 AC 400 V</small><small class="klemmen">U2 V2 W2 · L1 L2 L3 · PE</small></div>
+      <div class="g120-ports"><span><i class="fu-led" id="fu-led-lnk"></i>X150 P1</span><span><i class="fu-led"></i>P2</span></div>
+      <p class="g120-hinweis">Tasten bedienbar · Mausrad am Drehrad</p>
+    </div>
+    <div class="fu-telegramm">
+      <div class="fu-zustaende" id="fu-zustaende"></div>
+      <div class="fu-woerter">
+        <div class="fu-wort">
+          <div class="fu-wort-kopf"><b>STW1</b><span>SPS → Umrichter · <span id="fu-adr-stw">%QW256</span></span><code id="fu-stw-hex">16#0000</code></div>
+          <ol class="fu-bits" id="fu-stw-bits"></ol>
+          <div class="fu-wort-kopf"><b>NSOLL_A</b><span>Drehzahlsollwert · <span id="fu-adr-nsoll">%QW258</span></span><code id="fu-nsoll-hex">16#0000</code></div>
+          <p class="fu-zahl" id="fu-nsoll-wert">0</p>
+        </div>
+        <div class="fu-wort">
+          <div class="fu-wort-kopf"><b>ZSW1</b><span>Umrichter → SPS · <span id="fu-adr-zsw">%IW256</span></span><code id="fu-zsw-hex">16#0000</code></div>
+          <ol class="fu-bits" id="fu-zsw-bits"></ol>
+          <div class="fu-wort-kopf"><b>NIST_A</b><span>Drehzahlistwert · <span id="fu-adr-nist">%IW258</span></span><code id="fu-nist-hex">16#0000</code></div>
+          <p class="fu-zahl" id="fu-nist-wert">0</p>
+        </div>
+      </div>
+      <p class="hint" id="fu-hinweis"></p>
+    </div>
+  </div>
+  <div class="fu-verlauf">
+    <div class="fu-verlauf-kopf">
+      <b>Rampen live</b>
+      <span class="fu-legende"><i class="soll"></i>Sollwert NSOLL_A</span>
+      <span class="fu-legende"><i class="wirk"></i>wirksamer Sollwert (Hochlaufgeber-Eingang)</span>
+      <span class="fu-legende"><i class="ist"></i>Istdrehzahl NIST_A</span>
+      <label class="chip-sel"><span>Zeitfenster</span><select id="fu-spanne" aria-label="Zeitfenster">
+        <option value="10">10 s</option><option value="20" selected>20 s</option><option value="60">60 s</option>
+      </select></label>
+    </div>
+    <canvas id="fu-kurve" aria-label="Verlauf von Sollwert und Istdrehzahl des Umrichters"></canvas>
+  </div>
+</section>
+<!-- Grafikeinstellungen: öffnet sich über dem Knopf „Grafik“ in der unteren Leiste -->
+<section class="grafik-fenster" id="grafik-fenster" role="dialog" aria-labelledby="grafik-titel" hidden>
+  <header class="gf-kopf"><b id="grafik-titel">Grafik</b><button class="gf-zu" id="grafik-zu" type="button" aria-label="Schließen">×</button></header>
+  <div class="gf-zeile">
+    <span class="gf-name">Qualität<small>Auto passt die Stufe an die Bildrate an</small></span>
+    <div class="gf-wahl" id="gf-qualitaet" role="radiogroup" aria-label="Qualität">
+      <button type="button" role="radio" data-modus="auto">Auto</button><button type="button" role="radio" data-modus="hoch">Hoch</button><button type="button" role="radio" data-modus="mittel">Mittel</button><button type="button" role="radio" data-modus="niedrig">Niedrig</button>
+    </div>
+  </div>
+  <div class="gf-zeile">
+    <span class="gf-name">Bildrate begrenzen<small>Schont Grafikkarte und Lüfter bei Monitoren mit 120 Hz und mehr</small></span>
+    <div class="gf-wahl" id="gf-fps" role="radiogroup" aria-label="Bildrate begrenzen">
+      <button type="button" role="radio" data-fps="0">Aus</button><button type="button" role="radio" data-fps="60">60 fps</button><button type="button" role="radio" data-fps="30">30 fps</button>
+    </div>
+  </div>
+  <label class="gf-zeile"><span class="gf-name">Spiegelungen<small>Metall spiegelt die Halle (wirkt in Stufe Hoch)</small></span><input type="checkbox" id="gf-spiegelung"></label>
+  <label class="gf-zeile"><span class="gf-name">Tiefenschatten<small>Verschattung in Ecken, Nuten und Spalten – kostet Grafikleistung</small></span><input type="checkbox" id="gf-tiefenschatten"></label>
+  <p class="gf-gpu" id="gf-gpu"></p>
+</section>
+
+<section class="fenster" id="wzf" role="dialog" aria-labelledby="wzf-titel" hidden>
+  <header class="fenster-kopf" id="wzf-kopf">
+    <b id="wzf-titel">Weg-Zeit-Diagramm · Drosseln</b>
+    <label class="chip-sel"><span>Zeitfenster</span><select id="wzf-spanne" aria-label="Zeitfenster">
+      <option value="5">5 s</option><option value="10">10 s</option><option value="30" selected>30 s</option><option value="60">60 s</option><option value="120">120 s</option>
+    </select></label>
+    <button type="button" class="btn" id="wzf-halt" aria-pressed="false">Anhalten</button>
+    <button type="button" class="btn" id="wzf-linien-weg">Messlinien löschen</button>
+    <button type="button" class="side-mini side-x" id="wzf-zu" aria-label="Fenster schließen" title="Schließen (Esc)">×</button>
+  </header>
+  <p class="wzf-mess" id="wzf-mess" aria-live="polite"></p>
+  <canvas id="wzf-canvas" aria-label="Weg-Zeit-Diagramm aller Zylinder mit Messlinien"></canvas>
+  <div class="drosseln">
+    <div class="drosseln-kopf">
+      <b>Drosselrückschlagventile</b>
+      <span class="hint">Abluftdrosselung · 50&nbsp;% = Nennzeit, 100&nbsp;% = doppelt so schnell, 0&nbsp;% = zu</span>
+      <button type="button" class="btn" id="dr-grund">Alle auf 50&nbsp;%</button>
+    </div>
+    <div class="drosseln-liste" id="dr-liste"></div>
+  </div>
+</section>
+<script type="module" src="./main.js"></script>
+</body>
+</html>

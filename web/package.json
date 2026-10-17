@@ -1,0 +1,16 @@
+{
+  "name": "zwilling-zinnbad",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Digitaler Zwilling Zinnbad – baut src/ zu einer einzigen index.html",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "devDependencies": {
+    "acorn": "^8.18.0",
+    "acorn-walk": "^8.3.5",
+    "esbuild": "^0.28.2",
+    "playwright-core": "^1.63.0"
+  }
+}

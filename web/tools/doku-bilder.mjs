@@ -1,0 +1,120 @@
+// Doku-Bilder für docs/bilder/ (1400 × 788, Grafikstufe Hoch, Tiefenschatten an, Demo ohne SPS).
+// Seitenleiste nur bei den Bildern in MIT_LEISTE offen, sonst zeigt das Bild die ganze 3D-Ansicht.
+//   node tools/doku-bilder.mjs [name ...] [--ohne-tiefenschatten]   ohne Namen: alle; z. B. 03-schaltschrank 11-umrichter
+// Läuft mit sichtbarem Chrome-Fenster: nur so rendert die Stufe Hoch (Schatten, Schrankleuchte) mit der echten Grafikkarte.
+import { chromium } from 'playwright-core';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import path from 'node:path';
+
+const dir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const ziel = path.join(dir, '..', 'docs', 'bilder');
+const wahl = process.argv.slice(2).filter(a => !a.startsWith('--'));
+const tiefenschatten = !process.argv.includes('--ohne-tiefenschatten');
+const browser = await chromium.launch({ headless: false, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', args: ['--allow-file-access-from-files', '--window-size=1420,900'] });
+const fehler = [];
+const MIT_LEISTE = ['08-signalmonitor', '09-weg-zeit-diagramm', '13-vorort-pruefband', '14-kuehlwassertank'];
+
+async function seite(name) {
+  const p = await browser.newPage({ viewport: { width: 1400, height: 788 } });
+  p.on('pageerror', (e) => fehler.push(e.message));
+  await p.addInitScript((ts) => { try { localStorage.setItem('zinnbad-grafik', 'hoch'); localStorage.setItem('zinnbad-tiefenschatten', ts ? '1' : '0'); } catch {} }, tiefenschatten);
+  await p.goto(pathToFileURL(path.join(dir, 'index.html')).href);
+  await p.waitForFunction(() => window.__zwilling, null, { timeout: 30000 });
+  await p.waitForTimeout(2500);
+  // Hilfe zu, Seitenleiste je nach Bild, alle vier Förderer am Umrichter
+  await p.evaluate((leiste) => {
+    document.getElementById('legende-zu')?.click();
+    if (!leiste) document.getElementById('side-zu').click();
+    for (const b of document.querySelectorAll('[data-art=fu]')) b.click();
+  }, MIT_LEISTE.includes(name));
+  return p;
+}
+const ansicht = async (p, key) => { await p.selectOption('#ansicht-wahl', key); await p.waitForTimeout(1600); };
+const welt = (p, x, y, z) => p.evaluate(([x, y, z]) => window.__zwilling.anlage.localToWorld(new window.__zwilling.THREE.Vector3(x, y, z)).toArray(), [x, y, z]);
+const speichern = (p, name) => p.screenshot({ path: path.join(ziel, name + '.jpg'), type: 'jpeg', quality: 86 });
+
+// Seitenleiste: nur die genannten Bereiche offen
+const bereiche = (p, offen) => p.evaluate((offen) => { for (const d of document.querySelectorAll('#side details.sec')) d.open = offen.includes(d.id); document.getElementById(offen[0])?.scrollIntoView(); }, offen);
+
+const BILDER = {
+  // Gesamtansicht nach etwas Betrieb (Körbe auf der Linie)
+  '01-gesamtanlage': async (p) => { await p.waitForTimeout(20000); await ansicht(p, 'gesamt'); },
+  '02-bedienpult': async (p) => { await p.waitForTimeout(5000); await ansicht(p, 'pult'); },
+  '04-zinnbad': async (p) => { await p.waitForTimeout(12000); await ansicht(p, 'bad'); },
+  '05-rollenkurve': async (p) => { await p.waitForTimeout(25000); await ansicht(p, 'kurve'); },
+  '07-spruehkuehlung': async (p) => { await p.waitForTimeout(30000); await ansicht(p, 'kuehlung'); },
+  // Linie von oben, Seitenleiste mit Prozesswerten
+  '08-signalmonitor': async (p) => { await p.waitForTimeout(20000); await bereiche(p, ['sec-verbindung', 'sec-prozess']); await ansicht(p, 'linie'); },
+  // Weg-Zeit-Diagramm groß mit Drosseln nach einem Zyklus
+  '09-weg-zeit-diagramm': async (p) => { await p.waitForTimeout(32000); await bereiche(p, ['sec-prozess', 'sec-diagramm']); await p.click('#btn-wz-gross'); await p.waitForTimeout(1200); },
+  // Drosselrückschlagventile am Anschlag −MM5 (Zylinder am Übergabeplatz)
+  '10-drosselventile': async (p) => {
+    await p.waitForTimeout(5000);
+    // Kamera vor die beiden Drosseln von −MM5 (Klickflächen der Ventile) vorn am Schwenkantrieb, etwas von oben und +x
+    await p.evaluate(() => {
+      const z = window.__zwilling, T = z.THREE, punkte = [];
+      z.scene.updateMatrixWorld(true);
+      z.scene.traverse((o) => { if (o.userData.art === 'drossel' && o.userData.taster === 'MM5') punkte.push(o.getWorldPosition(new T.Vector3())); });
+      const mitte = punkte.reduce((a, b) => a.add(b), new T.Vector3()).multiplyScalar(1 / punkte.length);
+      z.cam(mitte.x + 0.09, mitte.y + 0.07, mitte.z - 0.2, mitte.x, mitte.y - 0.01, mitte.z);
+    });
+    await p.waitForTimeout(1600);
+  },
+  // Schaltschrank offen: S7-1500, Schütze, Klemmen, unten die Umrichter −TA2…−TA5
+  // Kamera gerade vor den Schrank: der Knopf allein zeigt ohne Seitenleiste Bedienpult und Lichtvorhangsäule davor
+  '03-schaltschrank': async (p) => {
+    await p.waitForTimeout(8000);
+    await p.click('#btn-schrank'); await p.waitForTimeout(3500);
+    await p.evaluate(([a, b]) => window.__zwilling.cam(...a, ...b), [await welt(p, -1300, 1150, 2300), await welt(p, -1385, 1000, -230)]);
+    await p.waitForTimeout(1600);
+  },
+  '06-pruefstation': async (p) => { await p.waitForTimeout(30000); await ansicht(p, 'pruefung'); },
+  // Fenster „Umrichter“ mit Rampen: −TA2 nach einigen Fahrten des Bandmoduls
+  '11-umrichter': async (p) => {
+    await p.waitForTimeout(25000);
+    await p.evaluate(() => { document.getElementById('btn-fu').click(); });
+    await p.click('#fu-wahl button:nth-child(1)');
+    await p.evaluate(() => { const f = document.getElementById('fuf'); f.style.left = '12px'; f.style.top = '8px'; f.style.width = '1030px'; f.style.height = '772px'; });
+    await p.waitForTimeout(1500);
+  },
+  // Nahaufnahme der vier G120 im Schaltschrank
+  '12-umrichter-schrank': async (p) => {
+    await p.waitForTimeout(8000);
+    await p.click('#btn-schrank'); await p.waitForTimeout(3500);
+    await p.evaluate(([a, b]) => window.__zwilling.cam(...a, ...b), [await welt(p, -1385, 590, 470), await welt(p, -1374, 470, -230)]);
+    await p.waitForTimeout(1600);
+  },
+  // Vor-Ort-Steuerstelle −S50: Prüfband auf 60 % über das Potentiometer, Seitenleiste mit −S50 offen
+  '13-vorort-pruefband': async (p) => {
+    await p.evaluate(async () => {
+      const z = window.__zwilling, warte = (ms) => new Promise(r => setTimeout(r, ms));
+      document.getElementById('sa7').click();
+      const r = document.getElementById('sf47'); r.value = 60; r.dispatchEvent(new Event('input'));
+      z.st.bedien.sf45 = true; await warte(300); z.st.bedien.sf45 = false;
+      for (const d of document.querySelectorAll('#side details.sec')) d.open = d.id === 'sec-vorort';
+      document.getElementById('sec-s50').open = true;
+      for (const d of document.querySelectorAll('#sec-vorort details.sub')) if (d.id !== 'sec-s50') d.open = false;
+      document.getElementById('sec-vorort').scrollIntoView();
+    });
+    await ansicht(p, 's50');
+    await p.waitForTimeout(2500);
+  },
+  // Kühlwassertank: Nachspeisung über die (Demo-)SPS, Ablasshahn offen, Seitenleiste mit Prozesswerten
+  '14-kuehlwassertank': async (p) => {
+    await p.evaluate(() => { document.getElementById('kw-sps').click(); document.getElementById('btn-ablass').click(); });
+    await p.waitForTimeout(25000);
+    await bereiche(p, ['sec-prozess']);
+    await ansicht(p, 'kuehlwasser');
+  },
+};
+
+for (const [name, vorbereiten] of Object.entries(BILDER)) {
+  if (wahl.length && !wahl.includes(name)) continue;
+  const p = await seite(name);
+  await vorbereiten(p);
+  await speichern(p, name);
+  console.log('geschrieben:', name + '.jpg');
+  await p.close();
+}
+console.log(fehler.length ? fehler.join('\n') : 'Keine Seitenfehler.');
+await browser.close();

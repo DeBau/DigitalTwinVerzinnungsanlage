@@ -1,0 +1,4 @@
+Industrial Workshop Foundry (HDRI)
+Quelle: https://polyhaven.com/a/industrial_workshop_foundry
+Lizenz: CC0 1.0 Universal (Public Domain), https://creativecommons.org/publicdomain/zero/1.0/
+Verwendet in halle_hdr.js, auf 512×256 Pixel verkleinert.
