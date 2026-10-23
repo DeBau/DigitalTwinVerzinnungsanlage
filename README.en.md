@@ -4,10 +4,7 @@
 
 ## Digital Twin Pro
 
-This is the Community version. This release is no longer developed; current development takes
-place in **Digital Twin Pro**:
-[bauer-automation-solutions.de](https://www.bauer-automation-solutions.de/digitaler-zwilling).
-The robot cell, the exercise handbook, editors, updates and support come with it.
+This is the Community version. The robot cell, the exercise handbook, editors, updates and support come with **Digital Twin Pro**: [bauer-automation-solutions.de](https://www.bauer-automation-solutions.de/digitaler-zwilling).
 
 ![The modules of Digital Twin Pro](docs/bilder/pro-module.png)
 

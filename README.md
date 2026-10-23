@@ -4,10 +4,7 @@
 
 ## Digitaler Zwilling Pro
 
-Das ist die Community-Version. Dieser Stand wird nicht mehr weiterentwickelt, die aktuelle
-Entwicklung findet im **Digitalen Zwilling Pro** statt:
-[bauer-automation-solutions.de](https://www.bauer-automation-solutions.de/digitaler-zwilling).
-Roboterzelle, Übungshandbuch, Editoren, Updates und Support gibt es dort.
+Das ist die Community-Version. Roboterzelle, Übungshandbuch, Editoren, Updates und Support gibt es im **Digitalen Zwilling Pro**: [bauer-automation-solutions.de](https://www.bauer-automation-solutions.de/digitaler-zwilling).
 
 ![Die Module des Digitalen Zwillings Pro](docs/bilder/pro-module.png)
 
