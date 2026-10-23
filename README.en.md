@@ -2,8 +2,28 @@
 
 # Digital Twin: Tinning Line
 
-> This is the Community version. The robot cell, the exercise handbook, editors, updates and support come with
-> **Digital Twin Pro**: [bauer-automation-solutions.de](https://www.bauer-automation-solutions.de/digitaler-zwilling)
+## Digital Twin Pro
+
+This is the Community version. This release is no longer developed; current development takes
+place in **Digital Twin Pro**:
+[bauer-automation-solutions.de](https://www.bauer-automation-solutions.de/digitaler-zwilling).
+The robot cell, the exercise handbook, editors, updates and support come with it.
+
+![The modules of Digital Twin Pro](docs/bilder/pro-module.png)
+
+What Pro adds:
+
+- **Six modules:** bauBridge, bauClient, bauLink, bauEditor, bauLearn and bauRobot.
+- **Robot cell** with a KR 10; you operate the smartPAD on a tablet or on your PC.
+- **Exercise handbook** with 37 exercises, explained step by step.
+- **Editors** for GRAFCET, circuit diagrams and pneumatics.
+- **Coupling** with S7-PLCSIM (beta) and S7-PLCSIM Advanced, in sync with the plant.
+- **Automatic updates and support.** bauControl and bauOPC are coming soon.
+
+[Community and Pro compared](https://www.bauer-automation-solutions.de/digitaler-zwilling/versionen) ·
+[Request a demo](https://www.bauer-automation-solutions.de/demo)
+
+---
 
 **A complete industrial plant in your browser, coupled to a virtual S7-1500.**
 Your TIA program controls it through ordinary inputs and outputs: no hardware, no risk,
@@ -179,27 +199,6 @@ docs/                       documentation and images
 | **With PLC** | Windows 10/11, S7-PLCSIM Advanced V3.0 or later, TIA Portal V16 or later |
 | **Hardware** | Any graphics from Intel UHD upward; the graphics level adjusts automatically to the frame rate. Laptops with an NVIDIA or AMD card: set the browser to *High performance* in Windows, see [Commissioning](docs/01-inbetriebnahme.en.md#set-the-browser-to-the-powerful-graphics-card-important-on-laptops) |
 | **Not required** | Installation, internet connection, license file or runtime environment for the twin itself |
-
----
-
-## Digital Twin Pro
-
-This Community release is no longer developed. Current development takes place in
-**Digital Twin Pro**.
-
-![The modules of Digital Twin Pro](docs/bilder/pro-module.png)
-
-What Pro adds:
-
-- **Six modules:** bauBridge, bauClient, bauLink, bauEditor, bauLearn and bauRobot.
-- **Robot cell** with a KR 10; you operate the smartPAD on a tablet or on your PC.
-- **Exercise handbook** with 37 exercises, explained step by step.
-- **Editors** for GRAFCET, circuit diagrams and pneumatics.
-- **Coupling** with S7-PLCSIM (beta) and S7-PLCSIM Advanced, in sync with the plant.
-- **Automatic updates and support.** bauControl and bauOPC are coming soon.
-
-[Community and Pro compared](https://www.bauer-automation-solutions.de/digitaler-zwilling/versionen) ·
-[Request a demo](https://www.bauer-automation-solutions.de/demo)
 
 ---
 
