@@ -2,6 +2,9 @@
 
 # Digitaler Zwilling – Verzinnungsanlage
 
+> Das ist die Community-Version. Roboterzelle, Übungshandbuch, Editoren, Updates und Support gibt es im
+> **Digitalen Zwilling Pro**: [bauer-automation-solutions.de](https://www.bauer-automation-solutions.de/digitaler-zwilling)
+
 **Eine komplette Industrieanlage im Browser, gekoppelt an eine virtuelle S7-1500.**
 Dein TIA-Programm steuert sie über ganz normale Ein- und Ausgänge – ohne Hardware, ohne Risiko,
 ohne Wartezeit am Prüfstand.
@@ -176,6 +179,27 @@ docs/                       Dokumentation und Bilder
 | **Mit SPS** | Windows 10/11, S7-PLCSIM Advanced V3.0 oder neuer, TIA Portal V16 oder neuer |
 | **Hardware** | Jede Grafik ab Intel UHD; die Grafikstufe regelt sich automatisch nach der Bildrate. Laptops mit NVIDIA- oder AMD-Karte: Browser in Windows auf *Hohe Leistung* stellen, siehe [Inbetriebnahme](docs/01-inbetriebnahme.md#starke-grafikkarte-für-den-browser-einstellen-wichtig-bei-laptops) |
 | **Keine** | Installation, Internetverbindung, Lizenzdatei oder Laufzeitumgebung für den Zwilling selbst |
+
+---
+
+## Digitaler Zwilling Pro
+
+Dieser Community-Stand wird nicht mehr weiterentwickelt. Die aktuelle Entwicklung findet im
+**Digitalen Zwilling Pro** statt.
+
+![Die Module des Digitalen Zwillings Pro](docs/bilder/pro-module.png)
+
+Was Pro zusätzlich bietet:
+
+- **Sechs Module:** bauBridge, bauClient, bauLink, bauEditor, bauLearn und bauRobot.
+- **Roboterzelle** mit einem KR 10, das smartPAD bedienst du auf dem Tablet oder am PC.
+- **Übungshandbuch** mit 37 Übungen, Schritt für Schritt erklärt.
+- **Editoren** für GRAFCET, Stromlaufplan und Pneumatik.
+- **Kopplung** mit S7-PLCSIM (beta) und S7-PLCSIM Advanced, synchron zur Anlage.
+- **Automatische Updates und Support.** Bald kommen bauControl und bauOPC dazu.
+
+[Community und Pro im Vergleich](https://www.bauer-automation-solutions.de/digitaler-zwilling/versionen) ·
+[Demo anfragen](https://www.bauer-automation-solutions.de/demo)
 
 ---
 
